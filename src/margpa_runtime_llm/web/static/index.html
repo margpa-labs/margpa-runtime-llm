@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nazuna Research Governance LLM プレビュー</title>
+    <link rel="stylesheet" href="/assets/app.css" />
+    <script src="/assets/app.js" type="module"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Nazuna Research Governance LLM</p>
+          <h1>MARGPA Runtime LLM</h1>
+          <p id="runtime-status" class="runtime-status">Runtimeを確認しています…</p>
+        </div>
+        <div class="topbar-actions">
+          <div id="ui-language-switcher" class="language-switcher" role="group" aria-label="表示言語">
+            <button id="ui-language-ja" class="language-button" type="button" aria-pressed="true">
+              日本語
+            </button>
+            <span aria-hidden="true">|</span>
+            <button id="ui-language-en" class="language-button" type="button" aria-pressed="false">
+              English
+            </button>
+          </div>
+          <button id="new-chat" class="secondary" type="button">新規Chat</button>
+        </div>
+      </header>
+
+      <section id="preview-note" class="preview-note" aria-label="プレビュー利用上の注意">
+        この画面は少人数検証用のPreviewです。Basic認証は本番Account機能ではありません。
+      </section>
+
+      <section id="messages" class="messages" aria-live="polite" aria-label="Chatメッセージ">
+        <div class="empty-state" id="empty-state">
+          <h2 id="empty-title">一時的なChatを開始</h2>
+          <p id="empty-note">会話はこのBrowser TabのMemoryだけに保持され、Reloadで失われます。</p>
+        </div>
+      </section>
+
+      <section id="composer" class="composer" aria-label="メッセージ入力">
+        <label id="prompt-label" for="prompt">メッセージ</label>
+        <textarea id="prompt" rows="4" placeholder="メッセージを入力してください"></textarea>
+        <div class="actions">
+          <span id="generation-status" role="status">待機中</span>
+          <span id="shortcut-hint" class="shortcut-hint">Cmd+Enter／Ctrl+Enterで送信</span>
+          <button id="stop" class="secondary" type="button" disabled>停止</button>
+          <button id="send" class="primary" type="button">送信</button>
+        </div>
+      </section>
+
+      <aside id="settings" class="settings" aria-label="生成設定">
+        <h2 id="settings-title">設定</h2>
+        <label>
+          <span id="response-language-label">回答言語</span>
+          <select id="response-language">
+            <option id="response-language-ja" value="ja">日本語（ja）</option>
+            <option id="response-language-en" value="en">英語（en）</option>
+            <option id="response-language-auto" value="auto">自動（auto）</option>
+          </select>
+        </label>
+        <label>
+          <span id="max-new-tokens-label">最大生成Token数</span>
+          <input id="max-new-tokens" type="number" min="1" max="2048" step="1" value="2048" />
+        </label>
+        <label class="switch-row">
+          <input id="thinking-mode" type="checkbox" />
+          <span id="thinking-mode-label">推論生成</span>
+        </label>
+        <label class="switch-row">
+          <input id="thinking-visibility" type="checkbox" />
+          <span id="thinking-visibility-label">推論過程を表示</span>
+        </label>
+        <fieldset class="summary-control">
+          <legend id="summary-mode-label">要約モード</legend>
+          <div class="segmented-control">
+            <label>
+              <input type="radio" name="summary-mode" value="off" checked />
+              <span id="summary-mode-off">OFF</span>
+            </label>
+            <label>
+              <input type="radio" name="summary-mode" value="post_generation" />
+              <span id="summary-mode-on">ON</span>
+            </label>
+          </div>
+        </fieldset>
+        <p id="summary-note" class="setting-note summary-note">
+          ONでは通常回答の完了後に同じModelで要約します。
+          処理時間とToken使用量が増え、要約により詳細、前提、注意事項等が省略・変形される可能性があります。
+        </p>
+        <p id="thinking-note" class="setting-note">
+          推論生成はLatency／Token使用量を増やす可能性があります。表示内容は正しさや
+          真の内部思考を保証しません。Token上限により最終回答前に停止する場合があります。
+          Raw Thinkingは永続保存しません。
+        </p>
+      </aside>
+    </main>
+  </body>
+</html>

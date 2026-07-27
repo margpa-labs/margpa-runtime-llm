@@ -1,0 +1,37 @@
+schema_version = "3"
+profile_key = "local.macos-arm64"
+verification_state = "native_verified"
+
+[host]
+operating_system_key = "macos"
+architecture_key = "arm64"
+execution_environment_key = "native"
+
+[compute]
+compute_kind_key = "gpu"
+vendor_key = "apple"
+acceleration_api_key = "metal"
+memory_topology_key = "unified"
+device_selector = "auto"
+offload_policy_key = "full_or_backend_auto"
+
+[backend_runtime]
+backend_key = "llama_cpp"
+required_version = "0.3.34"
+build_variant_key = "metal"
+execution_mode_key = "in_process"
+
+[runtime_requirements]
+required_capabilities = ["gpu_offload"]
+required_device_kind = "gpu"
+required_acceleration_api = "metal"
+fallback_policy = "deny"
+
+[load_overrides]
+batch_size = 256
+micro_batch_size = 256
+threads = 6
+threads_batch = 6
+gpu_layers = -1
+use_mmap = true
+use_mlock = false

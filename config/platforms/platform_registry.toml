@@ -1,0 +1,40 @@
+schema_version = "2"
+execution_environment_keys = ["native", "container"]
+
+[[operating_system_aliases]]
+raw_value = "darwin"
+canonical_key = "macos"
+
+[[operating_system_aliases]]
+raw_value = "macos"
+canonical_key = "macos"
+
+[[operating_system_aliases]]
+raw_value = "windows"
+canonical_key = "windows"
+
+[[operating_system_aliases]]
+raw_value = "linux"
+canonical_key = "linux"
+
+[[architecture_aliases]]
+raw_value = "arm64"
+canonical_key = "arm64"
+
+[[architecture_aliases]]
+raw_value = "aarch64"
+canonical_key = "arm64"
+
+[[architecture_aliases]]
+raw_value = "amd64"
+canonical_key = "x86_64"
+
+[[architecture_aliases]]
+raw_value = "x86_64"
+canonical_key = "x86_64"
+
+[[profile_defaults]]
+operating_system_key = "macos"
+architecture_key = "arm64"
+execution_environment_key = "native"
+profile_path = "config/profiles/local_macos_arm64.toml"

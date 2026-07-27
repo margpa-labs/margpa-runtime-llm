@@ -1,0 +1,63 @@
+[build-system]
+requires = ["uv_build>=0.11.29,<0.12"]
+build-backend = "uv_build"
+
+[project]
+name = "margpa-runtime-llm"
+version = "0.0.0"
+description = "Model-independent runtime governance LLM prototype"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "psutil==7.2.2",
+    "pydantic==2.13.4",
+    "pydantic-settings==2.14.2",
+]
+
+[project.scripts]
+margpa-llm = "margpa_runtime_llm.entrypoints.cli.main:main"
+margpa-web = "margpa_runtime_llm.entrypoints.web.main:main"
+
+[project.optional-dependencies]
+inference-llama = [
+    "llama-cpp-python==0.3.34",
+]
+web = [
+    "fastapi==0.139.2",
+    "uvicorn==0.51.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx==0.28.1",
+    "mypy==2.3.0",
+    "pytest==9.1.1",
+    "pytest-asyncio==1.4.0",
+    "pytest-cov==7.1.0",
+    "ruff==0.15.22",
+]
+notebook = [
+    "ipykernel==7.3.0",
+    "jupyterlab==4.6.1",
+    "notebook==7.6.0",
+]
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-markers -m 'not model_smoke'"
+testpaths = ["tests"]
+markers = [
+    "model_smoke: requires the local Qwen3 GGUF model and a native backend",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["B", "E", "F", "I", "RUF", "UP"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+mypy_path = "src"
+files = ["src", "scripts", "tests"]
+exclude = ['^\.venv/']

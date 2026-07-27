@@ -1,0 +1,38 @@
+schema_version = "3"
+profile_key = "external.lightning-linux-x86_64.cpu-native"
+verification_state = "defined"
+
+[host]
+operating_system_key = "linux"
+architecture_key = "x86_64"
+execution_environment_key = "container"
+distribution_key = "ubuntu"
+
+[compute]
+compute_kind_key = "cpu"
+vendor_key = "generic"
+acceleration_api_key = "none"
+memory_topology_key = "cpu_ram"
+device_selector = "auto"
+offload_policy_key = "disabled"
+
+[backend_runtime]
+backend_key = "llama_cpp"
+required_version = "0.3.34"
+build_variant_key = "cpu"
+execution_mode_key = "in_process"
+
+[runtime_requirements]
+required_capabilities = []
+required_device_kind = "cpu"
+required_acceleration_api = "none"
+fallback_policy = "deny"
+
+[load_overrides]
+batch_size = 256
+micro_batch_size = 256
+threads = 4
+threads_batch = 4
+gpu_layers = 0
+use_mmap = true
+use_mlock = false
