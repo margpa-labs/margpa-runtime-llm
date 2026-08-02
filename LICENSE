@@ -10,8 +10,8 @@ configuration, and other materials in this repository for which Nazuna Research
 holds the necessary rights ("Repository Materials").
 
 Model weights, third-party software, third-party datasets, external services,
-and separately identified governance definitions are not licensed under this
-license. Their respective licenses and terms apply independently.
+and separately licensed materials are not licensed under this license. Their
+respective licenses and terms apply independently.
 
 2. Limited Permission
 
@@ -67,9 +67,9 @@ WITHOUT LIMITATION WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
 PURPOSE, TITLE, NON-INFRINGEMENT, ACCURACY, COMPLETENESS, COMPATIBILITY,
 SECURITY, SAFETY, RELIABILITY, AVAILABILITY, OR ERROR-FREE OPERATION.
 
-NAZUNA RESEARCH DOES NOT WARRANT MODEL OUTPUTS, GOVERNANCE RESULTS, GUARDRAILS,
-EVALUATIONS, REPAIRS, AUDIT INFORMATION, DOCUMENTATION, OR ANY CONFIGURATION.
-FEATURES MAY BE INCOMPLETE, DISABLED, EXPERIMENTAL, OR REMOVED WITHOUT NOTICE.
+NAZUNA RESEARCH DOES NOT WARRANT ANY OUTPUT, RESULT, EVALUATION,
+DOCUMENTATION, CONFIGURATION, OR FEATURE. MATERIALS MAY BE INCOMPLETE,
+DISABLED, EXPERIMENTAL, OR REMOVED WITHOUT NOTICE.
 
 7. Limitation of Liability
 

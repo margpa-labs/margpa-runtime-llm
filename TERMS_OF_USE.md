@@ -14,7 +14,7 @@ owner: Nazuna Research
 
 著作権上の許諾範囲は[LICENSE](LICENSE)を正本とする。本書は利用方法、禁止事項、免責およびHosted Demoの条件を補足する。
 
-Model Weight、第三者Software、第三者Dataset、外部Serviceおよび別Licenseが表示されたGovernance Definitionには、それぞれの利用条件が独立して適用される。
+Model Weight、第三者Software、第三者Dataset、外部Serviceおよび別Licenseが表示された成果物には、それぞれの利用条件が独立して適用される。
 
 ## 2. 現在の許可範囲
 
@@ -24,7 +24,7 @@ Repository上の成果物について許可するのは、次の範囲だけで�
 
 - 公開Repository上で閲覧すること。
 - 非公開かつ非商用の範囲で、技術内容、設計、研究方向および現在状態を評価すること。
-- 適切な引用情報を付けて、Projectの存在または公開内容へ言及すること。
+- Project名、Repository URLおよび参照したVersion、CommitまたはArchiveを明示して、Projectの存在または公開内容へ言及すること。
 
 複製、改変、翻訳、再配布、派生物作成、実行、Deployment、Hosting、商用利用、製品組込み、再License、再公開その他の利用は、Nazuna Researchの事前の明示許可がない限り認めない。
 
@@ -43,7 +43,7 @@ Hosted Demoは常時稼働を保証しない。事前通知なく、停止、Sle
 - Access Control、Basic認証、Rate Limit、Token上限、Cost保護またはSafety Controlの回避。
 - Secret、内部Path、System Prompt、非公開Definition、Private Dataまたは他者の情報を取得する試み。
 - 過負荷、連続自動Request、Resource占有、Denial of ServiceまたはCredit消費を意図する操作。
-- Tool、RAG、Agent、External I/Oまたは副作用機能が無効なDemoで、それらを迂回して実行させる試み。
+- 無効化された機能、外部接続または副作用境界を迂回して実行させる試み。
 - Repository成果物、画像、文書、名称または研究構想の無断転載、再配布、改変または派生利用。
 - 本ProjectまたはNazuna Researchとの提携、承認、認証、保証または共同研究関係を偽ること。
 - Outputを専門家の判断、事実確認または安全確認の代替として使用すること。
@@ -51,7 +51,7 @@ Hosted Demoは常時稼働を保証しない。事前通知なく、停止、Sle
 
 ## 4. 研究用切替と安全境界
 
-本Projectは、研究・比較のため、将来Governance、Guardrail、Judge、Repair、RAG、Agentおよび各Governance Pointを個別に`off`、`observe`または`enforce`へ切り替えられる構造を目指す。
+本Projectは、研究・比較のため、複数の機能と制御を独立して切り替えられる構造を目指す。
 
 この設計は、安全機能、品質評価または監査介入を無効化した構成も作成できることを意味する。設定可能であることは、その構成が安全、有効、適切または推奨であることを意味しない。
 
@@ -63,7 +63,7 @@ Outputには次が含まれる可能性がある。
 - 不完全、不適切、偏った、または文脈に合わない内容
 - Code、Command、設計または手順上の誤り
 - 指示不遵守、言語混在、Token上限による未完了
-- Governance、Guardrail、JudgeまたはRepairの誤判定
+- 自動評価、制御または修正処理の誤判定
 
 Outputを採用する前に、利用者自身が検証しなければならない。
 
@@ -91,7 +91,7 @@ RepositoryはModel Weightを配布しない。Modelを別途取得する場合�
 
 Python Packageその他のDependencyは各権利者の条件に従う。Repositoryの`uv.lock`にVersionが記録されていても、その第三者ComponentをNazuna Researchが再Licenseするものではない。
 
-ARGD／DAGDその他のDefinitionが将来Repositoryへ含まれる場合は、当該Fileに表示されたLicenseとAttributionが適用される。CC-BY-SA-4.0と表示されたDefinitionを、本ProjectのResearch Preview Licenseで上書きしない。
+別Licenseが表示された成果物を将来Repositoryへ含める場合は、当該Fileに表示されたLicenseとAttributionが適用される。本ProjectのResearch Preview Licenseで第三者または別Licenseの条件を上書きしない。
 
 ## 9. 無保証
 
@@ -119,6 +119,6 @@ Nazuna Researchは、動作、互換性、正確性、完全性、安全性、�
 
 将来のOSS化予定、Roadmapまたは意向は、現在のLICENSEを変更せず、現在追加の権利を与えない。
 
-## 14. 正本
+## 14. 正本と参照情報
 
-利用許諾の正本はRootの`LICENSE`である。Attributionと第三者境界は[NOTICE.md](NOTICE.md)、引用方法は[CITATION.cff](CITATION.cff)を参照する。
+利用許諾の正本はRootの`LICENSE`である。Attributionと第三者境界は[NOTICE.md](NOTICE.md)を参照する。公開内容へ言及する場合は、Project名、Repository URLおよび参照したVersion、CommitまたはArchiveを明示する。
