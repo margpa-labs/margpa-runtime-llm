@@ -11,7 +11,7 @@ const translations = {
     uiLanguageLabel: "表示言語",
     newChat: "新規Chat",
     previewLabel: "プレビュー利用上の注意",
-    previewNote: "この画面は少人数検証用のPreviewです。Basic認証は本番Account機能ではありません。",
+    previewNote: "この画面はResearch Previewです。本番AccountまたはProduction Serviceではありません。",
     messagesLabel: "Chatメッセージ",
     emptyTitle: "一時的なChatを開始",
     emptyNote: "会話はこのBrowser TabのMemoryだけに保持され、Reloadで失われます。",
@@ -39,6 +39,20 @@ const translations = {
     summaryOff: "OFF",
     summaryOn: "ON",
     summaryNote: "ONでは通常回答の完了後に同じModelで要約します。処理時間とToken使用量が増え、要約により詳細、前提、注意事項等が省略・変形される可能性があります。",
+    documentationRagModeLabel: "プロジェクトDocs参照",
+    documentationRagOff: "OFF",
+    documentationRagOn: "ON",
+    documentationRagNote: "ONではProject内の許可されたDocsを参照し、System由来の参照文書を回答と分離して表示します。",
+    documentationRagUnavailable: "Project Docs参照はこのRuntimeでは利用できません。",
+    retrievingDocumentation: "Project Docsを検索しています",
+    citationsLabel: "参照文書",
+    noCitations: "参照文書なし",
+    copyPath: "Pathをコピー",
+    docsMissing: "docsが設置されていないため参照出来ません。",
+    documentationNoHit: "参照対象のDocsから対応する根拠を取得できませんでした。",
+    documentationContextInsufficient: "根拠を取得しましたが、Context余力不足のため回答に使用できません。",
+    documentationSubjectCoverageInsufficient: "質問対象の一部に必要なProject Docsの根拠が揃わないため、回答を停止しました。",
+    documentationPromptMeasurementUnavailable: "ModelのChat Prompt Token数を安全に計測できないため、Project Docs参照を停止しました。",
     thinkingNote: "推論生成はLatency／Token使用量を増やす可能性があります。表示内容は正しさや真の内部思考を保証しません。Token上限により最終回答前に停止する場合があります。Raw Thinkingは永続保存しません。",
     copy: "コピー",
     copied: "コピーしました",
@@ -76,7 +90,7 @@ const translations = {
     uiLanguageLabel: "Interface language",
     newChat: "New Chat",
     previewLabel: "Preview access notice",
-    previewNote: "This preview is for a small evaluation group. Basic authentication is not a production account system.",
+    previewNote: "This is a research preview, not a production account or service.",
     messagesLabel: "Chat messages",
     emptyTitle: "Start an ephemeral chat",
     emptyNote: "This conversation exists only in this browser tab's memory and is lost on reload.",
@@ -104,6 +118,20 @@ const translations = {
     summaryOff: "OFF",
     summaryOn: "ON",
     summaryNote: "When ON, the completed answer is summarized by the same model. This increases latency and token usage, and details, assumptions, or cautions may be omitted or altered by the summary.",
+    documentationRagModeLabel: "Project Docs",
+    documentationRagOff: "OFF",
+    documentationRagOn: "ON",
+    documentationRagNote: "When ON, the runtime searches allowed project documentation and shows system-derived citations separately from the answer.",
+    documentationRagUnavailable: "Project Docs are unavailable in this runtime.",
+    retrievingDocumentation: "Searching Project Docs",
+    citationsLabel: "References",
+    noCitations: "No reference documents",
+    copyPath: "Copy path",
+    docsMissing: "Project documentation is not installed and cannot be referenced.",
+    documentationNoHit: "No supporting evidence was found in the available Project Docs.",
+    documentationContextInsufficient: "Supporting documents were found, but the remaining context is insufficient to use them in an answer.",
+    documentationSubjectCoverageInsufficient: "The answer was stopped because Project Docs evidence is missing for one or more requested subjects.",
+    documentationPromptMeasurementUnavailable: "Project Docs were stopped because the model's chat prompt tokens could not be measured safely.",
     thinkingNote: "Reasoning generation may increase latency and token usage. Displayed reasoning does not guarantee correctness or reveal true internal thought. The token limit may be reached before a final answer. Raw thinking is never persisted.",
     copy: "Copy",
     copied: "Copied",
@@ -149,6 +177,13 @@ const knownServerMessages = {
   context_limit_exceeded: "contextLimitExceeded",
   generation_failed: "generationFailed",
   unsupported_capability: "thinkingUnavailable",
+  documentation_docs_missing: "docsMissing",
+  documentation_no_hit: "documentationNoHit",
+  documentation_context_budget_insufficient: "documentationContextInsufficient",
+  documentation_subject_coverage_insufficient: "documentationSubjectCoverageInsufficient",
+  documentation_prompt_measurement_unavailable: "documentationPromptMeasurementUnavailable",
+  documentation_corpus_empty: "documentationRagUnavailable",
+  documentation_index_build_failed: "documentationRagUnavailable",
   unexpected_error: "unexpectedError",
 };
 
@@ -165,6 +200,8 @@ const elements = {
   maxNewTokens: document.querySelector("#max-new-tokens"),
   thinkingMode: document.querySelector("#thinking-mode"),
   thinkingVisibility: document.querySelector("#thinking-visibility"),
+  documentationRagControl: document.querySelector("#documentation-rag-control"),
+  documentationRagNote: document.querySelector("#documentation-rag-note"),
   uiLanguageJa: document.querySelector("#ui-language-ja"),
   uiLanguageEn: document.querySelector("#ui-language-en"),
 };
@@ -176,6 +213,8 @@ const state = {
   active: false,
   terminalWarning: null,
   thinkingControlAvailable: false,
+  documentationRagControlAvailable: false,
+  documentationRagEffectiveState: "unavailable",
   uiLanguage: readStoredUiLanguage(),
   status: { key: "idle", values: {} },
   runtimeStatus: { kind: "loading", translationKey: "runtimeLoading", text: null },
@@ -268,6 +307,9 @@ function applyTranslations() {
     "#summary-mode-off": "summaryOff",
     "#summary-mode-on": "summaryOn",
     "#summary-note": "summaryNote",
+    "#documentation-rag-mode-label": "documentationRagModeLabel",
+    "#documentation-rag-mode-off": "documentationRagOff",
+    "#documentation-rag-mode-on": "documentationRagOn",
     "#thinking-note": "thinkingNote",
   };
   for (const [selector, key] of Object.entries(bindings)) {
@@ -277,6 +319,10 @@ function applyTranslations() {
     node.textContent = t(node.dataset.i18nMessage);
   });
   elements.thinkingMode.title = state.thinkingControlAvailable ? "" : t("thinkingUnavailable");
+  elements.documentationRagControl.title = state.documentationRagControlAvailable
+    ? ""
+    : t("documentationRagUnavailable");
+  syncDocumentationRagControls();
   renderRuntimeStatus();
   renderStatus();
 }
@@ -297,6 +343,26 @@ function setActive(active) {
   elements.stop.disabled = !active;
   elements.prompt.disabled = active;
   syncThinkingControls();
+  syncDocumentationRagControls();
+}
+
+function syncDocumentationRagControls() {
+  const denied = state.documentationRagEffectiveState === "denied";
+  elements.documentationRagControl.hidden = denied;
+  elements.documentationRagNote.hidden = denied;
+  const inputs = elements.documentationRagControl.querySelectorAll("input");
+  for (const input of inputs) {
+    input.disabled = state.active || !state.documentationRagControlAvailable;
+  }
+  if (!state.documentationRagControlAvailable) {
+    const off = elements.documentationRagControl.querySelector('input[value="disabled"]');
+    if (off !== null) {
+      off.checked = true;
+    }
+    elements.documentationRagNote.textContent = t("documentationRagUnavailable");
+  } else {
+    elements.documentationRagNote.textContent = t("documentationRagNote");
+  }
 }
 
 function syncThinkingControls() {
@@ -323,12 +389,12 @@ function createMessageContainer(role, extraClass = "") {
   return node;
 }
 
-function createCopyButton(canonicalText) {
+function createCopyButton(canonicalText, translationKey = "copy") {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "message-copy secondary";
-  button.dataset.i18nMessage = "copy";
-  button.textContent = t("copy");
+  button.dataset.i18nMessage = translationKey;
+  button.textContent = t(translationKey);
   button.addEventListener("click", async () => {
     let feedback = "copyFailed";
     try {
@@ -343,8 +409,8 @@ function createCopyButton(canonicalText) {
     button.dataset.i18nMessage = feedback;
     button.textContent = t(feedback);
     window.setTimeout(() => {
-      button.dataset.i18nMessage = "copy";
-      button.textContent = t("copy");
+      button.dataset.i18nMessage = translationKey;
+      button.textContent = t(translationKey);
     }, 1600);
   });
   return button;
@@ -380,9 +446,58 @@ function appendAssistantMessage() {
   finalContent.className = "message-content message-final";
   const actions = document.createElement("div");
   actions.className = "message-actions";
-  container.append(thinking, finalContent, actions);
+  const citations = document.createElement("section");
+  citations.className = "message-citations";
+  citations.hidden = true;
+  const citationsLabel = document.createElement("div");
+  citationsLabel.className = "message-citations-label";
+  citationsLabel.dataset.i18nMessage = "citationsLabel";
+  citationsLabel.textContent = t("citationsLabel");
+  const citationsList = document.createElement("div");
+  citationsList.className = "message-citations-list";
+  citations.append(citationsLabel, citationsList);
+  container.append(thinking, finalContent, citations, actions);
   scrollMessages();
-  return { container, thinking, thinkingContent, finalContent, actions };
+  return {
+    container,
+    thinking,
+    thinkingContent,
+    finalContent,
+    citations,
+    citationsList,
+    actions,
+  };
+}
+
+function renderCitations(assistantView, data) {
+  const citations = Array.isArray(data.citations) ? data.citations : [];
+  assistantView.citations.hidden = false;
+  assistantView.citationsList.replaceChildren();
+  if (citations.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "message-citation-empty";
+    const warnings = Array.isArray(data.warnings) ? data.warnings : [];
+    const reason = warnings.find((warning) => knownServerMessages[warning.code] !== undefined);
+    if (reason === undefined) {
+      empty.dataset.i18nMessage = "noCitations";
+      empty.textContent = t("noCitations");
+    } else {
+      setKnownNodeMessage(empty, reason.code, reason.message);
+    }
+    assistantView.citationsList.append(empty);
+    return;
+  }
+  for (const citation of citations) {
+    const item = document.createElement("div");
+    item.className = "message-citation";
+    const path = document.createElement("code");
+    path.textContent = citation.project_relative_path;
+    const heading = document.createElement("span");
+    heading.textContent = citation.heading_breadcrumb || "";
+    const copy = createCopyButton(citation.project_relative_path, "copyPath");
+    item.append(path, heading, copy);
+    assistantView.citationsList.append(item);
+  }
 }
 
 function scrollMessages() {
@@ -428,12 +543,16 @@ function rollbackPendingUser() {
 
 function settingsPayload() {
   const summaryMode = document.querySelector('input[name="summary-mode"]:checked');
+  const documentationRagMode = document.querySelector(
+    'input[name="documentation-rag-mode"]:checked',
+  );
   return {
     response_language: elements.responseLanguage.value,
     max_new_tokens: Number(elements.maxNewTokens.value),
     thinking_mode: elements.thinkingMode.checked ? "enabled" : "disabled",
     thinking_visibility: elements.thinkingVisibility.checked ? "visible" : "hidden",
     summary_mode: summaryMode?.value ?? "off",
+    documentation_rag_mode: documentationRagMode?.value ?? "disabled",
   };
 }
 
@@ -469,9 +588,26 @@ async function loadRuntime() {
     if (summaryMode !== null) {
       summaryMode.checked = true;
     }
+    const documentationRuntime = runtime.documentation_rag ?? {};
+    state.documentationRagEffectiveState =
+      documentationRuntime.effective_state ?? "unavailable";
+    state.documentationRagControlAvailable =
+      documentationRuntime.control_available === true;
+    const documentationMode = document.querySelector(
+      `input[name="documentation-rag-mode"][value="${
+        documentationRuntime.default_mode ?? "disabled"
+      }"]`,
+    );
+    if (documentationMode !== null) {
+      documentationMode.checked = true;
+    }
+    syncDocumentationRagControls();
   } catch {
     state.thinkingControlAvailable = false;
     syncThinkingControls();
+    state.documentationRagControlAvailable = false;
+    state.documentationRagEffectiveState = "unavailable";
+    syncDocumentationRagControls();
     state.runtimeStatus = {
       kind: "known_error",
       translationKey: "runtimeLoadFailed",
@@ -528,7 +664,21 @@ function handleEvent(event, assistantView) {
   if (event.type === "start") {
     state.requestId = data.request_id;
     state.terminalWarning = null;
-    setStatus("generating");
+    setStatus(
+      data.state === "retrieving_documentation" ? "retrievingDocumentation" : "generating",
+    );
+    return;
+  }
+  if (event.type === "retrieval") {
+    renderCitations(assistantView, data);
+    const warnings = Array.isArray(data.warnings) ? data.warnings : [];
+    if (warnings.length > 0) {
+      const warning = warnings.at(-1);
+      state.terminalWarning = { code: warning.code, fallback: warning.message };
+      setWarningStatus(warning.code, warning.message);
+    } else {
+      setStatus("generating");
+    }
     return;
   }
   if (event.type === "status" && data.state === "summarizing_answer") {
@@ -723,4 +873,5 @@ elements.prompt.addEventListener("keydown", (event) => {
 
 applyTranslations();
 syncThinkingControls();
+syncDocumentationRagControls();
 loadRuntime();

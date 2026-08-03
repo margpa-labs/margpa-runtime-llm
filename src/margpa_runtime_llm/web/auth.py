@@ -15,6 +15,12 @@ from margpa_runtime_llm.modules.inference.domain.errors import (
     InferenceError,
     InferenceErrorCode,
 )
+from margpa_runtime_llm.web.access_profiles import (
+    WebAccessProfile,
+    WebAuthenticationMode,
+    WebExposureMode,
+    local_web_access_profile,
+)
 
 AUTH_MODE_ENV = "MARGPA_WEB_AUTH_MODE"
 AUTH_USERNAME_ENV = "MARGPA_WEB_AUTH_USERNAME"
@@ -29,6 +35,8 @@ class WebAuthMode(StrEnum):
 @dataclass(frozen=True, slots=True)
 class WebAccessPolicy:
     mode: WebAuthMode
+    exposure_mode: WebExposureMode = WebExposureMode.LOCAL
+    non_loopback_allowed: bool = False
     username: str | None = field(default=None, repr=False)
     password: str | None = field(default=None, repr=False)
 
@@ -62,32 +70,68 @@ class WebAccessPolicy:
 
 def load_web_access_policy(
     environment: Mapping[str, str] | None = None,
+    *,
+    profile: WebAccessProfile | None = None,
 ) -> WebAccessPolicy:
     current = os.environ if environment is None else environment
-    raw_mode = current.get(AUTH_MODE_ENV, WebAuthMode.DISABLED.value)
-    try:
-        mode = WebAuthMode(raw_mode)
-    except ValueError as exc:
+    selected_profile = profile or local_web_access_profile()
+
+    if selected_profile.access.authentication is WebAuthenticationMode.NONE:
+        if selected_profile.access.mode is WebExposureMode.PUBLIC_DEMO:
+            return WebAccessPolicy(
+                mode=WebAuthMode.DISABLED,
+                exposure_mode=selected_profile.access.mode,
+                non_loopback_allowed=selected_profile.access.non_loopback_allowed,
+            )
+        raw_mode = current.get(AUTH_MODE_ENV, WebAuthMode.DISABLED.value)
+        if raw_mode != WebAuthMode.DISABLED.value:
+            raise InferenceError(
+                code=InferenceErrorCode.INVALID_CONFIGURATION,
+                safe_message="Local web access cannot enable preview authentication.",
+            )
+        return WebAccessPolicy(
+            mode=WebAuthMode.DISABLED,
+            exposure_mode=selected_profile.access.mode,
+            non_loopback_allowed=selected_profile.access.non_loopback_allowed,
+        )
+
+    configured_basic_mode = current.get(AUTH_MODE_ENV)
+    if configured_basic_mode != WebAuthMode.BASIC.value:
         raise InferenceError(
             code=InferenceErrorCode.INVALID_CONFIGURATION,
-            safe_message="The web authentication mode is invalid.",
-        ) from exc
-
+            safe_message="Basic preview authentication mode is required.",
+        )
     username = current.get(AUTH_USERNAME_ENV)
     password = current.get(AUTH_PASSWORD_ENV)
-    if mode is WebAuthMode.BASIC and (not _has_value(username) or not _has_value(password)):
+    if not _has_value(username) or not _has_value(password):
         raise InferenceError(
             code=InferenceErrorCode.INVALID_CONFIGURATION,
             safe_message="Basic preview authentication requires both credentials.",
         )
-    return WebAccessPolicy(mode=mode, username=username, password=password)
+    return WebAccessPolicy(
+        mode=WebAuthMode.BASIC,
+        exposure_mode=selected_profile.access.mode,
+        non_loopback_allowed=selected_profile.access.non_loopback_allowed,
+        username=username,
+        password=password,
+    )
 
 
 def validate_bind_access_policy(host: str, policy: WebAccessPolicy) -> None:
-    if not _is_loopback_host(host) and not policy.authentication_required:
+    expected_auth_mode = {
+        WebExposureMode.LOCAL: WebAuthMode.DISABLED,
+        WebExposureMode.BASIC_PREVIEW: WebAuthMode.BASIC,
+        WebExposureMode.PUBLIC_DEMO: WebAuthMode.DISABLED,
+    }[policy.exposure_mode]
+    if policy.mode is not expected_auth_mode:
         raise InferenceError(
             code=InferenceErrorCode.INVALID_CONFIGURATION,
-            safe_message="A non-loopback web bind requires preview authentication.",
+            safe_message="The web exposure and authentication policies are inconsistent.",
+        )
+    if not _is_loopback_host(host) and not policy.non_loopback_allowed:
+        raise InferenceError(
+            code=InferenceErrorCode.INVALID_CONFIGURATION,
+            safe_message="The selected web access profile does not allow a non-loopback bind.",
         )
 
 

@@ -25,6 +25,10 @@ Configuration is resolved from:
   MARGPA_WEB_HOST
   MARGPA_WEB_PORT
   MARGPA_WEB_PROFILE
+  MARGPA_WEB_ACCESS_PROFILE
+  MARGPA_MODEL_DEFINITION
+  MARGPA_MODEL_KEY
+  MARGPA_CONTEXT_SIZE
   MARGPA_RUNTIME_STATE_ROOT
 
 The Runtime State Root must be a dedicated directory named "basic-preview";
@@ -38,6 +42,10 @@ EOF
 case "${1:-}" in
   "")
     margpa_project_preflight
+    margpa_validate_pure_cpu_deployment_profile
+    margpa_validate_web_access_profile "basic_preview"
+    printf 'check.access_boundary=pass mode=basic_preview public_demo=false\n'
+    printf 'check.launch_contract=pass credentials=environment_only\n'
     margpa_emit_manual_checklist
     ;;
   -h|--help)

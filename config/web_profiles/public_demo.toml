@@ -1,0 +1,28 @@
+schema_version = "1"
+profile_key = "public_demo"
+
+[access]
+mode = "public_demo"
+authentication = "none"
+non_loopback_allowed = true
+
+[features]
+documentation_rag = "eligible"
+
+[controls.rate_limit]
+mode = "off"
+
+[controls.generation_budget]
+mode = "off"
+
+[controls.cooldown]
+mode = "off"
+
+[controls.public_max_new_tokens]
+mode = "off"
+
+[controls.request_quota]
+mode = "off"
+
+[controls.cost_guard]
+mode = "off"

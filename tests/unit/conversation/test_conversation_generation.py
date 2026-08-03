@@ -2,12 +2,18 @@
 
 from __future__ import annotations
 
+import hashlib
 from collections.abc import Callable, Iterator
 from types import TracebackType
+from typing import ClassVar
 
 import pytest
 from pydantic import ValidationError
 
+from margpa_runtime_llm.adapters.documentation_rag.bounded_context_assembler import (
+    REFERENCE_INSTRUCTION,
+)
+from margpa_runtime_llm.adapters.output_protocols.plain_text import PlainTextOutputParser
 from margpa_runtime_llm.adapters.output_protocols.tagged_thinking import (
     TaggedThinkingOutputParser,
 )
@@ -21,6 +27,19 @@ from margpa_runtime_llm.modules.conversation.public import (
     ConversationRole,
     ConversationSettings,
 )
+from margpa_runtime_llm.modules.documentation_rag.contracts import (
+    DocumentationAugmentation,
+    DocumentationCitation,
+    DocumentationEvidence,
+    DocumentationGroundingState,
+    DocumentationMeasurementUnit,
+    DocumentationRagAvailability,
+    DocumentationRagMode,
+    DocumentationRagRequestContext,
+    DocumentationRetrievalState,
+    DocumentationWarning,
+)
+from margpa_runtime_llm.modules.documentation_rag.ports import CancellationCheck
 from margpa_runtime_llm.modules.inference.contracts.generation import (
     FinishReason,
     GenerationChunk,
@@ -31,7 +50,7 @@ from margpa_runtime_llm.modules.inference.contracts.generation import (
     GenerationTiming,
     ThinkingMode,
 )
-from margpa_runtime_llm.modules.inference.contracts.messages import MessageRole
+from margpa_runtime_llm.modules.inference.contracts.messages import ChatMessage, MessageRole
 from margpa_runtime_llm.modules.inference.contracts.response import ResponseLanguage
 from margpa_runtime_llm.modules.inference.domain.errors import InferenceError, InferenceErrorCode
 from margpa_runtime_llm.modules.presentation.application.thinking_presentation_service import (
@@ -134,6 +153,178 @@ class FakeInference:
         return self.factory()
 
 
+class RecordingContextualRag:
+    def __init__(self) -> None:
+        self.contexts: list[DocumentationRagRequestContext] = []
+
+    def augment_with_context(
+        self,
+        query_text: str,
+        request_context: DocumentationRagRequestContext,
+        *,
+        cancelled: CancellationCheck | None = None,
+    ) -> DocumentationAugmentation:
+        del cancelled
+        self.contexts.append(request_context)
+        return DocumentationAugmentation(
+            state=DocumentationRetrievalState.ENABLED,
+            should_generate=True,
+            evidence=DocumentationEvidence(
+                query_digest=hashlib.sha512(query_text.encode()).hexdigest(),
+                corpus_manifest_digest=hashlib.sha512(b"manifest").hexdigest(),
+                retriever_key="test",
+                retriever_version="1",
+                base_prompt_used=request_context.system_history_current_prompt_tokens,
+                base_prompt_unit=request_context.prompt_measurement_unit,
+                base_prompt_exact=request_context.prompt_token_count_exact,
+                context_budget=0,
+                context_budget_unit=DocumentationMeasurementUnit.TOKENS,
+                context_used=0,
+                context_measurement_unit=DocumentationMeasurementUnit.TOKENS,
+                context_measurement_limit=0,
+                context_token_budget_used=True,
+                retrieved_chunk_count=0,
+                assembled_block_count=0,
+                identifier_subject_count=0,
+                retrieval_covered_subject_count=0,
+                retrieval_uncovered_subject_count=0,
+                covered_subject_count=0,
+                uncovered_subject_count=0,
+                grounding_state=DocumentationGroundingState.NO_HIT,
+                generation_allowed=True,
+                retrieval_duration_ms=0,
+            ),
+            document_count=1,
+            selected_chunk_count=0,
+            duration_ms=0,
+        )
+
+
+class BudgetAwareGroundedRag:
+    _definitions: ClassVar[dict[str, str]] = {
+        "EASA": (
+            "内部安全傾向、周辺安全制御、入力文脈、生成過程から現れる複合的安全挙動を扱います。"
+        ),
+        "ARGD": "Premise、Context、矛盾、情報不足およびRepairを扱う宣言的Governanceです。",
+        "DLAGSA": (
+            "複数の判断・実行・検証主体間の責任、委譲、例外、証跡および安全側制御を扱います。"
+        ),
+    }
+
+    def __init__(self, *, safety_margin_tokens: int = 512) -> None:
+        self.safety_margin_tokens = safety_margin_tokens
+        self.contexts: list[DocumentationRagRequestContext] = []
+
+    def augment_with_context(
+        self,
+        query_text: str,
+        request_context: DocumentationRagRequestContext,
+        *,
+        cancelled: CancellationCheck | None = None,
+    ) -> DocumentationAugmentation:
+        del cancelled
+        self.contexts.append(request_context)
+        assert request_context.system_history_current_prompt_tokens is not None
+        budget = min(
+            768,
+            max(
+                0,
+                request_context.effective_context_size
+                - request_context.system_history_current_prompt_tokens
+                - request_context.requested_max_new_tokens
+                - self.safety_margin_tokens,
+            ),
+        )
+        subject = next(
+            candidate for candidate in self._definitions if candidate in query_text.upper()
+        )
+        chunk_id = hashlib.sha512(f"chunk:{subject}".encode()).hexdigest()
+        document_digest = hashlib.sha512(f"document:{subject}".encode()).hexdigest()
+        common_evidence = {
+            "query_digest": hashlib.sha512(query_text.encode()).hexdigest(),
+            "corpus_manifest_digest": hashlib.sha512(b"manifest").hexdigest(),
+            "retriever_key": "test_budget_aware",
+            "retriever_version": "1",
+            "selected_chunk_ids": (chunk_id,),
+            "selected_document_digests": (document_digest,),
+            "selected_scores": (3.0,),
+            "base_prompt_used": request_context.system_history_current_prompt_tokens,
+            "base_prompt_unit": DocumentationMeasurementUnit.TOKENS,
+            "base_prompt_exact": request_context.prompt_token_count_exact,
+            "context_budget": budget,
+            "context_budget_unit": DocumentationMeasurementUnit.TOKENS,
+            "context_measurement_unit": DocumentationMeasurementUnit.TOKENS,
+            "context_measurement_limit": budget,
+            "context_token_budget_used": True,
+            "retrieved_chunk_count": 1,
+            "identifier_subject_count": 1,
+            "retrieval_covered_subject_count": 1,
+            "retrieval_uncovered_subject_count": 0,
+            "retrieval_duration_ms": 0.0,
+        }
+        if budget < 128:
+            return DocumentationAugmentation(
+                state=DocumentationRetrievalState.ENABLED,
+                should_generate=False,
+                evidence=DocumentationEvidence.model_validate(
+                    {
+                        **common_evidence,
+                        "context_used": 0,
+                        "assembled_block_count": 0,
+                        "covered_subject_count": 0,
+                        "uncovered_subject_count": 1,
+                        "grounding_state": DocumentationGroundingState.CONTEXT_INSUFFICIENT,
+                        "generation_allowed": False,
+                    }
+                ),
+                warnings=(
+                    DocumentationWarning(
+                        code="documentation_context_budget_insufficient",
+                        message="根拠を取得しましたが、Context余力不足のため回答に使用できません。",
+                    ),
+                ),
+                document_count=1,
+                selected_chunk_count=0,
+                duration_ms=0.0,
+            )
+
+        reference_message = (
+            f"{REFERENCE_INSTRUCTION}\n\n[REFERENCE ref-1]\n"
+            f"Path: docs/public/{subject.casefold()}_ja.md\n"
+            f"Heading: {subject}\nContent:\n{self._definitions[subject]}\n"
+            "[/REFERENCE ref-1]"
+        )
+        citation = DocumentationCitation(
+            citation_id="citation-1",
+            project_relative_path=f"docs/public/{subject.casefold()}_ja.md",
+            heading_breadcrumb=subject,
+            chunk_id=chunk_id,
+            document_sha512=document_digest,
+            retrieval_score=3.0,
+            selected_order=1,
+        )
+        return DocumentationAugmentation(
+            state=DocumentationRetrievalState.ENABLED,
+            should_generate=True,
+            reference_message=reference_message,
+            citations=(citation,),
+            evidence=DocumentationEvidence.model_validate(
+                {
+                    **common_evidence,
+                    "context_used": min(100, budget),
+                    "assembled_block_count": 1,
+                    "covered_subject_count": 1,
+                    "uncovered_subject_count": 0,
+                    "grounding_state": DocumentationGroundingState.GROUNDED_READY,
+                    "generation_allowed": True,
+                }
+            ),
+            document_count=1,
+            selected_chunk_count=1,
+            duration_ms=0.0,
+        )
+
+
 def presentation_policy(
     visibility: ThinkingVisibility = ThinkingVisibility.HIDDEN,
 ) -> ResolvedThinkingPresentationPolicy:
@@ -153,6 +344,7 @@ def conversation_input(
     thinking_mode: ThinkingMode = ThinkingMode.ENABLED,
     max_new_tokens: int = 128,
     summary_mode: SummaryMode = SummaryMode.OFF,
+    documentation_rag_mode: DocumentationRagMode = DocumentationRagMode.DISABLED,
 ) -> ConversationGenerationInput:
     return ConversationGenerationInput(
         messages=(
@@ -166,6 +358,7 @@ def conversation_input(
             thinking_mode=thinking_mode,
             thinking_visibility=visibility,
             summary_mode=summary_mode,
+            documentation_rag_mode=documentation_rag_mode,
         ),
     )
 
@@ -276,6 +469,247 @@ def test_request_composition_preserves_history_and_only_overrides_allowed_values
         ConversationEventType.DELTA,
         ConversationEventType.COMPLETED,
     ]
+
+
+def test_documentation_request_context_uses_effective_context_history_and_request_limit() -> None:
+    inference = FakeInference()
+    rag = RecordingContextualRag()
+    counter_calls: list[tuple[tuple[ChatMessage, ...], ThinkingMode]] = []
+
+    def exact_prompt_counter(
+        messages: tuple[ChatMessage, ...],
+        thinking_mode: ThinkingMode,
+    ) -> int:
+        counter_calls.append((messages, thinking_mode))
+        return sum(len(message.content) for message in messages)
+
+    generation = ConversationGenerationService(
+        inference=inference,
+        presentation=ThinkingPresentationService(
+            TaggedThinkingOutputParser(
+                opening_delimiter="<think>",
+                closing_delimiter="</think>",
+            )
+        ),
+        model_key="main.model",
+        generation_defaults=GenerationParameters(),
+        response_language_default=ResponseLanguage.JA,
+        presentation_default=presentation_policy(),
+        documentation_rag=rag,
+        documentation_rag_availability=DocumentationRagAvailability.AVAILABLE,
+        chat_prompt_token_counter=exact_prompt_counter,
+        effective_context_size=8192,
+    )
+    short = conversation_input(
+        max_new_tokens=128,
+        documentation_rag_mode=DocumentationRagMode.ENABLED,
+    )
+    long = short.model_copy(
+        update={
+            "messages": (
+                ConversationMessage(role=ConversationRole.USER, content="first" * 200),
+                ConversationMessage(role=ConversationRole.ASSISTANT, content="answer" * 200),
+                ConversationMessage(role=ConversationRole.USER, content="next"),
+            ),
+            "settings": short.settings.model_copy(update={"max_new_tokens": 512}),
+        }
+    )
+
+    list(generation.start(short).events())
+    list(generation.start(long).events())
+
+    short_context, long_context = rag.contexts
+    assert short_context.effective_context_size == 8192
+    assert short_context.requested_max_new_tokens == 128
+    assert long_context.requested_max_new_tokens == 512
+    assert short_context.system_history_current_prompt_tokens is not None
+    assert long_context.system_history_current_prompt_tokens is not None
+    assert (
+        long_context.system_history_current_prompt_tokens
+        > short_context.system_history_current_prompt_tokens
+    )
+    assert short_context.prompt_token_count_exact is True
+    assert long_context.prompt_token_count_exact is True
+    assert short_context.prompt_measurement_unit is DocumentationMeasurementUnit.TOKENS
+    assert len(counter_calls) == 2
+    assert counter_calls[0][1] is ThinkingMode.ENABLED
+    assert short_context.system_history_current_prompt_tokens == sum(
+        len(message.content) for message in counter_calls[0][0]
+    )
+    assert short_context.system_history_current_prompt_tokens != sum(
+        len(message.content.encode("utf-8")) for message in counter_calls[0][0]
+    )
+
+
+def test_long_japanese_multi_turn_keeps_citations_with_exact_room_and_fails_when_exhausted() -> (
+    None
+):
+    inference = FakeInference()
+    rag = BudgetAwareGroundedRag()
+    counter_calls: list[tuple[ChatMessage, ...]] = []
+
+    def exact_counter(
+        messages: tuple[ChatMessage, ...],
+        thinking_mode: ThinkingMode,
+    ) -> int:
+        del thinking_mode
+        counter_calls.append(messages)
+        return 32 + sum(max(1, len(message.content) // 8) for message in messages)
+
+    generation = ConversationGenerationService(
+        inference=inference,
+        presentation=ThinkingPresentationService(PlainTextOutputParser()),
+        model_key="main.model",
+        generation_defaults=GenerationParameters(max_new_tokens=2048),
+        response_language_default=ResponseLanguage.JA,
+        presentation_default=presentation_policy(),
+        documentation_rag=rag,
+        documentation_rag_availability=DocumentationRagAvailability.AVAILABLE,
+        chat_prompt_token_counter=exact_counter,
+        effective_context_size=4096,
+    )
+    settings = ConversationSettings(
+        response_language=ResponseLanguage.JA,
+        max_new_tokens=2048,
+        thinking_mode=ThinkingMode.DISABLED,
+        thinking_visibility=ThinkingVisibility.HIDDEN,
+        documentation_rag_mode=DocumentationRagMode.ENABLED,
+    )
+    long_answer_1 = "長い日本語の回答です。" * 180
+    long_answer_2 = "別の長い日本語の回答です。" * 160
+    turns = (
+        ConversationGenerationInput(
+            messages=(ConversationMessage(role=ConversationRole.USER, content="EASAとは?"),),
+            settings=settings,
+        ),
+        ConversationGenerationInput(
+            messages=(
+                ConversationMessage(role=ConversationRole.USER, content="EASAとは?"),
+                ConversationMessage(
+                    role=ConversationRole.ASSISTANT,
+                    content=long_answer_1,
+                ),
+                ConversationMessage(role=ConversationRole.USER, content="ARGDとは?"),
+            ),
+            settings=settings,
+        ),
+        ConversationGenerationInput(
+            messages=(
+                ConversationMessage(role=ConversationRole.USER, content="EASAとは?"),
+                ConversationMessage(
+                    role=ConversationRole.ASSISTANT,
+                    content=long_answer_1,
+                ),
+                ConversationMessage(role=ConversationRole.USER, content="ARGDとは?"),
+                ConversationMessage(
+                    role=ConversationRole.ASSISTANT,
+                    content=long_answer_2,
+                ),
+                ConversationMessage(role=ConversationRole.USER, content="DLAGSAとは?"),
+            ),
+            settings=settings,
+        ),
+    )
+
+    event_batches = [list(generation.start(turn).events()) for turn in turns]
+
+    assert len(inference.requests) == 3
+    assert len(rag.contexts) == 3
+    assert all(context.prompt_token_count_exact for context in rag.contexts)
+    for events in event_batches:
+        retrieval = next(
+            event for event in events if event.event is ConversationEventType.RETRIEVAL
+        )
+        assert retrieval.data["citations"]
+        assert events[-1].event is ConversationEventType.COMPLETED
+    assert rag.contexts[1].system_history_current_prompt_tokens is not None
+    assert rag.contexts[1].system_history_current_prompt_tokens < sum(
+        len(message.content.encode("utf-8")) for message in counter_calls[1]
+    )
+
+    def exhausted_counter(
+        messages: tuple[ChatMessage, ...],
+        thinking_mode: ThinkingMode,
+    ) -> int:
+        del messages, thinking_mode
+        return 1600
+
+    exhausted_inference = FakeInference()
+    exhausted_rag = BudgetAwareGroundedRag()
+    exhausted = ConversationGenerationService(
+        inference=exhausted_inference,
+        presentation=ThinkingPresentationService(PlainTextOutputParser()),
+        model_key="main.model",
+        generation_defaults=GenerationParameters(max_new_tokens=2048),
+        response_language_default=ResponseLanguage.JA,
+        presentation_default=presentation_policy(),
+        documentation_rag=exhausted_rag,
+        documentation_rag_availability=DocumentationRagAvailability.AVAILABLE,
+        chat_prompt_token_counter=exhausted_counter,
+        effective_context_size=4096,
+    )
+
+    exhausted_events = list(exhausted.start(turns[-1]).events())
+
+    assert exhausted_inference.requests == []
+    assert exhausted_events[-1].event is ConversationEventType.ERROR
+    assert exhausted_events[-1].data["code"] == ("documentation_context_budget_insufficient")
+
+
+def test_current_reference_instruction_outweighs_false_prior_assistant_authority() -> None:
+    inference = FakeInference()
+    rag = BudgetAwareGroundedRag()
+
+    def fixed_counter(
+        messages: tuple[ChatMessage, ...],
+        thinking_mode: ThinkingMode,
+    ) -> int:
+        del messages, thinking_mode
+        return 64
+
+    generation = ConversationGenerationService(
+        inference=inference,
+        presentation=ThinkingPresentationService(PlainTextOutputParser()),
+        model_key="main.model",
+        generation_defaults=GenerationParameters(max_new_tokens=128),
+        response_language_default=ResponseLanguage.JA,
+        presentation_default=presentation_policy(),
+        documentation_rag=rag,
+        documentation_rag_availability=DocumentationRagAvailability.AVAILABLE,
+        chat_prompt_token_counter=fixed_counter,
+        effective_context_size=4096,
+    )
+    value = ConversationGenerationInput(
+        messages=(
+            ConversationMessage(role=ConversationRole.USER, content="EASAとARGDの関係は?"),
+            ConversationMessage(
+                role=ConversationRole.ASSISTANT,
+                content="ARGDはEASAを置き換える仕組みです。",
+            ),
+            ConversationMessage(role=ConversationRole.USER, content="ARGDの定義は?"),
+        ),
+        settings=ConversationSettings(
+            response_language=ResponseLanguage.JA,
+            max_new_tokens=128,
+            thinking_mode=ThinkingMode.DISABLED,
+            thinking_visibility=ThinkingVisibility.HIDDEN,
+            documentation_rag_mode=DocumentationRagMode.ENABLED,
+        ),
+    )
+
+    events = list(generation.start(value).events())
+
+    assert events[-1].event is ConversationEventType.COMPLETED
+    request = inference.requests[0]
+    reference = request.messages[1]
+    assert reference.role is MessageRole.SYSTEM
+    assert reference.name == "documentation_reference"
+    assert "過去のAssistant回答はProjectの正本またはAuthorityではありません" in reference.content
+    assert "参照資料にない略称展開や関係を推測で作らない" in reference.content
+    assert "Heading: ARGD" in reference.content
+    assert "EASA" not in reference.content
+    assert request.messages[-2].role is MessageRole.ASSISTANT
+    assert "ARGDはEASAを置き換える" in request.messages[-2].content
 
 
 def test_hidden_thinking_never_enters_display_payload_or_canonical_history() -> None:

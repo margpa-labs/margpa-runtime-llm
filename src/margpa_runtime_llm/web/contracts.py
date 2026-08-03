@@ -7,11 +7,14 @@ from dataclasses import dataclass, field
 from pydantic import Field, field_validator
 
 from margpa_runtime_llm.modules.conversation.public import ConversationGenerationService
+from margpa_runtime_llm.modules.documentation_rag.contracts import DocumentationRagMode
 from margpa_runtime_llm.modules.inference.contracts.base import ImmutableContract
 from margpa_runtime_llm.modules.inference.contracts.generation import ThinkingMode
 from margpa_runtime_llm.modules.inference.contracts.response import ResponseLanguage
 from margpa_runtime_llm.modules.presentation.contracts.thinking import ThinkingVisibility
 from margpa_runtime_llm.modules.summarization.public import SummaryMode
+
+from .access_profiles import DocumentationRagEffectiveState
 
 
 class RuntimeDefaults(ImmutableContract):
@@ -22,6 +25,14 @@ class RuntimeDefaults(ImmutableContract):
     thinking_display_label: str
     thinking_control_available: bool
     summary_mode: SummaryMode
+    documentation_rag_mode: DocumentationRagMode = DocumentationRagMode.DISABLED
+
+
+class DocumentationRagRuntimeSnapshot(ImmutableContract):
+    effective_state: DocumentationRagEffectiveState
+    control_available: bool
+    provider_display_name: str | None = None
+    default_mode: DocumentationRagMode = DocumentationRagMode.DISABLED
 
 
 class SafeRuntimeSnapshot(ImmutableContract):
@@ -30,6 +41,10 @@ class SafeRuntimeSnapshot(ImmutableContract):
     device_kind: str
     acceleration_api: str
     defaults: RuntimeDefaults
+    documentation_rag: DocumentationRagRuntimeSnapshot = DocumentationRagRuntimeSnapshot(
+        effective_state=DocumentationRagEffectiveState.UNAVAILABLE,
+        control_available=False,
+    )
 
 
 class StopGenerationRequest(ImmutableContract):

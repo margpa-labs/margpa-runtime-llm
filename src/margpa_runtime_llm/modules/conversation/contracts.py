@@ -4,6 +4,7 @@ from enum import StrEnum
 
 from pydantic import Field, field_validator, model_validator
 
+from margpa_runtime_llm.modules.documentation_rag.contracts import DocumentationRagMode
 from margpa_runtime_llm.modules.inference.contracts.base import ImmutableContract
 from margpa_runtime_llm.modules.inference.contracts.generation import ThinkingMode
 from margpa_runtime_llm.modules.inference.contracts.response import ResponseLanguage
@@ -39,6 +40,7 @@ class ConversationSettings(ImmutableContract):
     thinking_mode: ThinkingMode = ThinkingMode.DISABLED
     thinking_visibility: ThinkingVisibility
     summary_mode: SummaryMode = SummaryMode.OFF
+    documentation_rag_mode: DocumentationRagMode = DocumentationRagMode.DISABLED
 
     @field_validator("thinking_mode")
     @classmethod
@@ -78,6 +80,7 @@ class ConversationGenerationInput(ImmutableContract):
 class ConversationEventType(StrEnum):
     START = "start"
     STATUS = "status"
+    RETRIEVAL = "retrieval"
     DELTA = "delta"
     WARNING = "warning"
     COMPLETED = "completed"

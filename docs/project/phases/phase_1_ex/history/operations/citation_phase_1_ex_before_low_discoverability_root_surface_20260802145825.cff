@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+message: >-
+  If you reference MARGPA Runtime LLM in research or evaluation, please cite
+  this software and identify the exact version, commit, or archive used.
+title: MARGPA Runtime LLM
+type: software
+authors:
+  - name: Nazuna Research
+version: 0.0.0
+repository-code: https://github.com/margpa-labs/margpa-runtime-llm
+url: https://github.com/margpa-labs/margpa-runtime-llm
+abstract: >-
+  MARGPA Runtime LLM is a model-independent research prototype that places a
+  modular runtime governance control plane around pretrained language models.
+  It is designed to separate models, inference backends, configuration,
+  governance definitions, guardrails, judges, repair, retrieval, agents,
+  storage, user interfaces, and deployment profiles so that components can be
+  replaced, disabled, observed, enforced, and compared independently.
+keywords:
+  - runtime governance
+  - language model
+  - LLM
+  - AI governance
+  - modular architecture
+  - auditability
+  - local inference
+preferred-citation:
+  type: software
+  title: MARGPA Runtime LLM
+  authors:
+    - name: Nazuna Research
+  version: 0.0.0
+  year: 2026
+  repository-code: https://github.com/margpa-labs/margpa-runtime-llm

@@ -1,0 +1,1919 @@
+{
+  "schema_version": "1",
+  "document_type": "lossless_source_manifest",
+  "phase": "phase_1",
+  "phase_state": "complete_accepted",
+  "frozen_at": "2026-07-27 10:15:44 JST",
+  "hash_algorithm": "sha512",
+  "source_count": 316,
+  "total_source_bytes": 5206317,
+  "source_set_digest": "f35addf55f44588b70a11fd51c9e8c34709383d77c84af470e56a018a5d52e50f59794aa5aaeef0c4fc0158c4563f778eb688e4940e373051d4c767c4230f93a",
+  "include_extensions": [
+    ".md",
+    ".json"
+  ],
+  "excluded": [
+    ".DS_Store",
+    "lossless/**",
+    "artifacts created after frozen_at"
+  ],
+  "compilation_path": "docs/project/phases/phase_1/lossless/phase_1_lossless_ja.md",
+  "entries": [
+    {
+      "index": 1,
+      "path": "docs/project/phases/phase_1/adr/phase_1_adr_ja.md",
+      "size_bytes": 136425,
+      "sha512": "9ac661872e48dc59b172ac033d20f17812ef070a6b219d05cf22ada18237fae973eab50e189d722ba98c9781ec2f117d713c29e3a2dbd39c5562f30571a83ece"
+    },
+    {
+      "index": 2,
+      "path": "docs/project/phases/phase_1/architecture/phase_1_architecture_ja.md",
+      "size_bytes": 456233,
+      "sha512": "af9d1f5689d7fda9ca95186e42617bdb188f1ba3719f34cf1c7c13a99ff19b870ba57b271cbf6fefdf36377996c9ad632bad28625acbbfc890eed7cba27a4c84"
+    },
+    {
+      "index": 3,
+      "path": "docs/project/phases/phase_1/governance/phase_1_governance_ja.md",
+      "size_bytes": 50057,
+      "sha512": "788c1dc852ff34594756c25c4a874b93fa4cc591158a1f466255ebc3faff4e53e2322ca53dc4bd7f1772e9d5ef5c730b9d8e98bb67cfc83ffccfa1f619b0b09a"
+    },
+    {
+      "index": 4,
+      "path": "docs/project/phases/phase_1/handoffs/phase_1_handoffs_ja.md",
+      "size_bytes": 864353,
+      "sha512": "2a1dfd12ce3a81608653f25e58f54f56968b3b8b0b16dbb0b35f243e58563124d49f0580185a3e5afdb2b48f8f626b77bcde94b0fc17d3ff3bb717a636080563"
+    },
+    {
+      "index": 5,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0001_initial_model_selection_20260718174637.md",
+      "size_bytes": 2617,
+      "sha512": "e41b1e03cab3fda60c384f53461874bb4ff13f6d76921528e5195a76852a9630f69fe7e28e8de47c6e4a219a3d5bf2d80bf6b3bd1c695dddb2217928f6c4434d"
+    },
+    {
+      "index": 6,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0002_external_model_storage_20260718174637.md",
+      "size_bytes": 2740,
+      "sha512": "f5ad46e8cc7e2057588e2ea7e6def1e56721ea28848fce45015130d621c8a110617f30ce12863f88774c34b1d33326674b72f173acc72948626262ea8fa0c844"
+    },
+    {
+      "index": 7,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0003_japanese_documentation_and_handoffs_20260718174637.md",
+      "size_bytes": 2165,
+      "sha512": "ebcfba3e3ed33ecec7a298d1c35e6c9c8b8d4acdde210ad51a8a27dc06b9104529c5e3378f52de3a43c705ec89986738460c26ff3c29c7e032568a458e1fff9a"
+    },
+    {
+      "index": 8,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0004_modular_monolith_20260718174637.md",
+      "size_bytes": 1934,
+      "sha512": "4a605a80635d3d7b36bec9edc674022fac152c71b4d23b85c2bcd62d063bf2de3c523744d8d9fc2a1f892fc03da265757398d83737166933aa7d1f0a25da47c8"
+    },
+    {
+      "index": 9,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0005_python_environment_and_dependency_management_20260718201744.md",
+      "size_bytes": 5071,
+      "sha512": "85199475a2224765ffb09b27d078956d80ccba9362feb5d31ff68261a6117aa7bb68d4c84e4c759717e0280efb298791f7b4c58fbfc5cb46d6dd0b42015ee660"
+    },
+    {
+      "index": 10,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0006_model_runtime_port_and_configuration_20260718223203.md",
+      "size_bytes": 5354,
+      "sha512": "17ca0506c27b42237ea37886e7c45a60655fdb4ae2c440c783e123a7173d261ffd245af51c3346000fe90bcf05691cdc973e6196fd567f0da3764b6093c2a264"
+    },
+    {
+      "index": 11,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0006_model_runtime_port_and_configuration_20260718224308.md",
+      "size_bytes": 6274,
+      "sha512": "7a3a304dc30b3ab68c0b2fceb5f7d1242d155e81386eb3d241fbb1e5d5c10c68d28beb4336acae28e0dd8cddeb5bb2c2396fc7c2107002548ea3fa5f89a6310b"
+    },
+    {
+      "index": 12,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0007_deployment_platform_acceleration_abstraction_20260719013109.md",
+      "size_bytes": 7363,
+      "sha512": "49c0bc67aa92d9615f83419560d0b65d9b45cf535b2a1a189bbfea868acc05a62cc4a396a2edbf08dd5c78ab4b1a171fe10f67f99f8b40342af4a49a20e73661"
+    },
+    {
+      "index": 13,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0008_response_language_policy_20260719040237.md",
+      "size_bytes": 6920,
+      "sha512": "ead853483b0dabc3c14462bbfbcd8731f8e18cdc118488c1bb90531ad3d1bf185935873a3b8c104194d240b0deef8046acb77c1e9294dc9e738f3995d925deea"
+    },
+    {
+      "index": 14,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0009_application_deployment_configuration_separation_20260719041847.md",
+      "size_bytes": 5529,
+      "sha512": "59db2466b0fe2df960d3313b17e7677e4a75fcbbdde2f5cb5efc539e03f4a8041ad43b74c1e3c7d03410cadb93dc311bd92663f479e2e1fdece918740a54b373"
+    },
+    {
+      "index": 15,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0010_research_runtime_phase_reorganization_20260719112304.md",
+      "size_bytes": 4341,
+      "sha512": "bc7b06ba6283117a9f2dee36fe1aac24b1738cec23178fffa1992ef5efe47a31e87ab825dd4fc58973109378adab7d6ebb12ce4e48540bed6b379f492a7fc62f"
+    },
+    {
+      "index": 16,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0011_shared_governance_control_plane_and_distributed_points_20260719112304.md",
+      "size_bytes": 3624,
+      "sha512": "1f817ac3c07176eaf950662800d75d9007310bfacdd30f6fa7f1c83d80ff9cff43a0538b2750502d09becaece4a14172fbb3a4c3302c28070307db7e95e0214b"
+    },
+    {
+      "index": 17,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0012_optional_generic_governance_definition_platform_20260719112304.md",
+      "size_bytes": 4718,
+      "sha512": "9c779bc00d839d2d0aafbe2a146cf136cb9e69684884ec535ba7b9981d6c02bc5f11ce7540943bc24c7eb762ed02d9c8df8097f859b590bdf19a9932d53a9833"
+    },
+    {
+      "index": 18,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0013_lightning_ai_studio_external_development_20260719112304.md",
+      "size_bytes": 3922,
+      "sha512": "77bbbd39c2516c111f3a8ca7ae72a966164402e15dfb0e14922a4c4319541af8a6a41f3d2184c586826e0a1ece818da083a7adecba5f567a9930810a2696e990"
+    },
+    {
+      "index": 19,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0014_thinking_execution_presentation_and_persistence_separation_20260719123547.md",
+      "size_bytes": 8121,
+      "sha512": "f9a113d3108b0d698249a95808ed01391fb6a4ee3e593f206d8a15a4ccff17f58bd116cf56bb7c64b434b9f276b079435f1ed6dc5b692da0cb5d9d7fd688771d"
+    },
+    {
+      "index": 20,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0014_thinking_execution_presentation_and_persistence_separation_20260719130303.md",
+      "size_bytes": 7353,
+      "sha512": "b27c1bd63d8be6bc2f251783eae85356e985a854ba8b60d5179eec79d4191fcb86cfb4173796392ec6970fc0134895febd430f5f2aad3a35455abee4f70a9a1f"
+    },
+    {
+      "index": 21,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0015_phase_1f_lightning_and_python_312_support_20260719202333.md",
+      "size_bytes": 4341,
+      "sha512": "3703da1c7e7a6b44d39e475893948c15d0cb91d3822183e56215df6d11e5e76de83609c09e679654c372cbec3f2292fd53375cbd7447fe452a3608fa0ab5eacd"
+    },
+    {
+      "index": 22,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0016_batch_lightning_upload_after_phase_1h_20260721093952.md",
+      "size_bytes": 5220,
+      "sha512": "dd30d5142906035b92f68913a32b13a0d3eb06fc826eeda0e39bd854d20efe0203570e25cf1fc8f9f55a102618e64344e6648ea996d6df21259548c798a82b7c"
+    },
+    {
+      "index": 23,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0016_canonical_model_and_deployment_artifact_separation_20260720231036.md",
+      "size_bytes": 4860,
+      "sha512": "1d552d5b2cea6b56e9fb7c960a9364576961e544d2a3ce4035ff18b15d366f58cc13779566e0d5b63841812be7b96e954e8bc0eb8dcc57221a31fc481661c58e"
+    },
+    {
+      "index": 24,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0017_phase_1_ex_operating_model_and_documentation_transition_20260720231036.md",
+      "size_bytes": 3542,
+      "sha512": "b8ac21930314a8173adfe091e3ffddfe835e10fcc60f7f58ba70bd31af5f10453356ebb4e76651c50dc990099575eea486ff787f9f235bfee4edf9346bff19c8"
+    },
+    {
+      "index": 25,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0018_phase_1_ex_canonical_docs_continuity_and_future_r_and_d_20260721155020.md",
+      "size_bytes": 3631,
+      "sha512": "d06538a9aac38f3ac2b84dbd7e951f4e95d31d56a3b048e235f8d184d2194f6575b8555a3ac93319b11abd323e2192e759a1f2f344f5304f59e2abb6ba787c80"
+    },
+    {
+      "index": 26,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0019_phase_10_original_r_and_d_public_names_and_switches_20260721162242.md",
+      "size_bytes": 2971,
+      "sha512": "b15d1724bbc0d4016cbdb39557d6aa9979ed582098c2bb98f00f5ac4d52423ffe3d37771d660815cb1576543d4f4016a71145a2b791c4aae30b6bd30ac6df8e7"
+    },
+    {
+      "index": 27,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0020_phase_1h_summary_pipeline_and_ui_language_separation_20260721174346.md",
+      "size_bytes": 5301,
+      "sha512": "ed26c2a54663c65946b9522b3828ae03bf5bf6a9c069d1bad4654b7f326d8f0b397e17bcf2eabfc99fd9d1e419ac012d02f8ba4898b53bc8b4730e435e26356e"
+    },
+    {
+      "index": 28,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0021_phase_1i_thinking_aware_safe_web_presentation_20260725200001.md",
+      "size_bytes": 4953,
+      "sha512": "47059062fc2f8564f5cd5c6d2e0c677810b61108ed4a7a885e55b1526ac92fd2061226400c94fde5b2f8998a9b7677ebbec8b2981620c53700df566dc7a0c6cd"
+    },
+    {
+      "index": 29,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0022_lightning_pure_cpu_and_optional_component_hook_only_profile_20260725200001.md",
+      "size_bytes": 3933,
+      "sha512": "978903424ecabcdc36fb137f83ec70f362e7924992fe22a126bdf03d5c90ee6b790c4915b0fe5f009a478066be01b309f11b1d01e46ccdfc8d65274e19d42646"
+    },
+    {
+      "index": 30,
+      "path": "docs/project/phases/phase_1/history/adr/adr_0023_simple_rag_missing_docs_explicit_unavailable_result_20260725201016.md",
+      "size_bytes": 1848,
+      "sha512": "1f0794933e42f212233e0a1c5f76fde1a0c66f656fdebf16427f1651b7e8faed71899fffbdde0983b6666642f6f524eb9a07375410651eaec4767452cc3d71bf"
+    },
+    {
+      "index": 31,
+      "path": "docs/project/phases/phase_1/history/architecture/configuration_layer_architecture_20260719041847.md",
+      "size_bytes": 13112,
+      "sha512": "d70fb4f5914f8c0922535bfe69c8772296b344ef75e2429c3744e16cfae1881bd140d02fea3d6ecf65ef085361c263473a879ffa312b988ed2f54fd15a5f958c"
+    },
+    {
+      "index": 32,
+      "path": "docs/project/phases/phase_1/history/architecture/experimental_runtime_ui_status_architecture_20260719112304.md",
+      "size_bytes": 13208,
+      "sha512": "d84a592bea5a55e430f75af0c4a0932eb4ad93e97c8159e9821a6a1ea2c153107963317644927286c39a8ab4f127a90c9f1a71b578a3322eeb2303ecc28c6779"
+    },
+    {
+      "index": 33,
+      "path": "docs/project/phases/phase_1/history/architecture/future_extensions_20260718174637.md",
+      "size_bytes": 4970,
+      "sha512": "81e36f00083005769389bbd9d9909bb40b3016240a0b3cd6189bc2c7090d7e9832e47b8b2838dc40b3aef0489a1df482b66a7fc4291d6c4b22f3e288e13864f5"
+    },
+    {
+      "index": 34,
+      "path": "docs/project/phases/phase_1/history/architecture/governance_control_plane_architecture_20260719112304.md",
+      "size_bytes": 11937,
+      "sha512": "648f4e7045eddec467118de506b419fe88aa5839782216807f173b973a087aac3bbcf0a4b1f80f0cfcc0e9e7a8b2ae8f3762f7be9abefefde6ef4997f64a53fb"
+    },
+    {
+      "index": 35,
+      "path": "docs/project/phases/phase_1/history/architecture/governance_definition_platform_architecture_20260719112304.md",
+      "size_bytes": 13197,
+      "sha512": "ef9b8d9644d5ba7ce1274844aa66202dfe86be1128e1b0e25151f8137ce8e4f9891c7f7f8de46f498cb8631095a7d4d8abba8a6412fd37f88b311a9bbda9f686"
+    },
+    {
+      "index": 36,
+      "path": "docs/project/phases/phase_1/history/architecture/implementation_roadmap_20260718174637.md",
+      "size_bytes": 4823,
+      "sha512": "003daf9d2bac922dd174a795aca8dedc69b818762bb61100f42c1e28047bb4ea7ccffb42207bd00deefa94507bb6ef4f7a9e2d8a8d61f916b81e22d4df488ab1"
+    },
+    {
+      "index": 37,
+      "path": "docs/project/phases/phase_1/history/architecture/implementation_roadmap_20260718193435.md",
+      "size_bytes": 4913,
+      "sha512": "ffbfc8506ab17cdafeaa91dc5e10f3f1eed05c0b53d42e62c0757c5aec325b4eefd7b623b28adf95292a4ae5fca6a179b4c195b94a136a405736a8826749df18"
+    },
+    {
+      "index": 38,
+      "path": "docs/project/phases/phase_1/history/architecture/implementation_roadmap_20260719013109.md",
+      "size_bytes": 5479,
+      "sha512": "f21c18847fb06f9643c0d52326e0d884ef40209d758c35d5b69963c20844e7eaf5b2262ee124eb5970d6aa746972cb77464182e47e8f25cffcf6648ef0e6a0b0"
+    },
+    {
+      "index": 39,
+      "path": "docs/project/phases/phase_1/history/architecture/implementation_roadmap_20260719040237.md",
+      "size_bytes": 6301,
+      "sha512": "29de9cb1516c7ade9cbfc4a7aeb9c6fac3d18ebdb7f482900de8a9b7d3b2d29068c3726b8f496baceccf5ae4e1a50865e8411361da1788bfdc9935ca45cd0217"
+    },
+    {
+      "index": 40,
+      "path": "docs/project/phases/phase_1/history/architecture/implementation_roadmap_20260719041847.md",
+      "size_bytes": 5680,
+      "sha512": "791e5ea3ff3635fce3be035daae234c73ce6c46eec5a78be62d968700655aeb8a847962d59eac3b4e27c8049d28b20b4c3391cf39be3cfb22281a33e7be2070c"
+    },
+    {
+      "index": 41,
+      "path": "docs/project/phases/phase_1/history/architecture/implementation_roadmap_20260719112304.md",
+      "size_bytes": 14076,
+      "sha512": "40213d78546f303caa9b35ac78223d82aadd7b97325805ef0d1f82eaae93c9b3d00cc4174760b9f40125ea519bec55aa0cfed9be852c9e24217a07a15502a80e"
+    },
+    {
+      "index": 42,
+      "path": "docs/project/phases/phase_1/history/architecture/implementation_roadmap_20260719122035.md",
+      "size_bytes": 9877,
+      "sha512": "87c6d26597a31b6054b00539d6dce6cc1f6ef5f56cad30cc64164aab03c305dd25a249a2715ce79c1fe80d50cb1bfc40ce00838d4f0588f81c5c65951b343b66"
+    },
+    {
+      "index": 43,
+      "path": "docs/project/phases/phase_1/history/architecture/implementation_roadmap_20260719123547.md",
+      "size_bytes": 11703,
+      "sha512": "929a6d005978e66b2e8e0dca9ab6fe23c2759c0157ec55231f6bdbd6a91a06a337377fecff39e19c1555af7d3ae18e03eb613987aa62b32a661331fc1a4c59dc"
+    },
+    {
+      "index": 44,
+      "path": "docs/project/phases/phase_1/history/architecture/implementation_roadmap_20260719130303.md",
+      "size_bytes": 11793,
+      "sha512": "cd021b69eb8330d64cb1e3dac99f1a4f585337fd4d00f282c91d93685ddcb6b4fa7860380a1558279f324feced17495ceeb7020ae015bcfbe94b417b01a3aef9"
+    },
+    {
+      "index": 45,
+      "path": "docs/project/phases/phase_1/history/architecture/implementation_roadmap_20260719142558.md",
+      "size_bytes": 8687,
+      "sha512": "73fc4dfb930eb505388609ff9f1af540d921848aa69099d8346d20432678da96faa3e8598bb6a36b100b16aa66305f0493e5dab61e67b66cede6312e2b9355c1"
+    },
+    {
+      "index": 46,
+      "path": "docs/project/phases/phase_1/history/architecture/implementation_roadmap_20260719164641.md",
+      "size_bytes": 10227,
+      "sha512": "1cc9dde1c5204a56fa0bdb21a3abf54c92856d46b503785e07e627dd7ab67863000b1cc06128a65537cba142a69b7524ff2444a28356bd8fbc77f301d1657355"
+    },
+    {
+      "index": 47,
+      "path": "docs/project/phases/phase_1/history/architecture/implementation_roadmap_20260719171836.md",
+      "size_bytes": 5629,
+      "sha512": "90e95c160e0ffa3381686e7b155768498473577fc46a6555b88259ce2c23265716235bb0228e2d993a35344215638703a279334280cfb46e678004734645e23d"
+    },
+    {
+      "index": 48,
+      "path": "docs/project/phases/phase_1/history/architecture/implementation_roadmap_20260719202333.md",
+      "size_bytes": 3681,
+      "sha512": "aefc28992bc30b3c187606cab262ae372e4355a4e83f59574f4caeff74ffc643911b917851bdac25f2c210f65d9e3de835fec87d17ab39f73ddd770027cf1a50"
+    },
+    {
+      "index": 49,
+      "path": "docs/project/phases/phase_1/history/architecture/implementation_roadmap_20260721093952.md",
+      "size_bytes": 5489,
+      "sha512": "9661519e754660a61ce5703419b2919934512c5dcc1b089f6017ce800d01a61eb7a3663f78cc33a654c97b61619c19ae9ecbd77a70b8690ffeed4d41aab40942"
+    },
+    {
+      "index": 50,
+      "path": "docs/project/phases/phase_1/history/architecture/implementation_roadmap_20260721155020.md",
+      "size_bytes": 5448,
+      "sha512": "81b63898a35c58ec9638498099bdd0f63632beae293d2b48e039a0ec08a34c782527e9da23e7469b100cfa8509e6f7fd8b01e8ee658ab1bda50a5bea1644f09a"
+    },
+    {
+      "index": 51,
+      "path": "docs/project/phases/phase_1/history/architecture/implementation_roadmap_20260721162242.md",
+      "size_bytes": 5168,
+      "sha512": "7245971487f9969e501152bf34c6446fa0352a95c36432152593a9f0a12ad5b71a119b498e67b91d44fe049c317ac4221766cf5adaa121c2d729113ef574299b"
+    },
+    {
+      "index": 52,
+      "path": "docs/project/phases/phase_1/history/architecture/implementation_roadmap_20260721174346.md",
+      "size_bytes": 4128,
+      "sha512": "76669b1ba08724114a22dcdc3888deab8606a199b079524916bd4f58325d509f6a528ee3e5ec4407d3d209500b1d0662894a20921c716713362f68cd0dfe2eb5"
+    },
+    {
+      "index": 53,
+      "path": "docs/project/phases/phase_1/history/architecture/lightning_ai_studio_cross_environment_architecture_20260719112304.md",
+      "size_bytes": 10890,
+      "sha512": "15465726bb5c9883bdb004188bd9d221b9692d8d778d88d60ba15010f690ee48d4012a18a126ce484a0a43a90ed303adc9d834126a66c17f8077df1272ed9d14"
+    },
+    {
+      "index": 54,
+      "path": "docs/project/phases/phase_1/history/architecture/lightning_ai_studio_cross_environment_architecture_20260719200711.md",
+      "size_bytes": 5826,
+      "sha512": "9edb588a7241b469648a48ebae59fe10ae2fcbfdcbf97058f9e9dac9bd60a0139a2a645dd6f36cedbe5794de7daf7b71028174814b3f36c10be897a1754c61ab"
+    },
+    {
+      "index": 55,
+      "path": "docs/project/phases/phase_1/history/architecture/lightning_ai_studio_cross_environment_architecture_20260719202333.md",
+      "size_bytes": 4657,
+      "sha512": "8c84aab71d4a765e935220c86520e0be0aa19cef7a2040bde093ed8abfdf6e8c4528ea1eff0ac3fd2db788744a4f8243fd9fe2c9c5b75aeadcdd4f9fb20e11e4"
+    },
+    {
+      "index": 56,
+      "path": "docs/project/phases/phase_1/history/architecture/model_strategy_20260718174637.md",
+      "size_bytes": 9021,
+      "sha512": "bb0519e4a9062847db48752286386d87dc119218aa522b12c5c86c2866c6bd859107ccfa9b7d4fbb4eefe9a15eb719e1d525db33390e22b50638f05d33206190"
+    },
+    {
+      "index": 57,
+      "path": "docs/project/phases/phase_1/history/architecture/model_strategy_20260720231036.md",
+      "size_bytes": 4688,
+      "sha512": "9a08604a0271546d20cd6bf57e5eb3260d8f2ac3620fb87cfc3bbe2fc42fe694497ee5c8ee68728a3fe386b0927c5b4c5015fcd04b4bd3b58a2fb33cae0b2564"
+    },
+    {
+      "index": 58,
+      "path": "docs/project/phases/phase_1/history/architecture/phase_1_ex_documentation_continuity_and_publication_architecture_20260721155020.md",
+      "size_bytes": 9081,
+      "sha512": "3f1c3a16f4507b3851d7ba4f0b1402cc035c8eef30ffe5e06a6dbd26aa0dee34f2db354945b340b61caeca073384ca1631c0982fdf3eaabbe9285666f85924f0"
+    },
+    {
+      "index": 59,
+      "path": "docs/project/phases/phase_1/history/architecture/phase_10_external_r_and_d_integration_architecture_20260721162242.md",
+      "size_bytes": 5765,
+      "sha512": "c6962ed5b09951513d47de6bbc0af5a27f3d5a1564dd4dea2097cf5e32820ccb5895af3e22f6be6e4df49f22507f6dad7e22b0374c0246098f5af97c111f6925"
+    },
+    {
+      "index": 60,
+      "path": "docs/project/phases/phase_1/history/architecture/phase_1b_model_runtime_contract_20260718223203.md",
+      "size_bytes": 28298,
+      "sha512": "a28f6b4e41f848a1d75eeb3ba5cc4214b26f6d9b1a87978af17578d6f3561ad5f3193f84ffd52d657abeef621136e1f207d4682e5626838a67bec41bd275a753"
+    },
+    {
+      "index": 61,
+      "path": "docs/project/phases/phase_1/history/architecture/phase_1c_deployment_platform_acceleration_architecture_20260719013109.md",
+      "size_bytes": 15276,
+      "sha512": "c73384197fef3e23ff8a3f77da88859660a512d7a566ed2c3afc0a1a665147dba67229f443ff287d25dc83c323bcdaa7a4523064f1becfb171127ac66672e43a"
+    },
+    {
+      "index": 62,
+      "path": "docs/project/phases/phase_1/history/architecture/phase_1d_response_language_architecture_20260719040237.md",
+      "size_bytes": 15778,
+      "sha512": "8dc408a64cf1f8cd5cd4adec7a31399557f06d151c0c1803121bb5703743f4966730eed9ef35f1d65450bb3c80894d6e2c029b4ed895d2047b19e4177afd312a"
+    },
+    {
+      "index": 63,
+      "path": "docs/project/phases/phase_1/history/architecture/phase_1d_response_language_architecture_20260719041847.md",
+      "size_bytes": 9636,
+      "sha512": "b36d158ee2fcfb5b0f7f9570160afec432c6325045ffe2499bb56f3d566517c664a5dba4a78c6dbbf3269f761e1a6eca8d47398fca841d643e642a4513ee2f4b"
+    },
+    {
+      "index": 64,
+      "path": "docs/project/phases/phase_1/history/architecture/phase_1e_thinking_presentation_architecture_20260719123547.md",
+      "size_bytes": 17559,
+      "sha512": "ab38dedede7249e08b9b0ad43374c663cd0dba10078e47fd70cc2ff5e790486e7a5c357b371219b62d1d7a5d95968744a019d96188d896ce2b559c8770c956e0"
+    },
+    {
+      "index": 65,
+      "path": "docs/project/phases/phase_1/history/architecture/phase_1e_thinking_presentation_architecture_20260719130303.md",
+      "size_bytes": 13914,
+      "sha512": "9b23701da5eee9855f1eba6c9b766043a4b6bc2a29b86a524168088316e00434825abfc317b7daff259f7c8a705950550b3d9b9986198f27a964629aee2d5d12"
+    },
+    {
+      "index": 66,
+      "path": "docs/project/phases/phase_1/history/architecture/phase_1f_lightning_pure_cpu_runtime_follow_up_architecture_20260725200001.md",
+      "size_bytes": 4342,
+      "sha512": "0d894fcbfdb319fa88a40204a65bb2a44a337329e7710d6880694800b777d469c63f396ae0cacf59acec4cbd75632e7ed19c6ea3beef060aae0beb9967a52d8d"
+    },
+    {
+      "index": 67,
+      "path": "docs/project/phases/phase_1/history/architecture/phase_1g_minimal_web_surface_architecture_20260721093952.md",
+      "size_bytes": 9780,
+      "sha512": "fe85aa155a6b5e6d89a3dc021e98efe06d198dc0629ea74f8accae02e5cb6cb70965a8b484019ed1625a42efcf981626f2a692e199cc159a797c1ce4c0ba1ed9"
+    },
+    {
+      "index": 68,
+      "path": "docs/project/phases/phase_1/history/architecture/phase_1h_summary_mode_and_ui_language_architecture_20260721174346.md",
+      "size_bytes": 14804,
+      "sha512": "b686f35bd301fb9f6706aa7aeddffb6d58b88945f5bc1939afe52a273a37ec7c33a310d0b9af303662d56bada73257e5897a1140276695231a26a5cabf6837b8"
+    },
+    {
+      "index": 69,
+      "path": "docs/project/phases/phase_1/history/architecture/phase_1i_web_presentation_and_ux_follow_up_architecture_20260725200001.md",
+      "size_bytes": 7126,
+      "sha512": "a52be4ff55250b3b3c0d772336c26cd4e824d0a819e77f40af881bfd2efd249bc029745dfdbccc255bf044caf07dfd4d03f50103d9774a7213da83d0399486ef"
+    },
+    {
+      "index": 70,
+      "path": "docs/project/phases/phase_1/history/architecture/project_directory_structure_20260718192110.md",
+      "size_bytes": 15412,
+      "sha512": "48a4e064aef9e9078ce47e30c54c19478d198bc33ac0aff4e5b550a30d6e7d10bf7c05b9a9fd0170fdc94b645f6855765bc1ff40bb5d0a73b38df9bc0cb359d5"
+    },
+    {
+      "index": 71,
+      "path": "docs/project/phases/phase_1/history/architecture/public_documentation_and_phase_compilation_architecture_20260720231036.md",
+      "size_bytes": 4950,
+      "sha512": "3c2dbe35832710c063e8a5b92ba16987b58a01590085c6791d220fdf57c238648ee4d7eb37c543edc316fdcebb09de75ed6c833facd522f3772d2018c9bf9bd5"
+    },
+    {
+      "index": 72,
+      "path": "docs/project/phases/phase_1/history/architecture/python_environment_and_dependency_strategy_20260718201744.md",
+      "size_bytes": 15903,
+      "sha512": "c95f15b9bfb0db5e948e3adcd685a3cd69cd74749c760175eeb449736c1736a1db6325a785f5e09df7032a7acee225cb56208cab5febe12406e9a17adc5ba7af"
+    },
+    {
+      "index": 73,
+      "path": "docs/project/phases/phase_1/history/architecture/response_language_and_thinking_output_policy_20260719013109.md",
+      "size_bytes": 10297,
+      "sha512": "e23eabab660f24840a1d845239d6a5fc5588036e36dc64835224fd5e98fcbabede81efbf633efdd5d48238c2b6968c5c3716522f51c961e8a281ad356b8ceda1"
+    },
+    {
+      "index": 74,
+      "path": "docs/project/phases/phase_1/history/architecture/system_architecture_20260718174637.md",
+      "size_bytes": 7211,
+      "sha512": "5eeaee29b448cce7814d09014d859a4ab48a02b4d8d334122d854ce9e37af2c14a363760299e9ab23cf5df86a5764745124dba090f541d6a2bd7fab0566804bf"
+    },
+    {
+      "index": 75,
+      "path": "docs/project/phases/phase_1/history/architecture/system_architecture_20260718193435.md",
+      "size_bytes": 7445,
+      "sha512": "173e3f0a76e7a1732bde8caaced29d1c4b3e9d592219f34d7688fe8a29456f585848a903d515e9aeb62f09fff902c64f54cd4f371a53863d7baca3c4d4e7c108"
+    },
+    {
+      "index": 76,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260718174637.md",
+      "size_bytes": 4659,
+      "sha512": "d3048b1ae4e11dc721bb9e18a4df53414ccc6e61d5372586af0ebe44303188cdbb6d8b843d6e0f350648e5a3a0c29bc0f844a99047b3e1aa940fa333fc6a5a93"
+    },
+    {
+      "index": 77,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260718193435.md",
+      "size_bytes": 7675,
+      "sha512": "c3079d55856a427364235edc2c7d6e5431834f7a41e2844f5803c60c4d4d26a8934a4f89a8d534cd7e4ce13636eb255aa128d61c96b3bfcc6c1dd42ba591a8b2"
+    },
+    {
+      "index": 78,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260718201744.md",
+      "size_bytes": 9053,
+      "sha512": "58bfa168aa67e6d6b45f26b310af8ac878b2d78f9aee5180de97022aa81c08429274c36f87fc491af16699eac4ec44377aac436b24168a1d5049f15ab43e6ea0"
+    },
+    {
+      "index": 79,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260718212502.md",
+      "size_bytes": 9607,
+      "sha512": "0a9808975c42124fc5bf0910a0824c0db9dcbf3f6226f6a9dfb67826b8cade1135a37b468b9237c4361300cd723c92047682d6403c55f403739e9e1315ae1664"
+    },
+    {
+      "index": 80,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260718221255.md",
+      "size_bytes": 11585,
+      "sha512": "32735724f0032bdefb43c4e6931724796b079a7bfc6d349a49179d1482049c5888ace109851f2df980002bc6f4b58451cc8e2be871e4c128bdf10bf65d0397bc"
+    },
+    {
+      "index": 81,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260718223203.md",
+      "size_bytes": 12419,
+      "sha512": "d0416d748af17b2a1b30c31bd4e4fa4898b0c53c20831d385321d9ed10b9e13747001a6aba4f256fdc2d74b342fcf488a8ab0b106368d110df220d452498d87b"
+    },
+    {
+      "index": 82,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260718224308.md",
+      "size_bytes": 13298,
+      "sha512": "dfde2560188c8b22f93e151c905440fbd7792d3d0cc5dd8f8f5e7ec0dd706504e119301090803ef899735745bdca29e193ca71d89092e0c64dbcb340c729d222"
+    },
+    {
+      "index": 83,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260718233938.md",
+      "size_bytes": 14496,
+      "sha512": "d79079cf915e6e087f6a1c43980c7a77eced714728a0369062aa81a6e8d695537bb981e7889a7972c4b0bccbd760ef27cfc65155fe99dc7168a8d6050ab621f0"
+    },
+    {
+      "index": 84,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260719000348.md",
+      "size_bytes": 15478,
+      "sha512": "eeb79d2b0f285ecd5097be2c631713372dcb03fd6b3f85ced7084ee3e72ab103e23564d8b6be112798caca2396203a65b7807b1ea0230faa604e07db2897e7eb"
+    },
+    {
+      "index": 85,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260719001604.md",
+      "size_bytes": 16165,
+      "sha512": "2b56d3d6c24500fa80255830bf3585911f0187cd16c3cde1fb896ab7c121b11275deaf853fed57d9b0094fdd57e10ffa7686d8c46f2e4d41d354c963048b224f"
+    },
+    {
+      "index": 86,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260719001844.md",
+      "size_bytes": 16470,
+      "sha512": "b682eb4b5ff08d642e48eba59c691137a65fe3e7eb7186cf91ae7ec4adfa15dc22f41a62ec5a2ecb0e76acc7279a76b197578713a71384c3d32ed71d2e00aa8d"
+    },
+    {
+      "index": 87,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260719002104.md",
+      "size_bytes": 9987,
+      "sha512": "826149e10282009ef98d98da54fbc16e0de0904a420b442cb1ce3377cbf1ad0a7599a2895c136b96203d1c1e983240e9cce888397ba2780113075ac0f94962e1"
+    },
+    {
+      "index": 88,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260719004209.md",
+      "size_bytes": 8832,
+      "sha512": "764cb6b6a1105573876def15ebdb1feb8bc5a223bcd4ece332be296e3c138c58a305224a0d1d607d4a529c7ea2928a4f4128aae28782eaa3fb7b37096c63e26c"
+    },
+    {
+      "index": 89,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260719013109.md",
+      "size_bytes": 11177,
+      "sha512": "52a1abce081b525d91dbfb890d315a0bcfbacbaf80c9ead7109e02af57ac9fca7adfb24579ffacf95f272357b716ee962252ab41aa07d912c6376f249ff28f73"
+    },
+    {
+      "index": 90,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260719030341.md",
+      "size_bytes": 12126,
+      "sha512": "77097e3a55b5511cb6c66a6d5b6dfbfaf5b27245f21acf7b49dc80b7f570a8afeebcfb3ad7ff4f0800717901fed65653a1e5a78ef133c11ee489e0ff5c8ab2b8"
+    },
+    {
+      "index": 91,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260719033038.md",
+      "size_bytes": 12551,
+      "sha512": "e67a24535bab3cd46869710f78aac7730ce8a842431eec15f7be6a0b4bce5a651add46fd5a0a642ec323656dbd38bdd888241c169fdcda827e5f2f662473c2a6"
+    },
+    {
+      "index": 92,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260719035156.md",
+      "size_bytes": 11851,
+      "sha512": "37bfb42174de4d753a9cd962931d276a5be9ebcab31f2685d4ab15f085a2785351626a804a3b462c8961b5928b2b1dc725309f27d86fc7e01924be71e2b7638f"
+    },
+    {
+      "index": 93,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260719040237.md",
+      "size_bytes": 12601,
+      "sha512": "2ce3ec876f37536c17cfea7a840899e75fe9930e557da7bef3fe5432a372f3a31eaa7f5ca283e0d23e3d9fa12dfed21935e0dd4e85d773e3e5dabc715fa44313"
+    },
+    {
+      "index": 94,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260719041847.md",
+      "size_bytes": 13190,
+      "sha512": "81fbcc2f2d8beb0d836f2136fd3692f08bb7f963af6e5a7037f8d4b2ea41f3bc7e61b83b3d8dfd4a35c776ee30cce6327ade0583031c3484adca7613b522f4bf"
+    },
+    {
+      "index": 95,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260719112304.md",
+      "size_bytes": 20838,
+      "sha512": "e73939273d2a3ce1bc23a38131712990739e2dd4de66904257ae06d6e73545e2e5c2fbbf3f576fc3945ee82e9e38596da55c7b3b691dde5c7fa1420c779857af"
+    },
+    {
+      "index": 96,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260719122035.md",
+      "size_bytes": 18490,
+      "sha512": "62776398a038219fa696cb91bfd1f939d3d5b13b1ac0db214c38271a9b3023b86e4e1e931f2a26defc330f3af4a800cf3ddbe55e2614da7af0ea941ed7c6c663"
+    },
+    {
+      "index": 97,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260719123547.md",
+      "size_bytes": 20454,
+      "sha512": "3b45b63aa592a87cc74f413f4cbe2ed5d3020bb581bc6a361061f9333d016e2491771bcc2a82e6e30134fe02c1af5ee79245377d9f7a96356ce9df73333946e7"
+    },
+    {
+      "index": 98,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260719130303.md",
+      "size_bytes": 20872,
+      "sha512": "d9fc115abbfcdd3ac18e71a8dcf5d0e509dddca18f63f412b96ceaad62317f934c7ffda8c8deb8ea58b60070ff514cc9c428164d5b4b8ed8f0a3ffba1d092f93"
+    },
+    {
+      "index": 99,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260719142558.md",
+      "size_bytes": 22442,
+      "sha512": "5345df1570459a409d4dd79140f771f695c62a1f0c52012a6abbc1ebb7b50d34e7630cab166a82dc7b5d587a0ad37370df4619d840719e49542b599b00b5ba1f"
+    },
+    {
+      "index": 100,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260719164641.md",
+      "size_bytes": 21600,
+      "sha512": "73659f8c4ec848a5ddbd64ea576c251ad2c5240ba5b9e434953981f4bc41c44e8485e52ddd8b149400aaffc439fdb91945d0191f16e7d1194e31bcc66c381040"
+    },
+    {
+      "index": 101,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260719171836.md",
+      "size_bytes": 22667,
+      "sha512": "df82a848f4e7ccd5bedf91107921639228b5b8f71aa6f96d6d8f6cb873a6bbf6ffd08562dcdd4454b11f5b87759be4aed6914316ea7ce238a603b9cb8e73a8a6"
+    },
+    {
+      "index": 102,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260719195134.md",
+      "size_bytes": 3675,
+      "sha512": "db5d9e0215b79c0c4194104aff809a31e77374f62ecee89a86ce81f4e8ec8ee2147700689d5630fdb206ad282e32e9f26d8d575ded3475bc808414ca198c738c"
+    },
+    {
+      "index": 103,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260719200711.md",
+      "size_bytes": 3435,
+      "sha512": "e239ac981e9b12e32f4eb8f9ab737ba20a2162c61d1beb888792591475b4dadf85edf697e79d6a689d73487aa0805cb298c5d063710e5de255df9894f7b6bad9"
+    },
+    {
+      "index": 104,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260719202333.md",
+      "size_bytes": 3986,
+      "sha512": "4085eeeb990bea821ce06e3162f18601aa50dce4b94f58db00788b29e1e6437ecac3080f54acf1902fed241594706a7a00ac5ada5e344636dd1d33ff1a38332b"
+    },
+    {
+      "index": 105,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260720220216.md",
+      "size_bytes": 3523,
+      "sha512": "5c7c7ca493484c6ca8a1e11a3aedf93437321cfc13a70739161e9d8e46e9b869d97bba817d3d2e540360a2942f1dd9ea8acaf6ce2f8679964ab446f32e8dd2c8"
+    },
+    {
+      "index": 106,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260720222402.md",
+      "size_bytes": 3855,
+      "sha512": "029f10b8948d6a4f3e9d8db0e9282c2533875f35582b8a4dd28d6e32f467c3366dfe78a30cbe9bbe895a6b7957e4feed0df7f0ac3fc807c638c1736a9ca6f026"
+    },
+    {
+      "index": 107,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260720231036.md",
+      "size_bytes": 4560,
+      "sha512": "0c67105a78c80d41a6a7993211e8323cb97d5be51b6ea038b9c37b58305fe8c4ee485ac58f556329bd15ac9dae07be7612f689a4528ce6b18c412e9e432cddca"
+    },
+    {
+      "index": 108,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260720235113.md",
+      "size_bytes": 3382,
+      "sha512": "4f6fe89178f7fff8bf4164d8a4fd67e275117298f44807949aede8aaa09aa7893c2a7df21d21cecada0edd3e37f53fd0a57e9288eb08a6f5b57c3277f7855bea"
+    },
+    {
+      "index": 109,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260721003201.md",
+      "size_bytes": 4138,
+      "sha512": "006341f919af540d07dcff8dad4fa58640c36a0f776a617a6d1e8268f611cf7c7043098f799fe6d5d21d9950b7f7e61630ab3c3723c1c7dcbdf79702c4eac201"
+    },
+    {
+      "index": 110,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260721010200.md",
+      "size_bytes": 3760,
+      "sha512": "f6f246908c0b57aa596fd458d7ddb52170a60e09f2a23808099e9be3cf73e2e5bad73bbca20b89f05d726c4a57c8294668b5f65c6cd727cfec6e37a39bd6351c"
+    },
+    {
+      "index": 111,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260721010621.md",
+      "size_bytes": 3359,
+      "sha512": "04b4d10955d746854d869e4d3040a4885d518509f48196db08ce357b854299734b9146454fc4141b1011207fe92e725e3823c51100030d77719023329e8aed75"
+    },
+    {
+      "index": 112,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260721090725.md",
+      "size_bytes": 4707,
+      "sha512": "c683323050b9061c465ac780f69ee2ce2ba4c5d3187326cf28bba3f32cdd84b17f8915bc7401dc721e0a2c9cf59d54391e2b3b0452db303815a8ed99856e026b"
+    },
+    {
+      "index": 113,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260721092818.md",
+      "size_bytes": 4075,
+      "sha512": "320d1eae3ddbd55a9d1087dd52cc9c9ec8341e14450686559564fce9db66425d9e5d7d154597000d1e54d5bbea561c1efbf00bc48c3fc3646e325cb8ce24583b"
+    },
+    {
+      "index": 114,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260721093952.md",
+      "size_bytes": 8203,
+      "sha512": "d90461aab8aafde963dca3e875d4ae2ad75152f54d38976cd0a35d84f72b17137971d2b20b3687de724e5a68d1d09108fc50b22d014cbe24c35c552b7780dbbc"
+    },
+    {
+      "index": 115,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260721111659.md",
+      "size_bytes": 6447,
+      "sha512": "2ff4756ca03f6548b57e0d4bd2c6f363a71453392aab5a0194e22e8b5c13fb88664ae0c0442bee2e19acfdb2c8782afef0f277589d6cb005752979047b757f2a"
+    },
+    {
+      "index": 116,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260721112925.md",
+      "size_bytes": 4856,
+      "sha512": "9f74c45d119a5d288b5f4e7254377ae22bf62047063be57a4c5faf70513451737ab47ff73424ca78289e2673397e671788920c9fe6a8309f2bd90c6e2a4d27eb"
+    },
+    {
+      "index": 117,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260721115330.md",
+      "size_bytes": 4034,
+      "sha512": "74c9f652d368165992e3f4a48dbbfe64bd8cbba27e2b0f9247b0fb28fef3dd53da3907bf9034abb74a1aa5c3475b9f5c0ec063e0407845d66ff883a174c7ff41"
+    },
+    {
+      "index": 118,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260721122621.md",
+      "size_bytes": 3675,
+      "sha512": "247a18ad8d4251d66c6f8920cc6081930f1304b0f48591e77f77557b6c7de11bc8b7258683a1feb561f7fd920d84e0cc804a0fe0af0804d735e7b49b9f0e6b4d"
+    },
+    {
+      "index": 119,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260721155020.md",
+      "size_bytes": 5483,
+      "sha512": "ea762ec3f4f130acdd6c7a4c60d16316a8686c529595a74b0b7e0deecfeec2f37e617af88754d93abd5f7f15dd605eaddcab0cfdac6098e08ec7850f8b32cec1"
+    },
+    {
+      "index": 120,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260721162242.md",
+      "size_bytes": 4955,
+      "sha512": "25dccdce3eaf287a27713a4275395474d123e69c6d15d556898aaadd2f9249754a18259f8a361aa164ccbf30aef81df8b06f41f1f2607cdbc2cf1735a34f4433"
+    },
+    {
+      "index": 121,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260721164248.md",
+      "size_bytes": 4078,
+      "sha512": "44998414c1da83781e53b770f8a6834957082463746a7f5c7206dd4d89b19612de9d57517c832ca53234b09ee1a08da174da10b01fe35bc93b5bb09ce0eeaa26"
+    },
+    {
+      "index": 122,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260721172916.md",
+      "size_bytes": 3995,
+      "sha512": "8551c81f6e817b21140832b9e7579c49c5a89e8f50a55de8c3f969efbe01452497853bc1c432de6bcb7f7d45f167a1aab6730fa6cc2b1e2806e2f257d54a88fc"
+    },
+    {
+      "index": 123,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260721174346.md",
+      "size_bytes": 4244,
+      "sha512": "78cc027e218b88a72f0b5440b00c668a874e535a1b5b189635a9c82c5c1c09f0dab47e539e06fac38e2bd89ab3d38f906bf619a39996e5e1b82dcc1e997b094e"
+    },
+    {
+      "index": 124,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260721182038.md",
+      "size_bytes": 3942,
+      "sha512": "cc6dd2632a1f230740e96cb602f2005b5cf09cf1741f0236e3d7e7b16a97d71810ce0bd6789e1cef716ee732b6077f5d10571c3eb6d6d5f57b300ab825d2c5b0"
+    },
+    {
+      "index": 125,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260721182416.md",
+      "size_bytes": 3247,
+      "sha512": "1cd57b1a977c5e60765fbb65cbb232ad11f72917ab58f7a979985506a01f7c3063a27e7882d90c228feb5794ba378c23e1270e6a7849fe6fe6ec68e972085c5e"
+    },
+    {
+      "index": 126,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260721184140.md",
+      "size_bytes": 4575,
+      "sha512": "7782fe136862725b6b76bc00cf9090bdac65669274c0836e0f8debc34f870f2b23bb81994a4c0ba5061833854a9e2cb14d6b855eeb27c8d1d4eaf2d0581da371"
+    },
+    {
+      "index": 127,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260721184329.md",
+      "size_bytes": 4560,
+      "sha512": "adcc4bf91fe8fe1a2f778ec39c008344363dc91dd1a29e6be0301c768d8fe52478bc26f940827f400dfedac4c8e4fffa24ee9241a64cf7d99b136846c9ab8fa8"
+    },
+    {
+      "index": 128,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260721185031.md",
+      "size_bytes": 5178,
+      "sha512": "be2894bc632f88b6fec5b6b893a7b8c3236c79a802f769149923004a1f896d1e1ac1c6703f55091601379bd802ec21fd84cf34f9b18b68e1008f98da050ff950"
+    },
+    {
+      "index": 129,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260721191915.md",
+      "size_bytes": 5157,
+      "sha512": "4007b881b4f1f81aee94239ee2fd34fe5929a9873a2f4e05e9f80087a354a662bcbab5a08558252529dd4e1a9e9ba5f5606fb1080671ffc655534a9f20085e91"
+    },
+    {
+      "index": 130,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260722023908.md",
+      "size_bytes": 4776,
+      "sha512": "76ff0a929a9b5f7333c5bd29822b88179bc213a1fbf02db42de67f3a9bf6fcf58b2d8f9db88d0f8246ac33cb3db0adae430e139b4a63f4c0086b1479a80930d5"
+    },
+    {
+      "index": 131,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260723131526.md",
+      "size_bytes": 4722,
+      "sha512": "97d0f463a2d333b2f5e5044ecf957e55a32bcec2041e7141c730ac3370a11914f8d37b653cba3ace4ef6e304d86ec0f72404c2950367c02a7eb52ebf5841686e"
+    },
+    {
+      "index": 132,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260723131846.md",
+      "size_bytes": 4028,
+      "sha512": "7a845da62e7dfb8e8c30111c764b1a8dd198ef7c2dcf7d8c66ff30cc002ad5c5db39e38ddce66ec249b336a6ce26fa9b0d3d1e2ba59b3c67165bdf7b766e452a"
+    },
+    {
+      "index": 133,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260723133644.md",
+      "size_bytes": 4033,
+      "sha512": "12d2a5f096d0e37f53dc20839f49299b0829aa37e9536df2000759ade9e966c202e8f98074259502f05f80a5c1d9320f9fc32285c7cd086755e30a79b2f77079"
+    },
+    {
+      "index": 134,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260723134544.md",
+      "size_bytes": 4637,
+      "sha512": "7608536f8ff6eafd40ca858d8b81be1c705aa19f26865c164c694b62b6f3d822a790cb68e06cf7040293e7529b0cf72a56ce4e1b1ee8ba85c4363a60a798a75e"
+    },
+    {
+      "index": 135,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260725132748.md",
+      "size_bytes": 5025,
+      "sha512": "ebd7420bd1eae477e89c785556b67b8eef32910a72ac2c1644dc56a38193620e69bb0befcc4b16637a11e947117c967e13aedc00e5ecae6728e1364958c54408"
+    },
+    {
+      "index": 136,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260725133218.md",
+      "size_bytes": 4868,
+      "sha512": "b825c98828d6486bca6c781bdea175860dedcda9a2677d84c8919e70f066112f1922ffcf50ca7edb924e6ab5cfa767e17692fd30bb4e26f97164c54a949d64ec"
+    },
+    {
+      "index": 137,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260725162648.md",
+      "size_bytes": 7009,
+      "sha512": "a148f248592fa51eab02144cfc77b807afbbac4530661a615d8a5e58a131f44a0bde3d18a9437f519e78cc746211e67e25b1b63a685f6823c8dd1bfca68c45ba"
+    },
+    {
+      "index": 138,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260725164739.md",
+      "size_bytes": 6376,
+      "sha512": "432224d5b82e480c12c67e42c62c80a0c9782d66ee328eedfc330d18fadecc1bd2aa098d66a6c8e64cffd07187f91b32685c518dd6416a2e346f972e91373f67"
+    },
+    {
+      "index": 139,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260725192903.md",
+      "size_bytes": 5958,
+      "sha512": "07d7c31551186632eedc3cb23561b8ea86025c09103cd10305800994be6e01bc29bb3ae051cd88ce0ead496e82281aad21bfb2394c5d0bf3b59fe6ca0bcfd52f"
+    },
+    {
+      "index": 140,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260725200001.md",
+      "size_bytes": 7017,
+      "sha512": "d043bde195396c716d0bdd040e079e77d02c902aa3eec68ded372ec53245a7caa55675a4d4999f5d9e7cc877043fecfa67fde331e3f66f029061e22a05205097"
+    },
+    {
+      "index": 141,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260725201016.md",
+      "size_bytes": 4387,
+      "sha512": "2b0094b59da351046317ac98a3f41bc3a33e1b0e09af011b6a8bffc4f5a70adda0613a3346591dfb4c80702b8929a98b2392d77e4645e6d29dd4c9c06039b38e"
+    },
+    {
+      "index": 142,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260725212559.md",
+      "size_bytes": 5456,
+      "sha512": "84e0e931aa327517d3ec2804e14aa61bf728b843d767c64a7bb8cea0fda320eb9a26941999627810d4cf7f0b19f4ec3e695ec19949fd01556d34e553a3f4c03b"
+    },
+    {
+      "index": 143,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260725214428.md",
+      "size_bytes": 3255,
+      "sha512": "841fe3a8eee0a32b7514b0fee73408c8e0876b0c6108ea0ae2f1df748bb530a6353c7e26548234d837d6596c3f4951ae2f41ec7afaefbc0d7018691aae46157d"
+    },
+    {
+      "index": 144,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260725215627.md",
+      "size_bytes": 4157,
+      "sha512": "08b2ce1e016d8a37df3a908fd8ac2dfd52960de2574563196a85da5e5ffbba0f79eae4ef6e33a87e181c56b18d00dca437a9c69824f50903d93d62ba9c7c475a"
+    },
+    {
+      "index": 145,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260726092413.md",
+      "size_bytes": 4855,
+      "sha512": "f916ceb2818e5d94aeb964ac5d68674805dc25b07596da5751ca06088c9d65242cbfc63428dff4b5f9b243f98f92539a6d63745786bea4bc1d0d6a2b10a2a7db"
+    },
+    {
+      "index": 146,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260726093437.md",
+      "size_bytes": 4083,
+      "sha512": "4f79fe4772a14a074ab37385c99405fafb314b495e8db2d5355eed0bf7996d8baca209706c46b45cb6114219f2a6d562acd65e54c60a39940db96fff26b31e79"
+    },
+    {
+      "index": 147,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260726094241.md",
+      "size_bytes": 2795,
+      "sha512": "1cdda1b1cd7b4609a325898f5dcf701c0a2c1bdbfb1c617556ab6146af06fd0083152249ad80c2901bffabe5c9a8397674babd6a87e43e7a6b36519b10c99597"
+    },
+    {
+      "index": 148,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260726111632.md",
+      "size_bytes": 4116,
+      "sha512": "ab9bfcc41db7590528912ade70513d16cdc38fd0ad042b29bf828ea4c3e90e63119a761ab2eb48008c5849d7b5ae6b5dd5ee7c7e70b0d84c1bd41644b48e00ec"
+    },
+    {
+      "index": 149,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260726120229.md",
+      "size_bytes": 4529,
+      "sha512": "2f1ec17ad628b0a4e1d6883af74d60db08589ddc890d7fd5f73539e8d96f7664d3e900378e19c558417466c7f1df0fc15724dbbdce1f2b8c5fb1ff17966d8cd5"
+    },
+    {
+      "index": 150,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260726121346.md",
+      "size_bytes": 2924,
+      "sha512": "050da280441e85cf1e4485a5cb811a90a5725a8a952a46b687ee892f465bf85dfa9e8653a41d2696c5a43d5987943c1f782959aa076fd688b074768244c19030"
+    },
+    {
+      "index": 151,
+      "path": "docs/project/phases/phase_1/history/documentation_index_20260726122144.md",
+      "size_bytes": 3861,
+      "sha512": "95f4d6ef2f5e4722b3961e454e3dd3b61e6cd71ef7f240332198746a8e10870b753319c0ee9fab9ff51e70d3c8d128da0f61ac417c0c6f88f680bcc5bb803258"
+    },
+    {
+      "index": 152,
+      "path": "docs/project/phases/phase_1/history/governance/audit_evaluation_security_20260718174637.md",
+      "size_bytes": 7245,
+      "sha512": "240cd8ce9cb56c2d21096c08d84cc36a9273a19db7f18000e1bdacae7f796a0bc69908661b8cc56396624994b8b46332bb4b5a89459baa4179191be178e2dc28"
+    },
+    {
+      "index": 153,
+      "path": "docs/project/phases/phase_1/history/governance/governance_definition_catalog_20260719112304.md",
+      "size_bytes": 16127,
+      "sha512": "88311ce365d745009fee2a09d7d7237a52dfeeb5dedcefc59f131bb7756807b67ddbca0d3aeda30d225ad9be48b5eb85c22e8edaed8bfd60488eee2e05723714"
+    },
+    {
+      "index": 154,
+      "path": "docs/project/phases/phase_1/history/governance/phase_10_original_r_and_d_governance_extension_hooks_20260721155020.md",
+      "size_bytes": 8663,
+      "sha512": "15fa4fb23a18581f1c007913f1683bd5c0fd22b642c274c331af905e22ba8d7da4f0fc3fe2ebd1cc713203d626a27711d3d1cb991557419063b101778c7bb938"
+    },
+    {
+      "index": 155,
+      "path": "docs/project/phases/phase_1/history/governance/phase_10_original_r_and_d_system_catalog_20260721162242.md",
+      "size_bytes": 4447,
+      "sha512": "2be2605cc6e0fff1f752c76c2ed6bac42976fb453e65aa282ba004bae022ae20f126b2e1245478b900ff311e937013e8274f3978bc189cbee40a66c26ca32b0e"
+    },
+    {
+      "index": 156,
+      "path": "docs/project/phases/phase_1/history/governance/runtime_governance_20260718174637.md",
+      "size_bytes": 9559,
+      "sha512": "4a5c1af261e2934959da34cd08f6e5cb021f9e88f8ad68173baa5bd6caa0ab02f60910a42ac284df7575e64edb9728bf63a5950f907546c4d3061cc5c09e2ecf"
+    },
+    {
+      "index": 157,
+      "path": "docs/project/phases/phase_1/history/handoffs/common_documentation_single_writer_until_phase_1_ex_completion_20260721191915.md",
+      "size_bytes": 3153,
+      "sha512": "3d4b61c25bd949ba7ea6d4c15496fad606085da39e995e1fa718dd156dcfdd8d7a6b8a265f50a8fe16b65a30f8703c0c0d82a747dbae79a88b7ef23e4ad0c191"
+    },
+    {
+      "index": 158,
+      "path": "docs/project/phases/phase_1/history/handoffs/common_project_handoff_20260718174637.md",
+      "size_bytes": 8157,
+      "sha512": "4871f7ae589bec2b9ffdc5666d417f0ab26e73a89d1b3ad727ee66669b9614728c27a40fec99ad53d240eed27bb13d2ee886fa6bc181344ed56e50113abe5d70"
+    },
+    {
+      "index": 159,
+      "path": "docs/project/phases/phase_1/history/handoffs/common_project_handoff_20260718193435.md",
+      "size_bytes": 9591,
+      "sha512": "3bf65b7dd1d2663010590159b0535b58b9d716b9ae154e67ed3820825953dfb206a7eb92762eaaf792e391db7b2a18c1823567883135f263a740c3b170c33a7c"
+    },
+    {
+      "index": 160,
+      "path": "docs/project/phases/phase_1/history/handoffs/common_project_handoff_20260719142558.md",
+      "size_bytes": 7342,
+      "sha512": "22cbde44c5f45ed262b0941aa1c72e1e1783233ac7c60d3291e9792302be305ab2e3bb7e610487561789d4df1a4b5dd4f6b074a5af721b4b78fdba802224b3b6"
+    },
+    {
+      "index": 161,
+      "path": "docs/project/phases/phase_1/history/handoffs/common_project_handoff_20260719164641.md",
+      "size_bytes": 8177,
+      "sha512": "6bed8a66d54f175479799da6e9f818f7a4cf5c44368182066e8aa63effab78fe79678648ccb68e32c538596dd02d4232c26d77af7c90553e90f2c53ff6f6d014"
+    },
+    {
+      "index": 162,
+      "path": "docs/project/phases/phase_1/history/handoffs/common_project_handoff_20260719171836.md",
+      "size_bytes": 6078,
+      "sha512": "c4c94ccd60417e3a06f81468cbc254b8bf50297677815b37f6650bfd8f273313d44bfe4d6a624e1312eba948a47bb2f2736349fb5af3366cd9703f5e06e460ca"
+    },
+    {
+      "index": 163,
+      "path": "docs/project/phases/phase_1/history/handoffs/common_project_handoff_20260719195134.md",
+      "size_bytes": 3137,
+      "sha512": "ab68d146e00ce4f20c5e13677b5c7d8c29bc1356d4cb7156f03d6d6db59d0f2a3d62cf7afc605789d815fa0cb7b11fb6390d7d7edd9f41c78f76f6ab18aaeccb"
+    },
+    {
+      "index": 164,
+      "path": "docs/project/phases/phase_1/history/handoffs/common_project_handoff_20260719200711.md",
+      "size_bytes": 3179,
+      "sha512": "76411fcfc72fce00e34e54bfcb9c8fb2ebd38338e4f0d6cf7810c637353638269c268cd3c359249219de0f5ba1c12882d230e7aa4639e157409a72e51e0dfd25"
+    },
+    {
+      "index": 165,
+      "path": "docs/project/phases/phase_1/history/handoffs/common_project_handoff_20260719202333.md",
+      "size_bytes": 2958,
+      "sha512": "6fb301f91ebebe2ddc7f689fc4c3e8a7bb439e33fe9ecb2cf068041b8d15cdea24bea9739a7c13c5416e09e3c44a18d82ee4ef862c336122ef85ff505501f838"
+    },
+    {
+      "index": 166,
+      "path": "docs/project/phases/phase_1/history/handoffs/common_project_handoff_20260720220216.md",
+      "size_bytes": 3186,
+      "sha512": "7655a22b2df2341e20c597b39e0bb1b32043d4767be3098346fe25fb55ecd2362cad75e551441f518105f4988f6133c3b487a3acec793680dc7fa2bb8b61213f"
+    },
+    {
+      "index": 167,
+      "path": "docs/project/phases/phase_1/history/handoffs/common_project_handoff_20260720222402.md",
+      "size_bytes": 3081,
+      "sha512": "10f5f5fbb00517339dc27eaac7c95263008bdfe55c6683a66a7a7f28b13286227b0a10c090bb8f7cbe639159432183ea83c35a262b281cd3c0c1712c609b75d7"
+    },
+    {
+      "index": 168,
+      "path": "docs/project/phases/phase_1/history/handoffs/common_project_handoff_20260720231036.md",
+      "size_bytes": 4034,
+      "sha512": "9f3eb8fa3b66149f18fbf2309cdcfd414942966b535f63edbf5637a0354f3e3940b5a0d5e64ff5de5df7faafb54413fb9a647c53f36cc6de081834466f0b588d"
+    },
+    {
+      "index": 169,
+      "path": "docs/project/phases/phase_1/history/handoffs/common_project_handoff_20260721155020.md",
+      "size_bytes": 4932,
+      "sha512": "87b9bda324b35569bda2abdff83468b5dd3ecf3b7d0e12ec95bf23c90268b4ab82a89f75c8f3f04b2834caa00478fb41f5a521e18336f1462075f148a0b70877"
+    },
+    {
+      "index": 170,
+      "path": "docs/project/phases/phase_1/history/handoffs/common_project_handoff_20260721162242.md",
+      "size_bytes": 3926,
+      "sha512": "2d6a14c9dce871a422c57459da4fa9737348c17b54bb71fbf9da39ac0fcc951176090eb1d32757d8036909746bead68bd3d8437867eb2a5abdd1b96b07cfc603"
+    },
+    {
+      "index": 171,
+      "path": "docs/project/phases/phase_1/history/handoffs/common_public_identity_and_naming_rule_20260721111659.md",
+      "size_bytes": 2813,
+      "sha512": "46d748ea4429ed776b3766ff0287df6274ea345804d402b115e1f6be410bade74cfa25768b691a421149ee601e3a646061de78a77d8b16b69c214c7834d64f59"
+    },
+    {
+      "index": 172,
+      "path": "docs/project/phases/phase_1/history/handoffs/common_public_identity_and_naming_rule_20260721112925.md",
+      "size_bytes": 2513,
+      "sha512": "11795d0799d48c0610d5860f821a2b3081ef6ece4c610e525626264bb1e0deb7cd253bd223ec7313c4baf7cedec26e25fd464d3641601c0692aaab0a9185caeb"
+    },
+    {
+      "index": 173,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_handoff_20260718174637.md",
+      "size_bytes": 1765,
+      "sha512": "40700f22af959dd384b974cc845966d640bebb9273937056f368bc2d9200cf1554ca8b98cedf260d0b08bbfba0654c1d678c5e1d4730f38bbf368d48b9b4652c"
+    },
+    {
+      "index": 174,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_handoff_20260718193435.md",
+      "size_bytes": 1948,
+      "sha512": "cf08b2426b546f8348c5bc2b8ac96ea99d318ad4bd7c35ec63c14c701bd94b89a77dd47c092e6558ef2bbcc44e759d47f777fab2cc003934e265b2d6d11f8784"
+    },
+    {
+      "index": 175,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_handoff_phase_1b_model_runtime_20260718224308.md",
+      "size_bytes": 15393,
+      "sha512": "77a344edbc640ef9c1ac59952678006a25e6ee28095a7594f1a3fa092d766eb6c25a3b041e066c72f92e442853a395969cd5ae4c02bf41ec1d071c4023e817ce"
+    },
+    {
+      "index": 176,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_handoff_phase_1c_deployment_platform_acceleration_20260719013109.md",
+      "size_bytes": 11206,
+      "sha512": "6f86d47e00844a5e002f2d53523fe14f4353d0454b0213f28f3eff60206ea9545a71fed0068cd41c3061ae799f83ef2dcfcc2516c3aef3cd6990428ab0532d99"
+    },
+    {
+      "index": 177,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_handoff_phase_1d_response_language_20260719040237.md",
+      "size_bytes": 11585,
+      "sha512": "9c3bb128df6af17274e39f549bd8b361528357cda9375e03cf795e6eea5baa2010476ee9a9ef9d305cebaabdf91928980eb277051bc88a5c05e817d2fc03db8e"
+    },
+    {
+      "index": 178,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_handoff_phase_1d_response_language_20260719041847.md",
+      "size_bytes": 9587,
+      "sha512": "6f804bd42b65663ce3a052f44629d9e7237fd17018402c801bbd409297da33d71d5f09f7390ceb79d8b3422c9b6bce72359d7ccd2610557a2b16a86bf4ac834b"
+    },
+    {
+      "index": 179,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_handoff_phase_1e_thinking_presentation_20260719123547.md",
+      "size_bytes": 10537,
+      "sha512": "10a51af82444ef0b7941ffce59d73b43de52d4ac652aa94bc4c3ac575c3cb91d0400ba3ab4af472f1a0206192bf56a7ffba8127ef92011a38145d86fff10b00c"
+    },
+    {
+      "index": 180,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_handoff_phase_1e_thinking_presentation_20260719130303.md",
+      "size_bytes": 10477,
+      "sha512": "30272e66edd48a13daae3a88dc75fe9146f2c2b53529e3f502ef2f575341f1ea9cce9b1d23fc581198e2a2eb77e86533aab8a3ef7c3d04cc1598b8d169248aa0"
+    },
+    {
+      "index": 181,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_handoff_phase_1f_lightning_pure_cpu_preflight_addendum_20260725201016.md",
+      "size_bytes": 4301,
+      "sha512": "a5110a0397e5af1dc27bbf176e904a847758273a357bbec101be2b7cefb23995d25bbee4c61e26f79020df177ca9164cf66db32a003a49e94724d5d4bce72210"
+    },
+    {
+      "index": 182,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_handoff_phase_1f_lightning_pure_cpu_runtime_follow_up_20260725200001.md",
+      "size_bytes": 5870,
+      "sha512": "d9213e12c8df5b436c1afbeafc762e95527e5e9286f4698e3fdcf9dced7c7c404fb3505b09bacb140b512e2ab569b7d978ebf8027f6f1febee7b1db6cd73b24d"
+    },
+    {
+      "index": 183,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_handoff_phase_1f_lightning_test_isolation_follow_up_20260726092413.md",
+      "size_bytes": 5177,
+      "sha512": "83a0866c1e9144b1f208856a85f416c4c50fe474f4f78668b481c979439b1df7384c32a193cf4d1d120429a022a0d50cd76dfa4c28380603559927a53ea9cb0e"
+    },
+    {
+      "index": 184,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_handoff_phase_1f_pure_cpu_acceptance_correction_20260725212559.md",
+      "size_bytes": 2802,
+      "sha512": "6c21fb56fe9199e4c5554996e4484a3fad506b752f29a04502b5d9184bb5aa01ebbc22f0a0a5e8e1e2223ac289227a68a0e384137612accd142df3274aa4e567"
+    },
+    {
+      "index": 185,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_handoff_phase_1i_web_presentation_and_ux_follow_up_20260725200001.md",
+      "size_bytes": 8025,
+      "sha512": "f6290ec7ca6bf9a0d273ce8926126c05f1624be45285b7410acd135512a6b6d70c95aa4cba72772c20d24c15f9ffad7f566ba2bb72c275501f6b71d0c2369aa4"
+    },
+    {
+      "index": 186,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_handoff_post_phase_1e_research_platform_20260719112304.md",
+      "size_bytes": 12405,
+      "sha512": "5f29bbca019878ad8250c9e7c7f78e12e1acea907ab613173619774f61cfcedcd5b08eb0c5e5bd2a020cc7b620b943c400c2167e86a4c6facc4f41095587995b"
+    },
+    {
+      "index": 187,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_handoff_simple_rag_documentation_availability_reservation_20260725201016.md",
+      "size_bytes": 2454,
+      "sha512": "d93d50ad980f430180b94bc4fbcbd83f7b2504662e4c2255a34a558863bb6911cd06e78232d9cafe8ef6a5ebd6bf58a6690122be734b2006aa2803621f772f1c"
+    },
+    {
+      "index": 188,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_python_environment_handoff_20260718201744.md",
+      "size_bytes": 6225,
+      "sha512": "e89d2e9b89e77896c46c270c5a8d5c6089210eeb7efc15d741ee6350dcb1f80cde5823e4dddd618d39b52bd52eb74216106f9b62161b09821bca3d2cc7c4ce41"
+    },
+    {
+      "index": 189,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1_environment_and_metal_smoke_20260718212502.md",
+      "size_bytes": 13007,
+      "sha512": "0e214ec3527bffe1ed8647d2d63c31fa0cf8c63473a5e69b3857a9ed71826061de01755f0967d0f3e817a7962a6b628c9a07ac734e4e4c9b8bd95e13fc180588"
+    },
+    {
+      "index": 190,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1_environment_reproducibility_follow_up_20260718221255.md",
+      "size_bytes": 8973,
+      "sha512": "0cc99b0ab9089b5371e6b6208076743087e242233888d3a3d26247da71c160dc81a2bb12fab9080dac0788941201185867a808e00b1e63d878f6cf2c3b6a5138"
+    },
+    {
+      "index": 191,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1_final_readiness_20260719171836.md",
+      "size_bytes": 7356,
+      "sha512": "f4371467886f3c72fb815293ffed948e5de8eaa07a37546fc5e7061f18c1bfeba8e7b05b4da6b84842317b4abc40135853471dd54631b02a018d92d71a9676ba"
+    },
+    {
+      "index": 192,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1_mac_web_ui_user_acceptance_and_follow_up_20260725192903.md",
+      "size_bytes": 10439,
+      "sha512": "38d3171a9494b033b59ca13c3f2f1a0daee38503b1de9156f338bbc7e166f91ff2852b48649fdd1e857e5c7422e804cdc5faf3d215cad02e8dfb97dd4e4e4131"
+    },
+    {
+      "index": 193,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1b_model_runtime_20260718233938.md",
+      "size_bytes": 12112,
+      "sha512": "058ac6f71c3c2c57870231eb117416091e6eea91cc1bae25f55b8669e56431e30e991a32d75e19aae35100b39cf654f38630bb127c4df8b6b670ab0a740a6d9b"
+    },
+    {
+      "index": 194,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1b_model_runtime_final_20260719001604.md",
+      "size_bytes": 8458,
+      "sha512": "6d0ab754e784eadfb1fcf012afba94c2b3dc48a53363f310df6c3d53defe8b8dcbda50422f5cebb315ee27632c6735e9577948474cf2cb63732ba5933b6735ef"
+    },
+    {
+      "index": 195,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1b_model_runtime_follow_up_20260719000348.md",
+      "size_bytes": 10150,
+      "sha512": "a0cff329611408ac690ead909454db2980afa8d308ff21b1633be89b711a0f2aafe90036e57971fd7703c472338df1d0e659c69bb1013aaf119402a1f41ae9a9"
+    },
+    {
+      "index": 196,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1c_deployment_platform_acceleration_follow_up_20260719030341.md",
+      "size_bytes": 12610,
+      "sha512": "294ca94ee218fd67f5409f0d30392d5aafec1b72ab541acef08e3004182f799fc577d462545f8e341399834136dbd7a32b2ec9b6392eec427f0d2f2fe6be970d"
+    },
+    {
+      "index": 197,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1c_final_20260719035156.md",
+      "size_bytes": 11979,
+      "sha512": "fede9d73730c2908aa7a0e6e275d9517aadeadfc4ee5b0fa1ef474e34af5a8ad657e515f12c49900895ad479103d7c275e5494721ea7f65676a9fa8c63942a9f"
+    },
+    {
+      "index": 198,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1c_platform_registry_and_preload_validation_follow_up_20260719033038.md",
+      "size_bytes": 14042,
+      "sha512": "b2200ab6f888aec748df92b0c46526f738584bf2f380761a4978678863ad6ff31ee8bca15276895ef8e8387c7794b8bcc3fcfa108408e40a140655e6dea873a8"
+    },
+    {
+      "index": 199,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1d_final_20260719122035.md",
+      "size_bytes": 14119,
+      "sha512": "b34d7c9bfc6f57671c2c5d6d8926180d0e1a88e853a22de26d4d367ef0eaa3e70f2e40768325c0ab72d3e353a288e55bce62de5c9df61fc72bb037070bdaab71"
+    },
+    {
+      "index": 200,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1e_final_20260719164641.md",
+      "size_bytes": 15430,
+      "sha512": "33955c2b0d14e35ac18dda2c83cb91d21cc1fe2816665b29b171e0324a2043c66b36fdf88a65f1917afa365bb76b8b5d4d500888b14898ae985c2a216f157151"
+    },
+    {
+      "index": 201,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1f_lightning_cross_environment_runtime_20260720235113.md",
+      "size_bytes": 14527,
+      "sha512": "539bcf9287cbf014e4470d48a5abcd42ee9f6ddf9d4b809df98b42dcd82c859ebe80935ef0daf64cf7513377d63435632ddc8862d42ac00c26b5d04a0f82a020"
+    },
+    {
+      "index": 202,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1f_lightning_external_pure_cpu_runtime_20260726092413.md",
+      "size_bytes": 4849,
+      "sha512": "9e96e6a84ff65a0f163c50cecf38565ad10921a56e16907d057fd33b0a16fb02d6dd0d26c6a08e18da1a8361fa1171c578c2c165b1cc1fb1b39f957c2b658aa3"
+    },
+    {
+      "index": 203,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1f_lightning_full_suite_revalidation_20260726094241.md",
+      "size_bytes": 2538,
+      "sha512": "ce7eea46085bc750e3638f50c3ad8c72280a3731dc367a42131f9bb0979b71c56bc62a3d9de67542c9cc1bbbe9ffd76bfa5fba280d192caf824409de58ed7e5e"
+    },
+    {
+      "index": 204,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1f_lightning_project_local_uv_preflight_20260721092818.md",
+      "size_bytes": 6894,
+      "sha512": "2a810e1c4b65997bfbb28f70d4a699a076dc045130125beba6ce898bcde82ec0e1f07ad7bb16edcb8adafa91244de7bea9c90b3688865c0cc5ddbe171243e6cc"
+    },
+    {
+      "index": 205,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1f_lightning_read_only_preflight_20260721090725.md",
+      "size_bytes": 9160,
+      "sha512": "29f289e8b3e6d118333d6427bc1f347f6cb238ffb32e31d535c1052dcb19bb622c616b1389380cafd4de7c1c5da2f291f45948e27ec2607533b9f36ae098d566"
+    },
+    {
+      "index": 206,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1f_lightning_test_isolation_follow_up_20260726093437.md",
+      "size_bytes": 5861,
+      "sha512": "a88696a8573f5a791c13ac21409d658862e32dde03d0aff5036dfd4bbdacf208d94c1f96fafe49a2518fb76de4f807caa1cce48a00217b4c8b9827fcbeb6787f"
+    },
+    {
+      "index": 207,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1f_minor_static_gate_follow_up_20260721010200.md",
+      "size_bytes": 7695,
+      "sha512": "3219ca286fa10a074de9d4199d015781c9b9dd52adca0c99381970a142145acabde1f219a0eb21111308b604e29718b3a5fe2f8895a5efd4881f9c859c20b556"
+    },
+    {
+      "index": 208,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1f_pure_cpu_acceptance_correction_20260725214428.md",
+      "size_bytes": 4495,
+      "sha512": "e1c2de17d94a6319e927b21bf77e47357c038a5622c4643f067adaaef5544c00fd62b47cc811da411e98bf4adec8fa5d8e2c4cfb6269a102452b29ab2d7dbe40"
+    },
+    {
+      "index": 209,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1f_pure_cpu_repository_20260725212559.md",
+      "size_bytes": 5204,
+      "sha512": "5e313a246ddf24941917898cd600e4cc1c782edc4a4367895f73fa120e3d7cc5ca96a3ef4c1ba2933f5f5f2e088bf4da1c60564b4a154303e58f2a6aad37cef8"
+    },
+    {
+      "index": 210,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1f_repository_follow_up_20260721003201.md",
+      "size_bytes": 10872,
+      "sha512": "a174029f380ffd9ab92e3e578067c9c83d17f9e0816d96fe57cb21f4d38d87337c2cb13ef6fa56bf31dfa20aa7704000be2c89c14844c29038a72d52de38810a"
+    },
+    {
+      "index": 211,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1g_cross_thread_cancel_follow_up_20260721164248.md",
+      "size_bytes": 8554,
+      "sha512": "28347e15bc6c04fc1852df89a5adb909606982b98eccfd23e28ba755af31999c4a4c55147b224f65dd26bd025de7ba006a7cff0c0c15bac08e121ab3f9ca85fb"
+    },
+    {
+      "index": 212,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1g_minimal_web_surface_20260721115330.md",
+      "size_bytes": 12441,
+      "sha512": "bebeef0a22585bf3f20f1c3c4c8d30d0e255fb0b50f3f6c8ee8a0084360fe713c186bbf76f7fba9dc36c6564f24a141fbaee6ec9e72c9698a7ec683aa47d3026"
+    },
+    {
+      "index": 213,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1g_review_follow_up_20260721122621.md",
+      "size_bytes": 10552,
+      "sha512": "4a63412b18892db1d54f728e1180aea550098c7e33e18fd8f78651cee0b37e7b817c07d0e0ac858819bb8451c40a70b1c375eb9e4ab4b486ecd837d48539cede"
+    },
+    {
+      "index": 214,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1g_shutdown_cancel_follow_up_20260721172916.md",
+      "size_bytes": 7141,
+      "sha512": "d425787e21a215469facd46ece20ae45497b93e1660c8e4ec04e49ae46141abcb7be95ecbf41c62773b8e895b4d129fb3bed8ff04fdfeedeecdf91e4254a62a8"
+    },
+    {
+      "index": 215,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1h_review_follow_up_20260721184140.md",
+      "size_bytes": 9859,
+      "sha512": "dbadacb7f0ac24d9072f1e39a671098175c5224d623e69f97a29127f75c4482969b1904ad6c3fa01f4e53ff4e43096c2001a0b94c4d4d5d8cff4194dd11fe96e"
+    },
+    {
+      "index": 216,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1h_summary_mode_and_ui_language_20260721182038.md",
+      "size_bytes": 12940,
+      "sha512": "683677a59a5cc3636bd9291133ec3417d563b877ba613a1472970e22ccc0ae6ca1ac5a5d98a9f18a5c8a6fabb39be3e2739410bd0479233d747dffb654b0a2e7"
+    },
+    {
+      "index": 217,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_phase_1i_repository_and_mac_manual_acceptance_20260725212559.md",
+      "size_bytes": 6904,
+      "sha512": "8125e0ef4faeebc2236a2a832e9528210c9eb47b6a0891826c62ad7645c4b388327a51466fbeabf8f6ca016d993ca34a9ff4659bf07ea19194fdb7e1f54a325e"
+    },
+    {
+      "index": 218,
+      "path": "docs/project/phases/phase_1/history/handoffs/designer_review_top_level_phase_1_completion_and_lightning_web_acceptance_20260726111632.md",
+      "size_bytes": 8017,
+      "sha512": "3dc1ae2aa5a372cc2dbf7f0a344b1d1e02f3b8bc7fc8d2f325c2adb238137319b952de251f2182ef72fcc1a56899d0524ff5cfa5254c827d87a001ce23911909"
+    },
+    {
+      "index": 219,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_handoff_20260718174637.md",
+      "size_bytes": 2607,
+      "sha512": "02f4e292bbe44cdbea54227c162469cf60434e56a01d5d35f303f0c47f72e55243d2f420d98a5c6735de7f688103e81fb6dd13d46c666f234c19f765852b19c6"
+    },
+    {
+      "index": 220,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_handoff_20260718193435.md",
+      "size_bytes": 2923,
+      "sha512": "b0d49a67fa2aec2188c25fa69e1896002d80c3d212a8cc8f04614bf00c46f5ce5af9de7341f3139624e821db744771ea84c94c0942d3b86ad4515dd97ed51cb9"
+    },
+    {
+      "index": 221,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_handoff_lightning_ai_studio_dual_runtime_profiles_20260719200711.md",
+      "size_bytes": 3236,
+      "sha512": "8784aaf4d69a262bf4068cb54f0b9ccebc80314e20f4f715967571a9121c37829ce51af1a72d40a239778dbd4e5df6d2221896702a4f9caa05dd9900e8e03ccf"
+    },
+    {
+      "index": 222,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_handoff_phase_1_acceptance_follow_up_20260719195134.md",
+      "size_bytes": 2317,
+      "sha512": "c85e9b83fec9383e721ea603b463b8d2c4cc4ed90a37cd084e03439213653719e21122f238d97a3c8e2b1def3b3eab0035372b637501799852594e2438dfb339"
+    },
+    {
+      "index": 223,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_handoff_phase_1f_lightning_cross_environment_runtime_20260719202333.md",
+      "size_bytes": 3582,
+      "sha512": "9dc54f3ec765ccf78a1caa9412945d1fcab28c9393ceb00d55fb22a1c769217350a8b4389c59288bbd14a1cd7e681b47b7da28f5c7ff8b7d20621c0bec07876b"
+    },
+    {
+      "index": 224,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_handoff_phase_1f_lightning_read_only_preflight_20260721010621.md",
+      "size_bytes": 8225,
+      "sha512": "21b9af6fd8fa8b5fd85e13268f68e7c9d272d987cf9456f072a02c1d58318ecee47eee9d45de06fae0093ddf9603f2ce064a32b2edb47987d456331c5c817d5c"
+    },
+    {
+      "index": 225,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_handoff_phase_1g_cross_thread_cancel_follow_up_20260721122621.md",
+      "size_bytes": 5227,
+      "sha512": "4094ed2b424b12b1703050dd677ef7f4748d6421fec8b2b2c94ef5df2a0e7294d31ca825f624de25bdfa0fd3c958572b8f1c20ed03ef49d157d9c9c9173f35e3"
+    },
+    {
+      "index": 226,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_handoff_phase_1g_minimal_web_surface_20260721093952.md",
+      "size_bytes": 18439,
+      "sha512": "8770330bf047664caf7c63fffaff9ec725c624a0531e114da36e88ba5c9e8f74c84c0a77418277748d9ac05ce8e2fd7191d6e1c3c3e98000ff2aee7942e62d98"
+    },
+    {
+      "index": 227,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_handoff_phase_1g_review_follow_up_20260721115330.md",
+      "size_bytes": 6090,
+      "sha512": "3c5111b2196719db39612e6a8b1f4dc85e62e167abd679c3c3c97870295831c64524e0fb9127845a873f4798e88d48da65d036c0e8d565a73efd964e19075a8b"
+    },
+    {
+      "index": 228,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_handoff_phase_1g_shutdown_cancel_follow_up_20260721164248.md",
+      "size_bytes": 6217,
+      "sha512": "260014d51880fae1abcff2d71e062c1fba55bccc34796c9d33dc75cb9e779c2b0821ce05daa4886e628da8805002d346719b8c89c70513b6027503b1b59950ca"
+    },
+    {
+      "index": 229,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_handoff_phase_1h_review_follow_up_20260721182416.md",
+      "size_bytes": 12350,
+      "sha512": "82c1428bda9f1c4102736583987f4d3ce9becd9ad66be4be59ac741bc05fb8bc7c0ba7450bebe01e4959987c7ba3cd7762a4afbc06681de959f71f465e50712a"
+    },
+    {
+      "index": 230,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_handoff_phase_1h_summary_mode_and_ui_language_20260721174346.md",
+      "size_bytes": 11027,
+      "sha512": "a084335a5a17c9fbf92282af96fe40c994fb162dc21a191ef599c436579a679d88ffea13342254f4dfd0e0256416255e57c0fb805f93aab4c4487c7da220092e"
+    },
+    {
+      "index": 231,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_status_phase_1_environment_and_metal_smoke_20260718210342.md",
+      "size_bytes": 6584,
+      "sha512": "afaa9745b7860325dcf69f79182f4437275029af13caad48979cef432055a4271d8984a298c5c5c66ab37d199ca4179ea455971326154e965d126f0061fde965"
+    },
+    {
+      "index": 232,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_status_phase_1_environment_reproducibility_follow_up_20260718214958.md",
+      "size_bytes": 10790,
+      "sha512": "fb8c4cb7b4343039bafdf6f40e0b5fd7e7d66090aa8ddddaa41f24687965bed380c2fdb1ddc3da4f0a26e47cc5887182089bdb98ce81df1aac601c86adfb0159"
+    },
+    {
+      "index": 233,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_status_phase_1b_model_runtime_20260718232354.md",
+      "size_bytes": 20932,
+      "sha512": "bf2e0a6458b7380fba381264d5ce4242f085878e973c62735377eb5ede3b122a2f0909e5e0ebfcd5f8e75542e9ac366c16e0e37d71cea64904b5a205a657f485"
+    },
+    {
+      "index": 234,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_status_phase_1b_model_runtime_follow_up_20260718235802.md",
+      "size_bytes": 10062,
+      "sha512": "48c233b1d7cc836fcd0e13880be6842b6c59d6816d0e63044fa17e99ee6fbf6f1070f392d45aa5b951dc0b3fd5a108782d915eecb75361f98015a559c351b7d4"
+    },
+    {
+      "index": 235,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_status_phase_1b_model_runtime_test_follow_up_20260719001341.md",
+      "size_bytes": 4821,
+      "sha512": "7f6edd353415d558691a7750ce2cf974262fd5c09f7f5240f79d689c580f963e5f9d030ef70e45059ae58e6bc6eef06dc8603e2eb56986451a61d6f5da322fd6"
+    },
+    {
+      "index": 236,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_status_phase_1c_deployment_platform_acceleration_20260719021411.md",
+      "size_bytes": 14198,
+      "sha512": "d4bb4307252f73c8727be11d62bae040aaec50ba797a48e1f9dd3874aca958ae92dde936db896846e03345e88eaf215950648c78cac50f71d2e65f9743603c65"
+    },
+    {
+      "index": 237,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_status_phase_1c_deployment_platform_acceleration_follow_up_20260719025250.md",
+      "size_bytes": 7129,
+      "sha512": "59a9aefb7cccc2bdc543d7b2ba2773a79e14dbd69a45d44339c84372c405208a5ed3e8d729cc6441165326d92302bc2634ca18c808b8a39792c35be30e7b1bac"
+    },
+    {
+      "index": 238,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_status_phase_1c_platform_registry_and_preload_validation_follow_up_20260719031938.md",
+      "size_bytes": 9428,
+      "sha512": "42baaa87cf68a41caff799bd5f5c3d8207e75b3194fa29bc96bca151d10a711cec2d75be584b7674a7400bbfe98cbda461cd4ab84dccb2947e939c1eaff198cb"
+    },
+    {
+      "index": 239,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_status_phase_1c_platform_registry_reference_integrity_follow_up_20260719034523.md",
+      "size_bytes": 6997,
+      "sha512": "2509e98a7f45db4d07caf0da228d1cd8e17f2155c7d6b4af43601c8eb2a35f91b590aedc9f031742ab602d7b820e510b2eb2fdafe17786827b1b8dcc11beb14d"
+    },
+    {
+      "index": 240,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_status_phase_1d_configuration_and_response_language_20260719095111.md",
+      "size_bytes": 13292,
+      "sha512": "f1fc93d86920d8de4a859ece14b12938d675e21acfc7755a1c5363991e5d53c03f00e2b7d491235cc56221a96dcbde38211047ff028356b6253a58d81a5b66e6"
+    },
+    {
+      "index": 241,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_status_phase_1e_thinking_presentation_20260719134914.md",
+      "size_bytes": 18577,
+      "sha512": "390a1370a93e08ea6d91c74fc84d385bbe71e209b1e28c9b6c90947d3f18fc78c670a812c2bdb68c083e54d0e36210adbf3baa5939d1e46dd6acd1c1ff9cc330"
+    },
+    {
+      "index": 242,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_status_phase_1f_lightning_cross_environment_runtime_20260719205819.md",
+      "size_bytes": 9141,
+      "sha512": "76f43d904240a63f9b1eb7dadfc12fd06c660527310ff2edfee8d138a37d8778c85a4dd50cf272d2fd7b00ff9f413afeedd47a045c7f223c3e00b97b781ed9e1"
+    },
+    {
+      "index": 243,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_status_phase_1f_lightning_read_only_preflight_20260721013900.md",
+      "size_bytes": 4645,
+      "sha512": "0604bdd9799fc818a6f3c0b73c4c0092f920c34f5c1a6cd15ad77f4ec3a4e4601b38f2093cea871e452a90da29327ac96a0a957360e772883b69c26fefca06ce"
+    },
+    {
+      "index": 244,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_status_phase_1f_minor_static_gate_follow_up_20260721005412.md",
+      "size_bytes": 5232,
+      "sha512": "d2c00beeac35531ef9de4bde8d879b94682307241188d28b690091ea9c3665208019e4997f3aef4cb3bd3148157a37dd482aa6f23a99f158acf1a4a1a99505bd"
+    },
+    {
+      "index": 245,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_status_phase_1f_pure_cpu_acceptance_correction_20260725214037.md",
+      "size_bytes": 6347,
+      "sha512": "2ab44c345b9bbae6a78adc8c42b0c68a46d93a69978cc1a09f6bf3db510b7296459de27280c4d2230f264f4024b296f49efc05a0fbea5d86f5a25ea3fa227c70"
+    },
+    {
+      "index": 246,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_status_phase_1f_pure_cpu_runtime_follow_up_20260725203508.md",
+      "size_bytes": 7362,
+      "sha512": "3696ff2f4cb3600fd7424f99736b12f6e0a4c5393e5ad6855e3f319b5759582c25fbccaa876463ac0d8128c734f68d6e35edfd9cd301982cc385a51ab7fb64db"
+    },
+    {
+      "index": 247,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_status_phase_1f_repository_review_follow_up_20260721001705.md",
+      "size_bytes": 9746,
+      "sha512": "5716ca6bf8a2187dcf6e55006ee0c30cd15226017a178982ca3119c6cdda96e582fa4f4afd96404ffb42e222e33b92145906c7b5f6db13eae731a570a8a65830"
+    },
+    {
+      "index": 248,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_status_phase_1g_cross_thread_cancel_follow_up_20260721150603.md",
+      "size_bytes": 5806,
+      "sha512": "685d57a58846c1cb14ab1cc63e5fbccd70715632763421fecd4ea6a52412f82c8577831b3632f883d80f3848c351783b0596bc2376fe14987ad4cf8f7ef7b9ba"
+    },
+    {
+      "index": 249,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_status_phase_1g_minimal_web_surface_20260721105005.md",
+      "size_bytes": 15756,
+      "sha512": "b711986bbd7847ea546baf407bb670fcac967a058bd72a00eae577dc10b8a54c54c063472f4a9cba887c72f7b82279a43b1cfc5e8ff9ec8736a7afad71744e01"
+    },
+    {
+      "index": 250,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_status_phase_1g_review_follow_up_20260721121817.md",
+      "size_bytes": 6021,
+      "sha512": "a7b339be3f33e51b85d1f1d9d925fff937b33693783341a32a10e1610f05d3f8ff444917d5a923903fbe323bb381dca67cb299e1fa0c2584ad041a2955a29b1b"
+    },
+    {
+      "index": 251,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_status_phase_1g_shutdown_cancel_follow_up_20260721172039.md",
+      "size_bytes": 7718,
+      "sha512": "479c3bba4699fc53350c4fedbb223082ad53f901fffdfcb242858eb3e0e3bb2faa9f35e809de7bd53841d122b220e92c7dc7455fe4603eb59968d0c0df4b1135"
+    },
+    {
+      "index": 252,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_status_phase_1h_review_follow_up_20260721183457.md",
+      "size_bytes": 9460,
+      "sha512": "1f3ab983ebcef752da48e4a191bd416c9cb901edfdf38470502814c409e2f5dc48af3d90e68ba16047944e781f7af68f13a7b5a8c10175839b3c39fc252d5a39"
+    },
+    {
+      "index": 253,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_status_phase_1h_summary_mode_and_ui_language_20260721181202.md",
+      "size_bytes": 11082,
+      "sha512": "f4581a92edbb36c0be33c30f518d021685dbdf802665a3fbf2a4fa8de48d1e6d4d3398cd16ac84a6674511a83ad05b38fe8837615908b730046748c82a61e849"
+    },
+    {
+      "index": 254,
+      "path": "docs/project/phases/phase_1/history/handoffs/implementer_status_phase_1i_web_presentation_and_ux_follow_up_20260725203508.md",
+      "size_bytes": 5961,
+      "sha512": "1556816379e8a2e78ded421af37ce2015b680b64742f87078868c13634305b3c4b4a8b0d16b62f9617f25829e53fb95e12590246a36bec098959067f5d8e836c"
+    },
+    {
+      "index": 255,
+      "path": "docs/project/phases/phase_1/history/handoffs/public_documentation_handoff_20260718174637.md",
+      "size_bytes": 2305,
+      "sha512": "aa86772e8f7f7ddbd374324a629fedf7b30a11d41a4a55677cb2313d50b9b82c44700f6494ac873914c68c7f9889e93904b3f4f93d0f0b93fa48bd2d35d8130f"
+    },
+    {
+      "index": 256,
+      "path": "docs/project/phases/phase_1/history/operations/known_issues_and_observations_20260719171836.md",
+      "size_bytes": 4106,
+      "sha512": "898e31bac9d7fc1ab07212f40f2311fcbbb7af14b8cd8f5522ac780c01f1a3266ee6eb20a2bd19001a7dc7a4a9606794cc77978d5ba49475941f83bab8eaa559"
+    },
+    {
+      "index": 257,
+      "path": "docs/project/phases/phase_1/history/operations/known_issues_and_observations_20260719195134.md",
+      "size_bytes": 4692,
+      "sha512": "8f32d5f39852994b678bb646f4d0077591262efa0db8066c9ed022dc6c43f100ea2434d3689a8fd32c1d60645dea4c72d11d031f9edfb1b1376443e44bea0839"
+    },
+    {
+      "index": 258,
+      "path": "docs/project/phases/phase_1/history/operations/phase_1_backup_completion_record_20260726122144.md",
+      "size_bytes": 5744,
+      "sha512": "e294dd850c7ce293b082077fe98467323c5f5303691f58d5e795ef2a8be8eb5319cac4cb659040c235a96d34a6bccdd4115c7def5d937a047586bd552b689f00"
+    },
+    {
+      "index": 259,
+      "path": "docs/project/phases/phase_1/history/operations/phase_1_lightning_finalization_and_phase_1_ex_pre_backup_record_20260726120229.md",
+      "size_bytes": 13438,
+      "sha512": "a5c3574d1ee67dbcecbc83e90d64241b8131adca26d6c380ce41e2de9419285c7ee73ca2603f0118af21e6ca5f86e26487c191763bc5389d12dd24c6ffb3b502"
+    },
+    {
+      "index": 260,
+      "path": "docs/project/phases/phase_1/history/operations/phase_completion_backup_policy_20260719142558.md",
+      "size_bytes": 9789,
+      "sha512": "fe0ddcf2f4e3efc0ba1cb562e08b94f43a2c04343eb91b1372ea424a4d86ed67dc7f7045927d459227632b365b67ed1ce8e2d2f9a92839563c7d6105539c58e6"
+    },
+    {
+      "index": 261,
+      "path": "docs/project/phases/phase_1/history/operations/phase_completion_backup_policy_20260719171836.md",
+      "size_bytes": 10659,
+      "sha512": "129eb786dea63dc1917052c7f328f17d83536d54af38a9e23e7c8082f64fdc63647055d82e844c3d011890d31d46b361f8e7c494be1a73e602ce83103b928050"
+    },
+    {
+      "index": 262,
+      "path": "docs/project/phases/phase_1/history/operations/phase_completion_backup_policy_20260720222402.md",
+      "size_bytes": 7043,
+      "sha512": "7b59bb0d28ff54cf5470d115ec7e4c3bf1a20c361bc8f3169e93b3768be555575d493c39601fcd2e38e553ceadb0f7abe47e14871ed022bc8bfbf662cc09792d"
+    },
+    {
+      "index": 263,
+      "path": "docs/project/phases/phase_1/history/operations/pre_phase_1_backup_privacy_and_sanitation_scan_20260726121346.md",
+      "size_bytes": 3290,
+      "sha512": "08a367057d00a35149a5d4ab3b7925af9de839d8e2226b09a40c3d7837fc4e8ad6d2f43b1305d1f1d58086314c7305f91cf0aac38e6c42ada153e33610808cce"
+    },
+    {
+      "index": 264,
+      "path": "docs/project/phases/phase_1/history/operations/public_identity_docs_scrub_report_20260721112925.md",
+      "size_bytes": 4998,
+      "sha512": "f78a09a3aa2210a9def2cfc9fadc05eebd7a1e5846bd671751952598a65ffa8c58826d45fd2bbfa701adc7023abfb4d1fe78154de6fe40fb1a56e469bdd84984"
+    },
+    {
+      "index": 265,
+      "path": "docs/project/phases/phase_1/history/operations/publication_privacy_scrub_report_20260720220216.md",
+      "size_bytes": 3118,
+      "sha512": "90823e0490e380fac1513140cd008550b9c1864669eaeaa233112548735665728241d69346228d372021ec3150a42e5e4bf5be9832ddcc83d6b01057f5b1de89"
+    },
+    {
+      "index": 266,
+      "path": "docs/project/phases/phase_1/history/operations/runtime_and_absolute_path_verification_20260720222402.md",
+      "size_bytes": 2663,
+      "sha512": "04bfadd7258e33dbb7be140e0a342ff65c6ea5b2c3206e6e688560f6521dc0f82c6ab82ca8f8e13d37b3b479c03c41118974da2699c0175fb3c4a0ac954ab6bd"
+    },
+    {
+      "index": 267,
+      "path": "docs/project/phases/phase_1/history/requirements/configuration_layer_requirements_20260719041847.md",
+      "size_bytes": 12333,
+      "sha512": "3cbb1e4111b9023d80827561e7b08da782cd99a4a9cbb19c56b22b68f83004385387ee5557a84248c6d05cabe23c7ef6c9a94b6057210ea78fc746a3a3c04a5a"
+    },
+    {
+      "index": 268,
+      "path": "docs/project/phases/phase_1/history/requirements/documentation_rules_20260718174637.md",
+      "size_bytes": 5102,
+      "sha512": "3c88d3d6d96820db420955f905b2bec125ada84ed452ccef7d685960bfcd3d953298640d7e8bf0adc2c7c1d9ede7c8e34b165ea9b9fb76802ee05d235b5c54f3"
+    },
+    {
+      "index": 269,
+      "path": "docs/project/phases/phase_1/history/requirements/documentation_rules_20260718193435.md",
+      "size_bytes": 11102,
+      "sha512": "bb6414983994b8038290e91a3415d96d0564387392ae5fcc77ba00ed0ab08c2c7410a7cbdaa3dcb987e18ebba23166573ef7a1d324db3cd0ae56348821192042"
+    },
+    {
+      "index": 270,
+      "path": "docs/project/phases/phase_1/history/requirements/documentation_rules_20260719142558.md",
+      "size_bytes": 7802,
+      "sha512": "59057857b1eb1cd160e02150a605beecf76f1fca0d2889382858e217b75e9799662f692fa1f145c2bf6c0ddd81b566b6c6345f892fd3be6f92c9ce233ce9d60a"
+    },
+    {
+      "index": 271,
+      "path": "docs/project/phases/phase_1/history/requirements/documentation_rules_20260719171836.md",
+      "size_bytes": 9117,
+      "sha512": "e2f0d2d418fb27ce58133781e34e158d923141b456ab2848b3ef7e31cba79fcdaff27351c452aa5e0088043a87a64d081ac9e561dcdb6f6d23f26ee63f864098"
+    },
+    {
+      "index": 272,
+      "path": "docs/project/phases/phase_1/history/requirements/documentation_rules_20260720220216.md",
+      "size_bytes": 7169,
+      "sha512": "65b6f55024c294061146643a3fb1932581ad873dd210090a4ee89c6328ee44b356ed31c05f8c242f8b43a332897619044a558e55701d7bbfe383f4a1be9d27d0"
+    },
+    {
+      "index": 273,
+      "path": "docs/project/phases/phase_1/history/requirements/documentation_rules_20260720222402.md",
+      "size_bytes": 4769,
+      "sha512": "2f2410846e0d050374d2f74e47308ece4f59ae47e0f7fab49df92612e1627174840ddc622246af9d1e562ac7dc48a07a59f6c0db0e13a61fb39cace43fff98b6"
+    },
+    {
+      "index": 274,
+      "path": "docs/project/phases/phase_1/history/requirements/generic_governance_definition_platform_requirements_20260719112304.md",
+      "size_bytes": 12216,
+      "sha512": "acceaef92cd0b689429ce4f2b8ca0c16a0bbd61687dc13fac3a3d2a33e8ce8eb6419b696a85797cae3cbb4f20156f5abbec40d4effd80499a0fe79756306a5c3"
+    },
+    {
+      "index": 275,
+      "path": "docs/project/phases/phase_1/history/requirements/lightning_ai_studio_dual_runtime_profile_requirements_20260719200711.md",
+      "size_bytes": 6833,
+      "sha512": "f855561dc6a66db207450b3d89e8955f8a70d2e51b7bddad16fbc83da0760e6d9b622710d50264583e3dab4b62e9df700d4fbcad8368526eea66223747c7d62b"
+    },
+    {
+      "index": 276,
+      "path": "docs/project/phases/phase_1/history/requirements/lossless_phase_document_compilation_requirements_20260720231036.md",
+      "size_bytes": 4733,
+      "sha512": "c1ee5cdd6e02c4b888d5706f6030f419198066b94c7738e5c50299a41ecc8b774c5150e694bde9a342d125b308d8f5fea39a26b444568d77bcbe2afd3e48227d"
+    },
+    {
+      "index": 277,
+      "path": "docs/project/phases/phase_1/history/requirements/phase_1_acceptance_follow_up_requirements_20260719195134.md",
+      "size_bytes": 3154,
+      "sha512": "a82b26a44d0bb8002634c0a164155790f8197111f143ad853d92c1a824a6595b9926537aa18a82ac3aae9061f2a25671eef80d11e80eb8296046c3703de1a72a"
+    },
+    {
+      "index": 278,
+      "path": "docs/project/phases/phase_1/history/requirements/phase_1_ex_complete_operating_model_and_documentation_requirements_20260721155020.md",
+      "size_bytes": 19144,
+      "sha512": "d5309f6c1d3eaba6782a8e6e3f2138782261069aaa80a78a657a199034730f5c92177e7da55939bc880965ea0685493f5bce35c3370da5180439c9ffdd3011ec"
+    },
+    {
+      "index": 279,
+      "path": "docs/project/phases/phase_1/history/requirements/phase_1_ex_external_r_and_d_publication_and_integration_requirements_20260721162242.md",
+      "size_bytes": 8104,
+      "sha512": "87dd312c1b1669a1c1191de157e1d7b59b96c5b7bbe8cbaab6c51d6a96bcfe69900ab63af47be205a9f9e328a8805b363eacd12c7fa2488c6a4eef5d1d05cdf8"
+    },
+    {
+      "index": 280,
+      "path": "docs/project/phases/phase_1/history/requirements/phase_1_ex_interim_documentation_single_writer_and_roadmap_priority_requirements_20260721191915.md",
+      "size_bytes": 11043,
+      "sha512": "684f110667cae64404b331a71c4ed4175e5497804fa1dddb65c0329b83fff108f4d4423b872edf3bf1a501ae8648d4ad1e13ee4a223e9446c4052d396703cd88"
+    },
+    {
+      "index": 281,
+      "path": "docs/project/phases/phase_1/history/requirements/phase_1_ex_lightning_web_autostart_and_cost_control_requirements_reservation_20260726111632.md",
+      "size_bytes": 8380,
+      "sha512": "622ae9cefc02deb90ddd7b563e09facaa5d9f38de85877f8a0dc027bfd2ca16bf277247112b450bf05a543e07d86955d2c1e9438d0332a979db8ac6d7cb85d08"
+    },
+    {
+      "index": 282,
+      "path": "docs/project/phases/phase_1/history/requirements/phase_1_ex_operations_reorganization_requirements_20260720222402.md",
+      "size_bytes": 1927,
+      "sha512": "e19ecdbbd95747821f2ec9514b993d67e8d60f31dc3cecd8f7ca00a9f5c512e6b67860caa981ab3fa67773bd266b5e272b6bd6724cf928cca8a39015f39e0b24"
+    },
+    {
+      "index": 283,
+      "path": "docs/project/phases/phase_1/history/requirements/phase_1_ex_operations_reorganization_requirements_20260720231036.md",
+      "size_bytes": 5652,
+      "sha512": "040ab639b364251d25fde8570beb6635e4646b2b2c5b1e5e075cae12229c3fff808ebbb590fb32a000b88e971889b6e9089d97c7f2f4c55bdaa0ac0cbaab3d1a"
+    },
+    {
+      "index": 284,
+      "path": "docs/project/phases/phase_1/history/requirements/phase_1_ex_pre_start_execution_order_and_public_demo_requirements_20260726120229.md",
+      "size_bytes": 6732,
+      "sha512": "8e6ba320f6a0f2ad8dff3a9574818128e8f7883dc211388fbc1a559b53c2789624f9531440b4409dafbab8eb654c14997f90702c73b28c0edd6aa584760de31b"
+    },
+    {
+      "index": 285,
+      "path": "docs/project/phases/phase_1/history/requirements/phase_1_ex_publication_identity_access_and_license_requirements_reservation_20260721111659.md",
+      "size_bytes": 11602,
+      "sha512": "1d912280bf6caf0f4d4446902595ab72812c46cd0100d137f21bcb80ec65a61adab3cee2e2494f0e8f1a41f9e4d9b0761c0fe12f1df462910c5761ec4b3f6678"
+    },
+    {
+      "index": 286,
+      "path": "docs/project/phases/phase_1/history/requirements/phase_1c_deployment_platform_acceleration_requirements_20260719013109.md",
+      "size_bytes": 11854,
+      "sha512": "dd9d07d5c852345659c4003aef3579a6103ec9071335204fcbe0136dfe6d8e104ee601f54afe179a2315ef6fb41eb2e0b1d799646bfce896b37919c2c40f4305"
+    },
+    {
+      "index": 287,
+      "path": "docs/project/phases/phase_1/history/requirements/phase_1d_response_language_requirements_20260719040237.md",
+      "size_bytes": 13504,
+      "sha512": "969bf29989da17aec265f9d660bc93ec6de57adb219f9eccd405e4c67bdcda6a10a60e69b0a391171bd9e48415cb00d8576557099051f5a2c7e314abc99c9a74"
+    },
+    {
+      "index": 288,
+      "path": "docs/project/phases/phase_1/history/requirements/phase_1d_response_language_requirements_20260719041847.md",
+      "size_bytes": 8809,
+      "sha512": "c366f0d05145ce7d9df84dabf5eb3cea14b7109ab0d31bd970a231d305cfbcf15b508efdb9725db298c1f704abbc6efb508029f66f654dbfce939224df134321"
+    },
+    {
+      "index": 289,
+      "path": "docs/project/phases/phase_1/history/requirements/phase_1e_thinking_presentation_requirements_20260719123547.md",
+      "size_bytes": 15461,
+      "sha512": "e33fb2f3b6fd4f572c8ff64f2b19c6f3c8022954fbf18d3f3384907b5745ab7e94920a0ee2509f91e2fdae001fb7ee3e9fd18d324ddd50157f06f7ceacaf4de4"
+    },
+    {
+      "index": 290,
+      "path": "docs/project/phases/phase_1/history/requirements/phase_1e_thinking_presentation_requirements_20260719130303.md",
+      "size_bytes": 12610,
+      "sha512": "3068ec66bdb07e28b5c1d7081dc3146e53eea734138319ca97084609d9018835d5237cba0790b895aba9e8b2504701bc92bec4f088f247929794cd8b1afcf068"
+    },
+    {
+      "index": 291,
+      "path": "docs/project/phases/phase_1/history/requirements/phase_1f_lightning_cross_environment_runtime_requirements_20260719202333.md",
+      "size_bytes": 6033,
+      "sha512": "6459e2395f30c84706af5f5760ae279ad501dd5583af7727383ba647b8068d5b03c12752da056bd6565cb2ee3271bb6032afe0eb9ff1733ceb65e717e4d7b9eb"
+    },
+    {
+      "index": 292,
+      "path": "docs/project/phases/phase_1/history/requirements/phase_1f_lightning_pure_cpu_runtime_follow_up_requirements_20260725200001.md",
+      "size_bytes": 5811,
+      "sha512": "32b989eae570febd034cb20ca40b07529092499060685e6f27b30f5fcd4bef4eb04857f0cf4b5af4356a0ff1308ee53ac2a688d360ebd4beed7a79c7e16657ca"
+    },
+    {
+      "index": 293,
+      "path": "docs/project/phases/phase_1/history/requirements/phase_1g_minimal_web_surface_requirements_20260721093952.md",
+      "size_bytes": 13199,
+      "sha512": "5350dcd2a32da485d8e60b80199fa32301ba9c423ab6dd47fc5db44f07e08d737a8b19d47bf5f94810e7b49609293ea57fe3421e2f445bef0983d35fdd588431"
+    },
+    {
+      "index": 294,
+      "path": "docs/project/phases/phase_1/history/requirements/phase_1h_summary_mode_and_ui_language_requirements_20260721174346.md",
+      "size_bytes": 13956,
+      "sha512": "b40a902b6455717389bd5d63d285f88a163c070986eafe8aa6859b80ac297941468d1dd4e9420dd3beea7f4b42087a6e103196f232660d2c41f67da76dd330eb"
+    },
+    {
+      "index": 295,
+      "path": "docs/project/phases/phase_1/history/requirements/phase_1i_web_presentation_and_ux_follow_up_requirements_20260725200001.md",
+      "size_bytes": 8571,
+      "sha512": "5daf76c1bd32a49f36023db29e6eec381d88e5718f70dd95d0af722466886240dd68df5693e84be60bca0d65f5beeb4217ffad2ef1ebb429c24836e150e44b9b"
+    },
+    {
+      "index": 296,
+      "path": "docs/project/phases/phase_1/history/requirements/post_generation_summary_mode_requirements_reservation_20260721090725.md",
+      "size_bytes": 6371,
+      "sha512": "cce84e7dafc471e48b2124ffeb0003a80927e3ec0d0d7498e0a8d1cd3160403ea9625f1668bcc95572b7e5c6dcad653369b4d654fed25ce6f9255baeab7acda2"
+    },
+    {
+      "index": 297,
+      "path": "docs/project/phases/phase_1/history/requirements/post_phase_1e_research_platform_requirements_20260719112304.md",
+      "size_bytes": 14374,
+      "sha512": "2538c34823a01e8f2daf61ebdf90125c6ca993d7b3cde7fa3877ae1cb1db55f075bbff1cbeca5e97aa6a04ca99f3729c66b646e088152badf3c89a28c1bfebea"
+    },
+    {
+      "index": 298,
+      "path": "docs/project/phases/phase_1/history/requirements/project_requirements_20260718174637.md",
+      "size_bytes": 7659,
+      "sha512": "a5d7c055caf477b192d17f1c1e46d638077df98ec86062a3a45aad299e78df9b69217c33a3b347e89f9df6ec0f7b7b36651d721eb39a5b398b23f38e3b59dee3"
+    },
+    {
+      "index": 299,
+      "path": "docs/project/phases/phase_1/history/requirements/project_requirements_20260718193435.md",
+      "size_bytes": 7762,
+      "sha512": "e9ecc2eee77441b91a4d945486047e86e61ae0ca0da67c79ec7d84c49963dd8ff4cd9b290ed5088e966e4750d85efcfed2c4273daa42d2578ddab032ecb4656b"
+    },
+    {
+      "index": 300,
+      "path": "docs/project/phases/phase_1/history/requirements/public_identity_and_naming_decision_20260721112925.md",
+      "size_bytes": 3357,
+      "sha512": "8cc9425ef0050b7525cd0404d3151f51585d4018f558b3b136d7d8003a03d1b4523db25f3c63546e301f4bdbd533b0ffb928badd239cfa0b47e84a4db8fe8fc1"
+    },
+    {
+      "index": 301,
+      "path": "docs/project/phases/phase_1/history/requirements/public_identity_and_personal_information_policy_20260720220216.md",
+      "size_bytes": 3818,
+      "sha512": "685888834d6cd6f2f7530961754afe5ea0d987f22a6ca939cc8cfc8233ac71e70a4c07620d7f49ce220ce8ea346140cc472817439fdbff4b4c6b1f4e94a3c7dc"
+    },
+    {
+      "index": 302,
+      "path": "docs/project/phases/phase_1/history/requirements/public_identity_and_personal_information_policy_20260721111659.md",
+      "size_bytes": 8707,
+      "sha512": "aea826fffce1afb300b748026e4c87816c01ece699b30a10d0ad5f4b7c2482fa7b941bf479cf317056ecf9b4cc943061d00136df3f5d7b4fa2a0338307cf4b1e"
+    },
+    {
+      "index": 303,
+      "path": "docs/project/phases/phase_1/history/requirements/simple_rag_documentation_availability_requirements_20260725201016.md",
+      "size_bytes": 3581,
+      "sha512": "41a560541c8f51b2613a1e5f87655ac7e520f67684d5c3da54b9ea303af3c670df50f84350969bfc5dada0da8791a093f333898933716b14cc0208815f938e1e"
+    },
+    {
+      "index": 304,
+      "path": "docs/project/phases/phase_1/history/requirements/task_role_write_authority_policy_20260719142558.md",
+      "size_bytes": 9548,
+      "sha512": "0f29b1437ea871004b3617b2ae54d243bab5d42f693e2cadcf053d5022258b0296b4ff13b89388f2c7730539ae84d66a3c1cf5bc513811d5277f5828b78da7af"
+    },
+    {
+      "index": 305,
+      "path": "docs/project/phases/phase_1/history/user_manual/lightning_cpu_upload_and_environment_reconstruction_manual_20260725215627.md",
+      "size_bytes": 28747,
+      "sha512": "e231fafce860bebe0da49ef4d4a6066dfca9d959ef65a2a2ea7bc04b2a8374dbd1e7a2accdff2656b7816a821eb0fdb783b32ca37e837d00c73788bddd309682"
+    },
+    {
+      "index": 306,
+      "path": "docs/project/phases/phase_1/history/user_manual/lightning_pure_cpu_actual_environment_reconstruction_manual_20260726092413.md",
+      "size_bytes": 20466,
+      "sha512": "9f701e7e492982dfd1a5b568102b7aa5f5299f42dfb510a3baf5f1935940cb5c9d21de5748d85e915a4c33fd67303f3f5462abc110a3622037e84d566759a09a"
+    },
+    {
+      "index": 307,
+      "path": "docs/project/phases/phase_1/history/user_manual/phase_1_macos_user_manual_20260719004209.md",
+      "size_bytes": 8375,
+      "sha512": "7f75083c1348034b4a5e38f1b9798bcc262cfb4e8cb44888984e1909a8881556656e19df4706099b2f98a4b874f52f52ebebf4fbf183563aa334ef3418e10aed"
+    },
+    {
+      "index": 308,
+      "path": "docs/project/phases/phase_1/history/user_manual/phase_1_macos_user_manual_20260719171836.md",
+      "size_bytes": 17698,
+      "sha512": "23663a429194b9f3f768d9c24362b794da05b38a339653c9d2f07cd1cebfd37f141e0b5931ad1810df6ee39202e8cc65d9fd7cb93fca83282354d4f21a928da1"
+    },
+    {
+      "index": 309,
+      "path": "docs/project/phases/phase_1/history/user_manual/phase_1_user_acceptance_findings_20260719195134.md",
+      "size_bytes": 4983,
+      "sha512": "dfff21606cf12e5e1fa86feb7494ebc771711df020794d8700b7c3aa695cafebbdfbc8e9191c402cc1ef1f630619d3d3d067ab77dd4f255c869b47175589926c"
+    },
+    {
+      "index": 310,
+      "path": "docs/project/phases/phase_1/history/user_manual/phase_1_web_and_lightning_user_manual_20260721185031.md",
+      "size_bytes": 18508,
+      "sha512": "2ffbff7733e1eb27d1f2d9b1c1902d50d34b8d79ae242ffbbe4532366e7fd0c22f3aa301ce9a7406daf5b2d74737c3bea4791f80265b4c8057875f51248868a6"
+    },
+    {
+      "index": 311,
+      "path": "docs/project/phases/phase_1/history/user_manual/phase_1_web_and_lightning_user_manual_20260726111632.md",
+      "size_bytes": 9193,
+      "sha512": "b66ca67d6eaba7f8a71af0bce365b83ca5db8d5139a68cf95442518808a09726f60b7bf4ca4be87c61a98524df35ad48b8d79ca39b2696c26f2e0829ae8c5bde"
+    },
+    {
+      "index": 312,
+      "path": "docs/project/phases/phase_1/index/phase_1_documentation_index_ja.md",
+      "size_bytes": 655318,
+      "sha512": "3db7a4740209621e47df7e944390ecd83abf0424ac13e941095eef933df806ba34a715bae028aa7ee1e63bac627b9639c921360fc0dd214fd140056b881016df"
+    },
+    {
+      "index": 313,
+      "path": "docs/project/phases/phase_1/operations/phase_1_operations_ja.md",
+      "size_bytes": 77220,
+      "sha512": "2677f458f11ad483fad82653908403d3992f2714e464d659cb0bc42a4c8c5b37b48256d290eb7a23b49750458fee7d522e09f0991a9fe664386ee2be04ddaf09"
+    },
+    {
+      "index": 314,
+      "path": "docs/project/phases/phase_1/phase_index_ja.md",
+      "size_bytes": 2393,
+      "sha512": "01df7691be241fa3ffa0199f33774c5f2a7367cf840b29b8b23e5e1e703a80f1b4d71aa7e039267b85835285ecd9abd09615fb99584fdf992381c7d7e1f440c6"
+    },
+    {
+      "index": 315,
+      "path": "docs/project/phases/phase_1/requirements/phase_1_requirements_ja.md",
+      "size_bytes": 358206,
+      "sha512": "d6b97b743a73a6cfd5715648967f693bd7518be6deea994eaa484db121718d4c1bf3624af38c4809f21e2178937e57ce236c19a7a4995a2de794f640f794d928"
+    },
+    {
+      "index": 316,
+      "path": "docs/project/phases/phase_1/user_manual/phase_1_user_manual_ja.md",
+      "size_bytes": 113473,
+      "sha512": "bc7a8ed412dc49107f55007a4df337c1bdb632a66640f0b1029beb7b0be9fb87074f871fceb23fb73862ebd8446f1dcdd7606af79b58c3cd3344494255afd970"
+    }
+  ]
+}

@@ -226,7 +226,7 @@ margpa_validate_lock_artifact() {
   fi
 }
 
-margpa_resolve_configuration() {
+margpa_resolve_core_configuration() {
   local project_candidate="${MARGPA_PROJECT_ROOT:-${margpa_detected_project_root}}"
   if [[ ! -d "${project_candidate}" ]]; then
     margpa_fail "project_root" "directory_unavailable"
@@ -299,6 +299,94 @@ margpa_resolve_configuration() {
   esac
   margpa_web_profile="${profile_candidate}"
 
+  local access_profile_candidate="${MARGPA_WEB_ACCESS_PROFILE:-${margpa_project_root}/config/web_profiles/basic_preview.toml}"
+  case "${access_profile_candidate}" in
+    /*) ;;
+    *) access_profile_candidate="${margpa_project_root}/${access_profile_candidate}" ;;
+  esac
+  margpa_web_access_profile="${access_profile_candidate}"
+
+  local documentation_rag_profile_candidate="${MARGPA_DOCUMENTATION_RAG_PROFILE:-${margpa_project_root}/config/feature_profiles/lightning_public_documentation_rag.toml}"
+  if ! margpa_check_no_linebreak "${documentation_rag_profile_candidate}"; then
+    margpa_fail "documentation_rag_profile" "linebreak_not_allowed"
+    return 1
+  fi
+  case "${documentation_rag_profile_candidate}" in
+    ../*|./*|*/../*|*/..|*/./*|*/.|*\\*)
+      margpa_fail "documentation_rag_profile" "dot_segments_not_allowed"
+      return 1
+      ;;
+  esac
+  case "${documentation_rag_profile_candidate}" in
+    /*) ;;
+    *) documentation_rag_profile_candidate="${margpa_project_root}/${documentation_rag_profile_candidate}" ;;
+  esac
+  if [[ -L "${documentation_rag_profile_candidate}" ||
+    ! -f "${documentation_rag_profile_candidate}" ||
+    ! -r "${documentation_rag_profile_candidate}" ]]; then
+    margpa_fail "documentation_rag_profile" "readable_regular_file_required"
+    return 1
+  fi
+  if margpa_path_has_symlink_component "${documentation_rag_profile_candidate}"; then
+    margpa_fail "documentation_rag_profile" "symlink_component_not_allowed"
+    return 1
+  fi
+  local documentation_rag_profile_parent
+  documentation_rag_profile_parent="$(
+    CDPATH= cd -- "$(dirname -- "${documentation_rag_profile_candidate}")" >/dev/null 2>&1
+    pwd -P
+  )"
+  margpa_documentation_rag_profile="${documentation_rag_profile_parent}/$(basename -- "${documentation_rag_profile_candidate}")"
+  if ! margpa_path_is_same_or_descendant \
+    "${margpa_documentation_rag_profile}" \
+    "${margpa_project_root}"; then
+    margpa_fail "documentation_rag_profile" "project_root_boundary_required"
+    return 1
+  fi
+
+  local registry_candidate="${MARGPA_MODEL_DEFINITION:-${margpa_project_root}/config/models/qwen3_4b_q4_k_m.toml}"
+  case "${registry_candidate}" in
+    /*) ;;
+    *) registry_candidate="${margpa_project_root}/${registry_candidate}" ;;
+  esac
+  margpa_registry_path="${registry_candidate}"
+  margpa_model_key="${MARGPA_MODEL_KEY:-}"
+  margpa_context_size="${MARGPA_CONTEXT_SIZE:-}"
+  margpa_health_source="${margpa_project_root}/src/margpa_runtime_llm/web/app.py"
+  margpa_python_bin="${margpa_environment_prefix}/bin/python"
+  margpa_web_bin="${margpa_environment_prefix}/bin/margpa-web"
+
+  if ! margpa_check_no_linebreak \
+    "${margpa_project_root}" \
+    "${margpa_workspace_root}" \
+    "${margpa_model_root}" \
+    "${margpa_environment_prefix}" \
+    "${margpa_uv_bin}" \
+    "${margpa_web_host}" \
+    "${margpa_web_port}" \
+    "${margpa_web_profile}" \
+    "${margpa_web_access_profile}" \
+    "${margpa_documentation_rag_profile}" \
+    "${margpa_registry_path}" \
+    "${margpa_model_key}" \
+    "${margpa_context_size}"; then
+    margpa_fail "configuration" "linebreak_not_allowed"
+    return 1
+  fi
+
+  if [[ ! "${margpa_web_port}" =~ ^[0-9]+$ ]] ||
+    ((margpa_web_port < 1 || margpa_web_port > 65535)); then
+    margpa_fail "web_port" "invalid_port"
+    return 1
+  fi
+  if [[ -n "${margpa_context_size}" ]] &&
+    { [[ ! "${margpa_context_size}" =~ ^[1-9][0-9]*$ ]]; }; then
+    margpa_fail "context_size" "invalid_positive_integer"
+    return 1
+  fi
+}
+
+margpa_resolve_lifecycle_configuration() {
   margpa_runtime_state_is_default=0
   if [[ -z "${MARGPA_RUNTIME_STATE_ROOT:-}" ]]; then
     margpa_runtime_state_is_default=1
@@ -320,10 +408,6 @@ margpa_resolve_configuration() {
     return 1
   fi
 
-  margpa_registry_path="${margpa_project_root}/config/models/qwen3_4b_q4_k_m.toml"
-  margpa_health_source="${margpa_project_root}/src/margpa_runtime_llm/web/app.py"
-  margpa_python_bin="${margpa_environment_prefix}/bin/python"
-  margpa_web_bin="${margpa_environment_prefix}/bin/margpa-web"
   margpa_pid_file="${margpa_runtime_state_root}/basic-preview.pid"
   margpa_log_file="${margpa_runtime_state_root}/basic-preview.log"
   margpa_state_marker_file="${margpa_runtime_state_root}/${MARGPA_STATE_MARKER_NAME}"
@@ -332,23 +416,8 @@ margpa_resolve_configuration() {
   margpa_health_timeout="${MARGPA_HEALTH_TIMEOUT_SECONDS:-30}"
   margpa_stop_timeout="${MARGPA_STOP_TIMEOUT_SECONDS:-15}"
 
-  if ! margpa_check_no_linebreak \
-    "${margpa_project_root}" \
-    "${margpa_workspace_root}" \
-    "${margpa_model_root}" \
-    "${margpa_environment_prefix}" \
-    "${margpa_uv_bin}" \
-    "${margpa_web_host}" \
-    "${margpa_web_port}" \
-    "${margpa_web_profile}" \
-    "${margpa_runtime_state_root}"; then
+  if ! margpa_check_no_linebreak "${margpa_runtime_state_root}"; then
     margpa_fail "configuration" "linebreak_not_allowed"
-    return 1
-  fi
-
-  if [[ ! "${margpa_web_port}" =~ ^[0-9]+$ ]] ||
-    ((margpa_web_port < 1 || margpa_web_port > 65535)); then
-    margpa_fail "web_port" "invalid_port"
     return 1
   fi
   if [[ ! "${margpa_health_timeout}" =~ ^[1-9][0-9]*$ ]]; then
@@ -362,6 +431,11 @@ margpa_resolve_configuration() {
   margpa_validate_runtime_state_location || return 1
   margpa_validate_state_artifacts || return 1
   margpa_validate_lock_artifact || return 1
+}
+
+margpa_resolve_configuration() {
+  margpa_resolve_core_configuration || return 1
+  margpa_resolve_lifecycle_configuration
 }
 
 margpa_detect_container() {
@@ -384,9 +458,7 @@ margpa_detect_container() {
   return 1
 }
 
-margpa_project_preflight() {
-  margpa_resolve_configuration || return 1
-
+margpa_common_preflight_checks() {
   if [[ "$(uname -s)" != "Linux" ]]; then
     margpa_fail "host_platform" "linux_required"
     return 1
@@ -472,16 +544,33 @@ margpa_project_preflight() {
   if ! env PYTHONDONTWRITEBYTECODE=1 "${margpa_python_bin}" -c \
     'import pathlib, sys, tomllib
 data = tomllib.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+required_top_level = {
+    "schema_version",
+    "profile_key",
+    "verification_state",
+    "host",
+    "compute",
+    "backend_runtime",
+    "runtime_requirements",
+    "load_overrides",
+}
+section_names = {
+    "host",
+    "compute",
+    "backend_runtime",
+    "runtime_requirements",
+    "load_overrides",
+}
 valid = (
-    data["profile_key"] == "external.lightning-linux-x86_64.cpu-native"
-    and data["backend_runtime"]["build_variant_key"] == "cpu"
-    and data["compute"]["acceleration_api_key"] == "none"
-    and data["load_overrides"]["gpu_layers"] == 0
-    and data["runtime_requirements"]["fallback_policy"] == "deny"
+    set(data) == required_top_level
+    and data["schema_version"] == "3"
+    and isinstance(data["profile_key"], str)
+    and bool(data["profile_key"].strip())
+    and all(isinstance(data[name], dict) for name in section_names)
 )
 raise SystemExit(0 if valid else 1)' \
     "${margpa_web_profile}" >/dev/null 2>&1; then
-    margpa_fail "deployment_profile" "invalid_pure_cpu_profile"
+    margpa_fail "deployment_profile" "invalid_profile_contract"
     return 1
   fi
   printf 'check.deployment_profile=pass path=%s\n' "${margpa_web_profile}"
@@ -528,9 +617,10 @@ print(artifact)' \
   fi
   printf 'check.web_bind=pass host=%s port=%s\n' \
     "${margpa_web_host}" "${margpa_web_port}"
-  printf 'check.access_boundary=pass mode=basic_preview public_demo=false\n'
-  printf 'check.launch_contract=pass credentials=environment_only\n'
 
+}
+
+margpa_validate_lifecycle_preflight() {
   local writable_state_ancestor="${margpa_runtime_state_root}"
   while [[ ! -e "${writable_state_ancestor}" ]]; do
     writable_state_ancestor="$(dirname -- "${writable_state_ancestor}")"
@@ -545,6 +635,189 @@ print(artifact)' \
   fi
   printf 'check.runtime_state_root=pass path=%s\n' "${margpa_runtime_state_root}"
   printf 'check.health_client=pass command=curl\n'
+}
+
+margpa_project_preflight() {
+  margpa_resolve_configuration || return 1
+  margpa_common_preflight_checks || return 1
+  margpa_validate_lifecycle_preflight
+}
+
+margpa_stateless_project_preflight() {
+  margpa_resolve_core_configuration || return 1
+  margpa_common_preflight_checks
+}
+
+margpa_validate_pure_cpu_deployment_profile() {
+  if ! env PYTHONDONTWRITEBYTECODE=1 "${margpa_python_bin}" -c \
+    'import pathlib, sys, tomllib
+data = tomllib.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+valid = (
+    data["profile_key"] == "external.lightning-linux-x86_64.cpu-native"
+    and data["backend_runtime"]["build_variant_key"] == "cpu"
+    and data["compute"]["acceleration_api_key"] == "none"
+    and data["load_overrides"]["gpu_layers"] == 0
+    and data["runtime_requirements"]["fallback_policy"] == "deny"
+)
+raise SystemExit(0 if valid else 1)' \
+    "${margpa_web_profile}" >/dev/null 2>&1; then
+    margpa_fail "deployment_profile" "invalid_pure_cpu_profile"
+    return 1
+  fi
+  printf 'check.deployment_contract=pass mode=lightning_pure_cpu\n'
+}
+
+margpa_validate_web_access_profile() {
+  local expected_mode="$1"
+  if [[ ! -r "${margpa_web_access_profile}" ]]; then
+    margpa_fail "web_access_profile" "file_unavailable"
+    return 1
+  fi
+  if ! env PYTHONDONTWRITEBYTECODE=1 "${margpa_python_bin}" -c \
+    'import pathlib, sys, tomllib
+data = tomllib.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+expected = sys.argv[2]
+expected_auth = {"basic_preview": "basic", "public_demo": "none"}[expected]
+expected_rag = "eligible"
+control_names = {
+    "rate_limit",
+    "generation_budget",
+    "cooldown",
+    "public_max_new_tokens",
+    "request_quota",
+    "cost_guard",
+}
+valid = (
+    data["schema_version"] == "1"
+    and data["profile_key"] == expected
+    and data["access"]["mode"] == expected
+    and data["access"]["authentication"] == expected_auth
+    and data["access"]["non_loopback_allowed"] is True
+    and data["features"]["documentation_rag"] == expected_rag
+    and set(data["controls"]) == control_names
+    and all(data["controls"][name]["mode"] == "off" for name in control_names)
+)
+raise SystemExit(0 if valid else 1)' \
+    "${margpa_web_access_profile}" "${expected_mode}" >/dev/null 2>&1; then
+    margpa_fail "web_access_profile" "invalid_profile_contract"
+    return 1
+  fi
+  printf 'check.web_access_profile=pass mode=%s\n' "${expected_mode}"
+}
+
+margpa_validate_documentation_rag_profile() {
+  local expected_access_mode="$1"
+  local readiness
+  if ! readiness="$(
+    env PYTHONDONTWRITEBYTECODE=1 "${margpa_python_bin}" -c \
+      'import pathlib, sys, tomllib
+profile_path = pathlib.Path(sys.argv[1])
+project_root = pathlib.Path(sys.argv[2]).resolve(strict=True)
+expected_access_mode = sys.argv[3]
+with profile_path.open("rb") as profile_file:
+    data = tomllib.load(profile_file)
+expected_files = [
+    "docs/public/overview_ja.md",
+    "docs/public/overview_en.md",
+    "docs/public/concept_ja.md",
+    "docs/public/concept_en.md",
+    "docs/public/roadmap_ja.md",
+    "docs/public/roadmap_en.md",
+    "docs/public/technology_selection_ja.md",
+    "docs/public/technology_selection_en.md",
+]
+expected_top_level = {
+    "schema_version",
+    "profile_key",
+    "mode",
+    "provider_key",
+    "provider_display_name",
+    "allowed_access_modes",
+    "allowed_platforms",
+    "corpus",
+    "limits",
+    "chunking",
+    "retrieval",
+    "context",
+}
+valid = (
+    set(data) == expected_top_level
+    and data["schema_version"] == "2"
+    and data["profile_key"]
+    == "external.lightning-public-corpus.documentation-rag.lexical"
+    and data["mode"] == "enabled"
+    and data["provider_key"] == "project_filesystem_lexical"
+    and isinstance(data["provider_display_name"], str)
+    and bool(data["provider_display_name"].strip())
+    and data["allowed_access_modes"] == ["basic_preview", "public_demo"]
+    and expected_access_mode in data["allowed_access_modes"]
+    and data["allowed_platforms"] == ["linux-x86_64-container"]
+    and data["corpus"] == {
+        "selection_mode": "explicit_files",
+        "files": expected_files,
+        "include_history": False,
+        "include_lossless": False,
+    }
+    and set(data["limits"])
+    == {"max_documents", "max_file_bytes", "max_corpus_bytes", "max_chunks"}
+    and data["limits"]["max_documents"] >= len(expected_files)
+    and set(data["chunking"])
+    == {"target_characters", "overlap_characters", "maximum_characters"}
+    and set(data["retrieval"])
+    == {
+        "top_k",
+        "max_chunks_per_document",
+        "minimum_score",
+        "bm25_k1",
+        "bm25_b",
+        "body_weight",
+        "heading_weight",
+        "path_weight",
+        "exact_phrase_bonus",
+        "corpus_priority_weight",
+    }
+    and set(data["context"])
+    == {
+        "maximum_tokens",
+        "minimum_useful_tokens",
+        "safety_margin_tokens",
+        "fallback_maximum_characters",
+    }
+)
+if not valid:
+    raise SystemExit(2)
+present = 0
+missing = 0
+for relative_text in expected_files:
+    relative = pathlib.PurePosixPath(relative_text)
+    if relative.is_absolute() or ".." in relative.parts or "\\" in relative_text:
+        raise SystemExit(3)
+    candidate = project_root
+    for part in relative.parts:
+        candidate = candidate / part
+        if candidate.is_symlink():
+            raise SystemExit(4)
+    if not candidate.exists():
+        missing += 1
+        continue
+    if not candidate.is_file():
+        raise SystemExit(5)
+    candidate.resolve(strict=True).relative_to(project_root)
+    present += 1
+print(f"expected={len(expected_files)} present={present} missing={missing}")' \
+      "${margpa_documentation_rag_profile}" \
+      "${margpa_project_root}" \
+      "${expected_access_mode}" 2>/dev/null
+  )"; then
+    margpa_fail "documentation_rag_profile" "invalid_profile_or_corpus_boundary"
+    return 1
+  fi
+  printf 'check.documentation_rag_profile=pass mode=%s path=%s\n' \
+    "${expected_access_mode}" \
+    "${margpa_documentation_rag_profile}"
+  printf 'check.documentation_corpus_readiness=pass %s\n' "${readiness}"
+  MARGPA_DOCUMENTATION_RAG_PROFILE="${margpa_documentation_rag_profile}"
+  export MARGPA_DOCUMENTATION_RAG_PROFILE
 }
 
 margpa_validate_credentials() {
@@ -589,6 +862,43 @@ if "\r" in password or "\n" in password:
       ;;
   esac
   printf 'check.credentials=pass source=environment values=redacted\n'
+}
+
+margpa_validate_basic_preview_contract() {
+  margpa_validate_pure_cpu_deployment_profile || return 1
+  margpa_validate_web_access_profile "basic_preview" || return 1
+  margpa_validate_documentation_rag_profile "basic_preview" || return 1
+  margpa_validate_credentials || return 1
+  printf 'check.access_boundary=pass mode=basic_preview public_demo=false\n'
+  printf 'check.documentation_rag=pass capability=eligible default=disabled\n'
+  printf 'check.launch_contract=pass credentials=environment_only\n'
+}
+
+margpa_validate_public_demo_contract() {
+  margpa_validate_web_access_profile "public_demo" || return 1
+  margpa_validate_documentation_rag_profile "public_demo" || return 1
+  printf 'check.access_boundary=pass mode=public_demo authentication=none\n'
+  printf 'check.documentation_rag=pass capability=eligible default=disabled\n'
+  printf 'check.public_controls=pass mode=off\n'
+  printf 'check.launch_contract=pass credentials=not_used\n'
+}
+
+margpa_build_web_arguments() {
+  margpa_web_arguments=(
+    --host "${margpa_web_host}"
+    --port "${margpa_web_port}"
+    --profile "${margpa_web_profile}"
+    --access-profile "${margpa_web_access_profile}"
+    --documentation-rag-profile "${margpa_documentation_rag_profile}"
+    --registry "${margpa_registry_path}"
+    --model-root "${margpa_model_root}"
+  )
+  if [[ -n "${margpa_model_key}" ]]; then
+    margpa_web_arguments+=(--model-key "${margpa_model_key}")
+  fi
+  if [[ -n "${margpa_context_size}" ]]; then
+    margpa_web_arguments+=(--context-size "${margpa_context_size}")
+  fi
 }
 
 margpa_emit_manual_checklist() {
@@ -661,6 +971,9 @@ margpa_process_matches() {
     command_tokens="$(tr '\0' '\n' <"/proc/${pid}/cmdline")"
     printf '%s\n' "${command_tokens}" | grep -F -x -- "${margpa_web_bin}" >/dev/null &&
       printf '%s\n' "${command_tokens}" | grep -F -x -- "${margpa_web_profile}" >/dev/null &&
+      printf '%s\n' "${command_tokens}" | grep -F -x -- "${margpa_web_access_profile}" >/dev/null &&
+      printf '%s\n' "${command_tokens}" | grep -F -x -- "${margpa_documentation_rag_profile}" >/dev/null &&
+      printf '%s\n' "${command_tokens}" | grep -F -x -- "${margpa_registry_path}" >/dev/null &&
       printf '%s\n' "${command_tokens}" | grep -F -x -- "${margpa_model_root}" >/dev/null &&
       printf '%s\n' "${command_tokens}" | grep -F -x -- "${margpa_web_host}" >/dev/null &&
       printf '%s\n' "${command_tokens}" | grep -F -x -- "${margpa_web_port}" >/dev/null
@@ -671,6 +984,9 @@ margpa_process_matches() {
   [[ -n "${command_line}" ]] &&
     [[ "${command_line}" == *"${margpa_web_bin}"* ]] &&
     [[ "${command_line}" == *"${margpa_web_profile}"* ]] &&
+    [[ "${command_line}" == *"${margpa_web_access_profile}"* ]] &&
+    [[ "${command_line}" == *"${margpa_documentation_rag_profile}"* ]] &&
+    [[ "${command_line}" == *"${margpa_registry_path}"* ]] &&
     [[ "${command_line}" == *"${margpa_model_root}"* ]] &&
     [[ "${command_line}" == *"--host ${margpa_web_host}"* ]] &&
     [[ "${command_line}" == *"--port ${margpa_web_port}"* ]]

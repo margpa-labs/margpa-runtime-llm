@@ -14,9 +14,13 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import Response
 
-from margpa_runtime_llm.modules.conversation.public import ConversationGenerationInput
+from margpa_runtime_llm.modules.conversation.public import (
+    ConversationGenerationInput,
+    ConversationGenerationSession,
+)
 from margpa_runtime_llm.modules.inference.domain.errors import InferenceError
 
+from .access_profiles import DisabledPublicControlPolicy, PublicControlPolicyPort
 from .auth import WebAccessPolicy
 from .contracts import StopGenerationRequest, WebRuntime
 from .error_mapping import http_status_for_inference_error
@@ -27,6 +31,7 @@ STATIC_ROOT = Path(__file__).resolve().parent / "static"
 SHUTDOWN_FAILURE_MESSAGE = "The web runtime could not shut down cleanly."
 RuntimeFactory = Callable[[], WebRuntime]
 CallNext = Callable[[Request], Awaitable[Response]]
+DEFAULT_CONTROL_POLICY: PublicControlPolicyPort = DisabledPublicControlPolicy()
 logger = logging.getLogger(__name__)
 
 
@@ -34,6 +39,7 @@ def create_web_app(
     *,
     runtime_factory: RuntimeFactory,
     access_policy: WebAccessPolicy,
+    control_policy: PublicControlPolicyPort = DEFAULT_CONTROL_POLICY,
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -60,6 +66,7 @@ def create_web_app(
         openapi_url=None,
         lifespan=lifespan,
     )
+    app.state.public_control_policy = control_policy
 
     @app.middleware("http")
     async def secure_requests(request: Request, call_next: CallNext) -> Response:
@@ -150,9 +157,19 @@ def create_web_app(
         body: ConversationGenerationInput,
     ) -> StreamingResponse:
         runtime = _runtime(request)
-        session = await asyncio.to_thread(runtime.conversation.start, body)
+        control_policy.check_request()
+        control_policy.before_generation()
+        try:
+            session = await asyncio.to_thread(runtime.conversation.start, body)
+        except BaseException:
+            control_policy.after_generation()
+            raise
         return StreamingResponse(
-            stream_session_as_sse(request, session),
+            stream_session_with_control_policy(
+                request=request,
+                session=session,
+                control_policy=control_policy,
+            ),
             media_type="text/event-stream",
             headers={"X-Accel-Buffering": "no"},
         )
@@ -173,6 +190,21 @@ def create_web_app(
 
     app.mount("/assets", StaticFiles(directory=STATIC_ROOT), name="assets")
     return app
+
+
+async def stream_session_with_control_policy(
+    *,
+    request: Request,
+    session: ConversationGenerationSession,
+    control_policy: PublicControlPolicyPort,
+) -> AsyncIterator[str]:
+    try:
+        async for chunk in stream_session_as_sse(request, session):
+            if chunk.startswith("event:"):
+                control_policy.observe_generation()
+            yield chunk
+    finally:
+        control_policy.after_generation()
 
 
 def _runtime(request: Request) -> WebRuntime:

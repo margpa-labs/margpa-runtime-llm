@@ -1,0 +1,34 @@
+# Local Python environment
+.venv/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+!.env.template
+
+# External model storage
+/models
+*.gguf
+
+# Python-generated files
+__pycache__/
+*.py[cod]
+*.so
+
+# Test, lint, type-check, and coverage caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+__MACOSX/
+
+# Local runtime data
+/var/
