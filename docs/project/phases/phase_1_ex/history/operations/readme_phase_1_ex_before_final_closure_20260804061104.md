@@ -2,9 +2,9 @@
 
 Research Preview repository maintained by **Nazuna Research**.
 
-> **現在地：Phase 1-ex完了／Phase 2開始可能／最終予定 Phase 10**
+> **現在地：Phase 1-ex／最終予定 Phase 10**
 >
-> Phase 1とPhase 1-exは完了・Accepted済みです。Phase 2の開始Gateは成立していますが、機能実装はまだ開始していません。現在位置、実装済み範囲、未実装範囲および将来構想は、[Roadmap](docs/public/roadmap_ja.md)を正本としてご確認ください。
+> Phase 1は完了・Accepted済みです。現在位置、実装済み範囲、未実装範囲および将来構想は、[Roadmap](docs/public/roadmap_ja.md)を正本としてご確認ください。
 
 本Repositoryは、開発経過を確認可能な状態で保持するための公開記録を兼ねています。現在の実装と文書は未完成であり、内容、構成および公開範囲は変更される可能性があります。
 

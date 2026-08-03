@@ -1,0 +1,2266 @@
+{
+  "schema_version": "1",
+  "document_type": "lossless_source_manifest",
+  "phase": "phase_1_ex",
+  "phase_state": "complete_accepted",
+  "frozen_at": "2026-08-04 06:11:04 JST",
+  "hash_algorithm": "sha512",
+  "source_count": 373,
+  "total_source_bytes": 8367443,
+  "source_set_digest": "bd626b14b4bab10df67959193a0d8f5202aa48c552ea568b6895033d1ca368bd0cd9c487ab52d48c98853bbecf92513b2b887da84da70f21b33e45135de84caf",
+  "source_set_digest_algorithm": "sha512(path\\0size_bytes\\0sha512\\n for entries sorted by path)",
+  "include_extensions": [
+    ".md",
+    ".json"
+  ],
+  "excluded": [
+    ".DS_Store",
+    "lossless/**",
+    "post-freeze final verification, recovery, backup, completion and index artifacts",
+    "history/documentation_index_20260804061104.md",
+    "history/operations/phase_1_ex_final_review_and_completion_gate_20260804061104.md",
+    "history/operations/phase_index_phase_1_ex_after_final_closure_ja_20260804061104.md",
+    "history/operations/readme_phase_1_ex_after_final_closure_20260804061104.md"
+  ],
+  "compilation_path": "docs/project/phases/phase_1_ex/lossless/phase_1_ex_lossless_ja.md",
+  "entries": [
+    {
+      "index": 1,
+      "path": "docs/project/phases/phase_1_ex/adr/adr_0024_phase_first_project_documentation_and_lossless_history_ja.md",
+      "size_bytes": 6851,
+      "sha512": "05b8e4f4627fdc43b1bcfd8363b0085ef53bbaf9a6f4898381c06bcd679d0b12247c63891ab0e2ce6e559b0ccd73df5d4db5495161d2397d63e04d1a1f4bd5e3"
+    },
+    {
+      "index": 2,
+      "path": "docs/project/phases/phase_1_ex/adr/adr_0025_public_demo_auto_start_and_pre_release_gate_ja.md",
+      "size_bytes": 4985,
+      "sha512": "f694ee25039c1e799b57d96436f8b5e150c568c211a9f116950ff0efa44ec0593b0a0ff282a9b7541df94133b317c8cf3051ab487ed7900640b97717f0a284cc"
+    },
+    {
+      "index": 3,
+      "path": "docs/project/phases/phase_1_ex/adr/adr_0026_lightning_basic_preview_lifecycle_and_managed_secrets_ja.md",
+      "size_bytes": 5610,
+      "sha512": "e919bed496c7d20707ab795dde2542c58f5e6328cdebfcb6cc5fdd6bd12f07f607b0ba81be73470e30e6ed8e5a1011177d4cb26c2e20f1937c092e01420e170c"
+    },
+    {
+      "index": 4,
+      "path": "docs/project/phases/phase_1_ex/adr/adr_0027_public_demo_minimal_access_and_deferred_control_hooks_ja.md",
+      "size_bytes": 5277,
+      "sha512": "fe9c9103a0b8f646b782b0f15a54504fdc755a54a69dd0cb7e3baa390453cb77f3bbc9b4a8a0eab1b2435c35089120614a3d283d55c0b60d11a6c3c4c5d12dd6"
+    },
+    {
+      "index": 5,
+      "path": "docs/project/phases/phase_1_ex/adr/adr_0028_mac_local_sparse_documentation_rag_and_external_adapter_hook_ja.md",
+      "size_bytes": 8701,
+      "sha512": "d2bee3efabbf8a7a025ba2fa4d6da462bbcb85160a5fa2458a9ff7996df0bbcfbbbfdb74d9d7516b0311b7c54309686646f2b9e962a8fe4c59c234ecc8fa2f9b"
+    },
+    {
+      "index": 6,
+      "path": "docs/project/phases/phase_1_ex/adr/adr_0029_lightning_basic_preview_public_corpus_documentation_rag_adapter_hook_ja.md",
+      "size_bytes": 6541,
+      "sha512": "fd174ee659974521f33a0200e3c36f7bfc44b13d3b8b3bbd80a6c30ab919c921e1eabb390fdaf05b82fa5849b41de931dc40dc6764a0fe3636409e924b140cf7"
+    },
+    {
+      "index": 7,
+      "path": "docs/project/phases/phase_1_ex/adr/adr_0030_lightning_public_corpus_documentation_rag_multi_access_ja.md",
+      "size_bytes": 5713,
+      "sha512": "dcaf8179e29ee2aa6811f248713a5d276d907630ce25300674d23819a8e16dd8adb4dd3c37785aba3437a9d5a3e6c9f4963b591e185625140349ca538abd5822"
+    },
+    {
+      "index": 8,
+      "path": "docs/project/phases/phase_1_ex/architecture/lightning_basic_preview_public_corpus_documentation_rag_adapter_hook_architecture_ja.md",
+      "size_bytes": 14305,
+      "sha512": "b3324120e491764438f29cda36ad584df7b15be5c59eae65a27acff72a7fb36aef39e1a3471293e04c80078eb87d409699aa23c5771a4505f1dbac7040d1e978"
+    },
+    {
+      "index": 9,
+      "path": "docs/project/phases/phase_1_ex/architecture/lightning_public_corpus_documentation_rag_multi_access_architecture_ja.md",
+      "size_bytes": 9553,
+      "sha512": "9b72aeaabc3c80f09fccd815a9608304b18ffcdf3411dd8dd54fa79bfac43640d9a23f9731d29da466a1b42d427c40be300a6c790dab6ab79108b8704fe88ccb"
+    },
+    {
+      "index": 10,
+      "path": "docs/project/phases/phase_1_ex/architecture/mac_local_documentation_rag_architecture_ja.md",
+      "size_bytes": 18838,
+      "sha512": "0c7a27dd0cfa707a12654416576e357a49c52dc908b73a6d9dfc7ba1c85738c39ab46623a6e3fbaedd2a842b5486b5d6039272e1edb6a4f74aed43a317b49b0a"
+    },
+    {
+      "index": 11,
+      "path": "docs/project/phases/phase_1_ex/architecture/mac_local_documentation_rag_technology_selection_ja.md",
+      "size_bytes": 10114,
+      "sha512": "56203c926ccf5cc99b04f3db210f1fb46aaedcccf30d55df70f5e3177f6b9970632ad1e87f8c7aa5a427561c43a5a34fbb88ef817a42ea91b2c68534ff347f53"
+    },
+    {
+      "index": 12,
+      "path": "docs/project/phases/phase_1_ex/architecture/public_demo_access_profile_and_runtime_portability_architecture_ja.md",
+      "size_bytes": 9091,
+      "sha512": "2fcddbfb6cd932eb356466ef66b6f064c7e2403402ff2ca697849e7a816b6c7401480e02bd2b08611eca46fd8bc607a4eb7de4be949058c9bd3926eb43610ae6"
+    },
+    {
+      "index": 13,
+      "path": "docs/project/phases/phase_1_ex/architecture/public_demo_auto_start_and_rag_extension_architecture_ja.md",
+      "size_bytes": 5791,
+      "sha512": "e892e1724d604a56a882c21b7900de03cb6fbd6ddefed2d367c9220adfba8d70427b15858c366be557754d535abc7d5bbba8f6ddfa75510ce8442e6611d27cca"
+    },
+    {
+      "index": 14,
+      "path": "docs/project/phases/phase_1_ex/architecture/target_documentation_structure_ja.md",
+      "size_bytes": 9512,
+      "sha512": "12fb77f39b018029ddf96a3dc7fb047979e3f006a3eb205c229c27cd31a234b1943f61f2e3d8b259fea1ba9373da94b76b5174c1563c6f5db16d46a7fd032f9b"
+    },
+    {
+      "index": 15,
+      "path": "docs/project/phases/phase_1_ex/handoffs/documentation_migration_task_notification_plan_ja.md",
+      "size_bytes": 4770,
+      "sha512": "bd152076dd68ff2e8092a55d23de8d2277ce3b59e1a2c0a8bf3fc267140cbd8993fcd35efa5c71ca4a50de72a54156d464e382552cc8019251d23e410e0ee533"
+    },
+    {
+      "index": 16,
+      "path": "docs/project/phases/phase_1_ex/history/adr/adr_0024_phase_first_project_documentation_and_lossless_history_20260726145451.md",
+      "size_bytes": 6889,
+      "sha512": "3e72beeb792c117a3a905932a6bd7504684709d3fffd513648bc84185ee8290b1da7ad8dcd76799986cfd92d9f1a8c857129647983e76a3783bf279f1f02ee0f"
+    },
+    {
+      "index": 17,
+      "path": "docs/project/phases/phase_1_ex/history/adr/adr_0028_mac_local_sparse_documentation_rag_and_external_adapter_hook_20260731172259.md",
+      "size_bytes": 8440,
+      "sha512": "e169dc713d98018bfaf581a6e8e276bdf2c4b6ffdc438b2118acc3553c03bfa28d54badd3abf79e5b131713fd132439b8f003f79b47621df6d181afb24a5e89b"
+    },
+    {
+      "index": 18,
+      "path": "docs/project/phases/phase_1_ex/history/architecture/lightning_documentation_rag_deployment_snapshot_follow_up_architecture_20260801154412.md",
+      "size_bytes": 3585,
+      "sha512": "bd0efaaeb4958de8ef0a19eb9e389fd81837e8ba511a3289292c2cffc233fcabab6c50c3e4bd7fbca7ca76e8629d52811415d1b0e14fbece8a59fbdd6a47f479"
+    },
+    {
+      "index": 19,
+      "path": "docs/project/phases/phase_1_ex/history/architecture/mac_local_documentation_rag_architecture_20260731172259.md",
+      "size_bytes": 18686,
+      "sha512": "7d48bb8abdfd7b46ae9466c0272d1be95d3373d8aef9e2c0f8493af61d5415b12a8f20d04e33e33bb6e080918920d79fb278c06546fa6d7e803dac121a5b7fa9"
+    },
+    {
+      "index": 20,
+      "path": "docs/project/phases/phase_1_ex/history/architecture/mac_local_documentation_rag_multi_turn_grounding_follow_up_architecture_20260731231940.md",
+      "size_bytes": 5948,
+      "sha512": "fd7cd235ae0ed277db7611728f67e0bc9be89b0a4b93b47909ddf2b86eea92dc97adc60afb1001edd7a1ca6c16f1f5fc3d760b7a3f65eb9d109ecaba62199b1a"
+    },
+    {
+      "index": 21,
+      "path": "docs/project/phases/phase_1_ex/history/architecture/mac_local_documentation_rag_technology_selection_20260731172259.md",
+      "size_bytes": 9954,
+      "sha512": "bfac8068bf8124d9a997fd6faed0e1414805796456937468f96207743a721c50fab9be327abb2dab9fa874572d2414fdb1105f4434209325661b9adb32b7e91e"
+    },
+    {
+      "index": 22,
+      "path": "docs/project/phases/phase_1_ex/history/architecture/phase_1_ex_target_documentation_structure_20260726145451.md",
+      "size_bytes": 8395,
+      "sha512": "6b3772bb9b533a7b8b516b516113d2829eb4ed18a4c3b7ce8caaaa2684da6536a2beeb67235f549b3f577c4759043b469677964c5d26dcb97d2a15532a65b79c"
+    },
+    {
+      "index": 23,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260726145451.md",
+      "size_bytes": 4127,
+      "sha512": "4a12066e84e1150c608700702843abacad1d81b15313ee5325c520fcc4305668aa8f1783e2eb0a6abed5d2946173f1167d66400bb901480c0b3701ae57eb60b1"
+    },
+    {
+      "index": 24,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260726150349.md",
+      "size_bytes": 3126,
+      "sha512": "c008868220f181aba8fbaccfa3c0d59a5d8d43c04da89d552ef81724a55c5642327d15164111e1729553abe44b68692d29f9d4927381873013da75b1a6eee32a"
+    },
+    {
+      "index": 25,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260726154009.md",
+      "size_bytes": 2926,
+      "sha512": "44f7b564010b7b851d1001d6f525d937f33991919beb02e70da64450af53ac9a94d3792ac36048f9ae18a948243ecfca1d20b62cf3cac6aa1f95d5ed6de2bfe8"
+    },
+    {
+      "index": 26,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260726170034.md",
+      "size_bytes": 3400,
+      "sha512": "23613ad4dc3d9b969cf5268e0bddd0307bb4e2b9f967007c56de437c099de1fea4f5938f3e1b77afeddd196a2752b0fa5548ad5e7dedc787dc73a646da8e3f63"
+    },
+    {
+      "index": 27,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260726175318.md",
+      "size_bytes": 4223,
+      "sha512": "1367e16e3008acbec50a1566cce81da5fa8a99c2cce542a2fd9d966b6e7ab36bbabf2ce0ab662984d416ef327fdcc97759a196c0954ccd9a9188249173c99431"
+    },
+    {
+      "index": 28,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260726180711.md",
+      "size_bytes": 974,
+      "sha512": "4af5c784ea7c33735d83fb5fa159a3f160be26d72afff0371d937699f05d99f7bd27a5d237ae26261eb3479702e8a463f4c19442af0931225da491e8f573fce8"
+    },
+    {
+      "index": 29,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260726192912.md",
+      "size_bytes": 1037,
+      "sha512": "b97c22e38a1021d91c0c7e1af660dbefedfe3cf07c12a3712a62df589b27df1d4a23d00181abcdcb775f699f0ed028e8cb9402861d3ad1f381a734de0a17ad2a"
+    },
+    {
+      "index": 30,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260726194949.md",
+      "size_bytes": 1271,
+      "sha512": "4fcf4b237243f8ed579ef5ae56138428946d9472423a9e2bce7993d251e30f4a692d63a8e3e86b47b365e656c269e4de66e07a94b3f0bd10001a9a6908cee36e"
+    },
+    {
+      "index": 31,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260726202036.md",
+      "size_bytes": 1453,
+      "sha512": "c2615ea851f3b265a16baee94632ce7746857940409de8cc2f1b2cb55ca94d06f840e7d050c1ff35f6aa88fe2a58c8fb79ee240a8b1e006c86d302b2c7bac45f"
+    },
+    {
+      "index": 32,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260726202935.md",
+      "size_bytes": 1697,
+      "sha512": "ca1042be7d12c6574eb159f73b451ad9842ec61d382f7236e694b9190779af7288254f1f143782ae5bcd37982a59ba7010340d3fe84bb880d9b2d33510c500b1"
+    },
+    {
+      "index": 33,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260726203948.md",
+      "size_bytes": 3389,
+      "sha512": "f2ab4784c1efbbcf9d91b733ba7858f4eb51953a7f08969a66da749b1b4957f4cef0541fc03f3cf7c2014823d170de05a6f6808888f8ccaec216e4cbfca3009a"
+    },
+    {
+      "index": 34,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260726213429.md",
+      "size_bytes": 2299,
+      "sha512": "db070ee8373c29b946a146e190b83586899cd87207af52582ddc947384f239b30c3533add11fc787ef63a9c9b5b58ae958173477f77de9beb1827fb608347374"
+    },
+    {
+      "index": 35,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260726233910.md",
+      "size_bytes": 2406,
+      "sha512": "be2e054844afdacdcd69b452351de4de461d34ad6de7fd192d33ab47786a315c97923cb11b8abb79e537645625ed5546cbcdf2244a90a1e9fc8ce7073b48bb1a"
+    },
+    {
+      "index": 36,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260726235422.md",
+      "size_bytes": 2319,
+      "sha512": "e159c4470f12c886ecbf9fbdac8b71da425f9a28a50a1708203ec507fe4705a89db8c5d0840be9e93d0313b13d9910d4a82a634e4bf7f2517c770ed2a32be224"
+    },
+    {
+      "index": 37,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727002440.md",
+      "size_bytes": 2809,
+      "sha512": "2a6b2e865c6c11ff391c32a0c5c23b7c6f9c7da860e7409064b4dd7490393db9a56de329336a64be06b0a6c4213d64281b781a39aec513f10890ee4673bf6586"
+    },
+    {
+      "index": 38,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727003044.md",
+      "size_bytes": 2882,
+      "sha512": "f098c8586c00a84b37cae0e50aa0c658d87694ac233b20f44d8cccb1a6f87774466b22fa38f8ae0f58f690cd73a08b5f199c08dbf11fe54c5814300654de6d56"
+    },
+    {
+      "index": 39,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727051659.md",
+      "size_bytes": 3014,
+      "sha512": "f2cb0a26b02ad2f281036d92744f0ebe348b8a36121ce1f20e1089b873998f44b70bd3fa33c40a18581e5f28a3852dccc4647225ac4638b073588fbe172db33c"
+    },
+    {
+      "index": 40,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727052747.md",
+      "size_bytes": 2871,
+      "sha512": "ae6dec7790ef70dd1fa9303dbfe12c85f23b35c7718a65d1800358e6179c5f399f8f884219521721905d67b4aa26addcb01dcb19aa6f877b80ac760ff1597c60"
+    },
+    {
+      "index": 41,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727054823.md",
+      "size_bytes": 3334,
+      "sha512": "bafad05478e4bdd4cb4c8fdebc66dfbfc098059b062f233b83910b0a6f74fd85c8c04685cd49bb41cfc42dccdcf989dd537535e387575bf2a434e5d5f9b7ecb5"
+    },
+    {
+      "index": 42,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727055625.md",
+      "size_bytes": 3392,
+      "sha512": "1f05c03c1a4499dbd863720a5b64add829761e916384dea8385fc06c6242c595319c77c6480531b2fabc191660b386c246cc4c796a4f270bb4b95bd9467c2a01"
+    },
+    {
+      "index": 43,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727064044.md",
+      "size_bytes": 3589,
+      "sha512": "5179b8c9286550e1ff4f032e55867481065ad56ff123d0f9a82bd7613074c79253f6ab96a97105562516ef854c8870fe1bf9bbde5b22f1ed4a68d5e80be6e337"
+    },
+    {
+      "index": 44,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727071721.md",
+      "size_bytes": 5722,
+      "sha512": "042b1d0c8b677da8d2296b74f36fb2943701c77f1eff8086e491e2239870bf6022d0c845ccc5643acd5c76d0d31b21ecdea7bcb6ac81a7728d66fd872c23ccbc"
+    },
+    {
+      "index": 45,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727072019.md",
+      "size_bytes": 3235,
+      "sha512": "311b56d512ce5f401906d848c0babcbc06e6018da5a1e9d084d3ff0cf0660f83d37a3faca70c2da3743deda177057ead9e33cb4caa8e2ed459d518567d0c396d"
+    },
+    {
+      "index": 46,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727080023.md",
+      "size_bytes": 7704,
+      "sha512": "223ddad9a5e80b920e6ca5c85918ad104bc23c98114bd2fabc9b8a822c593b48fb1344963b932c04202e3c98cea46bff187bd9792e85e3977e359e87f13729fe"
+    },
+    {
+      "index": 47,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727081459.md",
+      "size_bytes": 3266,
+      "sha512": "8ba6406ddf34c41301f6509f7d7831455186463d5deafe55b667056336c8d5210807ca6e83f1d8fec0bd20fe6976733499d46f2abf0b524c3bd023fa268fdc86"
+    },
+    {
+      "index": 48,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727083901.md",
+      "size_bytes": 2889,
+      "sha512": "8564fd7dc9fcf91c88b3da2e09f00f85da546dac3ae6db702f52f065af86cd67244eb51d1da05fc9d8d9c10e9d13ecd72a161beb06ec058ba35185c3ea53d805"
+    },
+    {
+      "index": 49,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727094639.md",
+      "size_bytes": 3121,
+      "sha512": "6aaf4cd95a91c95a63c9ade258f3aa45ccf9688da658a7a6e97dfc3f1349a7fe34eac446b415a25ee4ac2769ae960f3dc8ae530237fd509ab8a14884d66f42b3"
+    },
+    {
+      "index": 50,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727101132.md",
+      "size_bytes": 3102,
+      "sha512": "813bd5e80c8acfce1fb67e3d7c8e3546813f0b879820e24de5bf6a38b2fc126a941dacf58a3151507720498bdffe54c9e859b4c97a67caa3b3c02401a25d2ff9"
+    },
+    {
+      "index": 51,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727103027.md",
+      "size_bytes": 3387,
+      "sha512": "0a7ddbfea6fdc5745d8bd1be781fa173af32691280c5a32d367e7299f173098e5df486cb2e3d2ff1efb900fe69d5c216e59c36a16b73fbed14790429f2429dd5"
+    },
+    {
+      "index": 52,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727104719.md",
+      "size_bytes": 2466,
+      "sha512": "dd974db4c5e0bed89ca643adaa3e529cb04a911b78158d17c25e1deee7bdef8d6c1c711dd6398783b6a1b75d21c6ec29e20e7864770fea4d626addf97cc25817"
+    },
+    {
+      "index": 53,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727110715.md",
+      "size_bytes": 3139,
+      "sha512": "2a397d9dcebdfeda2031a9b52591481116135e5c78ef9a94bb6c343830c82f8093f4a3703fe4bb09cd0dd14ab0fe3bbda688033b7c592300aaf25a42a9396c32"
+    },
+    {
+      "index": 54,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727110950.md",
+      "size_bytes": 2275,
+      "sha512": "8f5014b0f36d8e0070cfa017a95518d0b524ef12582801df03f27744096d6471e2fd7f600e01c9ac3777c46fe850da27794d6d0c18f571b66813416fb973a71c"
+    },
+    {
+      "index": 55,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727121947.md",
+      "size_bytes": 3969,
+      "sha512": "2375867b36c10ed1bdd16d2f6245995823d719b2192d8b02eedd834c89d7d5c6744499b12549ecf237544b0ded42b5b82597d945437946c75fac7eea997f5476"
+    },
+    {
+      "index": 56,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727123553.md",
+      "size_bytes": 4301,
+      "sha512": "8e5df04bfdf5ab656a001e2e5dc88c4020a1c4f5fb1c65295ceba8cfd79bd65c3b21f33d159f2de8b3aeb152f6f3063bb8560798c67eef6218594f86e08f3203"
+    },
+    {
+      "index": 57,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727125834.md",
+      "size_bytes": 4550,
+      "sha512": "0a56b92602beba82c6e8faf45c76268ce00f2d56a4f12f3a58b05e04055f954842455471c44365d75adfa893155ade12bb6bca446d559ed55bb0a27b7804d1b3"
+    },
+    {
+      "index": 58,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727131830.md",
+      "size_bytes": 4766,
+      "sha512": "84aa3da004faf370ce68723b08b6db1463876551bdb3f15b9385f8e292c98e7b484ad343e3fdebef38d520bb57109e64808a70160e29db4c5811d7e0be7da61f"
+    },
+    {
+      "index": 59,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727171845.md",
+      "size_bytes": 3359,
+      "sha512": "405fc44574e8393cf4ee1a71119691e7560c83cb296499d2e7973a0496186b13dc12b4af50828a4aa5835b0133a94aadf78af78541129920608665991899fff3"
+    },
+    {
+      "index": 60,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727182736.md",
+      "size_bytes": 4319,
+      "sha512": "3407c9c4aaf5de88547a889b209e37cc6222b08c9afd379460cd74ff684e9c05da5d68e30e2ae313d9d57baf0bad52a02546e31814f93d9478d42067372f3458"
+    },
+    {
+      "index": 61,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727224609.md",
+      "size_bytes": 4805,
+      "sha512": "c4fe1836c6da451c1e026bb66d552499cea18387befc365044d0c1c8a8f96ab520f451b32688fbe347c7d55a932cc17598b1caa3a92cef3e9a0515fe3f27a13c"
+    },
+    {
+      "index": 62,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727225735.md",
+      "size_bytes": 6108,
+      "sha512": "7219dcb28b5bb0a3b4c6222c2d6eb88450099949af408901c64062d4bd56ca1913ea013155dbf72ad3c519996d1f38110ed5350d57fc9c47264e857f89747ff8"
+    },
+    {
+      "index": 63,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727230612.md",
+      "size_bytes": 5941,
+      "sha512": "90d6720adf9ad084b77d3b101fc5ec14ba3a340a2527855723cf1c71abd9a95aa861e33a65867b3fd1483809b50df241976605f540c7a718dfead8311a90ddeb"
+    },
+    {
+      "index": 64,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260727235452.md",
+      "size_bytes": 4381,
+      "sha512": "f825eabbd04108c357eadcf62b27725d1169cc57365bfb4777632a77d8f92e71e70a8b723092dd4ed4b4651e91b34220f6c7820064a0deb9ec44e45a8a8dc3b7"
+    },
+    {
+      "index": 65,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260728000358.md",
+      "size_bytes": 5359,
+      "sha512": "49d1ed919931941965816c4cde31ef57138ac0c8cf56f1b37413c8397dd70069e71dd96fc74062309d135fda72d3c599904531bc227d2b8626acf6d3972983af"
+    },
+    {
+      "index": 66,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260730144921.md",
+      "size_bytes": 4199,
+      "sha512": "af39087b30c215ea8821d716aaaf88ffae4a4b57beb73ce3f859d68b9d38472dd89ef91a991bb6bb9837caa4a41e5f9983a255c2526111c8069439df8229d579"
+    },
+    {
+      "index": 67,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260730161108.md",
+      "size_bytes": 5065,
+      "sha512": "06228203e8dbc3206f79edb53f7c991d78e19053c8e01ef518a2c4038e54df9519be02c8be7dcdddd9441aee1ef120c3c459b9ed57ef39cd340836a815bb229f"
+    },
+    {
+      "index": 68,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260730170710.md",
+      "size_bytes": 5085,
+      "sha512": "51f64119122328e57ea081a49203fd1dffa1ce5a47858b91d32ce3ec710702040beb77a88a9cbd5c3228558291c02251dbb7c905b994854cb5851fe3dc404c90"
+    },
+    {
+      "index": 69,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260730231339.md",
+      "size_bytes": 3781,
+      "sha512": "75340211f191fd59a2bb753540a10e98ad978c5dfab44c831c63432dbbe7143397b7cddf9a0d8ed482f6241f1cee9b237d476971dcc24dcbe67bf41d7bcf7ead"
+    },
+    {
+      "index": 70,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260731171824.md",
+      "size_bytes": 5411,
+      "sha512": "a45f44fce1a73743635e08c0c15deab067eb4498f65e06bad530d455747ec5ce2943c8456960b13bfe796a11e7b3e93f8a6719ddc65b2ca288b417b5c9fe1e9d"
+    },
+    {
+      "index": 71,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260731172259.md",
+      "size_bytes": 6155,
+      "sha512": "ad8bb2fd82b1f79d35a8be0089639f799f2613322eb40221910c699b5ee757354e1508cff6e75bf18a92a1e508edfc716c0b105ee4bbbbfaa22ddeacb0d6b2fa"
+    },
+    {
+      "index": 72,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260731184134.md",
+      "size_bytes": 4485,
+      "sha512": "8fcb2de7a686736c4431d015a2683116d2b3ecb05128e36acd3ae84246e5868aae08729e4405d01b13c101ce5fcb30938532f5137104ad8300fac3a0c8e2034b"
+    },
+    {
+      "index": 73,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260731193204.md",
+      "size_bytes": 6283,
+      "sha512": "7031e82948644e6aa47ea05bc772f40993e2dc0dabf68f09c61c35135bae91e98b41987ce08339314972f5cdf0b61a081557aacb3caf4622cb79ffc70726b16d"
+    },
+    {
+      "index": 74,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260731214639.md",
+      "size_bytes": 7059,
+      "sha512": "3147b702d8afd94cd382f55c38a028fa3338342a520c7f41488edd8e22981597326e5266a2c2d8b35d020e556c2c015cc625dee45c985be7b1c9e77139e62efc"
+    },
+    {
+      "index": 75,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260731222302.md",
+      "size_bytes": 6952,
+      "sha512": "74bbf502f84f80d1d8a8958478672ef5079638f58107c61c2c1b5f71dc0bc494bab98831d2445a86438b20cb2fbb4a75d8f44984857c403d57bb54aebb436a9a"
+    },
+    {
+      "index": 76,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260731231940.md",
+      "size_bytes": 8281,
+      "sha512": "d6119b5260efd2fa0c9a363419fb237d2ba65d8d41d9f9a3b98bf787a16355befb7895c2831e6e78ad6021cdb4280fb7c2fd823b7fc7b6be46e17ac8bae2f2c9"
+    },
+    {
+      "index": 77,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260801003625.md",
+      "size_bytes": 7153,
+      "sha512": "3c7bb162db6d2796ca183916b65add669ee4e521b1dc83c8ec996f2766d71fb30424c1a5c839c0669698162df16b96a8ef921073740664eb4aa52c95f9ce9752"
+    },
+    {
+      "index": 78,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260801014339.md",
+      "size_bytes": 7772,
+      "sha512": "9722161b6743895ae5851dc2c5886c2d75e0387c15f5aa9857ca018da54157b340b2d2413a92040481a97ca5f5d3d8eaa461cc0e9ee351296a0569ba00df6223"
+    },
+    {
+      "index": 79,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260801090159.md",
+      "size_bytes": 6734,
+      "sha512": "419da507fc3b9871d11f528e26270999e40d569153ec8ee8c40c794456668a0c49aa201ae7243808dfb8816a47be1ace900819ddbf41fd476f6e45fbbc794726"
+    },
+    {
+      "index": 80,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260801091003.md",
+      "size_bytes": 5028,
+      "sha512": "2f5f4d5f21a6e9402328942de7ecdd3fbfaab5347a7bf53349860036c67a36d092e8e36f1423024d1b697df255adafd443803f810b62e1c523296659ada86c27"
+    },
+    {
+      "index": 81,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260801113340.md",
+      "size_bytes": 6075,
+      "sha512": "3b3614dba755bb4d6ca795f583e58ac641692b985ad958ce058a380c1fcd57c0b81673cc30e8530132e6c755467fb13ddcc8e3c4a93402f9cdc0c31fee240a4f"
+    },
+    {
+      "index": 82,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260801154412.md",
+      "size_bytes": 8008,
+      "sha512": "b9777e1864efc7b2054f0ff720a0a53fb00f8f42297a6cc7851c43adc5073fc92496e88ddb260031b543bbd4e44d78d268e8d447e90106360b30eb4bf84504cb"
+    },
+    {
+      "index": 83,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260802073901.md",
+      "size_bytes": 5511,
+      "sha512": "138439c137f0693dd35499f8709c3945fa87ce7325d1ca497225f6c90c340e5d17a1015375680734d758c25ee38b7edefbc458cd8d2219601069d6ce83eb4045"
+    },
+    {
+      "index": 84,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260802142024.md",
+      "size_bytes": 6490,
+      "sha512": "babfaa0f0715ca2761b820626269489ff41f3aaa5255fde8ae5114c35c682a028ce293aaae04c1f955b448f39b8647cb28d96b19e4d788855080b869d612d2a1"
+    },
+    {
+      "index": 85,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260802145825.md",
+      "size_bytes": 6172,
+      "sha512": "23245f182c3fe500833b28697be71a7e9c51f10dc6ffe13d7512b41830e471e9e999eaddc0d72903d2aad55756ef87f931966066cf098851412a23b0acdc4e58"
+    },
+    {
+      "index": 86,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260802210438.md",
+      "size_bytes": 6762,
+      "sha512": "90e64de5f7f08ee4a2f84d3e20c5b0669da775f13114959b70a58d54530a28a2f2012cdaa3a28459945024d8e4fa014547b2f83a0f3dda25d0b89def33b04dec"
+    },
+    {
+      "index": 87,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260802213443.md",
+      "size_bytes": 5829,
+      "sha512": "7489ba4721dec20646825887defb04df7ad7b50e1e2fd1208916812266732a3e4ef75e126a68bacc58627e14c84679a7a7a3fc5154ff9505fc05d47827df2cf6"
+    },
+    {
+      "index": 88,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260802220659.md",
+      "size_bytes": 5569,
+      "sha512": "402bc129193fa5a3ed8c32a4e3b333ea5bc84f3dd80cc7c09bffb1ca402e0b0b551a66a64d9559f3e28ee05b9cac797ac30f9b8b5ac95bddedc4da07991918b4"
+    },
+    {
+      "index": 89,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260802221749.md",
+      "size_bytes": 11093,
+      "sha512": "c2a377bd935069737515b0d9728c4dde09fc444e78432e9435bd37f7dbcc7fb7ebc5dbbed0b4338899f6fac3af9f41e8e0ec94caaf351e1507e231d65b36ee47"
+    },
+    {
+      "index": 90,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260802223657.md",
+      "size_bytes": 9552,
+      "sha512": "ea9da2292688641ddf3bcae1cdd27361ff5053d70f3bc418726f43f95876f3982755d7d39bce97ecf4e1117c9040d4e34e675fb3032cbca944e7ea2a331046b5"
+    },
+    {
+      "index": 91,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260803201448.md",
+      "size_bytes": 4017,
+      "sha512": "43e133a44f6cc60cd33dd149fe8281f99da0e4628caca12cdbf1788c63169a58a77abe313a120e4dfd9d6f1e1491e617babab598566b20f8b294ef18b9cc5154"
+    },
+    {
+      "index": 92,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260803205250.md",
+      "size_bytes": 7766,
+      "sha512": "d866a5e1c934d65b1f3bcf6a02e8734eb033bf3563631e0947bde45003cd790b3e1dd37525596cc9ea8531a4ead04bebfdab2e19702759198cb018f87f7ed086"
+    },
+    {
+      "index": 93,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260803210658.md",
+      "size_bytes": 7457,
+      "sha512": "9d3650c2ecbb6b1e9a1c5846337cd0f9a36585a8d2e12b53b0345031f303b194deced9566342212b806f2f1e387db815e7a39964882948f29a3ce27bcb096865"
+    },
+    {
+      "index": 94,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260804025318.md",
+      "size_bytes": 7562,
+      "sha512": "fd398daf75f22ef0f5999e1a3308d1ce26f1942c5aa5b7b004e327e72457bd973155a069f7d2f5ab654d54b5725438e1c9809aa52ce1f1150e8c585dee0b33fe"
+    },
+    {
+      "index": 95,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260804035722.md",
+      "size_bytes": 13335,
+      "sha512": "c288d6d92583d5609e1f7497572548bbfcbdcf850bb479b287569e85c7b849738e5be6d4ddbe2f7ef2451bb227ce46e7a99e5cf32abc8f8b47923150d051d896"
+    },
+    {
+      "index": 96,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260804043434.md",
+      "size_bytes": 14581,
+      "sha512": "5eeb81ac3409498586f7d005b3db690bbe7272695ca367f2ecb7d847f385dcaea33f28513a0e64febca8c7111ba9badd1f93bf804280cff171f4d34db58d305f"
+    },
+    {
+      "index": 97,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260804045158.md",
+      "size_bytes": 12315,
+      "sha512": "e8b3393c7fae6ebbadab63fd7f6ce6248721aba4469b5fe1c4e074c326097869904061a94e931d5653c4b5565ae655ec66c757393634937a41dc3a5854fd410e"
+    },
+    {
+      "index": 98,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260804050816.md",
+      "size_bytes": 6774,
+      "sha512": "520dccfd2755c0730fe887db0642d810562d6d9be2f4a13f4fa5a8dcc2e82a348485f2df7c203aecb35bb0da97e56f0534e198674bb276c84a0c3abb3613f44f"
+    },
+    {
+      "index": 99,
+      "path": "docs/project/phases/phase_1_ex/history/documentation_index_20260804052654.md",
+      "size_bytes": 4255,
+      "sha512": "b84a69b9bf31e3ec3dad905b9eb61676639ee2db2a7263a13b2278eee910bd9117de11678fe61cf3fafbfe338829d65e88df2aaed4df98596e1a93a7605988fe"
+    },
+    {
+      "index": 100,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/designer_review_phase_1_ex_documentation_rag_cross_environment_manual_acceptance_20260801154412.md",
+      "size_bytes": 3916,
+      "sha512": "85285b4b8c6370238259ea33ef407965b820d121220565d9f9d8d01c807456d4db43e7b1e5daf22ac17815e41dd45077918d24b3b63b513e9ba0ed8a035df04e"
+    },
+    {
+      "index": 101,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/designer_review_phase_1_ex_lightning_auto_start_and_lifecycle_scripts_20260726202036.md",
+      "size_bytes": 6569,
+      "sha512": "ee0c6afa43d76b80df251adfbf31fcad96b076e210567f52cf511f457adbd478743bf7567d3aa8a192522c189e86fbd40d6badc34b3185ee2874c185d2d62274"
+    },
+    {
+      "index": 102,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/designer_review_phase_1_ex_lightning_auto_start_go_no_go_assessment_20260727051659.md",
+      "size_bytes": 5952,
+      "sha512": "00890f336415ba95685d76b1692d450aad8cbd67daf7fd7337b9524d5643b48d59d0bb15e7db63fa484d36a8355f3c4bf38f362449c5b660569eaaaab3e1646c"
+    },
+    {
+      "index": 103,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/designer_review_phase_1_ex_lightning_auto_start_requirement_alignment_correction_20260727052747.md",
+      "size_bytes": 7210,
+      "sha512": "116253c9c64027cf028733710528dceb60e98301e8559dedc05998d86aa9a39e3ade219cc75ad14ad1cd6a361fca58b67348ea03cf125103bb6bf09dad1c0f50"
+    },
+    {
+      "index": 104,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/designer_review_phase_1_ex_lightning_auto_start_stage_a_availability_and_target_correction_20260727054823.md",
+      "size_bytes": 5906,
+      "sha512": "55590cb2ae070da6d7df6349efe1930a3771b49af8671d0e6b9948e7ceaada2bb68d28ca68a38146d3228737055f05d3c90c85323b74a87d6dd428820696e927"
+    },
+    {
+      "index": 105,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/designer_review_phase_1_ex_lightning_auto_start_stage_b_preparation_20260727064044.md",
+      "size_bytes": 7836,
+      "sha512": "0173bf90a00d7d1af056bcf4fb5d70065c0a10cd230e0357a151953fe625f3bc088bee64ef24777eab7101bc9571eeb161bbd9b981aebca39524234a48a91af9"
+    },
+    {
+      "index": 106,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/designer_review_phase_1_ex_lightning_basic_preview_manual_lifecycle_acceptance_20260727002440.md",
+      "size_bytes": 4976,
+      "sha512": "037a5802521782e33530390a90ce382205c44e16a1ca6a18c7184ae9599182440d9eff6426f6e6484bf7a1716c3a91ea6c38a1d4f6a8b5688bd6ab45464621c9"
+    },
+    {
+      "index": 107,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/designer_review_phase_1_ex_lightning_lifecycle_safety_follow_up_20260726213429.md",
+      "size_bytes": 6586,
+      "sha512": "5c28127a51be29ccc12ce43ec6062d732ddc5148c2adbf053fd48e0b0a9d1560fe95cb005ef9084f419af6f21fe03fcc461dca8e737a407e970215e57d408154"
+    },
+    {
+      "index": 108,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/designer_review_phase_1_ex_lightning_linux_proc_test_fixture_follow_up_20260726235422.md",
+      "size_bytes": 5241,
+      "sha512": "565cc7572873d4283f42c9a665660099a70b04391e3d1f65ceb82dda0835aef52264f816b32e29d64ca4c00558ffc4d62564e04e30d4363ae15adbae7135a003"
+    },
+    {
+      "index": 109,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/designer_review_phase_1_ex_lightning_public_corpus_documentation_rag_multi_access_20260801113340.md",
+      "size_bytes": 7760,
+      "sha512": "13719df88d84ebee90b94bf28e8f1b0d433dd136dd7b1ee827ffd4bda3b5e513f5ea6e3073065b66945e7f02c80ae7860e69f2fefec9398206135d7c2858e88f"
+    },
+    {
+      "index": 110,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/designer_review_phase_1_ex_lightning_public_demo_manual_acceptance_20260730231339.md",
+      "size_bytes": 3667,
+      "sha512": "f1346f69f477f48bffaf8c468567dde53a809f9469b227e0710ebf2f1aa32218a3e383e38c59682a6a3464c9391dc00fa9940e321ea5331e5cc93fe4850431b3"
+    },
+    {
+      "index": 111,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/designer_review_phase_1_ex_mac_local_documentation_rag_20260731184134.md",
+      "size_bytes": 12775,
+      "sha512": "638c76c4e2127578413d5f8ea9babbad67ee66a9b306be157efd5e54de0a7324e8112886c0175737e72b2cb36fc40c1b7f912ca19a235de9a1ceff39513dfb27"
+    },
+    {
+      "index": 112,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/designer_review_phase_1_ex_mac_local_documentation_rag_context_fallback_follow_up_20260731214639.md",
+      "size_bytes": 11396,
+      "sha512": "70aea50da64f0219300b9106a2c409178650af90ba43fa5a7d1b6d5bf4a96dbfea90a1115cc6efda3f907d137d17cb4fd8cd4bd72bdf61685c05149385cce505"
+    },
+    {
+      "index": 113,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/designer_review_phase_1_ex_mac_local_documentation_rag_correctness_follow_up_20260731193204.md",
+      "size_bytes": 9528,
+      "sha512": "62cb8117e949b508f0cab25dc89c1d1727486961fc81d7043da5de344d3f59b64e92ffaff1012d03de33d1029df01fc74dce99a2ee980df1e35ec11c968909ce"
+    },
+    {
+      "index": 114,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/designer_review_phase_1_ex_mac_local_documentation_rag_coverage_integrity_follow_up_20260801014339.md",
+      "size_bytes": 7648,
+      "sha512": "ca92ebbd3b4460ff0a39639639cf9454c8b90912f121bb6499af7b45b3d84ee174b8240d5c0cd8d06e8c08ab246adb21748dd58250f34b117ffb9a118389a853"
+    },
+    {
+      "index": 115,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/designer_review_phase_1_ex_mac_local_documentation_rag_manual_test_1_20260731231940.md",
+      "size_bytes": 4119,
+      "sha512": "0ed7da6409423be069a46cc18b92533472f1ca8f19ef10df1b0452b7c0abcc600be455812118f4813b7de3b1c73da487115af84c76f82858b2b134bb9ba75027"
+    },
+    {
+      "index": 116,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/designer_review_phase_1_ex_mac_local_documentation_rag_manual_test_2_20260801084952.md",
+      "size_bytes": 5880,
+      "sha512": "da504ba70522ff1e2685e2f74b2a1204c2345bf820a20841c65d5cd684ecb28fb16fcbd2ebed4ce2e3bd1f9de4a4989bb9ff0d14054eec8d1b8efd7836f8cbf2"
+    },
+    {
+      "index": 117,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/designer_review_phase_1_ex_mac_local_documentation_rag_multi_turn_grounding_follow_up_20260801003625.md",
+      "size_bytes": 8126,
+      "sha512": "a7759c7b650fbf07be6cda35bc0e69cb21761b4b16c9ef1906a81175455eabc01f6ed0ee8132530b19a6331ae741e0eefc09fab82aab2b107cc785467ddc293a"
+    },
+    {
+      "index": 118,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/designer_review_phase_1_ex_mac_local_documentation_rag_retrieval_acceptance_follow_up_20260731222302.md",
+      "size_bytes": 8952,
+      "sha512": "4594fa16c850f05d3c497c3c06428db8ca5b54111071bd7e0572cbaa0817296497133dd6974b695e44e1a571891093585ef01dfe2940f89282e7b67ad950581d"
+    },
+    {
+      "index": 119,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/designer_review_phase_1_ex_public_demo_minimal_access_and_runtime_portability_20260730161108.md",
+      "size_bytes": 10286,
+      "sha512": "0a5e2a748894ef06de1cebc35774029dc1063052bf2da6c6d99f2dfedc370bf33eaa74be241fc7489b2260a76337969d9f6a7336a7822ffab454fc558440785a"
+    },
+    {
+      "index": 120,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/designer_review_phase_1_ex_public_demo_stateless_preflight_and_policy_hook_follow_up_20260730170710.md",
+      "size_bytes": 8270,
+      "sha512": "e3e3e675e2301523fed23795abfadf5fa718f5b38206eb95917fcbf21662e7495b59e755dc75623d5595143c8ff4d129755dd022bd008280454cdf37cfa9f4bd"
+    },
+    {
+      "index": 121,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/documentation_legacy_root_retirement_notification_external_docs_20260726161411.md",
+      "size_bytes": 985,
+      "sha512": "4b0f4e9ea5c902e8dfc521e863ca8166839ef14081f87367f1409fbd142ac8d3c27f6163fcaf47983e6131b674ceb5a6061da3c34daefa9301bb8be64cfefb3a"
+    },
+    {
+      "index": 122,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/documentation_legacy_root_retirement_notification_implementer_20260726161411.md",
+      "size_bytes": 941,
+      "sha512": "dc93a71a100ce74a981cf0aef0737751849afadb2fe8473802060d29f093d9a00d39a5ac213085e0dfd38244b29d2f12977194991421af825193dc8cdb979fa3"
+    },
+    {
+      "index": 123,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/documentation_migration_cutover_notification_external_docs_20260726153645.md",
+      "size_bytes": 1318,
+      "sha512": "38399d52a5d65aabed1193fc63795f6efa7916a51599ca4edfbffdb3807ed27556cb3454742195b8afe37e25a89acfc4357db89370840611f3843155356734d5"
+    },
+    {
+      "index": 124,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/documentation_migration_cutover_notification_implementer_20260726153645.md",
+      "size_bytes": 1285,
+      "sha512": "f8ae6cec67f3950164d9be10a088c56f66e8f76480e70671f0498d3c5e1b962f3b1f3cb9587a84da4d0250ae53ba280918f2ed96d4594baed54b633157b615d7"
+    },
+    {
+      "index": 125,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/documentation_migration_task_notification_plan_20260726150349.md",
+      "size_bytes": 3470,
+      "sha512": "46858938924761f94663b26719c0c71eaf61606186e605fb1b51e5ab23e02d580f24cec047b47bf44e26e174c7b7e2dcb0cd554eacb1d7ef6f688de3b15ac088"
+    },
+    {
+      "index": 126,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/documentation_shared_operations_notification_20260726170034.md",
+      "size_bytes": 1188,
+      "sha512": "d14ff0709a2999606d099e70d5f9a307db74642b3e4b88ef6b03770572ce1a90cc2909a619374ea3045a4407608c0b46e0e1eb92c26e5ce67bdedd70f5381c69"
+    },
+    {
+      "index": 127,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_handoff_phase_1_ex_lightning_auto_start_go_no_go_assessment_20260727003044.md",
+      "size_bytes": 10963,
+      "sha512": "876e429383ba5e146af982eef1c395bcf27d2ff1fc2413b26b2fb07e52c4d96aa99b1380fef766e1e43d86f95d0d48f6478499c0d9ff6de8b9636c45bc69ffda"
+    },
+    {
+      "index": 128,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_handoff_phase_1_ex_lightning_auto_start_read_only_preflight_20260726192912.md",
+      "size_bytes": 7177,
+      "sha512": "53f7334ad58cd8412d99f6bb7aaa2966e329760bef108e6da6cd3e0e698c824a9a7b8105f21e417c168ec32cd164b63a418d6db54afeac76f787966e3b441693"
+    },
+    {
+      "index": 129,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_handoff_phase_1_ex_lightning_auto_start_stage_b_preparation_20260727055625.md",
+      "size_bytes": 15312,
+      "sha512": "e8142748ccce07bc6d8c62830b9f369807958785880987f3bb5935ac249bb24f199d895c80e2a7bcf3125d63226b93820075c6d6f5072cbe3f771ec9620ce347"
+    },
+    {
+      "index": 130,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_handoff_phase_1_ex_lightning_basic_preview_lifecycle_scripts_20260726194949.md",
+      "size_bytes": 7151,
+      "sha512": "b3bf8a2c1893601eb3099bd2d756a3f240fe58a3c4c241a5c2b4deb227dc9fddeef9ddf9f6c3b377e3cdec1de7dc743fd286d417ed5dc892ca026f819349df12"
+    },
+    {
+      "index": 131,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_handoff_phase_1_ex_lightning_basic_preview_public_corpus_documentation_rag_adapter_hook_20260801090159.md",
+      "size_bytes": 17092,
+      "sha512": "b8db945f48a793992b0cff418433b843e0fdc3df2c33f6e763184fe69721364bce3c0668f73de0ef8be3532c6d92e9fa8df7671c6e91f701aa0f026aec6d3d25"
+    },
+    {
+      "index": 132,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_handoff_phase_1_ex_lightning_lifecycle_safety_follow_up_20260726202036.md",
+      "size_bytes": 3997,
+      "sha512": "66101a5375677f0b339d9ccfe69dc874763c6141181fc622e09aa05ad8313e8f02edde31e12358b7efd41ea2f0f7c27760276ce149301ff96f77acef82f9a8ff"
+    },
+    {
+      "index": 133,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_handoff_phase_1_ex_lightning_linux_proc_test_fixture_follow_up_20260726233910.md",
+      "size_bytes": 6374,
+      "sha512": "8e001054f762ae72904592ce9b30e630d844004c781fc5a2313fef304b87d886968c7c9f3dbd67c9e9fd4db45a7c7029abc41787e9a2211acf00b6515fc35d1f"
+    },
+    {
+      "index": 134,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_handoff_phase_1_ex_lightning_public_corpus_documentation_rag_multi_access_20260801091003.md",
+      "size_bytes": 12757,
+      "sha512": "eceefb19ad5c3be4b2df4d31390a0c12db1d56541862ec8c108ab3110a55e05610de283d682dbed646ea06613ed5b416d4040156c87d6c083f24c75414e5d4a5"
+    },
+    {
+      "index": 135,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_handoff_phase_1_ex_mac_local_documentation_rag_20260731172259.md",
+      "size_bytes": 18297,
+      "sha512": "3e910e040948bccd6ed81f79050547265709851091c086bcf19b7d16e7bb728d151cb42a503eb220a03a7ed994782d82e155e47639fd4555cfc1e5619c80493a"
+    },
+    {
+      "index": 136,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_handoff_phase_1_ex_mac_local_documentation_rag_context_fallback_follow_up_20260731193204.md",
+      "size_bytes": 10845,
+      "sha512": "6d91ac0db812f29867a9e4f144b24c6c18059bceb7ddcd27652b2ecf526e4d9cdc65625f394908aed1da5644b965c976ce8b7a5b492e0c30210f649d41343087"
+    },
+    {
+      "index": 137,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_handoff_phase_1_ex_mac_local_documentation_rag_correctness_follow_up_20260731184134.md",
+      "size_bytes": 10911,
+      "sha512": "5053f6ae1ab1c673df44b93ee9ad1df9e6b102c898b6ab860feb020505cc7d6b58acaa6999846ba56c40704174c07d68aa385e4bf72f6fb0637a89eb483e6323"
+    },
+    {
+      "index": 138,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_handoff_phase_1_ex_mac_local_documentation_rag_coverage_integrity_follow_up_20260801003625.md",
+      "size_bytes": 10918,
+      "sha512": "61b543a61d29a7c2f781ec5f7df152e995789affbeac4ede899cea4d94aa33c7f0dafdf0da3e671b4e0c0cdcb83156e8c26a7e8e3241a322afa78b06efc7b5ba"
+    },
+    {
+      "index": 139,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_handoff_phase_1_ex_mac_local_documentation_rag_multi_turn_grounding_follow_up_20260731231940.md",
+      "size_bytes": 10802,
+      "sha512": "2de4bf31534d49b003c40e499d175d6a95a150b3fe842c1ee7b0ba581e3f8b38c369681379b2f6ac7ec4b13aebebf37ef9f54c58256b253faef34f209c86d6ff"
+    },
+    {
+      "index": 140,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_handoff_phase_1_ex_mac_local_documentation_rag_retrieval_acceptance_follow_up_20260731214639.md",
+      "size_bytes": 12748,
+      "sha512": "5005b54449b441e90b89cf50d085a5fe2df4da1974ecc2d8db496d51f9d518d52ca6e34d5eca9d6b61aa255b509020815d15cc61971d44c764819a110a0960b9"
+    },
+    {
+      "index": 141,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_handoff_phase_1_ex_public_demo_minimal_access_and_runtime_portability_20260730144921.md",
+      "size_bytes": 12986,
+      "sha512": "163d5ffa6178115a7f9865c267a2a96aca44a3b51a5039be019b85b9b6c356641e9a36cce5153330759cf3e85bf43a1d4b8f9e0ae61b8202df0fd8016e239636"
+    },
+    {
+      "index": 142,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_handoff_phase_1_ex_public_demo_stateless_preflight_and_policy_hook_follow_up_20260730161108.md",
+      "size_bytes": 13024,
+      "sha512": "bff453fc1644056a79b3c13756f50ba4eb06ee4ae77d767d031edfe13013c5239393eeb4c19a55acd79ee436de98f9b32efaa09f182563877a187e5c4dcc0719"
+    },
+    {
+      "index": 143,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_status_phase_1_ex_lightning_auto_start_go_no_go_assessment_20260727050852.md",
+      "size_bytes": 13687,
+      "sha512": "f8fab10785a750a47a21b07f27677d23292ab7fa7a0ea84fbf9c5f4f94234705c5d3bc59b5ad080dbba583c3770552e8bf69c3e83e0b45df707f933633f74f5c"
+    },
+    {
+      "index": 144,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_status_phase_1_ex_lightning_auto_start_read_only_preflight_20260726201208.md",
+      "size_bytes": 4056,
+      "sha512": "3d52cb599cbd658a3387d112c18fbe07eaf974200dcb0a517cb0e5b35ecad71f47ccde75e3e5fee4a03b6bf08d2a5a01a98caec6dfd56ca81829b3edcedf9381"
+    },
+    {
+      "index": 145,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_status_phase_1_ex_lightning_auto_start_stage_a_availability_check_20260727053757.md",
+      "size_bytes": 10155,
+      "sha512": "d36bc9909dbeb32e2c1ee5f105efa5c6adc0c17019c6128d46d58b42609c1662be4254c6156db41434f3e57809fbed6114d16caa131acc79d0f24ef663dd3fe8"
+    },
+    {
+      "index": 146,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_status_phase_1_ex_lightning_auto_start_stage_a_target_correction_20260727054456.md",
+      "size_bytes": 7209,
+      "sha512": "39a40c5e58577e62c1a0e077b7055c1161db866d93dfd27f60de53d589783d028612d2c5fdf7b7cdd6068dea135fb2877f3ff303224454dbdbd4b1cb48dd8a8d"
+    },
+    {
+      "index": 147,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_status_phase_1_ex_lightning_auto_start_stage_b_preparation_20260727063323.md",
+      "size_bytes": 15289,
+      "sha512": "2c8e0ab5bb224da0d2ebd66dd7ca1d3dd21cde0464c95becec0e13f0817b2dadf41f4e6952a34d427c800d78888c6a2b3264599cfe18978d2e516e316b0ae254"
+    },
+    {
+      "index": 148,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_status_phase_1_ex_lightning_basic_preview_lifecycle_scripts_20260726201208.md",
+      "size_bytes": 5512,
+      "sha512": "ce3313467e03260dfb5665abf0d06a1e41b66c7b7320c5879a72a2529c2268fc647a9ee0784e02a4936bce76dcdfec6d0d707a0c7931b684d47822445f04dc14"
+    },
+    {
+      "index": 149,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_status_phase_1_ex_lightning_lifecycle_safety_follow_up_20260726211653.md",
+      "size_bytes": 6986,
+      "sha512": "1ec605e62fc39fb210441fdff88a13569bcb0ff2adaedcfa7f8d5e14e9195309844e01701148b8b58c0cefe793b734b21887498d4bb5858e49ed70c51edb9a27"
+    },
+    {
+      "index": 150,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_status_phase_1_ex_lightning_lifecycle_safety_follow_up_20260726212010.md",
+      "size_bytes": 2709,
+      "sha512": "49cb4ce557f6d3259f11ac31dd6ff4a008c6232993fc418c7cc892ca18672e53974e016dd5873c363948d76c913d671443b384a17d5221312e4bba4d8be73d69"
+    },
+    {
+      "index": 151,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_status_phase_1_ex_lightning_linux_proc_test_fixture_follow_up_20260726235039.md",
+      "size_bytes": 5302,
+      "sha512": "e1c90ea797727e968b1e6adb5e473a9388fffd0e3bb52bddfae7a9c279114b72faf327234ea23a730a8a7b70f7edf5bcb69bd95c0761b524b7378f9fd0dcd180"
+    },
+    {
+      "index": 152,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_status_phase_1_ex_lightning_public_corpus_documentation_rag_multi_access_20260801093954.md",
+      "size_bytes": 16290,
+      "sha512": "b13803fd160d3959dda37daa96f1a961d85a271a284943d419cfba08a888422b08a3615a1a0a276ea1ac61643ada5dcb88c97d5ceee05a2645dc9fa760d6d589"
+    },
+    {
+      "index": 153,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_status_phase_1_ex_mac_local_documentation_rag_20260731174758.md",
+      "size_bytes": 27955,
+      "sha512": "a160c916e251e48a2db4a804819d988d8ca401997884c7b6ee16ad520bf1318a3b102d761c32c689a7d3a68d478d139fea182abe328600b7a735519653d0a98d"
+    },
+    {
+      "index": 154,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_status_phase_1_ex_mac_local_documentation_rag_context_fallback_follow_up_20260731212414.md",
+      "size_bytes": 12045,
+      "sha512": "4020ec9d45a46fc16e6c081985b058f7ac063a6b42c772955fc9a94c8e925f3a99662b59053327ac1b0fa4cac120757c707084344b45fb909285d81381c08b65"
+    },
+    {
+      "index": 155,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_status_phase_1_ex_mac_local_documentation_rag_correctness_follow_up_20260731191521.md",
+      "size_bytes": 14904,
+      "sha512": "9d76d31b0235aa00d56f73c599d3ce33602d501ccccbd201e3fce2237a7804529a516ef9996208f8991c782282b6ac273d6d93af41b734e3ad0a828b78ab0669"
+    },
+    {
+      "index": 156,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_status_phase_1_ex_mac_local_documentation_rag_coverage_integrity_follow_up_20260801013611.md",
+      "size_bytes": 11456,
+      "sha512": "b3c22877dbcacd25d9f45eaacaf5b9a6edc2dc399f6d380f2ab4f1f31f9c24caa79b6fc0d650e0e54f3a2898176bfa52b5db27b33f0fb270ad08363828f85f89"
+    },
+    {
+      "index": 157,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_status_phase_1_ex_mac_local_documentation_rag_multi_turn_grounding_follow_up_20260801001058.md",
+      "size_bytes": 18052,
+      "sha512": "a3baed6f64a4e74bbcffd11af43dc4d11f954ccb25f2a176ed6f8313b940188f99a82c6d7bb5848e6aace04c10bae6477975f7720539031ac9aad5539e97fe85"
+    },
+    {
+      "index": 158,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_status_phase_1_ex_mac_local_documentation_rag_retrieval_acceptance_follow_up_20260731220726.md",
+      "size_bytes": 15282,
+      "sha512": "6af174a0a64a85317449d30c09b93991f16fcddc916b0e15e0c31340dc5b1bb4c94795f88f10313d2a127a5f8372585e43df84e46f70fe8dcb6272518311917f"
+    },
+    {
+      "index": 159,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_status_phase_1_ex_public_demo_minimal_access_and_runtime_portability_20260730150814.md",
+      "size_bytes": 14939,
+      "sha512": "317647da6344f76fc701b8d67538421115f81fb4bdf554c1f9df50d6c4e4f9422932c3caea58f2c10f78475497254d741caa7bc3a53e9b161a2850c13914cf02"
+    },
+    {
+      "index": 160,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/implementer_status_phase_1_ex_public_demo_stateless_preflight_and_policy_hook_follow_up_20260730170041.md",
+      "size_bytes": 15003,
+      "sha512": "e4129d7a648aed80be1cb13d9e4b19c1b3694b28b8c24f18860dbab5008ad039c443a54b98967a55759a27c9f753bdda143fc52367e9fecb6e6a5ddecd47f71d"
+    },
+    {
+      "index": 161,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/user_handoff_phase_1_ex_lightning_public_corpus_documentation_rag_multi_access_manual_acceptance_20260801113340.md",
+      "size_bytes": 6821,
+      "sha512": "b423893859f783bf62ad216744c5ad8deff098bd737a27586e669c16c67b579c9dd85d5f69103b31bbca08448966e7a5a113709dd16b1c149d25aa4741395300"
+    },
+    {
+      "index": 162,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/user_handoff_phase_1_ex_mac_local_documentation_rag_manual_acceptance_20260731222302.md",
+      "size_bytes": 6964,
+      "sha512": "de6fb2475c8e59e5db336c5254d3cd49a70f224e6f02654b15be681ccb8a44beff4dd5921c1bc7c90632fe6dec6d50ffc911788c2b1de97f9c09fbd6617670b7"
+    },
+    {
+      "index": 163,
+      "path": "docs/project/phases/phase_1_ex/history/handoffs/user_handoff_phase_1_ex_mac_local_documentation_rag_manual_acceptance_retest_20260801014339.md",
+      "size_bytes": 7250,
+      "sha512": "93c71969223e69b13742999d89a95f7f38eca129ba51271be7c7ac5cd313eb842acdc82e62724ebbb4c061aa48d9ffa95d06768f2a0ddbf228714a92e580e3e5"
+    },
+    {
+      "index": 164,
+      "path": "docs/project/phases/phase_1_ex/history/operations/agent_tool_constitution_enabled_mode_reservation_20260804050816.md",
+      "size_bytes": 3313,
+      "sha512": "3304cc1209cd2ce0644c5b1335b925fe27c96a2d385126942b32a4585fdc9790a760c9fba4862b3d5dfaa9483394071b6566a2e806850a8fc441d1d5a620dd17"
+    },
+    {
+      "index": 165,
+      "path": "docs/project/phases/phase_1_ex/history/operations/append_only_and_user_authority_governance_freeze_20260726203948.md",
+      "size_bytes": 8085,
+      "sha512": "0233291e596c3ad9e228a1b81747470d900348e221594fbb2cfad4682db8623800cb24a778e399d529271e6b2bb50a544de6c587308bc714783685c650686ecd"
+    },
+    {
+      "index": 166,
+      "path": "docs/project/phases/phase_1_ex/history/operations/command_only_request_unauthorized_permission_execution_incident_20260803205250.md",
+      "size_bytes": 3560,
+      "sha512": "c77cf2f57c6e01262af0209502b27eb88580663d704ab93695d5fe38e256ce09c5ada24a824023862c95147b045ecbcfe631b84deaac66ffd0c338fa5d1dba83"
+    },
+    {
+      "index": 167,
+      "path": "docs/project/phases/phase_1_ex/history/operations/current_canonical_reconstruction_20260727101132.md",
+      "size_bytes": 7881,
+      "sha512": "bf1eeb751985f37a545579c2d44566f9edd729de14d54c69bceb46741cdecab03779be65a5a20b63a47cd4b68e0e4d3d4c3aaff91b8c8f0d6456ff16119fd967"
+    },
+    {
+      "index": 168,
+      "path": "docs/project/phases/phase_1_ex/history/operations/current_index_public_roadmap_history_link_correction_20260727072019.md",
+      "size_bytes": 2397,
+      "sha512": "2edbfea80da439fc954f6ce0c5a7e523463482b70a3b19f9529e919fc08364558762f99d5e4338c1db0b99061364895f1b45f5e7a867ca2adeda50348fac686f"
+    },
+    {
+      "index": 169,
+      "path": "docs/project/phases/phase_1_ex/history/operations/design_governance_role_transition_20260726145451.md",
+      "size_bytes": 3554,
+      "sha512": "84899b3d73a37c78b167f88cff4ed522064fec4969dbc8296e9f2654b9cdfd242ac7160feb264775ccf33ae1b42e4628d8219c779059c8dd9af8400eca36fafb"
+    },
+    {
+      "index": 170,
+      "path": "docs/project/phases/phase_1_ex/history/operations/documentation_information_preservation_and_design_governance_handoff_policy_20260727080023.md",
+      "size_bytes": 7642,
+      "sha512": "31d94c950ad0a6c75b26f3c89a15011caeb8533a0e77c4181da5ae9af1b17ff1aa8bc8a1bb498a006a5d4f28ab4216fc963b2837e6f42c7503af3b7f40651752"
+    },
+    {
+      "index": 171,
+      "path": "docs/project/phases/phase_1_ex/history/operations/documentation_link_update_and_rollback_plan_20260726150349.md",
+      "size_bytes": 5408,
+      "sha512": "6f958412d2b89eeb8333044cae0de014d06c4b7ddc2e79c1a1b69e3575c71655788648cb9b469581031a2233746ad34c24b7f14f962389099ea5c7eb2e133b48"
+    },
+    {
+      "index": 172,
+      "path": "docs/project/phases/phase_1_ex/history/operations/documentation_migration_preflight_20260726150349.md",
+      "size_bytes": 3585,
+      "sha512": "83df1bc1fdc120598f976e827f1220d4857eda9465907d810aa82ccad2c9e409d6865dd4765eac6cf8f6009079dc05c8cd91c7449032cd423c9bb2d3264d4eb5"
+    },
+    {
+      "index": 173,
+      "path": "docs/project/phases/phase_1_ex/history/operations/documentation_rag_manual_test_3_and_lightning_recovery_findings_20260801154412.md",
+      "size_bytes": 5814,
+      "sha512": "d4f91b7daa2062e04cd82f9f60941d08c015668c03588def63c4794067660e4faa3dfcfa17fd3d782700d806b072b5686ec94aafb2a2fd4abaf96a6a59453d4f"
+    },
+    {
+      "index": 174,
+      "path": "docs/project/phases/phase_1_ex/history/operations/documentation_reconstruction_continuity_and_roadmap_first_pass_20260727094639.md",
+      "size_bytes": 5688,
+      "sha512": "3dd536423f81da2f5355f608dfac110fdbb4f1c237a898519af746450c78350042ba69d690e48960c3d3a30095719ac72ad9e84ca28de42238dced8e89f357c1"
+    },
+    {
+      "index": 175,
+      "path": "docs/project/phases/phase_1_ex/history/operations/documentation_reconstruction_final_validation_20260727110834.md",
+      "size_bytes": 4026,
+      "sha512": "802755d696a2f3f2f2e078ef02e6a960e20166b5295d1db2a1d029477c246830137d43893668c4d5e1825b873807290abd4295eeb7e0d1b9d87d577c92d605c0"
+    },
+    {
+      "index": 176,
+      "path": "docs/project/phases/phase_1_ex/history/operations/documentation_reconstruction_inventory_20260727093727.md",
+      "size_bytes": 4301,
+      "sha512": "9f570cc779aa13f291ee4bb33562deed266b0987cbb551b635d2635c5f5f455a918147a30011514a64dddcbc74cc1abe693fdf7a28fb9eea511b6b7d5840eafe"
+    },
+    {
+      "index": 177,
+      "path": "docs/project/phases/phase_1_ex/history/operations/documentation_reconstruction_source_inventory_20260727093727.json",
+      "size_bytes": 153108,
+      "sha512": "c83b92063db185324feb1b4a907b79ddc72dac7eb0b17948fab77c8ba3dea5363fef6a06ee7a73439002aa1994c0a1a2e8a672d50824ab768b186a14d64aa513"
+    },
+    {
+      "index": 178,
+      "path": "docs/project/phases/phase_1_ex/history/operations/documentation_rules_after_user_authority_freeze_20260726203948.md",
+      "size_bytes": 11563,
+      "sha512": "ddd3639e72b895b090fde3b70eb0d637abb0734ef5eb6bc0ae769d16e53956f55850ea72b92a99d8976635281b9aeda89ba84093583cf6ded10b098274659b6c"
+    },
+    {
+      "index": 179,
+      "path": "docs/project/phases/phase_1_ex/history/operations/documentation_rules_before_user_authority_freeze_20260726203948.md",
+      "size_bytes": 8343,
+      "sha512": "f257a133ffbeb5878ba5540b3b6a4bab1d48c6d925008f9872ca8a6e3e6e4675c26248e68c6671d27a505d865b2dfc8171df0b35826bc4ab249224a1a9d64cb9"
+    },
+    {
+      "index": 180,
+      "path": "docs/project/phases/phase_1_ex/history/operations/documentation_source_inventory_and_classification_20260726150349.md",
+      "size_bytes": 7915,
+      "sha512": "e72d535fdc38784706849f4873fab8b92cd3694376306b06446b72010ff1413632a1ec609df76fededf05f6fa240869499dd7e9dd0b36b542f8ff76d6716af40"
+    },
+    {
+      "index": 181,
+      "path": "docs/project/phases/phase_1_ex/history/operations/documentation_structure_and_role_authority_consolidation_20260726170034.md",
+      "size_bytes": 1520,
+      "sha512": "a5399774db590c2576cf5af6bda2cac3ee472f69baafbfdba3088eb3d301b6cc313550635c1c20103d70c7a29cfb923889e7a7f24611286a5c4001312c4a520e"
+    },
+    {
+      "index": 182,
+      "path": "docs/project/phases/phase_1_ex/history/operations/documentation_structure_and_task_operations_after_user_authority_freeze_20260726203948.md",
+      "size_bytes": 16105,
+      "sha512": "863c0719c643de035fa43f281f74396df4e28305a15f142a02fd1f7da9f956d481b12298e90861f2043467d08c21001e61ef76b73b795d52cd12c663c196e740"
+    },
+    {
+      "index": 183,
+      "path": "docs/project/phases/phase_1_ex/history/operations/documentation_structure_and_task_operations_before_user_authority_freeze_20260726203948.md",
+      "size_bytes": 13613,
+      "sha512": "ddee72594385920ff57dd55bc111eaf83612651a8d022eb7e8e95b3524bbeac8d9aae28179558167e413652c9cd8dcd9027f8f934fec7653ba8b671d0cd8ba7c"
+    },
+    {
+      "index": 184,
+      "path": "docs/project/phases/phase_1_ex/history/operations/executable_governance_constitution_and_phase_2_3_pilot_evidence_design_20260804045158.md",
+      "size_bytes": 7574,
+      "sha512": "313db0a519ca22cab740e8ebf3b161f80b63eff7882fe0a44f8047b69373810bbec30bec0a36aa8274c8e13f7b16a2345fee3b99711f5e3bdd2d89bb3aa43ed4"
+    },
+    {
+      "index": 185,
+      "path": "docs/project/phases/phase_1_ex/history/operations/explicit_confirmation_and_workspace_boundary_absolute_rules_20260803210658.md",
+      "size_bytes": 5367,
+      "sha512": "43001d5b336188d3f02468271da38b58242976480bc5aef3c95389c6326ed79606b24f2ada27212650737f2517d380edbfc749e844aa3b8521e0641e6968a8dd"
+    },
+    {
+      "index": 186,
+      "path": "docs/project/phases/phase_1_ex/history/operations/git_existing_repository_continuity_and_public_account_transition_decision_20260802142024.md",
+      "size_bytes": 7480,
+      "sha512": "f78c886656806e3b52f7dbc338da75889d3a591addc307d4a8fcb17b97c866ba3cbd9753ec96867cfb514440a652f38f138b6eb4e6276d91ba775956e71ceba0"
+    },
+    {
+      "index": 187,
+      "path": "docs/project/phases/phase_1_ex/history/operations/git_low_discoverability_ssh_clone_and_task_routing_consolidation_20260802210438.md",
+      "size_bytes": 7053,
+      "sha512": "59c6b05d24127183d67b8704804d75ad5cda8b417f718775583d6c096dd0e47f098b7c19198bf60ad75384f2fd270d5fd716128900d68285474b518ca0606ac3"
+    },
+    {
+      "index": 188,
+      "path": "docs/project/phases/phase_1_ex/history/operations/git_normal_operation_commit_push_acceptance_20260804052654.md",
+      "size_bytes": 3505,
+      "sha512": "49d07b64584365ad0e03a62e8b8d5a45e57a72f2df763022e24cae16f0fd3946be0290c9b47a42bcaaa50b33df50e8242cbb0fa91784668f50dca8ccfe526f15"
+    },
+    {
+      "index": 189,
+      "path": "docs/project/phases/phase_1_ex/history/operations/git_publication_sanitation_timing_policy_decision_20260802073901.md",
+      "size_bytes": 3481,
+      "sha512": "79d0a7e2cd8f03a2246c316c4bc6ae8d9a7f9ac0b02f7bf7e13fff6b8e506c5f481fccc0bbfad7f48924ff2ac3191002662b765f8bce623587a6d2c333287a22"
+    },
+    {
+      "index": 190,
+      "path": "docs/project/phases/phase_1_ex/history/operations/git_read_only_delta_inventory_and_preintegration_backup_evidence_20260803201448.md",
+      "size_bytes": 6544,
+      "sha512": "c48b40499aeea3f46be0d210e8a4a569d370a58e9e3823565853910ec9a3d15fba58853251430877ca4e0e26680cbabcfe5a7fa66e5f434ca1d4d9f8d524e95e"
+    },
+    {
+      "index": 191,
+      "path": "docs/project/phases/phase_1_ex/history/operations/git_source_target_integration_publication_and_single_root_cutover_20260804035722.md",
+      "size_bytes": 19848,
+      "sha512": "6ad589eb194a57d2e574668a5b6e318b28049632a4bf48b1b320155a30c9a0300ef04e1396fd33d5f80338e34b923286b48ac970b9ff6c3b86ef1cf1d1705d0f"
+    },
+    {
+      "index": 192,
+      "path": "docs/project/phases/phase_1_ex/history/operations/git_workflow_acceptance_merge_and_branch_retirement_20260804025318.md",
+      "size_bytes": 5447,
+      "sha512": "30be123968e8e73c0ffcc3368c79aaa0b00f1fb0568980faeb64db06af7b08ae31cf46186fc4a33a74f5ec65066456c2ff034841367c2d53431acd02d079c007"
+    },
+    {
+      "index": 193,
+      "path": "docs/project/phases/phase_1_ex/history/operations/license_phase_1_ex_after_low_discoverability_root_surface_en_20260802145825.md",
+      "size_bytes": 4766,
+      "sha512": "ecb51b8b8ceff0a59a614db9103ef45cd976da5957f1221cbb647ba55fc7e394926664bb436057a19ae8463ec2c1b81435cfa163b1774e5901a520bd06cb19b7"
+    },
+    {
+      "index": 194,
+      "path": "docs/project/phases/phase_1_ex/history/operations/license_phase_1_ex_before_low_discoverability_root_surface_en_20260802145825.md",
+      "size_bytes": 4831,
+      "sha512": "8d378c4c2994c3e55bb2ccaae27367eb7e66c5da04d028a0d73d727a330ab1ebf0d71f98c9d4f667f2fe6c43881f50d2e5d1fab74b5fd908e357a3db6e867485"
+    },
+    {
+      "index": 195,
+      "path": "docs/project/phases/phase_1_ex/history/operations/lightning_basic_preview_environment_recovery_and_lifecycle_acceptance_evidence_20260727003044.md",
+      "size_bytes": 7778,
+      "sha512": "2f079c99aa8d7b128ba62e7e2a53116a94256a369eb0610b2f304b0da6da74643231b3b03d1e0a5ae7048ce474a1bf9e31a0ae4357d1ea889df86f1f1b95e3b8"
+    },
+    {
+      "index": 196,
+      "path": "docs/project/phases/phase_1_ex/history/operations/lightning_manual_environment_and_preflight_evidence_20260726233910.md",
+      "size_bytes": 8832,
+      "sha512": "d0829aeb4aa627dafd4480b16561d01e406a89421a16e2fc047db9e2e0052c4badc5d5614f53d039234f76951521b1190cd61dd986bac88045b3c87ef426993f"
+    },
+    {
+      "index": 197,
+      "path": "docs/project/phases/phase_1_ex/history/operations/lightning_public_demo_and_basic_preview_manual_acceptance_20260730231339.md",
+      "size_bytes": 6578,
+      "sha512": "7dbaaa350481707984c6f31cc9aa3270971dec7950069499d543889c81d48e48cd493669da355f38cefbe8affdc2b0563219737bfe6f93e14baddf94bec242ce"
+    },
+    {
+      "index": 198,
+      "path": "docs/project/phases/phase_1_ex/history/operations/lightning_stage_b_manual_trial_preparation_and_port_7860_20260727171551.md",
+      "size_bytes": 12695,
+      "sha512": "c27dbe03842532e6654156799b13c5709b45f0938c11c8861dd80b57e3b7078bbf5de9626357a6208dbcf391635914af131a2ac42a6cbc340cfd73dcd65b146a"
+    },
+    {
+      "index": 199,
+      "path": "docs/project/phases/phase_1_ex/history/operations/lightning_stage_b_traffic_aware_auto_start_acceptance_20260727224609.md",
+      "size_bytes": 9883,
+      "sha512": "a1d9e1f2c064ba6c0bee65cc4ecbc07eff0561b8a4c9f4801c49087e6b0945450f409c842db2cc6e240943ba2a839a3c0c3cda9e20a8e19e9c805a304aef3e4e"
+    },
+    {
+      "index": 200,
+      "path": "docs/project/phases/phase_1_ex/history/operations/lightning_stage_b_unattended_wake_failure_and_private_bootstrap_preparation_20260727182736.md",
+      "size_bytes": 9261,
+      "sha512": "8167427643bcac3f86882914d3132c9b61724dc405ea0bf7e070c8192b64cc8c8a58740ad1073cf430ac64bb44ba7798941c5c25e2dc3918421e9c61cd4eb278"
+    },
+    {
+      "index": 201,
+      "path": "docs/project/phases/phase_1_ex/history/operations/mac_local_documentation_rag_manual_test_1_findings_20260731231940.md",
+      "size_bytes": 7736,
+      "sha512": "f1f9c885613d44bb25fd4066e7db4e4a902551bd79bb84889e1ff160087e8c795e75c49f3807edb52650b15465c72cec89f4b943025e1da3a905dd9cbac29c46"
+    },
+    {
+      "index": 202,
+      "path": "docs/project/phases/phase_1_ex/history/operations/mac_local_documentation_rag_manual_test_2_findings_20260801084952.md",
+      "size_bytes": 12568,
+      "sha512": "f556ab187b274de7da8da742f147cb365888c19b63ee3df6dc8d21a4fed8780118c64a73969fd981e328bfd817a7421a3a631787e49acf0657ca0cbf6555c0d8"
+    },
+    {
+      "index": 203,
+      "path": "docs/project/phases/phase_1_ex/history/operations/notice_phase_1_ex_after_low_discoverability_root_surface_ja_en_20260802145825.md",
+      "size_bytes": 3182,
+      "sha512": "ca496fd132a3a3c66ab1c0347a797e4fe75b4a9ca5639428bd9bbf4c6dae5df808ff881b8b9cd7272a99f28fc7f1eb90efbf37b9da7f63bac4c723add8f755ec"
+    },
+    {
+      "index": 204,
+      "path": "docs/project/phases/phase_1_ex/history/operations/notice_phase_1_ex_before_low_discoverability_root_surface_ja_en_20260802145825.md",
+      "size_bytes": 4670,
+      "sha512": "8ae8440b7fea8c10663608deee3b352fc960a25fb8f4197518dd6ceb9c60179011b1bbaefc8756fe9add0714020d50fcdd929615c91eb7913882076e027af0c3"
+    },
+    {
+      "index": 205,
+      "path": "docs/project/phases/phase_1_ex/history/operations/optional_english_derivative_formal_deferral_20260804061104.md",
+      "size_bytes": 2126,
+      "sha512": "606a4143739c13fa7c3bd2fe9329bd2b8faba718301af3b2baba7067ddea586e60fa02f704c4648f36b47694cbbeb7f73fbcad1e90125eca84e4183d75c4cb38"
+    },
+    {
+      "index": 206,
+      "path": "docs/project/phases/phase_1_ex/history/operations/optional_english_derivative_scope_and_deferral_reservation_20260727230612.md",
+      "size_bytes": 2742,
+      "sha512": "96fb644e187ee76e4b2fdf7ac6af1cab76e51f7163920df821fa78893885102c240972c66c7b436c9b03bf1d9397e5cfcb2083f14f30a829f791a1da0b8b9698"
+    },
+    {
+      "index": 207,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_1_and_phase_1_ex_lossless_reconstruction_20260727102850.md",
+      "size_bytes": 5980,
+      "sha512": "f0119883a14cfe4b2b2b7d0549a74a76b926aa99cf68b36098a3be319fdf93beb12955ddfe368629f38718163ca460651db069bf460872235648a144255939c0"
+    },
+    {
+      "index": 208,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_1_ex_revised_execution_order_and_pre_git_publication_boundary_20260727225735.md",
+      "size_bytes": 5378,
+      "sha512": "5797fd9bc319a53e777449ae7d4bf875bae325ae890e859d1355cee066f60cf054347eb4fa1b1ba9d5537e572c6bfd5042925e9a456e35a785cb40a622a140a2"
+    },
+    {
+      "index": 209,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_2_pilot_governance_constitution_and_desktop_reservation_20260804043434.md",
+      "size_bytes": 6891,
+      "sha512": "b9eb676c7ce47d27bb39b349b31072ba72cd382f96da4abe47dba5f13061d12e587559e34a86c05f2d995a80cca7f116ee0628992988d09329ce6b7b6dc2c61f"
+    },
+    {
+      "index": 210,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_current_canonical_reconstruction_20260727101132.md",
+      "size_bytes": 19047,
+      "sha512": "001c58cb77d50a1dc0f9f46703fbdf1f4313d7e9f5e8f7663f3e2ce6b971def8dc717f6907f674b2f05210d77f62d8300ab64c21ebebc69a743668a8dadd4dad"
+    },
+    {
+      "index": 211,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_current_index_public_roadmap_history_link_correction_20260727072019.md",
+      "size_bytes": 14049,
+      "sha512": "cf478bebf1a97eee8d0d149215581085611e966fedb2c488c00aaba0f6ab94936ddbcee087d2efbccb248705bd9b6f9cb1eaee12b2499ba3e3d24f64bc51bafa"
+    },
+    {
+      "index": 212,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_documentation_final_validation_20260727110950.md",
+      "size_bytes": 21528,
+      "sha512": "28eeafd888b1c983d8b770257c3f58b9f8393d2b0b6f1000578ad3c51b3fac5b743c0a811c19433ea7a566a6308df61504b0d19156262f89cd4bdf7a99fcf617"
+    },
+    {
+      "index": 213,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_documentation_information_preservation_and_design_governance_handoff_policy_20260727080023.md",
+      "size_bytes": 15136,
+      "sha512": "ac115a250bdd534f792c544d90eb33d26606077047320ad120fe5fd3518a193a149fb37e8d1b48fe4ea671ac92aa7a2cf18f0e35f936aa12537955cd336b70a5"
+    },
+    {
+      "index": 214,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_documentation_reconstruction_continuity_and_roadmap_first_pass_20260727094639.md",
+      "size_bytes": 18558,
+      "sha512": "d29084e61e1c63db8173bda5d68bd9581afd4ef4b743f27af6bf66024ecf0c3f4df6703ce5ace3a9cb4b151c9de26c51d10b5a195795a68d631e758657d1474e"
+    },
+    {
+      "index": 215,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_lightning_auto_start_go_no_go_assessment_review_20260727051659.md",
+      "size_bytes": 10215,
+      "sha512": "d24a67846b781fcf59b891863caed8f93fe2a09cdb9baddc2c2e8d76f5188769b787e0616103e998d4ff7aea5a53a5ba2b29614e95eda8fad0134521e8f30a11"
+    },
+    {
+      "index": 216,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_lightning_auto_start_go_no_go_handoff_20260727003044.md",
+      "size_bytes": 9614,
+      "sha512": "09220cd4e1d47c9e4cee21e5255f7725208aa65236b1b732459690bb95ce918ebce0f32c9bb9451a3681b77899d735172a8503c63a3055ffd20107a5f90e081e"
+    },
+    {
+      "index": 217,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_lightning_auto_start_requirement_alignment_correction_20260727052747.md",
+      "size_bytes": 10759,
+      "sha512": "662ef43f973e4b1f7dfa1fb5305605be17075369c360ae5e999762acf0e8b454757a190b974fc00c729addd2a3c001be2b0eb1b75e9347d1dac40a73797559c7"
+    },
+    {
+      "index": 218,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_lightning_auto_start_stage_a_review_20260727054823.md",
+      "size_bytes": 11756,
+      "sha512": "ca9492808fc4f4c99509b216259b18c794ef802eeb5765a3b09e3d165a979e45e102c67d252582bfba1c387a4e75924a3cc07ed6b25a516d231c13a30df9c6a4"
+    },
+    {
+      "index": 219,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_lightning_auto_start_stage_b_preparation_handoff_20260727055625.md",
+      "size_bytes": 12308,
+      "sha512": "cca72713f66baf555fb8b9c1ae102cc318ccf5dde187faa51564bf3fb3149d1b86e87bcce70c780325b4bb9cc24c1daa0eeaba9ae2f78f9921eab789430b0a15"
+    },
+    {
+      "index": 220,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_lightning_auto_start_stage_b_preparation_review_20260727064044.md",
+      "size_bytes": 12882,
+      "sha512": "add6c25389543794cc488df1dd51e68068536f0f60717d666da5b338c3b5b8808d27247445b2931483981b8080b75ae536e5cff58dd744c9ebae35c98d94bb69"
+    },
+    {
+      "index": 221,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_lightning_basic_preview_manual_lifecycle_acceptance_20260727002440.md",
+      "size_bytes": 8749,
+      "sha512": "ddc3b2c9fabe6a59e36e3a3ce65d3830d231224e534c25152cf43743fbc8f4010a3110c91a61bfb245473dda56866b5e041c5fe11a87c48725843a164d800c8c"
+    },
+    {
+      "index": 222,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_lightning_lifecycle_safety_acceptance_20260726213429.md",
+      "size_bytes": 6880,
+      "sha512": "3bff5f773a734a9f50522be6bd7516457fab5db638b8828f59e2208a5df996bb2df211bbd286c3bc570b0bc2b48eaf08bdb501f1203557bf3c2e55413f9712c5"
+    },
+    {
+      "index": 223,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_lightning_linux_proc_fixture_review_20260726235422.md",
+      "size_bytes": 8280,
+      "sha512": "382bdf533bb3edd0b95dd713c53eb0b7e07d5c803328d8a820569dd35957f3f9c9209f132e13e6371709f1d245e8e413da9c303bfc8f1673faac4ba94bd3cc82"
+    },
+    {
+      "index": 224,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_lightning_manual_preflight_and_linux_fixture_handoff_20260726233910.md",
+      "size_bytes": 7729,
+      "sha512": "b4693e7f47ca8fe798722aada61971c86bb5378b744c980d3171106a8c2b91e575b75467d03d9e38963cfefeb715bc741c21af57caf777e57e736bacbe94c3d7"
+    },
+    {
+      "index": 225,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_lightning_stage_b_manual_trial_preparation_20260727171737.md",
+      "size_bytes": 30375,
+      "sha512": "7b09c8cf4562437d8cfa05e61e837a0884d41bdd96f00cc66dc231a51937bf1ed4b48bd39bfd8000ed865d5c4767aafc26f38fb8084bcae8fc9ff6c5ec56c1f2"
+    },
+    {
+      "index": 226,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_lightning_stage_b_traffic_aware_auto_start_acceptance_20260727224609.md",
+      "size_bytes": 35106,
+      "sha512": "b3d44eadc7c12394c3fd441ed5b276cb60501d89f33346bf7c8ad308c55c49c660875bb7520264063d96f1f37056c16d0332cc4d572d39b2d1e35fbe94c59d02"
+    },
+    {
+      "index": 227,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_lightning_stage_b_unattended_wake_failure_and_private_bootstrap_20260727182736.md",
+      "size_bytes": 32730,
+      "sha512": "42d5ab86ba1f0d59c060315d65878e430594ee81fd9b0dbea73725c60a4b581f9660c6b1cbdc3d5f591ad7d225631154b8dc945f5ba08933543a1118e8646794"
+    },
+    {
+      "index": 228,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_phase_lossless_reconstruction_20260727103027.md",
+      "size_bytes": 20121,
+      "sha512": "e6ba1e61286cb60aac990e74c07e35e7f6b193ceff0baa93eaf6912c595b287d83d03f8b142729eae2e4cea04e2683da8c99b9bb4549343b7e64afdfe72d300e"
+    },
+    {
+      "index": 229,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_post_documentation_recovery_refresh_20260727121814.md",
+      "size_bytes": 23321,
+      "sha512": "2dff3fbd188a7794757a3aa546c2ee1285152b79d37c2a3279fc399938f6b226326c5f2133f31857f219fb6a9ed087bdebc3137b67b5fa40d1e37299a3e87e9b"
+    },
+    {
+      "index": 230,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_public_concept_reintegration_20260727123238.md",
+      "size_bytes": 24765,
+      "sha512": "576729887b7bf26d13f9d637b5a5a19e18f52a5bf0540d56e0265cc5f191f8cb6715718fb4fa242b17a3b91c126be61b1294ab152ec8cd10d50e39b222e1914f"
+    },
+    {
+      "index": 231,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_public_concept_reintegration_final_20260727123443.md",
+      "size_bytes": 24836,
+      "sha512": "33f15a4d143df3e293385ce5a75f398b4c72854ae1dae8dd250713cfa225c5f71bdb35cf34ae96e0e0fa6847e82ea13c24e0be452b2af6e6813aa294e1d16838"
+    },
+    {
+      "index": 232,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_public_documentation_reconstruction_20260727110712.md",
+      "size_bytes": 21058,
+      "sha512": "ba6af98ae4d774ad65f1304890dce79f5b4b3d105c992c5c400166b9d92639d159710ec031a41b9d36cd63c2e741dd841d2ce9f2df99327b4fbbc8d168238293"
+    },
+    {
+      "index": 233,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_readme_overview_responsibility_correction_20260727125753.md",
+      "size_bytes": 26654,
+      "sha512": "3e914a3738d9d8cf01d7d688d79770f0ebec97d0e5c1eb2fd27de546738342db3a68b4c363b40f25d2b315adffee0313d78855b296a9ab77ac5316a219236cb8"
+    },
+    {
+      "index": 234,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_readme_overview_responsibility_correction_20260727125806.md",
+      "size_bytes": 26654,
+      "sha512": "3e914a3738d9d8cf01d7d688d79770f0ebec97d0e5c1eb2fd27de546738342db3a68b4c363b40f25d2b315adffee0313d78855b296a9ab77ac5316a219236cb8"
+    },
+    {
+      "index": 235,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_readme_required_elements_and_responsibility_rules_20260727131715.md",
+      "size_bytes": 28446,
+      "sha512": "be73918927f765bd9eece8e9e7246f5dd1b3a06243de49242cc7181307267dab834f2ca055418fe6468414e545516edc11ac681898e98f8b5a94a444359cbec0"
+    },
+    {
+      "index": 236,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_shared_documentation_category_and_phase_index_history_policy_20260727081459.md",
+      "size_bytes": 15994,
+      "sha512": "80d1ffc951d12b72234d6fc6f8650c4696998663588feffb2522702bf0b726a2eec62af9d6278c19a4a882f605d17c39767827c6144544a658e48ba1207d01dd"
+    },
+    {
+      "index": 237,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_shared_reconstruction_20260727104718.md",
+      "size_bytes": 20489,
+      "sha512": "d02c22fb5d095b31401230d3b2ee4727be3858de9d8d5fc60c7d86b8489876a385866e5d4c02bdd84c46f058c10161c96880dfbb391b696cbfd77cd4a8a47b9f"
+    },
+    {
+      "index": 238,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_stable_document_history_and_design_governance_recovery_policy_20260727071721.md",
+      "size_bytes": 13682,
+      "sha512": "a3ab6a732b005a30ba230bc4d8274b8ce8da93d6b47fa4b28cb894c336e27716689d00b8fe89a249c31b485342aef0b9394029cf1e7aedb539f17ba2b4803993"
+    },
+    {
+      "index": 239,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_stable_filename_scope_clarification_20260727083901.md",
+      "size_bytes": 16631,
+      "sha512": "b08f986e7d6145a79f48851fea911ee0e80acf3c4a5f5d8f6867abf52cd36beb5a0b1be3199b9c795344445680488a2f034b33e83c9526091f50aed7d790d190"
+    },
+    {
+      "index": 240,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_after_user_authority_freeze_20260726203948.md",
+      "size_bytes": 6397,
+      "sha512": "5b8de80ed60cf986c4b43fd848c757e875d2d467eb1261e10f26fe66dea53ad5b730cf9ae41e173109b24702989151697bd7d4dba1880b2d8007d0b35c9bc458"
+    },
+    {
+      "index": 241,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_append_only_history_repair_20260726202935.md",
+      "size_bytes": 2371,
+      "sha512": "1130923bcccbde811bcc2ef7d9971b9da922cf522f9001cb234e045223973137dfce9fa1d7e59dda6668d03aa565d9d6ebdffb8e9afb5504f09bee506e4e7b07"
+    },
+    {
+      "index": 242,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_current_canonical_reconstruction_20260727101132.md",
+      "size_bytes": 18558,
+      "sha512": "d29084e61e1c63db8173bda5d68bd9581afd4ef4b743f27af6bf66024ecf0c3f4df6703ce5ace3a9cb4b151c9de26c51d10b5a195795a68d631e758657d1474e"
+    },
+    {
+      "index": 243,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_current_index_public_roadmap_history_link_correction_20260727072019.md",
+      "size_bytes": 13682,
+      "sha512": "a3ab6a732b005a30ba230bc4d8274b8ce8da93d6b47fa4b28cb894c336e27716689d00b8fe89a249c31b485342aef0b9394029cf1e7aedb539f17ba2b4803993"
+    },
+    {
+      "index": 244,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_documentation_final_validation_20260727110834.md",
+      "size_bytes": 21058,
+      "sha512": "ba6af98ae4d774ad65f1304890dce79f5b4b3d105c992c5c400166b9d92639d159710ec031a41b9d36cd63c2e741dd841d2ce9f2df99327b4fbbc8d168238293"
+    },
+    {
+      "index": 245,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_documentation_information_preservation_and_design_governance_handoff_policy_20260727080023.md",
+      "size_bytes": 14049,
+      "sha512": "cf478bebf1a97eee8d0d149215581085611e966fedb2c488c00aaba0f6ab94936ddbcee087d2efbccb248705bd9b6f9cb1eaee12b2499ba3e3d24f64bc51bafa"
+    },
+    {
+      "index": 246,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_documentation_reconstruction_inventory_and_first_pass_20260727093938.md",
+      "size_bytes": 16631,
+      "sha512": "b08f986e7d6145a79f48851fea911ee0e80acf3c4a5f5d8f6867abf52cd36beb5a0b1be3199b9c795344445680488a2f034b33e83c9526091f50aed7d790d190"
+    },
+    {
+      "index": 247,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_lightning_auto_start_go_no_go_assessment_review_20260727051659.md",
+      "size_bytes": 9614,
+      "sha512": "09220cd4e1d47c9e4cee21e5255f7725208aa65236b1b732459690bb95ce918ebce0f32c9bb9451a3681b77899d735172a8503c63a3055ffd20107a5f90e081e"
+    },
+    {
+      "index": 248,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_lightning_auto_start_go_no_go_handoff_20260727003044.md",
+      "size_bytes": 8749,
+      "sha512": "ddc3b2c9fabe6a59e36e3a3ce65d3830d231224e534c25152cf43743fbc8f4010a3110c91a61bfb245473dda56866b5e041c5fe11a87c48725843a164d800c8c"
+    },
+    {
+      "index": 249,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_lightning_auto_start_requirement_alignment_correction_20260727052747.md",
+      "size_bytes": 10215,
+      "sha512": "d24a67846b781fcf59b891863caed8f93fe2a09cdb9baddc2c2e8d76f5188769b787e0616103e998d4ff7aea5a53a5ba2b29614e95eda8fad0134521e8f30a11"
+    },
+    {
+      "index": 250,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_lightning_auto_start_stage_a_review_20260727054823.md",
+      "size_bytes": 10759,
+      "sha512": "662ef43f973e4b1f7dfa1fb5305605be17075369c360ae5e999762acf0e8b454757a190b974fc00c729addd2a3c001be2b0eb1b75e9347d1dac40a73797559c7"
+    },
+    {
+      "index": 251,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_lightning_auto_start_stage_b_preparation_handoff_20260727055625.md",
+      "size_bytes": 11756,
+      "sha512": "ca9492808fc4f4c99509b216259b18c794ef802eeb5765a3b09e3d165a979e45e102c67d252582bfba1c387a4e75924a3cc07ed6b25a516d231c13a30df9c6a4"
+    },
+    {
+      "index": 252,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_lightning_auto_start_stage_b_preparation_review_20260727064044.md",
+      "size_bytes": 12308,
+      "sha512": "cca72713f66baf555fb8b9c1ae102cc318ccf5dde187faa51564bf3fb3149d1b86e87bcce70c780325b4bb9cc24c1daa0eeaba9ae2f78f9921eab789430b0a15"
+    },
+    {
+      "index": 253,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_lightning_basic_preview_manual_lifecycle_acceptance_20260727002440.md",
+      "size_bytes": 8280,
+      "sha512": "382bdf533bb3edd0b95dd713c53eb0b7e07d5c803328d8a820569dd35957f3f9c9209f132e13e6371709f1d245e8e413da9c303bfc8f1673faac4ba94bd3cc82"
+    },
+    {
+      "index": 254,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_lightning_lifecycle_safety_acceptance_20260726213429.md",
+      "size_bytes": 6397,
+      "sha512": "5b8de80ed60cf986c4b43fd848c757e875d2d467eb1261e10f26fe66dea53ad5b730cf9ae41e173109b24702989151697bd7d4dba1880b2d8007d0b35c9bc458"
+    },
+    {
+      "index": 255,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_lightning_linux_proc_fixture_review_20260726235422.md",
+      "size_bytes": 7729,
+      "sha512": "b4693e7f47ca8fe798722aada61971c86bb5378b744c980d3171106a8c2b91e575b75467d03d9e38963cfefeb715bc741c21af57caf777e57e736bacbe94c3d7"
+    },
+    {
+      "index": 256,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_lightning_manual_preflight_and_linux_fixture_handoff_20260726233910.md",
+      "size_bytes": 6880,
+      "sha512": "3bff5f773a734a9f50522be6bd7516457fab5db638b8828f59e2208a5df996bb2df211bbd286c3bc570b0bc2b48eaf08bdb501f1203557bf3c2e55413f9712c5"
+    },
+    {
+      "index": 257,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_lightning_stage_b_manual_trial_preparation_20260727171551.md",
+      "size_bytes": 28446,
+      "sha512": "be73918927f765bd9eece8e9e7246f5dd1b3a06243de49242cc7181307267dab834f2ca055418fe6468414e545516edc11ac681898e98f8b5a94a444359cbec0"
+    },
+    {
+      "index": 258,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_lightning_stage_b_traffic_aware_auto_start_acceptance_20260727224609.md",
+      "size_bytes": 32730,
+      "sha512": "42d5ab86ba1f0d59c060315d65878e430594ee81fd9b0dbea73725c60a4b581f9660c6b1cbdc3d5f591ad7d225631154b8dc945f5ba08933543a1118e8646794"
+    },
+    {
+      "index": 259,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_lightning_stage_b_unattended_wake_failure_and_private_bootstrap_20260727182736.md",
+      "size_bytes": 30375,
+      "sha512": "7b09c8cf4562437d8cfa05e61e837a0884d41bdd96f00cc66dc231a51937bf1ed4b48bd39bfd8000ed865d5c4767aafc26f38fb8084bcae8fc9ff6c5ec56c1f2"
+    },
+    {
+      "index": 260,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_phase_lossless_reconstruction_20260727102850.md",
+      "size_bytes": 19047,
+      "sha512": "001c58cb77d50a1dc0f9f46703fbdf1f4313d7e9f5e8f7663f3e2ce6b971def8dc717f6907f674b2f05210d77f62d8300ab64c21ebebc69a743668a8dadd4dad"
+    },
+    {
+      "index": 261,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_post_documentation_recovery_refresh_20260727121343.md",
+      "size_bytes": 21528,
+      "sha512": "28eeafd888b1c983d8b770257c3f58b9f8393d2b0b6f1000578ad3c51b3fac5b743c0a811c19433ea7a566a6308df61504b0d19156262f89cd4bdf7a99fcf617"
+    },
+    {
+      "index": 262,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_public_concept_reintegration_20260727123238.md",
+      "size_bytes": 23321,
+      "sha512": "2dff3fbd188a7794757a3aa546c2ee1285152b79d37c2a3279fc399938f6b226326c5f2133f31857f219fb6a9ed087bdebc3137b67b5fa40d1e37299a3e87e9b"
+    },
+    {
+      "index": 263,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_public_documentation_reconstruction_20260727110347.md",
+      "size_bytes": 20489,
+      "sha512": "d02c22fb5d095b31401230d3b2ee4727be3858de9d8d5fc60c7d86b8489876a385866e5d4c02bdd84c46f058c10161c96880dfbb391b696cbfd77cd4a8a47b9f"
+    },
+    {
+      "index": 264,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_readme_overview_responsibility_correction_20260727125332.md",
+      "size_bytes": 24836,
+      "sha512": "33f15a4d143df3e293385ce5a75f398b4c72854ae1dae8dd250713cfa225c5f71bdb35cf34ae96e0e0fa6847e82ea13c24e0be452b2af6e6813aa294e1d16838"
+    },
+    {
+      "index": 265,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_readme_required_elements_and_responsibility_rules_20260727131434.md",
+      "size_bytes": 26654,
+      "sha512": "3e914a3738d9d8cf01d7d688d79770f0ebec97d0e5c1eb2fd27de546738342db3a68b4c363b40f25d2b315adffee0313d78855b296a9ab77ac5316a219236cb8"
+    },
+    {
+      "index": 266,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_shared_documentation_category_and_phase_index_history_policy_20260727081459.md",
+      "size_bytes": 15136,
+      "sha512": "ac115a250bdd534f792c544d90eb33d26606077047320ad120fe5fd3518a193a149fb37e8d1b48fe4ea671ac92aa7a2cf18f0e35f936aa12537955cd336b70a5"
+    },
+    {
+      "index": 267,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_shared_reconstruction_20260727104505.md",
+      "size_bytes": 20121,
+      "sha512": "e6ba1e61286cb60aac990e74c07e35e7f6b193ceff0baa93eaf6912c595b287d83d03f8b142729eae2e4cea04e2683da8c99b9bb4549343b7e64afdfe72d300e"
+    },
+    {
+      "index": 268,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_stable_document_history_and_design_governance_recovery_policy_20260727071721.md",
+      "size_bytes": 12882,
+      "sha512": "add6c25389543794cc488df1dd51e68068536f0f60717d666da5b338c3b5b8808d27247445b2931483981b8080b75ae536e5cff58dd744c9ebae35c98d94bb69"
+    },
+    {
+      "index": 269,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_stable_filename_scope_clarification_20260727083901.md",
+      "size_bytes": 15994,
+      "sha512": "80d1ffc951d12b72234d6fc6f8650c4696998663588feffb2522702bf0b726a2eec62af9d6278c19a4a882f605d17c39767827c6144544a658e48ba1207d01dd"
+    },
+    {
+      "index": 270,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_before_user_authority_freeze_20260726203948.md",
+      "size_bytes": 6188,
+      "sha512": "ce7e442b0627f98d0f28015ad07b1aff58d31e8b82ab2780c597ab943c849e8184a005c0033cca7d7a4be0b8bc74f7454b6475d39b786976c892b7efaf534287"
+    },
+    {
+      "index": 271,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_after_agent_tool_constitution_mode_reservation_ja_20260804050817.md",
+      "size_bytes": 71604,
+      "sha512": "ce0b2a02c2718bca3f35c8f100d76c821d53f23594364708389f27d8ed7967847c27817a99bb27419d828dc04aead52d49242e0fa2ce5f99e8e5187d0f092139"
+    },
+    {
+      "index": 272,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_after_command_only_execution_prohibition_ja_20260803205250.md",
+      "size_bytes": 60845,
+      "sha512": "ea1b6aeb61a608662cc15e8a66b23b3c4e69963e2f63f2fb5e99c55ffd2341e5905825e2888411286224f8de964ecf884b0278bcc36fa678389a5c0d1de63538"
+    },
+    {
+      "index": 273,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_after_document_driven_task_orchestration_experiment_ja_20260802213443.md",
+      "size_bytes": 54192,
+      "sha512": "2866068a51f0cae634946869282244ddde357cd18382bff6b8017f1d0b0497ffd1e2097324b2cba1ffa508d261b077fe051d8ca1f2b536307417fd4b2d90e366"
+    },
+    {
+      "index": 274,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_after_executable_constitution_and_phase_3_pilot_reservation_ja_20260804045159.md",
+      "size_bytes": 70875,
+      "sha512": "8c9fe4c40383fc633e06052b3d29331a21936d91bea6aa628c0540cd82376c8bd19e1ef8198f102030eed0d43e7abd0f9c39601853d1104a53553b1a343ee69a"
+    },
+    {
+      "index": 275,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_after_explicit_confirmation_and_workspace_boundary_ja_20260803210658.md",
+      "size_bytes": 62613,
+      "sha512": "4a78c3f3f5f6e8b58ab00d4e7ac0f2e68725ac4fd91554eabb1ea0f2f5ab5178af854ef7501fc0951d67bec9fd9f459ae42c0f351a508a3ac15611ea8435d06c"
+    },
+    {
+      "index": 276,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_after_git_clone_and_task_routing_consolidation_ja_20260802210438.md",
+      "size_bytes": 52756,
+      "sha512": "b84a95d76e4fddfeb523ad1f0a4b5124432ab4f49d7fbc466b273c67a207e2bc0b664622eebc351e2000cae3c20a99c420240703a795072ab49f7ccea609458d"
+    },
+    {
+      "index": 277,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_after_git_delta_inventory_preintegration_backup_ja_20260803201448.md",
+      "size_bytes": 59327,
+      "sha512": "9419f6815fa32966d98906987f731ee508032a6850d580e10db9e7b397234f11f4a55fa08513645e0c7acaad962cdc8ad89ddd0fb88c531346412b37dc959329"
+    },
+    {
+      "index": 278,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_after_git_normal_operation_acceptance_ja_20260804052655.md",
+      "size_bytes": 72947,
+      "sha512": "6b747e02d7431ab930f50e6ffacd31ed225db3bead625c122208075384bc24360b651463dd989fe481e4ec586f73cd61cd9834b63a125121c85c2d9d6c4df75f"
+    },
+    {
+      "index": 279,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_after_git_publication_sanitation_timing_ja_20260802073901.md",
+      "size_bytes": 45753,
+      "sha512": "3104eae9d551e2d88c62499b7480adddcdc86f86938da650c2013bd7191e6c475f61aae6946526e08db42606159d24eb03de060566b3766099b45adcdc2b8890"
+    },
+    {
+      "index": 280,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_after_git_single_root_cutover_ja_20260804035723.md",
+      "size_bytes": 67558,
+      "sha512": "50569d640bfd265f6ef48b8438a667ec1a1b03d4a763ee1950162a1b947f91ac4f4ed29028e96c2f7fc996271977effe8d107ef14d1bca2c3d6c51afd2fd0214"
+    },
+    {
+      "index": 281,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_after_git_single_root_cutover_ja_20260804035724.md",
+      "size_bytes": 67558,
+      "sha512": "50569d640bfd265f6ef48b8438a667ec1a1b03d4a763ee1950162a1b947f91ac4f4ed29028e96c2f7fc996271977effe8d107ef14d1bca2c3d6c51afd2fd0214"
+    },
+    {
+      "index": 282,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_after_git_workflow_acceptance_ja_20260804025319.md",
+      "size_bytes": 64955,
+      "sha512": "b321c87f376965de2914c2df6b12e9abb49fd6d104cc000e91f8d7b9e331e19fae280553b77fc28a41acd6ab761fe8c992c836849b0aaad39d81b7b47f74f916"
+    },
+    {
+      "index": 283,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_after_low_discoverability_root_surface_ja_20260802145825.md",
+      "size_bytes": 50027,
+      "sha512": "32c39ff99215e4ce1c27ccbc4cd4c8b79bf7773161502b772b3b00f908f0280da508d529b3412b1c228198f859a138fdd00b393ac1a7a0dff8ff80f5b1f2cb0a"
+    },
+    {
+      "index": 284,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_after_optional_english_scope_reservation_ja_20260727230612.md",
+      "size_bytes": 38264,
+      "sha512": "6a5dd7e04df94603740ca7f5c664dd8ec9f069a0a0b5ce3678795664476687ca496b92f390ec9be3be8c558e57976107e83878adad17d33d6641a4bc2f54c418"
+    },
+    {
+      "index": 285,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_after_phase_2_pilot_and_governance_constitution_reservation_ja_20260804043435.md",
+      "size_bytes": 69763,
+      "sha512": "3e7c18ab393ac6a558c2c3dbfccc1c20b96011fd128de9821dc3e2e0a4ec9990520caa96016f07b3531761062c43506516f8ca76cef6038e7e7e9f2d6455e949"
+    },
+    {
+      "index": 286,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_after_phase_2_subphase_orchestration_preplan_ja_20260802221749.md",
+      "size_bytes": 55908,
+      "sha512": "80b2a810af7fae3a0c20520345ad26873d9f9a0bd5fdc6b4e9a3637f1081191b4a6a0efa2ebe7528090d3abd3d8c6d0143b66b90a8b9df934b911bee088d8571"
+    },
+    {
+      "index": 287,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_after_phase_2_task_orchestration_pilot_ja_20260802220659.md",
+      "size_bytes": 54324,
+      "sha512": "b04e4018d3efa1e89700d74a7624dab08a3832e059f1f3183f48d16dd25e6b2737a5607bd2948e02eaa6fce770aaece8734fd37b2d6949f0aba5ab6678406ed2"
+    },
+    {
+      "index": 288,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_after_phase_final_review_and_backup_gate_ja_20260802223657.md",
+      "size_bytes": 57565,
+      "sha512": "633741c9ad30efb31bdc44195a4a5c85d4d2e1ec6d5b3c81a30d250b6e166b511faf25404969e2e8156ae69763c0734705a3ca472adc7f69dfb15837a459dfd7"
+    },
+    {
+      "index": 289,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_after_project_root_boundary_ja_20260727235452.md",
+      "size_bytes": 39997,
+      "sha512": "47ae875980c3cbdb26cfb7f23be410d2b59f875ac38a6f1c8bfeb42530fac5da7bea3ce1a6467beedaa4b4e48b68a01c40df857f5212e982417c83e530d5dd63"
+    },
+    {
+      "index": 290,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_after_public_demo_minimal_access_and_runtime_portability_ja_20260730144921.md",
+      "size_bytes": 45174,
+      "sha512": "67fff441677412c4e5e2aec2f951b597247ad5ee797497ba564d913eef58dec211237bbdb2a5d6adb5facfa829f662cd423a3a5023ea7c9d164458ba40c0478e"
+    },
+    {
+      "index": 291,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_after_repository_continuity_decision_ja_20260802142024.md",
+      "size_bytes": 48205,
+      "sha512": "15adea35b8bcc38c54f2a2c8c13f8fcde087500e761aa0140b192e7a37b4b74c044c5129413a023367a81fbe09d121ed6e72f87caf7ce4b687de4ccd52f23561"
+    },
+    {
+      "index": 292,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_after_research_asset_mutation_control_ja_20260728000358.md",
+      "size_bytes": 41607,
+      "sha512": "e040d54d74dfdb1ded3e45c61d49da68cc607c980a7ffdea2d5f80cd92446ebf4e297e2322686477f4d6ed033c66a5c4e9cebfeec0109e7f99debd4d391f2338"
+    },
+    {
+      "index": 293,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_after_revised_execution_order_ja_20260727225735.md",
+      "size_bytes": 37188,
+      "sha512": "627f6d1ab2e5cefe86ce32125ffe6e1a9712200bf318d83756d6368a48365529893620e9d065fc0948b937a125f3f9bf47a0e7840fad40af82a5d7c9f91a5a14"
+    },
+    {
+      "index": 294,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_before_agent_tool_constitution_mode_reservation_ja_20260804050816.md",
+      "size_bytes": 70875,
+      "sha512": "8c9fe4c40383fc633e06052b3d29331a21936d91bea6aa628c0540cd82376c8bd19e1ef8198f102030eed0d43e7abd0f9c39601853d1104a53553b1a343ee69a"
+    },
+    {
+      "index": 295,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_before_command_only_execution_prohibition_ja_20260803205250.md",
+      "size_bytes": 59327,
+      "sha512": "9419f6815fa32966d98906987f731ee508032a6850d580e10db9e7b397234f11f4a55fa08513645e0c7acaad962cdc8ad89ddd0fb88c531346412b37dc959329"
+    },
+    {
+      "index": 296,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_before_document_driven_task_orchestration_experiment_ja_20260802213443.md",
+      "size_bytes": 52756,
+      "sha512": "b84a95d76e4fddfeb523ad1f0a4b5124432ab4f49d7fbc466b273c67a207e2bc0b664622eebc351e2000cae3c20a99c420240703a795072ab49f7ccea609458d"
+    },
+    {
+      "index": 297,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_before_executable_constitution_and_phase_3_pilot_reservation_ja_20260804045158.md",
+      "size_bytes": 69763,
+      "sha512": "3e7c18ab393ac6a558c2c3dbfccc1c20b96011fd128de9821dc3e2e0a4ec9990520caa96016f07b3531761062c43506516f8ca76cef6038e7e7e9f2d6455e949"
+    },
+    {
+      "index": 298,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_before_explicit_confirmation_and_workspace_boundary_ja_20260803210658.md",
+      "size_bytes": 60845,
+      "sha512": "ea1b6aeb61a608662cc15e8a66b23b3c4e69963e2f63f2fb5e99c55ffd2341e5905825e2888411286224f8de964ecf884b0278bcc36fa678389a5c0d1de63538"
+    },
+    {
+      "index": 299,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_before_final_closure_ja_20260804061104.md",
+      "size_bytes": 72947,
+      "sha512": "6b747e02d7431ab930f50e6ffacd31ed225db3bead625c122208075384bc24360b651463dd989fe481e4ec586f73cd61cd9834b63a125121c85c2d9d6c4df75f"
+    },
+    {
+      "index": 300,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_before_git_clone_and_task_routing_consolidation_ja_20260802210438.md",
+      "size_bytes": 50027,
+      "sha512": "32c39ff99215e4ce1c27ccbc4cd4c8b79bf7773161502b772b3b00f908f0280da508d529b3412b1c228198f859a138fdd00b393ac1a7a0dff8ff80f5b1f2cb0a"
+    },
+    {
+      "index": 301,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_before_git_delta_inventory_preintegration_backup_ja_20260803201448.md",
+      "size_bytes": 57565,
+      "sha512": "633741c9ad30efb31bdc44195a4a5c85d4d2e1ec6d5b3c81a30d250b6e166b511faf25404969e2e8156ae69763c0734705a3ca472adc7f69dfb15837a459dfd7"
+    },
+    {
+      "index": 302,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_before_git_normal_operation_acceptance_ja_20260804052654.md",
+      "size_bytes": 71604,
+      "sha512": "ce0b2a02c2718bca3f35c8f100d76c821d53f23594364708389f27d8ed7967847c27817a99bb27419d828dc04aead52d49242e0fa2ce5f99e8e5187d0f092139"
+    },
+    {
+      "index": 303,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_before_git_publication_sanitation_timing_ja_20260802073901.md",
+      "size_bytes": 45174,
+      "sha512": "67fff441677412c4e5e2aec2f951b597247ad5ee797497ba564d913eef58dec211237bbdb2a5d6adb5facfa829f662cd423a3a5023ea7c9d164458ba40c0478e"
+    },
+    {
+      "index": 304,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_before_git_single_root_cutover_ja_20260804035722.md",
+      "size_bytes": 64955,
+      "sha512": "b321c87f376965de2914c2df6b12e9abb49fd6d104cc000e91f8d7b9e331e19fae280553b77fc28a41acd6ab761fe8c992c836849b0aaad39d81b7b47f74f916"
+    },
+    {
+      "index": 305,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_before_git_workflow_acceptance_ja_20260804025318.md",
+      "size_bytes": 62613,
+      "sha512": "4a78c3f3f5f6e8b58ab00d4e7ac0f2e68725ac4fd91554eabb1ea0f2f5ab5178af854ef7501fc0951d67bec9fd9f459ae42c0f351a508a3ac15611ea8435d06c"
+    },
+    {
+      "index": 306,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_before_low_discoverability_root_surface_ja_20260802145825.md",
+      "size_bytes": 48205,
+      "sha512": "15adea35b8bcc38c54f2a2c8c13f8fcde087500e761aa0140b192e7a37b4b74c044c5129413a023367a81fbe09d121ed6e72f87caf7ce4b687de4ccd52f23561"
+    },
+    {
+      "index": 307,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_before_optional_english_scope_reservation_ja_20260727230612.md",
+      "size_bytes": 37188,
+      "sha512": "627f6d1ab2e5cefe86ce32125ffe6e1a9712200bf318d83756d6368a48365529893620e9d065fc0948b937a125f3f9bf47a0e7840fad40af82a5d7c9f91a5a14"
+    },
+    {
+      "index": 308,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_before_phase_2_pilot_and_governance_constitution_reservation_ja_20260804043434.md",
+      "size_bytes": 67558,
+      "sha512": "50569d640bfd265f6ef48b8438a667ec1a1b03d4a763ee1950162a1b947f91ac4f4ed29028e96c2f7fc996271977effe8d107ef14d1bca2c3d6c51afd2fd0214"
+    },
+    {
+      "index": 309,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_before_phase_2_subphase_orchestration_preplan_ja_20260802221749.md",
+      "size_bytes": 54324,
+      "sha512": "b04e4018d3efa1e89700d74a7624dab08a3832e059f1f3183f48d16dd25e6b2737a5607bd2948e02eaa6fce770aaece8734fd37b2d6949f0aba5ab6678406ed2"
+    },
+    {
+      "index": 310,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_before_phase_2_task_orchestration_pilot_ja_20260802220659.md",
+      "size_bytes": 54192,
+      "sha512": "2866068a51f0cae634946869282244ddde357cd18382bff6b8017f1d0b0497ffd1e2097324b2cba1ffa508d261b077fe051d8ca1f2b536307417fd4b2d90e366"
+    },
+    {
+      "index": 311,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_before_phase_final_review_and_backup_gate_ja_20260802223657.md",
+      "size_bytes": 55908,
+      "sha512": "80b2a810af7fae3a0c20520345ad26873d9f9a0bd5fdc6b4e9a3637f1081191b4a6a0efa2ebe7528090d3abd3d8c6d0143b66b90a8b9df934b911bee088d8571"
+    },
+    {
+      "index": 312,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_before_project_root_boundary_ja_20260727235337.md",
+      "size_bytes": 38264,
+      "sha512": "6a5dd7e04df94603740ca7f5c664dd8ec9f069a0a0b5ce3678795664476687ca496b92f390ec9be3be8c558e57976107e83878adad17d33d6641a4bc2f54c418"
+    },
+    {
+      "index": 313,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_before_public_demo_minimal_access_and_runtime_portability_ja_20260730144921.md",
+      "size_bytes": 41607,
+      "sha512": "e040d54d74dfdb1ded3e45c61d49da68cc607c980a7ffdea2d5f80cd92446ebf4e297e2322686477f4d6ed033c66a5c4e9cebfeec0109e7f99debd4d391f2338"
+    },
+    {
+      "index": 314,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_before_repository_continuity_decision_ja_20260802142024.md",
+      "size_bytes": 45753,
+      "sha512": "3104eae9d551e2d88c62499b7480adddcdc86f86938da650c2013bd7191e6c475f61aae6946526e08db42606159d24eb03de060566b3766099b45adcdc2b8890"
+    },
+    {
+      "index": 315,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_before_research_asset_mutation_control_ja_20260728000213.md",
+      "size_bytes": 39997,
+      "sha512": "47ae875980c3cbdb26cfb7f23be410d2b59f875ac38a6f1c8bfeb42530fac5da7bea3ce1a6467beedaa4b4e48b68a01c40df857f5212e982417c83e530d5dd63"
+    },
+    {
+      "index": 316,
+      "path": "docs/project/phases/phase_1_ex/history/operations/phase_index_phase_1_ex_before_revised_execution_order_ja_20260727225735.md",
+      "size_bytes": 35106,
+      "sha512": "b3d44eadc7c12394c3fd441ed5b276cb60501d89f33346bf7c8ad308c55c49c660875bb7520264063d96f1f37056c16d0332cc4d572d39b2d1e35fbe94c59d02"
+    },
+    {
+      "index": 317,
+      "path": "docs/project/phases/phase_1_ex/history/operations/post_documentation_design_governance_recovery_refresh_20260727121814.md",
+      "size_bytes": 6241,
+      "sha512": "1d277b8fa697da95f4630e7a1abf28235a7c207ea7e322f3a89f4cc022223e52a7300fd16d8520296f952137e3157ea044cea62c2feb73fae8b2b006ceb1fecb"
+    },
+    {
+      "index": 318,
+      "path": "docs/project/phases/phase_1_ex/history/operations/pre_initial_commit_documentation_refresh_plan_phase_1_ex_after_revised_execution_order_ja_20260727225735.md",
+      "size_bytes": 4084,
+      "sha512": "b70bd9ca2acb3dc37f83d8a55ce50abaa903f127efc6792c84a1785d00cf17da023f8460122e8c6238c032d13abf4f0cf2739189788e4c34e47f39bd8a448607"
+    },
+    {
+      "index": 319,
+      "path": "docs/project/phases/phase_1_ex/history/operations/pre_initial_commit_documentation_refresh_plan_phase_1_ex_before_revised_execution_order_ja_20260727225735.md",
+      "size_bytes": 3323,
+      "sha512": "4b0417afb4cfc076a1ac0e3f0b678f37ff45fb7c32b8fef73c2b713aa0e9bf1597855b5caaee3de38e8da0351fc16c46939c2945c807f91af0e30e6f22f49832"
+    },
+    {
+      "index": 320,
+      "path": "docs/project/phases/phase_1_ex/history/operations/project_root_boundary_and_pre_mutation_gate_20260727235337.md",
+      "size_bytes": 4354,
+      "sha512": "a028d2258b7b9f7e546f5b27d699deeda27d305604e893b6d85f315ca00f4e4767c5e4094f618f6a13266a77ed19f8b2e98622616f4e5aa5d93ce2c214d7140c"
+    },
+    {
+      "index": 321,
+      "path": "docs/project/phases/phase_1_ex/history/operations/public_canonical_and_legal_documentation_reconstruction_20260727110347.md",
+      "size_bytes": 7602,
+      "sha512": "0535bfe992c34c110142f86197ba28d4011f7166d9a24ebe1a9bf49b2c7725b8de7238d8f0ab72fd05ed2999ab25d38188b8fbf3ab87ff9a5378bcffdb3f6598"
+    },
+    {
+      "index": 322,
+      "path": "docs/project/phases/phase_1_ex/history/operations/public_concept_governance_kernel_reintegration_20260727123238.md",
+      "size_bytes": 5718,
+      "sha512": "4f614ec71bb9c83586dc85a25147b832e1cb54862f4b165df4e7984fdd308fae9046492de888ab77d623730f60694d984b067997a77643f91629fe881e8b472d"
+    },
+    {
+      "index": 323,
+      "path": "docs/project/phases/phase_1_ex/history/operations/public_demo_scope_reduction_and_runtime_portability_decision_20260730144921.md",
+      "size_bytes": 2353,
+      "sha512": "552663e5dc4c0eb9e6788bc3e3bd80ab7959ac338092cd84d32195f62f6aa322755483b7a17ca524304416cf574cef8756f257fe4117c0e13027f3604c3f68d2"
+    },
+    {
+      "index": 324,
+      "path": "docs/project/phases/phase_1_ex/history/operations/public_repository_low_discoverability_root_surface_adjustment_20260802145825.md",
+      "size_bytes": 4790,
+      "sha512": "9008484378346b273cf0377c4f133399ee94f231424772d510c09a2a8351aef5c39a183092033a0abcdc5cb684a2c659082dcec875a94ffcd992c56132c2731f"
+    },
+    {
+      "index": 325,
+      "path": "docs/project/phases/phase_1_ex/history/operations/readme_after_document_responsibility_correction_20260727125332.md",
+      "size_bytes": 3385,
+      "sha512": "d859f29c406a97be4216d991aa6ec765f36b9e2a65dbd222bb24464fdbf05382cd9fcdb77898ce148d2d1c13786493c85c31f321026b74f99ab784218636efa0"
+    },
+    {
+      "index": 326,
+      "path": "docs/project/phases/phase_1_ex/history/operations/readme_after_phase_status_and_recovery_refresh_20260727121343.md",
+      "size_bytes": 10977,
+      "sha512": "95badf6dd997dd8620c287c1d96719243eaf97386c477da535362d024039d74a3c43e2d2465cb5235e38515bfeb6752c6c144328b694442282dc0100920d4457"
+    },
+    {
+      "index": 327,
+      "path": "docs/project/phases/phase_1_ex/history/operations/readme_after_required_elements_restoration_20260727131419.md",
+      "size_bytes": 4408,
+      "sha512": "862f252417ed1154d7262ee5694cf918bcf41789b7df13681085512384d0f603b486f1db9886c231f7bf80d57dc4350b7c1919aa475eca6b3d7d128337ed2571"
+    },
+    {
+      "index": 328,
+      "path": "docs/project/phases/phase_1_ex/history/operations/readme_before_document_responsibility_correction_20260727125332.md",
+      "size_bytes": 10977,
+      "sha512": "95badf6dd997dd8620c287c1d96719243eaf97386c477da535362d024039d74a3c43e2d2465cb5235e38515bfeb6752c6c144328b694442282dc0100920d4457"
+    },
+    {
+      "index": 329,
+      "path": "docs/project/phases/phase_1_ex/history/operations/readme_before_phase_status_and_recovery_refresh_20260727121225.md",
+      "size_bytes": 10645,
+      "sha512": "0c1077021cd5930d9ba956da80c0060281ef1b0ce649e678b946643d0ee744fdb9ed324e6dca2e7c9f1b4b488717ceac01add37759b629d40d0dd698909b7c5f"
+    },
+    {
+      "index": 330,
+      "path": "docs/project/phases/phase_1_ex/history/operations/readme_before_required_elements_restoration_20260727131008.md",
+      "size_bytes": 3385,
+      "sha512": "d859f29c406a97be4216d991aa6ec765f36b9e2a65dbd222bb24464fdbf05382cd9fcdb77898ce148d2d1c13786493c85c31f321026b74f99ab784218636efa0"
+    },
+    {
+      "index": 331,
+      "path": "docs/project/phases/phase_1_ex/history/operations/readme_before_required_elements_restoration_20260727131258.md",
+      "size_bytes": 3385,
+      "sha512": "d859f29c406a97be4216d991aa6ec765f36b9e2a65dbd222bb24464fdbf05382cd9fcdb77898ce148d2d1c13786493c85c31f321026b74f99ab784218636efa0"
+    },
+    {
+      "index": 332,
+      "path": "docs/project/phases/phase_1_ex/history/operations/readme_overview_document_responsibility_correction_20260727125553.md",
+      "size_bytes": 6907,
+      "sha512": "fd974bbd739128012fc810170a2be997c54cf14b8b531c95de5568e27aa8440f108391b00789dafab34ded55f8c892274153bb1d065e939578cfb9c0684a3748"
+    },
+    {
+      "index": 333,
+      "path": "docs/project/phases/phase_1_ex/history/operations/readme_phase_1_ex_after_low_discoverability_root_surface_ja_20260802145825.md",
+      "size_bytes": 1987,
+      "sha512": "17fa7094146b13215f95e56f1f2babdc4a3be9bab4253d15ad987f0f158a2b5cacb1a0f903c6b981ce16216ac05251e5dcc1649975930862c2aa099fd38508a9"
+    },
+    {
+      "index": 334,
+      "path": "docs/project/phases/phase_1_ex/history/operations/readme_phase_1_ex_before_final_closure_20260804061104.md",
+      "size_bytes": 1987,
+      "sha512": "17fa7094146b13215f95e56f1f2babdc4a3be9bab4253d15ad987f0f158a2b5cacb1a0f903c6b981ce16216ac05251e5dcc1649975930862c2aa099fd38508a9"
+    },
+    {
+      "index": 335,
+      "path": "docs/project/phases/phase_1_ex/history/operations/readme_phase_1_ex_before_low_discoverability_root_surface_ja_20260802145825.md",
+      "size_bytes": 4876,
+      "sha512": "0742b2caa78b90a6df05336ff50bb27176a00a5c308c1bb2d86eede58772746a4600519adb1efe6fea1b95b40d3e958bebc1915e439e4390cc4a88a12d589d65"
+    },
+    {
+      "index": 336,
+      "path": "docs/project/phases/phase_1_ex/history/operations/readme_required_elements_and_document_responsibility_rules_20260727131445.md",
+      "size_bytes": 6324,
+      "sha512": "aeafb3e57f1026fb88195588fbeceb92ecaaaca7613b0b19fd0fbdaa88b3f2a63cfdbed9e498b416f22db19aac0b4045478f2a8a574f671de8e717e009f45c8e"
+    },
+    {
+      "index": 337,
+      "path": "docs/project/phases/phase_1_ex/history/operations/requirements_specification_after_user_authority_freeze_20260726203948.md",
+      "size_bytes": 8981,
+      "sha512": "a4b334618f089472c701a0fbb112ce03a52f49599be36df0aa55bae8db2a1f17e6313a8d985b9e7b9f3319435bac084bd0644bddf0b01a8e5a5cb29b1bbc975e"
+    },
+    {
+      "index": 338,
+      "path": "docs/project/phases/phase_1_ex/history/operations/requirements_specification_before_user_authority_freeze_20260726203948.md",
+      "size_bytes": 8822,
+      "sha512": "c2678e3cb7b0926352217f154f38f9c4e6f3525c34a79e81aad112ffa9d270ff2b85bb15273edadd0f2c9d2bc07df813f03d413693b58f1e6edfa12f541aeae5"
+    },
+    {
+      "index": 339,
+      "path": "docs/project/phases/phase_1_ex/history/operations/research_asset_mutation_control_design_20260728000213.md",
+      "size_bytes": 5132,
+      "sha512": "31f75b06cdcf5ce1cc93909086aca3c0893e727a8e595a00d1910f2011500af721b67badfc81666317a15918d0822d9016a283f949e1eff519d1699fcae92fdf"
+    },
+    {
+      "index": 340,
+      "path": "docs/project/phases/phase_1_ex/history/operations/retrieval_guidance_hardcode_and_maintenance_reconsideration_20260801091003.md",
+      "size_bytes": 4046,
+      "sha512": "e2e07820fa92beb2c9c98893872ed567b8cb0b6c2367bdbd2912657977a055b5b53b8353f21c2888adecdbf1380123ecab174ac6ef1e3be2d433bb3ead97c430"
+    },
+    {
+      "index": 341,
+      "path": "docs/project/phases/phase_1_ex/history/operations/roadmap_documentation_rag_cross_environment_acceptance_update_20260801154412.md",
+      "size_bytes": 2569,
+      "sha512": "5c6a01dc793db7bb7c3b557318082d4d3d5e6ac94648b21cd9af7d721b0bfbb187a5eae601b2a00351c8ac21ed52789d1c717414a6c1bb5b28ce939ddf701f97"
+    },
+    {
+      "index": 342,
+      "path": "docs/project/phases/phase_1_ex/history/operations/shared_documentation_category_and_phase_index_history_policy_20260727081459.md",
+      "size_bytes": 5135,
+      "sha512": "d9352a6a4cd3c691342d4aada7590b3b0e719572b0e452c630f2ab4d008dc4ffe2948f8264dcd3d53b43305696e62342d8e495bc49dbb7beaa24d172cae69a13"
+    },
+    {
+      "index": 343,
+      "path": "docs/project/phases/phase_1_ex/history/operations/shared_documentation_reconstruction_20260727104505.md",
+      "size_bytes": 4570,
+      "sha512": "b1eb241f33c2da7f26037d35657c6e21758db5af8a167ce7421de2e0a4078ca7e5c3844bd9146edcb9a2bc41442b706262dbe7dba09730e3faaf9e1f89506a57"
+    },
+    {
+      "index": 344,
+      "path": "docs/project/phases/phase_1_ex/history/operations/stable_document_history_and_design_governance_recovery_policy_20260727071721.md",
+      "size_bytes": 7846,
+      "sha512": "ff9dd1986c1c3bc2388b6adae709a582bf5655f5adb35e3efe0ccb6d8a8bd1ccfcf4b7027b7f3ad41091b1b96bcd25fa0301b430173e8a35e308ee910751df95"
+    },
+    {
+      "index": 345,
+      "path": "docs/project/phases/phase_1_ex/history/operations/stable_filename_scope_clarification_20260727083901.md",
+      "size_bytes": 2901,
+      "sha512": "9e700ec20f47bc36747164a3194c87accd063438f3618617ebd399889a5601678541871b9c6dd262e0d4e50fdd2a4283ac606ebe0824ac54b08614356d26fc5a"
+    },
+    {
+      "index": 346,
+      "path": "docs/project/phases/phase_1_ex/history/operations/task_role_write_authority_policy_after_user_authority_freeze_20260726203948.md",
+      "size_bytes": 6885,
+      "sha512": "5a09854e7a32e41cb1684ffd514e780714ad3556d5c8540a2bd20231626e0e2537d781c8bb78dc941f3402c17cad15a528cbb9c3d43cdfe1d04ff54d74820158"
+    },
+    {
+      "index": 347,
+      "path": "docs/project/phases/phase_1_ex/history/operations/task_role_write_authority_policy_before_user_authority_freeze_20260726203948.md",
+      "size_bytes": 6124,
+      "sha512": "affbf3727bf21ae9375c8fcd5db14a7834f42ecaa09bf7e3ce053913a92dd8e6c951fe98a122255a2092f9fda4144677287d5caf9a00992e2a0d4fd5a6fa2b8d"
+    },
+    {
+      "index": 348,
+      "path": "docs/project/phases/phase_1_ex/history/operations/terms_of_use_phase_1_ex_after_low_discoverability_root_surface_ja_20260802145825.md",
+      "size_bytes": 7115,
+      "sha512": "fbc156316905b63d8963cf9f777ec8638d8d5bf307905fca5a11345d36d2cfa6978a624350cfa10c67b4e3005c87d3f263d111c242ccf39cc37a22f3631747b4"
+    },
+    {
+      "index": 349,
+      "path": "docs/project/phases/phase_1_ex/history/operations/terms_of_use_phase_1_ex_before_low_discoverability_root_surface_ja_20260802145825.md",
+      "size_bytes": 7090,
+      "sha512": "83ee862ca210f03e50c32a289f4d45f36335678adb377a0bfaac25a0b108d7eb52f1ec5f028a8f8167239f440992fe4e3e9771b244cde492f0cd19d2a4f3c1da"
+    },
+    {
+      "index": 350,
+      "path": "docs/project/phases/phase_1_ex/history/requirements/current_public_ja_en_equivalent_granularity_decision_20260726180711.md",
+      "size_bytes": 1539,
+      "sha512": "9063fa17fe234d4dd5e0db10cb7400e312d8a4e1e87960d21f0941b95888ea2d8157c71431be97fb18ea7b7c1967fa4a89e6bd7f36eb105232488b74e74c6aee"
+    },
+    {
+      "index": 351,
+      "path": "docs/project/phases/phase_1_ex/history/requirements/mac_local_documentation_rag_multi_turn_grounding_follow_up_requirements_20260731231940.md",
+      "size_bytes": 6951,
+      "sha512": "90ed078742bd7d8e547d7b1741cf1c4413bb13d9a9d34887cfe3fe50498e1f55561dc62ce5bb56bb618d6fae78a6746fc29287b374bb000d4b932520968fdc6a"
+    },
+    {
+      "index": 352,
+      "path": "docs/project/phases/phase_1_ex/history/requirements/mac_local_documentation_rag_requirements_20260731172259.md",
+      "size_bytes": 17669,
+      "sha512": "4f08dce7e24e628c8ab40973853c2034fa87a0bb441279f3ca8d8bf4d5c4a0b0314d98b955d429177e217bf49e78214df2b933aa1e907c8ce032c2b84faaa479"
+    },
+    {
+      "index": 353,
+      "path": "docs/project/phases/phase_1_ex/history/requirements/phase_1_ex_documentation_migration_and_canonical_content_requirements_20260726145451.md",
+      "size_bytes": 8023,
+      "sha512": "6ffc932d4f1583709bd204497781493349b0ac0a835fec014c7212a5f7b5e3301995895dae4f7ee114c01fb263633f9dad71754315e7096b61e67f18d3db2119"
+    },
+    {
+      "index": 354,
+      "path": "docs/project/phases/phase_1_ex/history/requirements/public_demo_rag_bilingual_docs_and_git_sequence_decision_20260726175318.md",
+      "size_bytes": 1422,
+      "sha512": "63b8d7cbd3a91cdc9e2806e348e42abbaded5d9b4c399db7093a4d88476e023a0825b4f1c69e79772179855710d808b67469a087421804f743e7a3a148311599"
+    },
+    {
+      "index": 355,
+      "path": "docs/project/phases/phase_1_ex/history/requirements/task_role_write_authority_policy_20260726150349.md",
+      "size_bytes": 5267,
+      "sha512": "c3e6693651d0a68e6ae6fa29d880dcfa6e6dc1697ea605c3e5cf8055e8748ac032ca8d380ca024a3ff0690cba394e1a912e08699b73beeae65f1d532ea75069c"
+    },
+    {
+      "index": 356,
+      "path": "docs/project/phases/phase_1_ex/operations/documentation_directory_migration_receipt_ja.md",
+      "size_bytes": 3609,
+      "sha512": "4c75e090430996717a8d39a4ee8194274486b5f2edaa7054c0896f41a290221cdf94890ceabeff1479f1a2a6c2d3570dea3527a4fbe0e67195d2b075285eef64"
+    },
+    {
+      "index": 357,
+      "path": "docs/project/phases/phase_1_ex/operations/documentation_directory_migration_target_manifest.json",
+      "size_bytes": 143043,
+      "sha512": "b84b331a9a79df17030e03383ad5d43ebb28964959493bc5c749f5b1624be368291b90382df6e64f216efc9077fb3a683b81256226bf421e4c038190567f8ec4"
+    },
+    {
+      "index": 358,
+      "path": "docs/project/phases/phase_1_ex/operations/documentation_directory_migration_validation_ja.md",
+      "size_bytes": 3459,
+      "sha512": "c26e95be3d1e834c32ade76a771cc94902cd5543c8fcaf66854bbb98b42563c5abe693b02435ddfdc0e9be85d24f8ebcea303e9e4f70dc03e367cae76f73f5b1"
+    },
+    {
+      "index": 359,
+      "path": "docs/project/phases/phase_1_ex/operations/documentation_legacy_root_retirement_manifest.json",
+      "size_bytes": 228897,
+      "sha512": "37214a7eabd7c1b8b367ce6c88e4113091434e58bb68304f58f4dff93d274c3d7ec777eff6c7d3a08ae9b5b655fcfcd31343fac2b9d499f6efa15fcce8d397de"
+    },
+    {
+      "index": 360,
+      "path": "docs/project/phases/phase_1_ex/operations/documentation_legacy_root_retirement_validation_ja.md",
+      "size_bytes": 3604,
+      "sha512": "811bd774323494115b76cfe369db47fcbd3730ea143754ac87e2d13f1c7f7d8a520d3cc39417bd8241ae46c395a1804b69670e1bedd212f8dec524fdebb11d51"
+    },
+    {
+      "index": 361,
+      "path": "docs/project/phases/phase_1_ex/operations/documentation_link_update_and_rollback_plan_ja.md",
+      "size_bytes": 6425,
+      "sha512": "f4650b279850931c5286a141b3c76345e19f1e3c991b1dee1e7389524106a819e179175d81a207dd81e8c6b121fe459638f8d093b9b10259a35f174dc56bc548"
+    },
+    {
+      "index": 362,
+      "path": "docs/project/phases/phase_1_ex/operations/documentation_migration_candidate_report.json",
+      "size_bytes": 956,
+      "sha512": "4dedeb7b0bcb88aaaf53bfafc19d183c5f2391462b96683a4269405ff60b1707aba07d81d5598bb97f42ccd4b21fa94b14ba8c00090d88c385ea1732e1fd5d28"
+    },
+    {
+      "index": 363,
+      "path": "docs/project/phases/phase_1_ex/operations/documentation_migration_preflight_ja.md",
+      "size_bytes": 3946,
+      "sha512": "6e4a78a2ef8c6768799c4a56f7688fbcd27daf1e2ae294b8d30e8d59d455feb5f934c6b64bcabff2f2393cf7f961d1eac442fc6d0fe86b3eadd6a57774045298"
+    },
+    {
+      "index": 364,
+      "path": "docs/project/phases/phase_1_ex/operations/documentation_source_inventory_and_classification_ja.md",
+      "size_bytes": 8127,
+      "sha512": "134279628c11ccb98cba1216538ec5168b2cd3ed542f73b47463fa1b55cdf72f3762fa374b24deb9d219dc6910dcb6b09755cd49bfcc875efe2fa00c2374f604"
+    },
+    {
+      "index": 365,
+      "path": "docs/project/phases/phase_1_ex/operations/pre_initial_commit_documentation_refresh_plan_ja.md",
+      "size_bytes": 4084,
+      "sha512": "b70bd9ca2acb3dc37f83d8a55ce50abaa903f127efc6792c84a1785d00cf17da023f8460122e8c6238c032d13abf4f0cf2739189788e4c34e47f39bd8a448607"
+    },
+    {
+      "index": 366,
+      "path": "docs/project/phases/phase_1_ex/operations/source_to_target_documentation_migration_manifest.json",
+      "size_bytes": 2400326,
+      "sha512": "bb4b6460464f9c6597e0b902df6cd16e42b247a52d5dfb4eeeef7521343dad3bf1103f838b9f34e1857f0e68d3f6b2bda07aeffd5bf40bd54b7411f830f1fb33"
+    },
+    {
+      "index": 367,
+      "path": "docs/project/phases/phase_1_ex/phase_index_ja.md",
+      "size_bytes": 74926,
+      "sha512": "eabd3715072dbc4a01538644540ab5d183418bb786a4d4b0bec5858aea03a28458b250b11eb20341ed080ba3f42639f1881ea2091e5f49adfac517971888847e"
+    },
+    {
+      "index": 368,
+      "path": "docs/project/phases/phase_1_ex/requirements/documentation_migration_and_canonical_content_requirements_ja.md",
+      "size_bytes": 8710,
+      "sha512": "bfaec8f881b68121388a4a110326103ede12ecaadc7ce7ff7d97ca1e8c502b0d57a143ff8e4e0a552b4ef7c987c28658ff9db63baa8ffd416e3e2112910a8e12"
+    },
+    {
+      "index": 369,
+      "path": "docs/project/phases/phase_1_ex/requirements/lightning_basic_preview_public_corpus_documentation_rag_requirements_ja.md",
+      "size_bytes": 15434,
+      "sha512": "b31c16587409317123decbfe19c417c1148563ee18b548cea2adbf55963c6e11c2819f3d4c3384482c1a7446ff01eff8b3de433b5131b25c1002663a68b67f4b"
+    },
+    {
+      "index": 370,
+      "path": "docs/project/phases/phase_1_ex/requirements/lightning_public_corpus_documentation_rag_multi_access_requirements_ja.md",
+      "size_bytes": 10468,
+      "sha512": "60589afa8b20fb59edfd5092e17bc60fce36165824b75c6f8983c3b6bc42a08b40989d4e236b98427e510ca78ffca3f26d6ae27fddf1b29d86082f557f669a0b"
+    },
+    {
+      "index": 371,
+      "path": "docs/project/phases/phase_1_ex/requirements/mac_local_documentation_rag_requirements_ja.md",
+      "size_bytes": 18055,
+      "sha512": "7ef26d2458ef481d47b0fa53dc5e8ec7e9da1d81c29bc35d0704245eb6cccb97b2ddfcc64e8a15b2071e3ea66a0eebe16fa081979d17f14eed791a4b1c6999be"
+    },
+    {
+      "index": 372,
+      "path": "docs/project/phases/phase_1_ex/requirements/public_demo_auto_start_and_pre_release_requirements_ja.md",
+      "size_bytes": 5894,
+      "sha512": "0f9f04b9b0eedec1b0e8ffe1b51722fdc2c01b345e5675d594b7475e4963179eec19ae9d71eb16993c3b921da81329fecac77caee35da8e9684bc963d0e85deb"
+    },
+    {
+      "index": 373,
+      "path": "docs/project/phases/phase_1_ex/requirements/public_demo_minimal_access_and_runtime_portability_requirements_ja.md",
+      "size_bytes": 9155,
+      "sha512": "c94c1b690797c12fad5bb0c32e12b0b9918f860a3a4cc2ebeb29a57881c2cedbe75b592bb6943e3c28350e2bf05b72f3a05ed5caa53ecd9bdd75a9f378cbae67"
+    }
+  ]
+}

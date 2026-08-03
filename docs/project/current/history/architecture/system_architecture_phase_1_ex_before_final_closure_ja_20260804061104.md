@@ -5,9 +5,9 @@ document_id: system_architecture
 status: current
 language: ja
 created_at: 2026-07-26 15:16:24 JST
-updated_at: 2026-08-04 06:11:04 JST
+updated_at: 2026-07-27 10:01:20 JST
 owner: Nazuna Research
-active_phase: phase_2_ready_to_start
+active_phase: phase_1_ex
 rag_default: true
 ```
 
@@ -723,21 +723,23 @@ Implemented／Accepted:
   Docs Directory Migration
   Lightning Auto-start Repository Preparation
 
-Completed in Phase 1-ex:
-  Current／Shared／Public Documentation Reconstruction
-  Phase 1 Final／Phase 1-ex Final Lossless Reconstruction
-  Lightning Traffic-aware Auto-start／Public Demo
-  Mac／Lightning Documentation RAG
-  Git Workflow／Single Canonical Root
-  Design Governance／Project Responsibility Recovery Split
+In Progress:
+  Current Canonical Reconstruction
+  Phase 1／Phase 1-ex Lossless Reconstruction
+  Shared／Public Docs
+  Publication Metadata
 
 Designed／Not Implemented:
   Generic Governance Platform
   Main Governance
   Guardrail／Judge／Repair
   Audit Store
+  Documentation RAG
   General RAG
   Agent／Tool
   ML／Training
+  Anonymous Public Demo
+  Traffic-aware Wake実機成立
+  Git Workflow
   EASA／DLAGSA／OCILNS Integration
 ```

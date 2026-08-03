@@ -5,9 +5,9 @@ document_id: public_concept
 status: current
 language: ja
 created_at: 2026-07-27 10:49:00 JST
-updated_at: 2026-08-04 06:11:04 JST
+updated_at: 2026-07-27 12:30:44 JST
 owner: Nazuna Research
-active_phase: phase_2_ready_to_start
+active_phase: phase_1_ex
 ```
 
 ## 1. モデルそのものではなく、モデルを統治するRuntimeを作る

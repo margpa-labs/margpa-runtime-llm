@@ -5,9 +5,9 @@ document_id: project_continuity_master
 status: current
 language: ja
 created_at: 2026-07-26 15:16:24 JST
-updated_at: 2026-08-04 06:11:04 JST
+updated_at: 2026-08-04 05:26:54 JST
 owner: Nazuna Research
-active_phase: phase_2_ready_to_start
+active_phase: phase_1_ex
 public_repository_eligible: true
 rag_default: true
 ```
@@ -1224,46 +1224,3 @@ Desktop化予約を、現行Web版の廃止、Phase 4への自動割当て、特
 OFFを`allow all`と解釈しない。Platform Security、Sandbox、File／Tool Permission、Access Control、Human Approval、既存Authority、法令およびProject開発中の絶対禁止／Docs／Authority規則は維持する。Agent側ONはTool側ONまたはTool実行許可を生成しない。
 
 Constitution ONでRevision、View、DigestまたはEnforcement Capabilityを解決できない場合はFail-closedとし、黙ってOFFへFallbackしない。Default値、UI露出および一般公開ProfileでのON固定は後続設計事項であり、本予約だけで実装済みとしない。
-
-## 33. Phase 1-ex Final Closure Source State
-
-2026-08-04、ユーザーはPhase 1-exのFinal Docs、Final Lossless、最終検査、Backup、Commit／Push、完了判定およびPhase 2開始可能Gateまでを、今回限定のScoped Authorizationとして事前に明示承認した。これは今後のStanding Authorizationではない。
-
-### 33.1 Final Documentation State
-
-- Current／Shared／Public／Phase Indexの完了状態を累積更新した。
-- 設計統括者役のRecoveryを保持したまま、プロジェクト責任者役専用Stable／Historyを新設した。
-- 日本語正本をPhase 1-ex完了Gateとし、Current／Shared／PublicのOptional English Derivativeは同粒度作成を条件に後続へFormal Deferralした。
-- `history/**`は英語派生対象外のままとする。
-
-### 33.2 Pre-final Test Evidence
-
-```text
-pytest                         : 430 passed, 3 deselected
-ruff check                     : pass
-ruff format --check            : 122 files already formatted
-mypy                           : success, 122 source files
-shell syntax                   : pass
-TOML／JSON parse                : pass
-```
-
-### 33.3 Backup Evidence Before Closure
-
-ユーザーは完了作業開始前に次のCheckpoint Backupを取得し、別位置へ移動済みと報告した。
-
-```text
-Archive   : margpa-runtime-llm_phase1-ex_完了間近_20260804.zip
-Size      : 25,420,406 bytes
-SHA-512   : ea0dc3f6af88beb54777f9824a0e632ab0e76285d0a8aecc36f4387c58a1e93a7c3da1ec1ecd12497450df331f316c14a4f385b122fe5b9c0066e16c3bcc3265
-Authority : user-created checkpoint; read-only evidence
-```
-
-Phase Final Backupは本Checkpointと分離し、Final Source、Manifest、SHA-512およびRestore Verificationを持つ別Artifactとして作成する。
-
-### 33.4 Final Source Freeze Boundary
-
-Phase 1-ex Final Losslessは、Final Source Freeze時点の`docs/project/phases/phase_1_ex/`配下のMarkdown／JSONを、`lossless/**`およびOS Metadataを除いて収録する。Final Lossless自身、Backup Receipt、Commit SHAを記録するPost-freeze Completion Record、最終Index SnapshotおよびRecovery Manifestは自己参照を避けるためPost-freeze Artifactとし、個別Path／Hash／Link検証対象とする。
-
-### 33.5 Transactional Closure Rule
-
-本Stable状態は、Final Lossless、両Recovery Manifest、Phase Final Backup／Restore、Publication Sanitation、Final Commit／PushおよびLocal／Origin／GitHub一致がすべて合格した場合だけCommitするTransactional Completion Candidateとして作成した。いずれかがFailした場合はCommit／Pushせず停止する。合格しCommitされた本書は、Phase 1-ex `complete_accepted`およびPhase 2 `ready_to_start`を表す。

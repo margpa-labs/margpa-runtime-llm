@@ -3,8 +3,8 @@
 - 文書ID: `task_role_write_authority_policy`
 - 状態: `current_effective`
 - 作成日時: `2026-07-26 15:03:49 JST`
-- 更新日時: `2026-08-04 06:11:04 JST`
-- Snapshot: `20260804061104`
+- 更新日時: `2026-08-04 04:51:58 JST`
+- Snapshot: `20260804045158`
 - 作成担当: 設計統括者役
 - Role Transition: [design_governance_role_transition_20260726145451.md](../../phases/phase_1_ex/history/operations/design_governance_role_transition_20260726145451.md)
 - Target Architecture: [phase_1_ex_target_documentation_structure_20260726145451.md](../../phases/phase_1_ex/architecture/target_documentation_structure_ja.md)
@@ -494,19 +494,3 @@ Role Name
 Codex利用可能量、Credit、QuotaまたはService Limitは、任意のTaskを途中停止させうる。利用可能量不足は、未完了作業のAccepted化、Authority拡張、無許可の代替Model／Account／Service利用または追加課金を許可しない。
 
 中断時は`PAUSED_RESOURCE_LIMIT`相当とし、最後に確認できたDocs、Source、Test、Working Tree、Open Finding、次の最小ActionおよびRecovery Pathを記録する。確認できない状態を推測で埋めない。再開または新Task作成は、Accepted Orchestration Envelopeまたはユーザーの追加指示の範囲内で行う。
-
-## 21. プロジェクト責任者役
-
-プロジェクト責任者役は、Phase 2以降のProject全体、Cross-Phase不変条件、Role編成、Phase Gate、RecoveryおよびFinal Reviewを調整する。設計統括者役を削除または吸収せず、技術設計／要件／Canonical Docs／Phase設計のRecoveryは引き続き設計統括者役が担う。
-
-プロジェクト責任者役のStable入口とHistoryは次とする。
-
-```text
-docs/project/shared/project_responsibility_handoff/
-  project_responsibility_handoff_ja.md
-docs/project/shared/history/project_responsibility_handoff/
-```
-
-プロジェクト責任者役も、絶対禁止事項、Docs運用、Mutation Authorization、Backup、Evidence、Git／公開およびUser Gateに完全に従属する。Role名、Project全体責任、緊急性または自動化Pilotは、Standing Authorization、自己免除またはAuthority拡張を生成しない。
-
-プロジェクト責任者役のRecoveryは、自身の復元だけでなく、設計統括者役、Phase設計担当者役、実装者役および対外Docs役を正本Docsから再作成できることを完了条件とする。

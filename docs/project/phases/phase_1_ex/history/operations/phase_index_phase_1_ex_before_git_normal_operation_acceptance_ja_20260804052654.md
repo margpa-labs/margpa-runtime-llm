@@ -3,10 +3,10 @@
 ```yaml
 document_id: phase_1_ex_documentation_index
 phase: phase_1_ex
-status: complete_accepted
+status: active
 language: ja
 created_at: 2026-07-26 15:16:24 JST
-updated_at: 2026-08-04 06:11:04 JST
+updated_at: 2026-08-04 05:08:16 JST
 owner: 設計統括者役
 rag_default: true
 ```
@@ -417,7 +417,6 @@ Branch Protection、Phase 1-ex完了Tag、Releaseおよび単一Git Root Cutover
 ## 2.26 Git Source→Target統合／Direct Main／単一Root Cutover
 
 - [Git Source→Target統合／公開反映／単一Git Root移行記録](history/operations/git_source_target_integration_publication_and_single_root_cutover_20260804035722.md)
-- [Git Normal Operation Commit／Push Acceptance](history/operations/git_normal_operation_commit_push_acceptance_20260804052654.md)
 - [Git Workflow Policy](../../shared/operations/git_workflow_policy_ja.md)
 - [GitHub Publication Sanitation Policy](../../shared/operations/git_publication_sanitation_policy_ja.md)
 - [Interim Design Governance Recovery Manifest](../../shared/history/design_governance_handoff/design_governance_recovery_manifest_20260804035722.md)
@@ -429,22 +428,17 @@ Publication Files           : 1,053／1,053
 Source-only／Target-only    : 0／0
 Content Mismatch            : 0
 PR #1 Merge Commit          : 9fff303175a3224963254eacddd66f9cf5112a5a
-Latest main Commit          : 844394106f0330b9b8bd3652813642f34132a647
+Latest main Commit          : 9ac8a6ba4a2120d93856356fababd130af3aa352
 Canonical Git Root          : margpa-runtime-llm
 main／origin/main／remote main: aligned
 Former Git Staging Root     : retired／deleted after backup
 Post-cutover Full Test      : 430 passed／3 deselected
-Normal Commit／Push         : accepted／operational
 Tag／Release                : none
 ```
 
 従来の二重Rootは履歴上の統合過程として記録し、現在の運用では`margpa-runtime-llm`だけをCanonical Git Working Rootとする。旧Git Staging Rootへの同期は不要である。
 
 Git WorkflowはRisk-basedとする。小規模で決定論的なDocs／Metadata変更は、Exact Diff、Test、Sanitation、Rollbackおよび当該Commit／Pushのユーザ承認が揃った場合だけDirect `main`候補とする。新機能、大規模、高Risk、複数LayerまたはPhase統合はWorking Branch／Draft PRを原則とする。
-
-単一Canonical Rootからの次回の正当なDocs更新をCommit `8443941`としてDirect `main`へPushし、Local `HEAD`、`origin/main`、Remote `main`およびGitHub APIのSHA／Message一致を確認した。変更はDocs限定111件、更新16件、新規95件、削除0件で、Working TreeはPostflightでCleanであった。これによりGit関連の初期構築、History継承、公開統合、Root Cutoverおよび通常運用確認は完了した。
-
-通常運用の成立はStanding Authorizationを生成しない。各Commit／Push等はユーザーの都度承認を必要とする。Branch Protection、Phase完了TagおよびReleaseは独立Gateとして扱う。
 
 Phase 1-exはまだ進行中である。Final Lossless、Final Recovery、Phase Final Review／Test／Privacy Scan、User Acceptance、Phase Backup、最終Commit／PushとTag判断は未完了である。
 
@@ -501,12 +495,12 @@ Desktop Application化は後続Phase予約とし、Phase／技術／配布方式
 1. Git未使用のGitHub掲載準備／一時掲載。ユーザーにより掲載完了。
 2. Basic認証Previewと分離した最小Public Demo基盤実装、Lightning設定、匿名公開およびTraffic-aware Auto-start。完了／Accepted。Public Corpus Documentation RAGは後続Accepted設計によりBasic／Publicの両Access Profileで利用可能とした。
 3. Local Mac簡易Documentation RAG＋External Hook、およびLightning Public Corpus Adapter。完了／Cross-environment Accepted。検索精度改善は後続Phaseへ延期。
-4. Git運用設計と通常運用確認。Existing History、公開Identity、専用SSH、Branch／Commit／PR／Merge／Tag／Backup規則、Risk-based Direct `main`、単一Git RootおよびCanonical RootからのCommit／Push実証まで完了／Accepted。Branch Protectionは任意の独立判断として未設定。
-5. Git統合／公開Sanitation。Source→Target Integration、`.gitignore`／`.gitattributes`境界、Privacy Scan、Outgoing Tree、Commit、Draft PR、Review、`main` MergeおよびCommit `8443941`のRemote Postflightまで完了。作業Branchは包含証明後に退役済み。Tag／ReleaseはPhase Closureの独立Gateとして未作成。
+4. Git運用設計。Existing History、公開Identity、専用SSH、Branch／Commit／PR／Merge／Tag／Backup規則、Risk-based Direct `main`および単一Git RootまでAccepted。Branch Protectionは未設定。
+5. Git統合／公開Sanitation。Source→Target Integration、`.gitignore`／`.gitattributes`境界、Privacy Scan、Outgoing Tree、Commit、Draft PR、Reviewおよび`main` Mergeまで完了。作業Branchは包含証明後に退役済み。Tag／Releaseは未作成。
 6. 必要なDocsだけを再整理・新規作成し、Phase 1-ex Final LosslessとDesign Governance Recovery情報を更新する。
 7. 全体Review／Test／Privacy ScanとPhase単位最終Checkを行い、Blockerを解消する。
 8. User Acceptance後、Phase 1-ex Final Backupを取得する。
-9. Git通常運用の再確認は完了済み。Phase Closureで最終差分が存在する場合だけ、Review／Sanitation／明示承認後に通常Commit／Pushを行い、Phase完了Tagの作成可否をユーザーが判断する。Dummy Commitは作らない。
+9. Canonical Rootからの次回の正当なCommit／Pushで単一Root Git運用を再確認し、Phase完了Tagの作成可否をユーザーが判断する。Dummy Commitは作らない。
 10. Phase 1-ex完了・Phase 2着手可能宣言後にPhase 2へ進む。
 
 Stage 6に作業余力がある場合は、Current／Shared／Publicの非History Stable文書を対象に、日本語正本と同粒度の英語派生版を作成する。余力がない場合は後日またはPhase 2前半へ延期する。
@@ -648,37 +642,3 @@ Phase 1-ex開始時の旧Index、Role Transition、Migration Control Eventおよ
 - [2026-08-04 02:53:18](history/documentation_index_20260804025318.md)
 - [2026-08-04 03:57:22](history/documentation_index_20260804035722.md)
 - [2026-08-04 04:34:34](history/documentation_index_20260804043434.md)
-- [2026-08-04 04:51:58](history/documentation_index_20260804045158.md)
-- [2026-08-04 05:08:16](history/documentation_index_20260804050816.md)
-- [2026-08-04 05:26:54](history/documentation_index_20260804052654.md)
-
-## 2.28 Phase 1-ex Final Closure Source State
-
-- [Project Responsibility Handoff](../../shared/project_responsibility_handoff/project_responsibility_handoff_ja.md)
-- [Design Governance Handoff](../../shared/design_governance_handoff/design_governance_handoff_ja.md)
-- [Optional English Derivative Formal Deferral](history/operations/optional_english_derivative_formal_deferral_20260804061104.md)
-- [Requirements](../../current/requirements/requirements_specification_ja.md)
-- [Project Continuity Master](../../current/project_continuity/project_continuity_master_ja.md)
-- [Public Roadmap](../../../public/roadmap_ja.md)
-
-Final Docs Source StateのRuntime／Static Gateは次のとおり合格した。
-
-```text
-pytest              : 430 passed, 3 deselected
-ruff check          : pass
-ruff format --check : pass, 122 files
-mypy                : pass, 122 source files
-shell syntax        : pass
-TOML／JSON parse     : pass
-```
-
-英語派生版はユーザーの明示決定によりFormal Deferralとし、Phase 1-exのBlockerにしない。Final Lossless、Final Recovery、Backup、Git PostflightおよびPhase 2 Ready Gateの全てが合格した場合だけ本StateをCommitする。Commit済みの本IndexはPhase 1-ex `complete_accepted`とPhase 2 `ready_to_start`を表す。
-
-### Final Closure Artifacts
-
-- [Final Documentation Index Snapshot](history/documentation_index_20260804061104.md)
-- [Final Review／Completion Gate](history/operations/phase_1_ex_final_review_and_completion_gate_20260804061104.md)
-- [Final Lossless Compilation](lossless/phase_1_ex_lossless_ja.md)
-- [Final Lossless Manifest](lossless/phase_1_ex_lossless_manifest.json)
-- [Final Design Governance Recovery Manifest](../../shared/history/design_governance_handoff/design_governance_recovery_manifest_20260804061104.md)
-- [Final Project Responsibility Recovery Manifest](../../shared/history/project_responsibility_handoff/project_responsibility_recovery_manifest_20260804061104.md)

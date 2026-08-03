@@ -5,9 +5,9 @@ document_id: current_documentation_index
 status: current
 language: ja
 created_at: 2026-07-26 15:16:24 JST
-updated_at: 2026-08-04 06:11:04 JST
+updated_at: 2026-08-04 05:08:16 JST
 owner: 設計統括者役
-active_phase: phase_2_ready_to_start
+active_phase: phase_1_ex
 rag_default: true
 ```
 
@@ -31,7 +31,7 @@ Lightning Stage B        : TRAFFIC-AWARE AUTO-START ACCEPTED／GO
 Unattended Wake Trial    : REPEATED WAKE／SLEEP PASS
 Phase 1-ex Order         : REVISED／SINGLE GIT ROOT COMPLETE／FINAL DOCS AND REVIEW NEXT
 Optional English Docs   : RESERVED／CURRENT＋SHARED＋PUBLIC／HISTORY EXCLUDED
-Git／GitHub              : OPERATIONAL／SINGLE CANONICAL ROOT／MAIN ALIGNED AT 8443941／NO TAG OR RELEASE
+Git／GitHub              : SINGLE CANONICAL ROOT／MAIN ALIGNED AT 9AC8A6B／NO TAG OR RELEASE
 ```
 
 ## Current Canonical
@@ -78,7 +78,6 @@ Git／GitHub              : OPERATIONAL／SINGLE CANONICAL ROOT／MAIN ALIGNED A
 - [Git SSH／Clone／Task Routing Consolidation](../phases/phase_1_ex/history/operations/git_low_discoverability_ssh_clone_and_task_routing_consolidation_20260802210438.md)
 - [Git Workflow Acceptance／PR Merge／Branch Retirement](../phases/phase_1_ex/history/operations/git_workflow_acceptance_merge_and_branch_retirement_20260804025318.md)
 - [Git Source→Target Integration／Publication／Single Root Cutover](../phases/phase_1_ex/history/operations/git_source_target_integration_publication_and_single_root_cutover_20260804035722.md)
-- [Git Normal Operation Commit／Push Acceptance](../phases/phase_1_ex/history/operations/git_normal_operation_commit_push_acceptance_20260804052654.md)
 - [Phase 2 Pilot／Governance Constitution／Desktop Reservation](../phases/phase_1_ex/history/operations/phase_2_pilot_governance_constitution_and_desktop_reservation_20260804043434.md)
 - [Executable Governance Constitution／Phase 2・3 Pilot Evidence Design](../phases/phase_1_ex/history/operations/executable_governance_constitution_and_phase_2_3_pilot_evidence_design_20260804045158.md)
 - [Agent／Tool Constitution Enabled Mode Reservation](../phases/phase_1_ex/history/operations/agent_tool_constitution_enabled_mode_reservation_20260804050816.md)
@@ -127,7 +126,7 @@ Sharedには`schemas/`、`templates/`および対応Historyの正式な配置先
 
 PublicのOverview／Concept／RoadmapおよびRoot公開Artifactは、Phase 1-exの初回公開Corpusとして作成済みである。対応History Rootは`docs/public/history/overview/`、`docs/public/history/concept/`および`docs/public/history/roadmap/`である。
 
-Research PreviewはGitHubへ掲載済みである。Existing Repositoryの先行公開Historyを保持したまま、Root公開面とRepository Metadataを低発見性運用へ変更し、`CITATION.cff`はLocal CurrentとDefault Branchから削除した。専用SSH、Source→Target Integration、Sanitation、Test、Draft PR、ReviewおよびMerge Commit方式の`main`統合までAcceptedである。PR #1のMerge Commitは`9fff303175a3224963254eacddd66f9cf5112a5a`で、Publication SetはSource／Target 1,053件、Path／Content Mismatch 0である。用済み作業Branchは`main`包含証明後にLocal／Remoteから退役した。追加DocsはDirect `main` Commit `9ac8a6ba4a2120d93856356fababd130af3aa352`としてPush済みである。その後、Backup／Preflight／Postflight／Full Testを経て`margpa-runtime-llm`を単一Canonical Git Rootとし、旧Git Staging RootはユーザーがBackup後に退役させた。さらにCanonical RootからDocs限定111件をCommit `844394106f0330b9b8bd3652813642f34132a647`としてPushし、Local／`origin/main`／Remote／GitHub API一致とWorking Tree Cleanを確認した。Git基盤と通常Commit／Push経路はAccepted／Operationalである。Tag／Releaseは未作成である。
+Research PreviewはGitHubへ掲載済みである。Existing Repositoryの先行公開Historyを保持したまま、Root公開面とRepository Metadataを低発見性運用へ変更し、`CITATION.cff`はLocal CurrentとDefault Branchから削除した。専用SSH、Source→Target Integration、Sanitation、Test、Draft PR、ReviewおよびMerge Commit方式の`main`統合までAcceptedである。PR #1のMerge Commitは`9fff303175a3224963254eacddd66f9cf5112a5a`で、Publication SetはSource／Target 1,053件、Path／Content Mismatch 0である。用済み作業Branchは`main`包含証明後にLocal／Remoteから退役した。追加DocsはDirect `main` Commit `9ac8a6ba4a2120d93856356fababd130af3aa352`としてPush済みである。その後、Backup／Preflight／Postflight／Full Testを経て`margpa-runtime-llm`を単一Canonical Git Rootとし、旧Git Staging RootはユーザーがBackup後に退役させた。Local／`origin/main`／Remote `main`は`9ac8a6b`で一致し、Cutover後Full Testは`430 passed／3 deselected`である。Tag／Releaseは未作成である。
 
 ## Stable History
 
@@ -318,35 +317,3 @@ Current Canonicalは要約差分ではなく、現在のTaskを再作成して�
 - [Latest Phase 1-ex Documentation Index Snapshot](../phases/phase_1_ex/history/documentation_index_20260804050816.md)
 
 Agent／ToolのConstitution ON／OFFは機能本体、通常GovernanceおよびAuthorityから分離する。OFFは比較Baselineであり、Security、Permission、Human ApprovalまたはProject運用ルールを解除しない。本Refreshは設計予約のみで、実装は行っていない。
-
-### Git Normal Operation Acceptance Refresh
-
-- [Git Workflow Before](../shared/history/operations/git_workflow_policy_phase_1_ex_before_git_normal_operation_acceptance_ja_20260804052654.md)
-- [Git Workflow After](../shared/history/operations/git_workflow_policy_phase_1_ex_after_git_normal_operation_acceptance_ja_20260804052655.md)
-- [Project Continuity Before](history/project_continuity/project_continuity_master_phase_1_ex_before_git_normal_operation_acceptance_ja_20260804052654.md)
-- [Project Continuity After](history/project_continuity/project_continuity_master_phase_1_ex_after_git_normal_operation_acceptance_ja_20260804052655.md)
-- [Current Index Before](history/index/documentation_index_phase_1_ex_before_git_normal_operation_acceptance_ja_20260804052654.md)
-- [Current Index After](history/index/documentation_index_phase_1_ex_after_git_normal_operation_acceptance_ja_20260804052655.md)
-- [Phase Index Before](../phases/phase_1_ex/history/operations/phase_index_phase_1_ex_before_git_normal_operation_acceptance_ja_20260804052654.md)
-- [Phase Index After](../phases/phase_1_ex/history/operations/phase_index_phase_1_ex_after_git_normal_operation_acceptance_ja_20260804052655.md)
-- [Acceptance Record](../phases/phase_1_ex/history/operations/git_normal_operation_commit_push_acceptance_20260804052654.md)
-- [Latest Phase 1-ex Documentation Index Snapshot](../phases/phase_1_ex/history/documentation_index_20260804052654.md)
-
-単一Canonical Git RootからCommit `8443941`をDirect `main`へPushし、Local、Tracking Reference、RemoteおよびGitHub APIの一致を確認した。Git基盤と通常Commit／Push経路は完了／Operationalとする。各External Mutationのユーザー都度承認、Phase Final Backup、TagおよびReleaseの独立Gateは維持する。
-
-### Phase 1-ex Final Closure Source Refresh
-
-- [Project Responsibility Handoff](../shared/project_responsibility_handoff/project_responsibility_handoff_ja.md)
-- [Design Governance Handoff](../shared/design_governance_handoff/design_governance_handoff_ja.md)
-- [Task Role／Write Authority Policy](../shared/task_roles/task_role_write_authority_policy_ja.md)
-- [Documentation Structure／Task Operations](../shared/operations/documentation_structure_and_task_operations_ja.md)
-- [Optional English Derivative Formal Deferral](../phases/phase_1_ex/history/operations/optional_english_derivative_formal_deferral_20260804061104.md)
-- [Phase 1-ex Index](../phases/phase_1_ex/phase_index_ja.md)
-
-Final DocsのSource StateでFull Suite `430 passed, 3 deselected`、Ruff、Mypy、Shell Syntax、TOML／JSON Parseを合格した。Phase 1-ex Final Lossless、Final Recovery Manifest、Backup Receipt、Final Commit／Push PostflightおよびPhase 2 Ready GateはPost-freeze Closure Artifactとして検証する。本Stateは全Gate合格時にだけCommitされ、Commit済みの本書はPhase 1-ex完了／Phase 2開始可能を表す。
-
-- [Phase 1-ex Final Documentation Index Snapshot](../phases/phase_1_ex/history/documentation_index_20260804061104.md)
-- [Phase 1-ex Final Review／Completion Gate](../phases/phase_1_ex/history/operations/phase_1_ex_final_review_and_completion_gate_20260804061104.md)
-- [Phase 1-ex Final Lossless Compilation](../phases/phase_1_ex/lossless/phase_1_ex_lossless_ja.md)
-- [Final Design Governance Recovery Manifest](../shared/history/design_governance_handoff/design_governance_recovery_manifest_20260804061104.md)
-- [Final Project Responsibility Recovery Manifest](../shared/history/project_responsibility_handoff/project_responsibility_recovery_manifest_20260804061104.md)

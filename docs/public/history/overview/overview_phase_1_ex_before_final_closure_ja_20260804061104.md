@@ -5,9 +5,9 @@ document_id: public_overview
 status: current
 language: ja
 created_at: 2026-07-27 10:49:00 JST
-updated_at: 2026-08-04 06:11:04 JST
+updated_at: 2026-07-27 12:53:32 JST
 owner: Nazuna Research
-active_phase: phase_2_ready_to_start
+active_phase: phase_1_ex
 ```
 
 ## 1. Project概要
@@ -199,7 +199,7 @@ Project運用でも同じ原則を適用する。
 
 ## 10. 現在地
 
-Phase 1では、後続能力を載せるための最初の交換可能なRuntime契約を成立させた。Phase 1-exでは、文書、証跡、Authority、Recovery、Git、Backup、公開境界およびDocumentation RAGを整備した。現在はPhase 2を開始できる状態であり、後続機能の実装は次の明示的な開始Gateを待つ。
+Phase 1では、後続能力を載せるための最初の交換可能なRuntime契約を成立させた。現在はPhase 1-exとして、初回公開前の文書、証跡、Authority、Recovery、利用条件および運用境界を整備している。
 
 現在の画面や機能はProject全体の完成像ではない。Phaseごとの実装済み範囲、未実装範囲、依存順序および将来構想は、[Roadmap](roadmap_ja.md)を唯一の進捗正本とする。
 

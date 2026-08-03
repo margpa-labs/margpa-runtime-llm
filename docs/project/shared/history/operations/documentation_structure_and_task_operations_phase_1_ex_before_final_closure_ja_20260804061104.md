@@ -5,7 +5,7 @@ document_id: documentation_structure_and_task_operations
 status: current
 language: ja
 created_at: 2026-07-26 17:00:34 JST
-updated_at: 2026-08-04 06:11:04 JST
+updated_at: 2026-08-04 04:51:58 JST
 owner: 設計統括者役
 rag_default: true
 ```
@@ -1020,22 +1020,3 @@ docs/project/shared/history/constitution/
 各Normative RuleはRule ID、対象、規則、検知、違反時動作、復旧、EvidenceおよびSource Traceを持つ。Agent／Tool／TaskへはCanonical全文の手Copyではなく、同じ正本RevisionとDigestからRole／Phase／Task別`Constitution View`を生成する候補設計とする。
 
 現時点では予定構造だけをAcceptedし、Dummy File、空Directory維持用Artifactまたは未完成の憲法書を作成しない。作成時は[Cross-project Development Governance Constitution Plan](cross_project_development_governance_constitution_plan_ja.md)に従う。
-
-## 37. Project Responsibility Handoff Structure
-
-設計統括者役のStable／Historyを保持したまま、Project全体のPhase Gate、Role編成、Cross-Phase継続性およびRecovery用に次を配置する。
-
-```text
-docs/project/shared/
-├─ design_governance_handoff/
-│  └─ design_governance_handoff_ja.md
-├─ project_responsibility_handoff/
-│  └─ project_responsibility_handoff_ja.md
-└─ history/
-   ├─ design_governance_handoff/
-   └─ project_responsibility_handoff/
-```
-
-プロジェクト責任者役Handoffは設計統括者役Handoffの改名、置換または要約版ではない。前者はProject編成／Phase Gate／複数Role再構成、後者はTechnical Design／Canonical Docs／Phase設計復元を担う。両方のRecovery Manifestを正本とDigestで相互参照する。
-
-各Stableの更新前後は対応Historyへ完全Snapshotを保存する。原則として各Phase完了後かつPhase Backup直前に両Recovery Manifestを更新し、旧Task会話なしで新TaskがProject責任と設計統括の両方を復元できるかを検証する。

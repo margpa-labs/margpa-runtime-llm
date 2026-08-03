@@ -5,9 +5,9 @@ document_id: design_governance_handoff
 status: current
 language: ja
 created_at: 2026-07-27 07:52:36 JST
-updated_at: 2026-08-04 06:11:04 JST
+updated_at: 2026-08-04 04:51:58 JST
 owner: 設計統括者役
-active_phase: phase_2_ready_to_start
+active_phase: phase_1_ex
 rag_default: true
 ```
 
@@ -567,33 +567,3 @@ Agent／Tool本格実装前に、運用規則をProvider-neutralな統合憲法�
 Phase 2を成立性検証、Phase 3を再現性・移植性検証とする。Phase 2がAcceptedされた場合だけPhase 3 Pilotを別Gateで開始し、成功、Incident、Near Miss、Human InterventionおよびRule有効性を将来の憲法編纂Evidenceとして蓄積する。詳細は[Cross-project Development Governance Constitution Plan](../operations/cross_project_development_governance_constitution_plan_ja.md)を参照する。
 
 Desktop Application化は後続Phase予約であり、実装Phase／Framework／配布方式は未決定である。
-
-## 20. プロジェクト責任者役とのRecovery分離
-
-設計統括者役はPhase 2以降も存続し、要件、Architecture、Canonical Docs、Phase設計、Technical ReviewおよびDesign Recoveryを担う。プロジェクト責任者役は、Project全体のPhase Gate、Role編成、Cross-Phase不変条件、Final Reviewおよび複数RoleのRecoveryを調整する。
-
-正本入口は次のとおり分離する。
-
-- [Design Governance Handoff](design_governance_handoff_ja.md)
-- [Project Responsibility Handoff](../project_responsibility_handoff/project_responsibility_handoff_ja.md)
-
-プロジェクト責任者役が設計統括者役の技術的Meaning Ownerを上書きせず、設計統括者役もProject責任者のUser Gate／Task編成Authorityを推測で取得しない。両者は絶対禁止、Docs運用、Mutation Authorization、Backup、Git／公開およびUser明示確認に同じく従属する。
-
-## 21. Phase 1-ex Final Closure Candidate
-
-```text
-Phase 1                         : COMPLETE／ACCEPTED
-Phase 1-ex Documentation       : FINAL SOURCE REFRESHED
-Runtime／Static Gate            : 430 PASSED／3 DESELECTED／STATIC PASS
-Design Governance Recovery     : FINAL MANIFEST／POST-FREEZE VERIFIED
-Project Responsibility Recovery: FINAL MANIFEST／POST-FREEZE VERIFIED
-Phase 1-ex Final Lossless       : FINAL／373 OF 373 PASS
-Phase Final Backup              : MUST PASS BEFORE THIS STATE IS COMMITTED
-Final Commit／Push              : PRE-AUTHORIZED FOR THIS CLOSURE ONLY
-Tag／Release                    : NOT REQUESTED／DO NOT CREATE
-Phase 2                        : READY GATE ONLY／NOT STARTED
-```
-
-英語派生版はFormal Deferralとし、Current／Shared／Publicの非History Stableを後続で日本語正本と同粒度に作成する。本DeferralはPhase 1-ex完了またはPhase 2開始可能性のBlockerではない。
-
-Final Source Freeze後は、Final Lossless、両Recovery Manifest、Backup Receipt、Completion RecordおよびFinal Index SnapshotをPost-freeze Artifactとして個別検証する。それらの自己参照を理由にFinal Losslessを無限再生成しない。本Stateは全Gate合格時だけCommitし、いずれかがFailした場合はCommit／Pushせず停止する。

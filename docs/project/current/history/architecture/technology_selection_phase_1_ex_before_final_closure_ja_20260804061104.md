@@ -5,9 +5,9 @@ document_id: technology_selection
 status: current
 language: ja
 created_at: 2026-07-26 15:16:24 JST
-updated_at: 2026-08-04 06:11:04 JST
+updated_at: 2026-07-27 10:01:20 JST
 owner: Nazuna Research
-active_phase: phase_2_ready_to_start
+active_phase: phase_1_ex
 rag_default: true
 ```
 
@@ -466,7 +466,6 @@ License、Terms、Notice、Citationは別Artifactとして整合させる。技�
 | React／Next.js | Deferred |
 | vLLM | Future Cloud |
 | Docker | Deferred |
-| Traffic-aware Wake | Accepted／GO |
-| Anonymous Public Demo | Accepted |
-| Documentation RAG | Mac／Lightning Basic／Public Accepted |
-| Git Workflow | Accepted／Operational／Single Canonical Root |
+| Traffic-aware Wake | Manual Validation Waiting |
+| Anonymous Public Demo | Not Implemented |
+| Git Workflow | Not Selected／Not Started |

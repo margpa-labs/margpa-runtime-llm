@@ -5,9 +5,9 @@ document_id: project_continuity_master
 status: current
 language: ja
 created_at: 2026-07-26 15:16:24 JST
-updated_at: 2026-08-04 06:11:04 JST
+updated_at: 2026-08-04 05:08:16 JST
 owner: Nazuna Research
-active_phase: phase_2_ready_to_start
+active_phase: phase_1_ex
 public_repository_eligible: true
 rag_default: true
 ```
@@ -32,7 +32,7 @@ Phase 1 Backup                : COMPLETED／VERIFIED
 Phase 1-ex                    : IN PROGRESS
 Documentation Migration      : COMPLETE／LEGACY ROOT RETIRED
 Documentation Reconstruction : SECOND PASS COMPLETE／CURRENT STATE REFRESH IN PROGRESS
-Git／GitHub                   : OPERATIONAL／SINGLE CANONICAL ROOT／MAIN ALIGNED AT 8443941
+Git／GitHub                   : EXISTING HISTORY PRESERVED／SINGLE CANONICAL ROOT／MAIN ALIGNED
 Simple Documentation RAG     : MAC／LIGHTNING BASIC／PUBLIC ACCEPTED
 Optional English Docs        : RESERVED／CURRENT＋SHARED＋PUBLIC／HISTORY EXCLUDED
 Lightning Basic Preview      : MANUAL LIFECYCLE ACCEPTED
@@ -44,7 +44,7 @@ Phase 2以降                   : NOT STARTED
 
 Phase 1でmacOS MetalとLightning Linux x86_64 Pure CPUのCLI／Web Runtimeを成立させ、ユーザーによるMac／Lightning Web Acceptance、Basic認証、停止、再送信、New Chat、Language、Summary、Thinking、Copy、BusyおよびPublic URL確認を完了した。
 
-現在はPhase 1-ex進行中である。Gitを使用しない先行掲載、Basic／Public Demo、Traffic-aware Auto-start、Mac／Lightning Documentation RAG、Existing GitHub Historyを維持したSource→Target統合、Draft PR／Merge、単一Git Root移行およびCanonical Rootからの通常Commit／Push実証まで完了している。Git基盤と通常運用経路はAccepted／Operationalであり、残る主工程は最終Docs／Lossless／Recovery、Phase Final Review／Test／Privacy Scan、User Acceptance、Phase Backup、必要な最終差分反映およびTag判断である。Phase 1-ex完了はまだ宣言しない。
+現在はPhase 1-ex進行中である。Gitを使用しない先行掲載、Basic／Public Demo、Traffic-aware Auto-start、Mac／Lightning Documentation RAG、Existing GitHub Historyを維持したSource→Target統合、Draft PR／Merge、追加Docs Commit／Pushおよび単一Git Root移行まで完了している。残る主工程は最終Docs／Lossless／Recovery、Phase Final Review／Test／Privacy Scan、User Acceptance、Phase Backup、最終Git反映およびTag判断である。Phase 1-ex完了はまだ宣言しない。
 
 ## 3. Current Runtime
 
@@ -98,7 +98,7 @@ Git Working Root : margpa-runtime-llm／main
 5. Open Findingの解決またはユーザーが明示承認したDeferral。
 6. User Acceptance。
 7. Phase 1-ex Backup取得をユーザーへ明示依頼し、Backup Evidenceを確認。
-8. 必要な最終Docs差分がある場合のReview済みCommit／Push判断。Git基盤の再構築は不要。
+8. Canonical Rootからの最終Commit／Push判断。
 9. Phase 1-ex完了Tag／Releaseの別判断。
 10. Phase 1-ex完了・Phase 2着手可能宣言後のPhase 2。
 
@@ -1063,9 +1063,9 @@ Existing History       : preserved
 Canonical Working Root : margpa-runtime-llm
 Former Staging Root    : retired／deleted by user after backup
 Default Branch         : main
-Current HEAD           : 844394106f0330b9b8bd3652813642f34132a647
-origin/main            : 844394106f0330b9b8bd3652813642f34132a647
-Remote main            : 844394106f0330b9b8bd3652813642f34132a647
+Current HEAD           : 9ac8a6ba4a2120d93856356fababd130af3aa352
+origin/main            : 9ac8a6ba4a2120d93856356fababd130af3aa352
+Remote main            : 9ac8a6ba4a2120d93856356fababd130af3aa352
 PR #1 Merge Commit     : 9fff303175a3224963254eacddd66f9cf5112a5a
 Merged Work Branch     : retired locally and remotely
 Tag／Release           : none
@@ -1073,7 +1073,7 @@ Tag／Release           : none
 
 Existing GitHub Historyを削除・再作成・書換えせず、開発内容正本をPublication Set 1,053件としてTargetへ統合した。Source-only、Target-onlyおよびContent Mismatchは0件である。
 
-PR #1はMerge Commit方式で`main`へ統合した。その後、Git Workflow／運用記録の16文書をユーザーがDirect `main` Commit／Pushとして明示承認し、`9ac8a6b`でLocal／Origin／Remoteを同期した。単一Root Cutover後の正当な次回Docs更新では、Docs限定111件をCommit `8443941`としてDirect `main`へPushし、Local `HEAD`、`origin/main`、Remote `main`およびGitHub APIのSHA／Message一致を確認した。
+PR #1はMerge Commit方式で`main`へ統合した。その後、Git Workflow／運用記録の16文書をユーザーがDirect `main` Commit／Pushとして明示承認し、`9ac8a6b`でLocal／Origin／Remoteを同期した。
 
 ### 31.2 Canonical Root Cutover
 
@@ -1132,7 +1132,7 @@ Documentation RAGは「参照機構が成立した」ことをAcceptanceとす�
 6. User Acceptance。
 7. 設計統括者役がユーザーへ「Phase Backupを取得してください」と明示。
 8. Phase 1-ex Final Backup／SHA-512／Restore Evidence。
-9. Git通常運用の再確認はCommit `8443941`で完了済み。Phase Closure時に最終差分が存在する場合だけ、明示承認後に通常のCommit／Push Gateを適用する。Dummy Commitは作らない。
+9. Canonical Rootからの次回の正当なCommit／Pushで単一Root Git運用を再確認。Dummy Commitは作らない。
 10. Phase完了Tag／Releaseの別判断とPhase 2開始Gate。
 
 ### 31.7 復旧時の必須参照
@@ -1146,22 +1146,6 @@ Documentation RAGは「参照機構が成立した」ことをAcceptanceとす�
 - Latest Design Governance Recovery Manifest
 
 本節は`interim_current_state`であり、Phase 1-ex Final Recovery Manifestを置き換えない。
-
-### 31.8 Git通常運用Acceptance
-
-```text
-Commit                    : 844394106f0330b9b8bd3652813642f34132a647
-Message                   : docs(phase-1-ex): record git cutover and governance plans
-Changed Scope             : docs only
-Modified／Added／Deleted  : 16／95／0
-Local／origin／remote／API: identical
-Working Tree Postflight   : clean
-Normal Git Operation      : accepted／operational
-```
-
-本Acceptanceにより、`margpa-runtime-llm/.git`を使用した単一RootのCommit／Push経路は成立した。今後は好きな時点でGit操作を検討できるが、各Commit、Push、Merge、Tag、Release、Branch削除、Remote変更およびVisibility変更には、その都度ユーザーの明示承認が必要である。
-
-Git関連の初期構築、History継承、公開統合、Root Cutoverおよび通常運用確認は完了とする。Branch Protection、Phase完了TagおよびReleaseはGit基盤の未完了事項ではなく、必要性とPhase Closureに応じて判断する独立Gateである。
 
 ## 32. Phase 2 Pilot／Governance Constitution／Desktop予約
 
@@ -1224,46 +1208,3 @@ Desktop化予約を、現行Web版の廃止、Phase 4への自動割当て、特
 OFFを`allow all`と解釈しない。Platform Security、Sandbox、File／Tool Permission、Access Control、Human Approval、既存Authority、法令およびProject開発中の絶対禁止／Docs／Authority規則は維持する。Agent側ONはTool側ONまたはTool実行許可を生成しない。
 
 Constitution ONでRevision、View、DigestまたはEnforcement Capabilityを解決できない場合はFail-closedとし、黙ってOFFへFallbackしない。Default値、UI露出および一般公開ProfileでのON固定は後続設計事項であり、本予約だけで実装済みとしない。
-
-## 33. Phase 1-ex Final Closure Source State
-
-2026-08-04、ユーザーはPhase 1-exのFinal Docs、Final Lossless、最終検査、Backup、Commit／Push、完了判定およびPhase 2開始可能Gateまでを、今回限定のScoped Authorizationとして事前に明示承認した。これは今後のStanding Authorizationではない。
-
-### 33.1 Final Documentation State
-
-- Current／Shared／Public／Phase Indexの完了状態を累積更新した。
-- 設計統括者役のRecoveryを保持したまま、プロジェクト責任者役専用Stable／Historyを新設した。
-- 日本語正本をPhase 1-ex完了Gateとし、Current／Shared／PublicのOptional English Derivativeは同粒度作成を条件に後続へFormal Deferralした。
-- `history/**`は英語派生対象外のままとする。
-
-### 33.2 Pre-final Test Evidence
-
-```text
-pytest                         : 430 passed, 3 deselected
-ruff check                     : pass
-ruff format --check            : 122 files already formatted
-mypy                           : success, 122 source files
-shell syntax                   : pass
-TOML／JSON parse                : pass
-```
-
-### 33.3 Backup Evidence Before Closure
-
-ユーザーは完了作業開始前に次のCheckpoint Backupを取得し、別位置へ移動済みと報告した。
-
-```text
-Archive   : margpa-runtime-llm_phase1-ex_完了間近_20260804.zip
-Size      : 25,420,406 bytes
-SHA-512   : ea0dc3f6af88beb54777f9824a0e632ab0e76285d0a8aecc36f4387c58a1e93a7c3da1ec1ecd12497450df331f316c14a4f385b122fe5b9c0066e16c3bcc3265
-Authority : user-created checkpoint; read-only evidence
-```
-
-Phase Final Backupは本Checkpointと分離し、Final Source、Manifest、SHA-512およびRestore Verificationを持つ別Artifactとして作成する。
-
-### 33.4 Final Source Freeze Boundary
-
-Phase 1-ex Final Losslessは、Final Source Freeze時点の`docs/project/phases/phase_1_ex/`配下のMarkdown／JSONを、`lossless/**`およびOS Metadataを除いて収録する。Final Lossless自身、Backup Receipt、Commit SHAを記録するPost-freeze Completion Record、最終Index SnapshotおよびRecovery Manifestは自己参照を避けるためPost-freeze Artifactとし、個別Path／Hash／Link検証対象とする。
-
-### 33.5 Transactional Closure Rule
-
-本Stable状態は、Final Lossless、両Recovery Manifest、Phase Final Backup／Restore、Publication Sanitation、Final Commit／PushおよびLocal／Origin／GitHub一致がすべて合格した場合だけCommitするTransactional Completion Candidateとして作成した。いずれかがFailした場合はCommit／Pushせず停止する。合格しCommitされた本書は、Phase 1-ex `complete_accepted`およびPhase 2 `ready_to_start`を表す。

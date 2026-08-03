@@ -5,9 +5,9 @@ document_id: current_documentation_index
 status: current
 language: ja
 created_at: 2026-07-26 15:16:24 JST
-updated_at: 2026-08-04 06:11:04 JST
+updated_at: 2026-08-04 05:26:54 JST
 owner: 設計統括者役
-active_phase: phase_2_ready_to_start
+active_phase: phase_1_ex
 rag_default: true
 ```
 
@@ -333,20 +333,3 @@ Agent／ToolのConstitution ON／OFFは機能本体、通常GovernanceおよびA
 - [Latest Phase 1-ex Documentation Index Snapshot](../phases/phase_1_ex/history/documentation_index_20260804052654.md)
 
 単一Canonical Git RootからCommit `8443941`をDirect `main`へPushし、Local、Tracking Reference、RemoteおよびGitHub APIの一致を確認した。Git基盤と通常Commit／Push経路は完了／Operationalとする。各External Mutationのユーザー都度承認、Phase Final Backup、TagおよびReleaseの独立Gateは維持する。
-
-### Phase 1-ex Final Closure Source Refresh
-
-- [Project Responsibility Handoff](../shared/project_responsibility_handoff/project_responsibility_handoff_ja.md)
-- [Design Governance Handoff](../shared/design_governance_handoff/design_governance_handoff_ja.md)
-- [Task Role／Write Authority Policy](../shared/task_roles/task_role_write_authority_policy_ja.md)
-- [Documentation Structure／Task Operations](../shared/operations/documentation_structure_and_task_operations_ja.md)
-- [Optional English Derivative Formal Deferral](../phases/phase_1_ex/history/operations/optional_english_derivative_formal_deferral_20260804061104.md)
-- [Phase 1-ex Index](../phases/phase_1_ex/phase_index_ja.md)
-
-Final DocsのSource StateでFull Suite `430 passed, 3 deselected`、Ruff、Mypy、Shell Syntax、TOML／JSON Parseを合格した。Phase 1-ex Final Lossless、Final Recovery Manifest、Backup Receipt、Final Commit／Push PostflightおよびPhase 2 Ready GateはPost-freeze Closure Artifactとして検証する。本Stateは全Gate合格時にだけCommitされ、Commit済みの本書はPhase 1-ex完了／Phase 2開始可能を表す。
-
-- [Phase 1-ex Final Documentation Index Snapshot](../phases/phase_1_ex/history/documentation_index_20260804061104.md)
-- [Phase 1-ex Final Review／Completion Gate](../phases/phase_1_ex/history/operations/phase_1_ex_final_review_and_completion_gate_20260804061104.md)
-- [Phase 1-ex Final Lossless Compilation](../phases/phase_1_ex/lossless/phase_1_ex_lossless_ja.md)
-- [Final Design Governance Recovery Manifest](../shared/history/design_governance_handoff/design_governance_recovery_manifest_20260804061104.md)
-- [Final Project Responsibility Recovery Manifest](../shared/history/project_responsibility_handoff/project_responsibility_recovery_manifest_20260804061104.md)

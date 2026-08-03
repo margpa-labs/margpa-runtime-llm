@@ -3,10 +3,10 @@
 ```yaml
 document_id: phase_1_ex_documentation_index
 phase: phase_1_ex
-status: complete_accepted
+status: active
 language: ja
 created_at: 2026-07-26 15:16:24 JST
-updated_at: 2026-08-04 06:11:04 JST
+updated_at: 2026-08-04 05:26:54 JST
 owner: 設計統括者役
 rag_default: true
 ```
@@ -651,34 +651,3 @@ Phase 1-ex開始時の旧Index、Role Transition、Migration Control Eventおよ
 - [2026-08-04 04:51:58](history/documentation_index_20260804045158.md)
 - [2026-08-04 05:08:16](history/documentation_index_20260804050816.md)
 - [2026-08-04 05:26:54](history/documentation_index_20260804052654.md)
-
-## 2.28 Phase 1-ex Final Closure Source State
-
-- [Project Responsibility Handoff](../../shared/project_responsibility_handoff/project_responsibility_handoff_ja.md)
-- [Design Governance Handoff](../../shared/design_governance_handoff/design_governance_handoff_ja.md)
-- [Optional English Derivative Formal Deferral](history/operations/optional_english_derivative_formal_deferral_20260804061104.md)
-- [Requirements](../../current/requirements/requirements_specification_ja.md)
-- [Project Continuity Master](../../current/project_continuity/project_continuity_master_ja.md)
-- [Public Roadmap](../../../public/roadmap_ja.md)
-
-Final Docs Source StateのRuntime／Static Gateは次のとおり合格した。
-
-```text
-pytest              : 430 passed, 3 deselected
-ruff check          : pass
-ruff format --check : pass, 122 files
-mypy                : pass, 122 source files
-shell syntax        : pass
-TOML／JSON parse     : pass
-```
-
-英語派生版はユーザーの明示決定によりFormal Deferralとし、Phase 1-exのBlockerにしない。Final Lossless、Final Recovery、Backup、Git PostflightおよびPhase 2 Ready Gateの全てが合格した場合だけ本StateをCommitする。Commit済みの本IndexはPhase 1-ex `complete_accepted`とPhase 2 `ready_to_start`を表す。
-
-### Final Closure Artifacts
-
-- [Final Documentation Index Snapshot](history/documentation_index_20260804061104.md)
-- [Final Review／Completion Gate](history/operations/phase_1_ex_final_review_and_completion_gate_20260804061104.md)
-- [Final Lossless Compilation](lossless/phase_1_ex_lossless_ja.md)
-- [Final Lossless Manifest](lossless/phase_1_ex_lossless_manifest.json)
-- [Final Design Governance Recovery Manifest](../../shared/history/design_governance_handoff/design_governance_recovery_manifest_20260804061104.md)
-- [Final Project Responsibility Recovery Manifest](../../shared/history/project_responsibility_handoff/project_responsibility_recovery_manifest_20260804061104.md)

@@ -5,7 +5,7 @@ document_id: git_workflow_policy
 status: current_effective
 language: ja
 created_at: 2026-08-04 02:53:18 JST
-updated_at: 2026-08-04 05:26:54 JST
+updated_at: 2026-08-04 03:57:22 JST
 owner: 設計統括者役
 decision_authority: user
 repository: margpa-labs/margpa-runtime-llm
@@ -278,9 +278,9 @@ Source→Git Staging統合、Publication Set 1,053件のPath／Content一致、P
 Pull Request       : #1 merged
 Merge Method       : merge commit
 Merge Commit       : 9fff303175a3224963254eacddd66f9cf5112a5a
-Latest Commit      : 844394106f0330b9b8bd3652813642f34132a647
+Latest Commit      : 9ac8a6ba4a2120d93856356fababd130af3aa352
 Default Branch     : main
-Local／origin／remote main : aligned at 844394106f0330b9b8bd3652813642f34132a647
+Local／origin／remote main : aligned at 9ac8a6ba4a2120d93856356fababd130af3aa352
 Working Tree       : clean at postflight
 Git fsck           : pass
 Publication Files  : 1,053／1,053
@@ -291,13 +291,6 @@ Canonical Git Root : margpa-runtime-llm
 Former Staging Root: retired／deleted after backup
 Cutover Full Test  : 430 passed／3 deselected
 Tag／Release        : none
-Normal Commit／Push : accepted／operational
 ```
-
-Commit `844394106f0330b9b8bd3652813642f34132a647`では、Canonical RootからDocs限定111件をDirect `main` Commit／Pushした。変更内訳は更新16件、新規95件、削除0件であり、Local `HEAD`、`origin/main`、Remote `main`およびGitHub APIのSHAとCommit Messageが一致した。Commit Attribution、Docs-only Scope、Privacy／Secret Scan、Link、不要Artifact非混入およびWorking Tree Cleanを確認した。
-
-これにより、専用SSH、Existing History継承、Risk-based Branch Model、Publication Sanitation、単一Canonical Git Rootおよび通常のCommit／Push経路は運用可能なAccepted状態となった。以後は`margpa-runtime-llm`だけをGit Working Rootとして使用し、旧Staging Rootや二重同期を必要としない。
-
-Git基盤の成立は、将来のCommit／Pushを包括承認しない。各External Mutationは第2節の明示承認Gateに従う。Branch Protection、Phase完了TagおよびReleaseは、通常Git運用の成立とは分離した任意またはPhase Closure時の別判断である。
 
 本BaselineはPhase 1-ex完了を意味しない。残るDocs再整理、全体Review、Continuity Refresh、User AcceptanceおよびPhase Final Backupを完了してからPhase完了とTagを判断する。

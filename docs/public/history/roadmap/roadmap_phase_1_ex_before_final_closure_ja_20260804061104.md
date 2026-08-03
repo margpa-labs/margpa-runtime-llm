@@ -5,7 +5,7 @@ document_type: public_roadmap
 document_state: current
 language: ja
 created_at: 2026-07-22
-updated_at: 2026-08-04 06:11:04 JST
+updated_at: 2026-08-04 05:08:16 JST
 public_author: Nazuna Research
 project: MARGPA Runtime LLM
 ```
@@ -140,9 +140,9 @@ FutureまたはPlannedと書かれた項目は、実装済みを意味しない�
 
 ---
 
-## 4. 現在地 — Phase 1-ex Complete／Phase 2 Ready to Start
+## 4. 現在地 — Phase 1-ex Documentation and Public Transition
 
-2026年8月4日時点の現在地は次のとおりである。
+2026年8月1日時点の現在地は次のとおりである。
 
 ```text
 Phase 0                               : Complete
@@ -161,10 +161,10 @@ Lightning Basic Preview Lifecycle     : Complete／Accepted
 Phase 1 Cross-environment Final Review: Complete／Accepted
 Phase 1 Completion Declaration        : Complete
 Phase 1 Confirmed Backup              : Complete／Verified
-Phase 1-ex                            : Complete／Accepted
+Phase 1-ex                            : In Progress
 Docs Directory Migration              : Complete／Validated
 Docs Reconstruction Source Inventory  : Complete／Validated
-Canonical／Shared／Public Set         : Complete／Validated
+Canonical／Shared／Public Initial Set : Complete／Final Validation In Progress
 Lightning Auto-start Stage A／B       : Complete／Accepted／GO
 Traffic-aware External Wake Trial     : Passed／Repeated Wake／Sleep Confirmed
 Observed Lightning Cold Start         : Approximately 3–10 Minutes
@@ -173,19 +173,17 @@ Mac Documentation RAG                 : Complete／Manual Acceptance Passed
 Lightning Basic Preview Public-doc RAG: Complete／Manual Acceptance Passed
 Lightning Public Demo Public-doc RAG  : Complete／Manual Acceptance Passed
 Documentation RAG Answer Quality      : Functional／Known Tuning Limitations Deferred
-Git Workflow／Git Initialization      : Complete／Operational／Single Canonical Root
+Git Workflow／Git Initialization      : Not Started
 Pre-Git GitHub Preparation            : Complete／Direct Upload Path
-GitHub Publication                    : Complete／Git History Preserved／main Aligned
-Phase 1-ex Final Test                 : 430 Passed／3 Deselected
-Phase 2 Entry Gate                    : Ready／Implementation Not Started
-Optional English Documentation        : Formally Deferred／Non-blocking／History Excluded
+GitHub Publication                    : Complete／Direct Upload／Git Not Yet Used
+Optional English Documentation        : Reserved／Current＋Shared＋Public／History Excluded
 ```
 
 現在、MacではQwen3-4B GGUFを用いたCLIと最小Web Previewが動作する。Streaming、生成停止、一時的な複数Turn、回答言語切替、要約モード、UI日本語／英語切替、Thinking生成／表示分離、安全なCompletion MarkdownおよびMessage Copyを実装済みであり、Mac Web Manual Acceptanceも合格した。
 
 Lightning AI Studioでは、Ubuntu 24.04系Linux x86_64 Container、Python 3.12.11、Pure CPU Backend、Qwen3-4B GGUFを用いた環境再構築、Environment Verification、Full Test Suite、Model Acceptance、外部BrowserからのBasic Preview、生成、停止、New Chat、Language、Summary、Thinking、Copy、Busy表示およびLifecycle操作を確認した。Basic Previewは認証付きのPreview環境としてAcceptedであり、Sleeping Studioに対する外部URL AccessだけでのTraffic-aware Wake、同一URLの維持、Managed Secrets変更、旧Credential拒否、新Credential認証、LLM利用およびIdle Sleepへの再移行も実機で確認した。認証なしPublic Demo SurfaceもBasic Previewから分離して成立し、両Surfaceで公開8文書だけを対象とするDocumentation RAGをDefault OFFのまま利用できることを確認した。
 
-Phase 1とPhase 1-exは完了した。Phase 1-exでは、Docs Directory Migration、Canonical／Shared／Public正本、Phase単位Lossless、二種のRecovery Handoff、Git History継承、単一Canonical Git Root、Public Demo、Traffic-aware Auto-start、Mac／Lightning Documentation RAG、公開SanitationおよびPhase Backup契約を整備した。Gitの通常Commit／Push経路は成立済みであり、Git操作そのものは今後も対象ごとのユーザー明示承認を必要とする。現在はPhase 2を開始できる状態で停止しており、Phase 2のTask作成、Pilotおよび機能実装は未開始である。
+Phase 1は完了宣言と確定Backupまで完了した。現在はPhase 1-exで、Docs Directory Migration後のCanonical文書、Phase 1／Phase 1-ex Lossless文書、Shared運用文書、公開文書および初回公開用Metadataを再構築している。Source InventoryはDocs 493件とDemo画像6件をFreezeし、全499件のPath、SizeおよびSHA-512を検証済みである。Current Canonical、Shared、Phase 1 Final Lossless、Phase 1-ex Interim Lossless、Overview、Concept、READMEおよびResearch Preview利用条件の初版は作成済みであり、Gitを使用しない初回GitHub直接掲載も完了した。Git履歴、Branch、Tag、Commit、Author、RemoteおよびBackup対応は未設計であり、次工程として別途確定する。
 
 Lightning Auto-startは、Repository側Read-only Preflight、Stage A、Stage B Repository Preparation、Repository外Private Bootstrap、Manual Foreground起動および複数回のTraffic-aware External Wake実試験を完了し、Basic Previewと認証なしPublic Demoの双方で成立した。観測Cold Startは約3～10分、Idle-to-sleepは約10～12分である。一度だけJSONらしき一時応答が表示されたが、再Accessで正常復帰し、再現未確認の非ブロッカー観察事項としている。これらはFree CPU Studioでの観測値であり、SLAまたは将来環境の性能保証ではない。Public Control Hookは保持するが、Rate Limit、Token／Cost保護等は現在OFFである。Tool／外部操作は搭載せず、Documentation RAGは公開8文書だけに限定してBasic PreviewとPublic Demoの双方で利用可能とした。
 
@@ -395,11 +393,11 @@ Phase 1は「完成したLLM」ではなく、Model交換、Platform交換、Str
 
 ## 7. Phase 1-ex — Operations, Documentation, and Public Transition
 
-**State: `Complete／Accepted`**
+**State: `In Progress`**
 
 Phase 1完了後、初回GitHub公開前に実施する運用移行Phase。新しいAI機能を増やすPhaseではなく、Projectを長期研究・分業・公開に耐えられる状態へ変える。
 
-2026年8月4日時点で、Docs Directory Migration、旧Root退役、Migration Manifest、Rollback Plan、役割権限再整理、Stable／History命名規則、Append-Only運用、設計統括者役／プロジェクト責任者役Recovery、Lightning Basic Preview／Public Demo Lifecycle、Auto-start Stage A／B、Traffic-aware External Wake Acceptance、Mac／Lightning Documentation RAG、Git Workflow／Single Root、Final Lossless、Final ReviewおよびBackup Gateを完了した。
+2026年8月1日時点で、Docs Directory Migration、旧Root退役、Migration Manifest、Rollback Plan、役割権限再整理、Stable／History命名規則、Append-Only運用、設計統括者役Recovery方針、Lightning Basic Preview／Public Demo Lifecycle、Auto-start Stage A／B、Traffic-aware External Wake Acceptance、Mac／Lightning Documentation RAGおよび全Source Inventoryは実施済みである。
 
 残工程の実行順は、2026年7月27日に次の10段階へ変更した。
 
@@ -416,7 +414,7 @@ Phase 1完了後、初回GitHub公開前に実施する運用移行Phase。新�
 
 ユーザー原文では番号`4`が二度使われていたため、内容と前後関係を変えず10段階へ正規化した。Git未使用の一時掲載、後段のGit初期化／GitHub公開との対応および初回Commitの履歴関係は、Git運用設計で確定する。未確定事項を独自判断で統合または前後入替しない。
 
-2026年8月4日時点で、上記1～10のPhase 1-ex完了Gateを実施した。Git未使用時代の公開Historyを保持したまま、Existing RepositoryへCanonical Sourceを統合し、PR／Merge／Single Root Cutover／通常Commit／Pushを検証した。TagとReleaseはユーザー決定により今回作成しない。
+2026年8月1日時点で、上記1～3は完了した。Gitを使用しないGitHub直接掲載、Basic認証Previewと分離した認証なしPublic Demo、Mac限定Documentation RAGおよびLightning公開8文書RAGは実機確認済みである。次工程は4のGit運用設計であり、Git初期化、初回Commitまたは履歴変更を先行させない。
 
 次の順序でDocumentationを再構築した。
 
@@ -573,14 +571,14 @@ PhaseごとのDocumentation統合は、要約や意訳ではなくLossless Compi
 
 > **再現・引き継ぎ・公開・復旧が可能な研究開発Repository**
 
-### Phase 1-ex Completion Gate
+### Phase 1-ex Current Gate
 
-- `project_continuity_master_ja.md`、Current Canonical、Shared、Phase 1 Lossless、Phase 1-ex Final LosslessおよびPublic Corpusが、Source Inventoryへ追跡可能である。
+- `project_continuity_master_ja.md`、Current Canonical、Shared、Phase 1 Lossless、Phase 1-ex Interim LosslessおよびPublic Corpusが、Source Inventoryへ追跡可能である。
 - Stable文書の変更前Snapshotが各`history/`へ保存される。
 - Project ContinuityとRoadmapを、作業開始時と全成果物完成後の2周で確認する。
 - README、画像、利用条件、免責、Attributionおよび将来Roadmapが相互に矛盾しない。
-- 日本語正本を完成させる。英語派生版は、Current／Shared／Publicの非History Stableを対象とする後続Taskへ正式Deferralし、Phase 1-exのBlockerにしない。
-- Gitの通常Commit／Push経路は成立済みである。各Git MutationはAccepted Workflowと対象ごとのユーザー明示承認に従う。
+- 日本語正本を完成させる。英語版はこの時点の必須Gateにせず、Phase 1-ex後半の再確認事項とする。
+- Git未使用の一時掲載、Git運用設計、Git初期化、初回CommitおよびGit管理下のGitHub公開は、それぞれ変更後の実行順とユーザーの個別指示に従う。
 
 ---
 

@@ -5,9 +5,9 @@ document_id: requirements_specification
 status: current
 language: ja
 created_at: 2026-07-26 15:16:24 JST
-updated_at: 2026-08-04 06:11:04 JST
+updated_at: 2026-08-04 05:08:16 JST
 owner: Nazuna Research
-active_phase: phase_2_ready_to_start
+active_phase: phase_1_ex
 rag_default: true
 ```
 
@@ -743,7 +743,7 @@ Phase 1 Backup                       : Complete／Verified
 Mac Metal Runtime                    : Accepted
 Lightning Pure CPU Runtime           : Accepted
 Lightning External Basic Preview     : Accepted
-Phase 1-ex                           : Complete／Accepted
+Phase 1-ex                           : In Progress
 Docs Directory Migration             : Complete／Validated
 Docs Reconstruction Source Inventory : 499／499 PASS
 Current Canonical Reconstruction      : Complete／Current Refresh In Progress
@@ -756,13 +756,13 @@ Documentation RAG                    : Mac／Lightning Basic／Public Accepted
 Git／GitHub                           : Existing History Preserved／Single Root／main Aligned
 ```
 
-Phase 1-exは、次を完了Gateとして検証し、Final Lossless、Recovery、Test、Sanitation、BackupおよびGit Postflightの合格をもって完了した。
+Phase 1-exは、次を満たすまで完了扱いにしない。
 
 1. Current、Shared、PublicおよびPhase CompilationがSource Inventoryへ追跡可能である。
 2. Project ContinuityとRoadmapを第1周・第2周の両方で確認する。
 3. History SnapshotとStable本文が一致する。
 4. Phase 1 Losslessから全Sourceを再抽出できる。
-5. Phase 1-ex Final LosslessがFinal Source Freeze対象の全Sourceを含み、Freeze後のClosure Artifactが明示的に分離される。
+5. Phase 1-ex Interim Losslessが作成時点までの全Sourceを含む。
 6. README、利用条件、Roadmap、Current Stateが矛盾しない。
 7. Secret、Credential、PII、不要な絶対Path、Model Weightを公開対象へ含めない。
 8. Git操作はAccepted Git Workflowに従い、対象とActionごとのユーザー明示承認なしに実行しない。
