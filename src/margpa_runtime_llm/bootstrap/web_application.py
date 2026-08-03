@@ -2,22 +2,35 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from pathlib import Path
 
 from margpa_runtime_llm.modules.conversation.public import ConversationGenerationService
+from margpa_runtime_llm.modules.documentation_rag.contracts import (
+    DocumentationRagAvailability,
+    DocumentationRagMode,
+)
+from margpa_runtime_llm.modules.documentation_rag.ports import (
+    ContextualRagOrchestratorPort,
+    RagOrchestratorPort,
+)
 from margpa_runtime_llm.modules.inference.domain.capabilities import CapabilityFeature
 from margpa_runtime_llm.modules.inference.domain.errors import (
     InferenceError,
     InferenceErrorCode,
 )
+from margpa_runtime_llm.web.access_profiles import DocumentationRagEffectiveState
 from margpa_runtime_llm.web.contracts import (
+    DocumentationRagRuntimeSnapshot,
     RuntimeDefaults,
     SafeRuntimeSnapshot,
     WebRuntime,
 )
 
 from .phase1_application import Phase1Application, build_phase1_application
+
+TextTokenCounter = Callable[[str], int]
+TextTokenCounterBinder = Callable[[TextTokenCounter], None]
 
 
 def build_phase1_web_runtime(
@@ -30,6 +43,16 @@ def build_phase1_web_runtime(
     cli_model_root: Path | None = None,
     cli_model_key: str | None = None,
     load_overrides: Mapping[str, object] | None = None,
+    documentation_rag: RagOrchestratorPort | ContextualRagOrchestratorPort | None = None,
+    documentation_rag_availability: DocumentationRagAvailability = (
+        DocumentationRagAvailability.UNAVAILABLE
+    ),
+    documentation_rag_effective_state: DocumentationRagEffectiveState = (
+        DocumentationRagEffectiveState.UNAVAILABLE
+    ),
+    documentation_rag_default_mode: DocumentationRagMode = DocumentationRagMode.DISABLED,
+    documentation_rag_provider_display_name: str | None = None,
+    documentation_rag_token_counter_binder: TextTokenCounterBinder | None = None,
 ) -> WebRuntime:
     application: Phase1Application | None = None
     try:
@@ -52,6 +75,8 @@ def build_phase1_web_runtime(
         thinking_control_available = (
             CapabilityFeature.THINKING_CONTROL in runtime_info.effective_capabilities.features
         )
+        if documentation_rag is not None and documentation_rag_token_counter_binder is not None:
+            documentation_rag_token_counter_binder(application.service.count_text_tokens)
         conversation = ConversationGenerationService(
             inference=application.service,
             presentation=application.presentation_service,
@@ -61,6 +86,14 @@ def build_phase1_web_runtime(
             presentation_default=application.config.presentation,
             summarization=application.config.summarization,
             thinking_control_available=thinking_control_available,
+            documentation_rag=documentation_rag,
+            documentation_rag_availability=documentation_rag_availability,
+            chat_prompt_token_counter=(
+                application.service.count_chat_prompt_tokens
+                if documentation_rag is not None
+                else None
+            ),
+            effective_context_size=runtime_info.loaded_context_size,
         )
         snapshot = SafeRuntimeSnapshot(
             model_key=runtime_info.model_key,
@@ -75,6 +108,15 @@ def build_phase1_web_runtime(
                 thinking_display_label=application.config.presentation.display_label,
                 thinking_control_available=thinking_control_available,
                 summary_mode=application.config.summarization.mode,
+                documentation_rag_mode=documentation_rag_default_mode,
+            ),
+            documentation_rag=DocumentationRagRuntimeSnapshot(
+                effective_state=documentation_rag_effective_state,
+                control_available=(
+                    documentation_rag_availability is DocumentationRagAvailability.AVAILABLE
+                ),
+                provider_display_name=documentation_rag_provider_display_name,
+                default_mode=documentation_rag_default_mode,
             ),
         )
         return WebRuntime(

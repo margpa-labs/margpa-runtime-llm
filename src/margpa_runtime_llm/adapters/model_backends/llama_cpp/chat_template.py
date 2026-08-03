@@ -108,6 +108,22 @@ class LlamaCppChatTemplate:
                 details={"exception_type": type(exc).__name__},
             ) from exc
 
+    def count_text_tokens(self, text: str) -> int:
+        try:
+            return len(
+                self._model.tokenize(
+                    text.encode("utf-8"),
+                    add_bos=False,
+                    special=True,
+                )
+            )
+        except (TypeError, ValueError) as exc:
+            raise InferenceError(
+                code=InferenceErrorCode.BACKEND_PROTOCOL_ERROR,
+                safe_message="The model tokenizer could not count text tokens.",
+                details={"exception_type": type(exc).__name__},
+            ) from exc
+
     def create_chat_completion(
         self,
         messages: tuple[ChatMessage, ...],

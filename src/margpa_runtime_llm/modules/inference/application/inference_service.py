@@ -1,12 +1,18 @@
 """Application service coordinating the backend-independent Model Port."""
 
-from ..contracts.generation import GenerationRequest, GenerationResult, GenerationStream
+from ..contracts.generation import (
+    GenerationRequest,
+    GenerationResult,
+    GenerationStream,
+    ThinkingMode,
+)
+from ..contracts.messages import ChatMessage
 from ..contracts.runtime import ModelCapabilities, ModelLoadConfig, ModelRuntimeInfo
 from ..domain.capabilities import CapabilityFeature
 from ..domain.errors import InferenceError, InferenceErrorCode
 from ..domain.lifecycle import ModelLifecycleState
 from ..domain.model_definition import ModelDefinition
-from ..ports.model_port import ModelPort
+from ..ports.model_port import ChatPromptTokenCounterPort, ModelPort, TextTokenCounterPort
 
 
 class InferenceService:
@@ -47,6 +53,26 @@ class InferenceService:
     def stream(self, request: GenerationRequest) -> GenerationStream:
         self._validate_request(request)
         return self._port.stream(request)
+
+    def count_text_tokens(self, text: str) -> int:
+        if not isinstance(self._port, TextTokenCounterPort):
+            raise InferenceError(
+                code=InferenceErrorCode.UNSUPPORTED_CAPABILITY,
+                safe_message="Text token counting is unavailable for this backend.",
+            )
+        return self._port.count_text_tokens(text)
+
+    def count_chat_prompt_tokens(
+        self,
+        messages: tuple[ChatMessage, ...],
+        thinking_mode: ThinkingMode,
+    ) -> int:
+        if not isinstance(self._port, ChatPromptTokenCounterPort):
+            raise InferenceError(
+                code=InferenceErrorCode.UNSUPPORTED_CAPABILITY,
+                safe_message="Exact chat prompt token counting is unavailable for this backend.",
+            )
+        return self._port.count_chat_prompt_tokens(messages, thinking_mode)
 
     def _validate_request(self, request: GenerationRequest) -> None:
         runtime_info = self._port.runtime_info

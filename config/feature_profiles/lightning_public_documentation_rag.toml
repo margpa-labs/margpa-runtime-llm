@@ -1,0 +1,51 @@
+schema_version = "2"
+profile_key = "external.lightning-public-corpus.documentation-rag.lexical"
+mode = "enabled"
+provider_key = "project_filesystem_lexical"
+provider_display_name = "Public project documentation"
+allowed_access_modes = ["basic_preview", "public_demo"]
+allowed_platforms = ["linux-x86_64-container"]
+
+[corpus]
+selection_mode = "explicit_files"
+files = [
+  "docs/public/overview_ja.md",
+  "docs/public/overview_en.md",
+  "docs/public/concept_ja.md",
+  "docs/public/concept_en.md",
+  "docs/public/roadmap_ja.md",
+  "docs/public/roadmap_en.md",
+  "docs/public/technology_selection_ja.md",
+  "docs/public/technology_selection_en.md",
+]
+include_history = false
+include_lossless = false
+
+[limits]
+max_documents = 8
+max_file_bytes = 4194304
+max_corpus_bytes = 33554432
+max_chunks = 20000
+
+[chunking]
+target_characters = 900
+overlap_characters = 120
+maximum_characters = 1600
+
+[retrieval]
+top_k = 4
+max_chunks_per_document = 2
+minimum_score = 0.1
+bm25_k1 = 1.5
+bm25_b = 0.75
+body_weight = 1.0
+heading_weight = 1.75
+path_weight = 1.5
+exact_phrase_bonus = 2.0
+corpus_priority_weight = 0.25
+
+[context]
+maximum_tokens = 768
+minimum_useful_tokens = 128
+safety_margin_tokens = 512
+fallback_maximum_characters = 2400

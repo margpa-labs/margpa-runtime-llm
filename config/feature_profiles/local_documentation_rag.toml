@@ -1,0 +1,45 @@
+schema_version = "1"
+profile_key = "local.documentation-rag.lexical"
+mode = "enabled"
+provider_key = "local_lexical"
+provider_display_name = "Local lexical documentation"
+active_phase = "phase_1_ex"
+completed_phases = ["phase_1"]
+
+[corpus]
+include_current = true
+include_public = true
+include_active_phase_index = true
+include_completed_phase_stable = true
+include_history = false
+include_lossless = false
+
+[limits]
+max_documents = 512
+max_file_bytes = 4194304
+max_corpus_bytes = 33554432
+max_chunks = 20000
+
+[chunking]
+target_characters = 900
+overlap_characters = 120
+maximum_characters = 1600
+
+[retrieval]
+top_k = 4
+max_chunks_per_document = 2
+minimum_score = 0.1
+bm25_k1 = 1.5
+bm25_b = 0.75
+body_weight = 1.0
+heading_weight = 1.75
+path_weight = 1.5
+exact_phrase_bonus = 2.0
+corpus_priority_weight = 0.25
+
+[context]
+maximum_tokens = 768
+minimum_useful_tokens = 128
+safety_margin_tokens = 512
+fallback_maximum_characters = 2400
+

@@ -181,6 +181,59 @@ h1 {
   line-height: 1.55;
 }
 
+.message-citations {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-left: 3px solid #47a987;
+  border-radius: 8px;
+  background: #151f20;
+}
+
+.message-citations[hidden] {
+  display: none;
+}
+
+.message-citations-label {
+  margin-bottom: 8px;
+  color: #8fd8c0;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.message-citations-list {
+  display: grid;
+  gap: 8px;
+}
+
+.message-citation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 10px;
+  align-items: center;
+  font-size: 0.78rem;
+}
+
+.message-citation code {
+  overflow-wrap: anywhere;
+}
+
+.message-citation span {
+  grid-column: 1;
+  color: #9da8b6;
+}
+
+.message-citation button {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  padding: 4px 8px;
+  font-size: 0.72rem;
+}
+
+.message-citation-empty {
+  color: #9da8b6;
+  font-size: 0.78rem;
+}
+
 .message-actions {
   display: flex;
   justify-content: flex-end;

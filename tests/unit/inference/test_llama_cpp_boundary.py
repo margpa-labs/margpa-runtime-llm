@@ -23,6 +23,9 @@ from margpa_runtime_llm.adapters.model_backends.llama_cpp.stream import (
     LlamaCppGenerationStream,
 )
 from margpa_runtime_llm.bootstrap.model_registry_loader import load_model_definition
+from margpa_runtime_llm.modules.inference.application.inference_service import (
+    InferenceService,
+)
 from margpa_runtime_llm.modules.inference.contracts.generation import (
     FinishReason,
     GenerationParameters,
@@ -45,6 +48,7 @@ from margpa_runtime_llm.modules.inference.domain.errors import (
     InferenceError,
     InferenceErrorCode,
 )
+from margpa_runtime_llm.modules.inference.domain.lifecycle import ModelLifecycleState
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFINITION = load_model_definition(PROJECT_ROOT / "config/models/qwen3_4b_q4_k_m.toml")
@@ -54,6 +58,7 @@ MAC_RUNTIME_CAPABILITIES = MODEL_REQUIRED_CAPABILITIES | {CapabilityFeature.GPU_
 class FakeTemplateModel:
     def __init__(self, template: str) -> None:
         self.metadata = {"tokenizer.chat_template": template}
+        self.tokenize_calls: list[tuple[bytes, bool, bool]] = []
 
     def token_eos(self) -> int:
         return 1
@@ -70,6 +75,7 @@ class FakeTemplateModel:
         return b"<special>" if special else b""
 
     def tokenize(self, text: bytes, add_bos: bool = True, special: bool = False) -> list[int]:
+        self.tokenize_calls.append((text, add_bos, special))
         return list(range(max(1, len(text.split()))))
 
 
@@ -198,6 +204,80 @@ def test_soft_thinking_switch_is_explicitly_warned() -> None:
     assert not controller.hard_switch_supported
     assert "/no_think" in disabled.prompt
     assert controller.warnings[0].code == "thinking_soft_switch"
+
+
+def test_text_token_counter_uses_loaded_tokenizer_without_adding_bos() -> None:
+    template = "{% for message in messages %}{{ message['content'] }}{% endfor %}"
+    model = FakeTemplateModel(template)
+    controller = LlamaCppChatTemplate(cast(Llama, model))
+
+    count = controller.count_text_tokens("参照 context text")
+
+    assert count == 3
+    assert model.tokenize_calls[-1] == (
+        "参照 context text".encode(),
+        False,
+        True,
+    )
+
+
+def test_text_token_counter_failure_does_not_expose_raw_text() -> None:
+    raw_text = "SECRET-RAG-TEXT"
+
+    class FailingTokenModel(FakeTemplateModel):
+        def tokenize(
+            self,
+            text: bytes,
+            add_bos: bool = True,
+            special: bool = False,
+        ) -> list[int]:
+            del add_bos, special
+            raise TypeError(text.decode())
+
+    template = "{% for message in messages %}{{ message['content'] }}{% endfor %}"
+    controller = LlamaCppChatTemplate(cast(Llama, FailingTokenModel(template)))
+
+    with pytest.raises(InferenceError) as captured:
+        controller.count_text_tokens(raw_text)
+
+    assert captured.value.code is InferenceErrorCode.BACKEND_PROTOCOL_ERROR
+    assert raw_text not in captured.value.safe_message
+    assert raw_text not in str(captured.value)
+
+
+def test_adapter_token_counter_obeys_loaded_and_busy_lifecycle(tmp_path: Path) -> None:
+    template = (
+        "{% for message in messages %}{{ message['content'] }} {% endfor %}"
+        "{% if enable_thinking %}THINKING_ON{% else %}THINKING_OFF{% endif %}"
+    )
+    model = FakeTemplateModel(template)
+    controller = LlamaCppChatTemplate(cast(Llama, model))
+    adapter = LlamaCppModelAdapter(model_root=tmp_path)
+    adapter._state = ModelLifecycleState.LOADED
+    adapter._chat_template = controller
+
+    service = InferenceService(adapter)
+    assert service.count_text_tokens("one two") == 2
+    messages = (ChatMessage(role=MessageRole.USER, content="日本語の長い会話"),)
+    disabled_count = service.count_chat_prompt_tokens(messages, ThinkingMode.DISABLED)
+    assert disabled_count == controller.format_prompt(messages, ThinkingMode.DISABLED).token_count
+    assert b"THINKING_OFF" in model.tokenize_calls[-1][0]
+    enabled_count = service.count_chat_prompt_tokens(messages, ThinkingMode.ENABLED)
+    assert enabled_count == controller.format_prompt(messages, ThinkingMode.ENABLED).token_count
+    assert b"THINKING_ON" in model.tokenize_calls[-1][0]
+
+    assert adapter._generation_lock.acquire(blocking=False)
+    try:
+        with pytest.raises(InferenceError) as busy:
+            adapter.count_chat_prompt_tokens(messages, ThinkingMode.DISABLED)
+    finally:
+        adapter._generation_lock.release()
+    assert busy.value.code is InferenceErrorCode.MODEL_BUSY
+
+    adapter._state = ModelLifecycleState.UNLOADED
+    with pytest.raises(InferenceError) as unloaded:
+        adapter.count_chat_prompt_tokens(messages, ThinkingMode.DISABLED)
+    assert unloaded.value.code is InferenceErrorCode.MODEL_NOT_LOADED
 
 
 def test_stream_maps_sequence_terminal_usage_and_timing() -> None:

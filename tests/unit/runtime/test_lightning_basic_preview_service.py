@@ -18,6 +18,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[3]
 SCRIPT_ROOT = PROJECT_ROOT / "scripts/runtime/lightning"
 AUTO_PREFLIGHT = SCRIPT_ROOT / "auto_start_preflight.sh"
 SERVICE = SCRIPT_ROOT / "basic_preview_service.sh"
+PUBLIC_SERVICE = SCRIPT_ROOT / "public_demo_service.sh"
 COMMON = SCRIPT_ROOT / "basic_preview_common.sh"
 MODEL_RELATIVE_PATH = Path("main/qwen3-4b/gguf/Qwen3-4B-Q4_K_M.gguf")
 STATE_MARKER_NAME = ".margpa-basic-preview-state"
@@ -39,6 +40,7 @@ class LightningFixture:
     process_registry: Path
     process_history: Path
     web_record: Path
+    child_environment_log: Path
     environment: dict[str, str]
 
 
@@ -61,6 +63,7 @@ def lightning_fixture(tmp_path: Path) -> LightningFixture:
     curl_log = workspace_root / "curl.log"
     uv_log = workspace_root / "uv.log"
     record_path = workspace_root / "web-arguments.log"
+    child_environment_log = workspace_root / "child-environment.log"
     process_registry = workspace_root / "process-registry.log"
     process_history = workspace_root / "process-history.log"
     identity_ready = workspace_root / "identity-transition.ready"
@@ -68,6 +71,8 @@ def lightning_fixture(tmp_path: Path) -> LightningFixture:
 
     (project_root / "config/profiles").mkdir(parents=True)
     (project_root / "config/models").mkdir(parents=True)
+    (project_root / "config/web_profiles").mkdir(parents=True)
+    (project_root / "config/feature_profiles").mkdir(parents=True)
     (project_root / "src/margpa_runtime_llm/web").mkdir(parents=True)
     artifact_path.parent.mkdir(parents=True)
     (environment_prefix / "bin").mkdir(parents=True)
@@ -77,15 +82,34 @@ def lightning_fixture(tmp_path: Path) -> LightningFixture:
 
     (project_root / "config/profiles/lightning_linux_x86_64_cpu_native.toml").write_text(
         """
+schema_version = "3"
 profile_key = "external.lightning-linux-x86_64.cpu-native"
+verification_state = "defined"
+
+[host]
+operating_system_key = "linux"
+architecture_key = "x86_64"
+execution_environment_key = "container"
+distribution_key = "ubuntu"
 
 [backend_runtime]
+backend_key = "llama_cpp"
+required_version = "0.3.34"
 build_variant_key = "cpu"
+execution_mode_key = "in_process"
 
 [compute]
+compute_kind_key = "cpu"
+vendor_key = "generic"
 acceleration_api_key = "none"
+memory_topology_key = "cpu_ram"
+device_selector = "auto"
+offload_policy_key = "disabled"
 
 [runtime_requirements]
+required_capabilities = []
+required_device_kind = "cpu"
+required_acceleration_api = "none"
 fallback_policy = "deny"
 
 [load_overrides]
@@ -97,12 +121,114 @@ gpu_layers = 0
         f'[artifact]\nrelative_path = "{MODEL_RELATIVE_PATH.as_posix()}"\n',
         encoding="utf-8",
     )
+    control_sections = """
+[controls.rate_limit]
+mode = "off"
+[controls.generation_budget]
+mode = "off"
+[controls.cooldown]
+mode = "off"
+[controls.public_max_new_tokens]
+mode = "off"
+[controls.request_quota]
+mode = "off"
+[controls.cost_guard]
+mode = "off"
+"""
+    (project_root / "config/web_profiles/basic_preview.toml").write_text(
+        f"""
+schema_version = "1"
+profile_key = "basic_preview"
+[access]
+mode = "basic_preview"
+authentication = "basic"
+non_loopback_allowed = true
+[features]
+documentation_rag = "eligible"
+{control_sections}
+""".lstrip(),
+        encoding="utf-8",
+    )
+    (project_root / "config/web_profiles/public_demo.toml").write_text(
+        f"""
+schema_version = "1"
+profile_key = "public_demo"
+[access]
+mode = "public_demo"
+authentication = "none"
+non_loopback_allowed = true
+[features]
+documentation_rag = "eligible"
+{control_sections}
+""".lstrip(),
+        encoding="utf-8",
+    )
+    (project_root / "config/feature_profiles/lightning_public_documentation_rag.toml").write_text(
+        """
+schema_version = "2"
+profile_key = "external.lightning-public-corpus.documentation-rag.lexical"
+mode = "enabled"
+provider_key = "project_filesystem_lexical"
+provider_display_name = "Public project documentation"
+allowed_access_modes = ["basic_preview", "public_demo"]
+allowed_platforms = ["linux-x86_64-container"]
+[corpus]
+selection_mode = "explicit_files"
+files = [
+  "docs/public/overview_ja.md",
+  "docs/public/overview_en.md",
+  "docs/public/concept_ja.md",
+  "docs/public/concept_en.md",
+  "docs/public/roadmap_ja.md",
+  "docs/public/roadmap_en.md",
+  "docs/public/technology_selection_ja.md",
+  "docs/public/technology_selection_en.md",
+]
+include_history = false
+include_lossless = false
+[limits]
+max_documents = 8
+max_file_bytes = 4194304
+max_corpus_bytes = 33554432
+max_chunks = 20000
+[chunking]
+target_characters = 900
+overlap_characters = 120
+maximum_characters = 1600
+[retrieval]
+top_k = 4
+max_chunks_per_document = 2
+minimum_score = 0.1
+bm25_k1 = 1.5
+bm25_b = 0.75
+body_weight = 1.0
+heading_weight = 1.75
+path_weight = 1.5
+exact_phrase_bonus = 2.0
+corpus_priority_weight = 0.25
+[context]
+maximum_tokens = 768
+minimum_useful_tokens = 128
+safety_margin_tokens = 512
+fallback_maximum_characters = 2400
+""".lstrip(),
+        encoding="utf-8",
+    )
     (project_root / "src/margpa_runtime_llm/web/app.py").write_text(
         '@app.get("/healthz")\nasync def healthz():\n    return {"status": "ok"}\n',
         encoding="utf-8",
     )
     artifact_path.write_bytes(b"model-fixture-placeholder")
-    (environment_prefix / "bin/python").symlink_to(sys.executable)
+    _write_executable(
+        environment_prefix / "bin/python",
+        """#!/bin/bash
+printf 'python|%s|%s|%s\\n' \
+  "${MARGPA_WEB_AUTH_MODE+x}" \
+  "${MARGPA_WEB_AUTH_USERNAME+x}" \
+  "${MARGPA_WEB_AUTH_PASSWORD+x}" >> "${MARGPA_TEST_CHILD_ENVIRONMENT_LOG}"
+exec "${MARGPA_TEST_SYSTEM_PYTHON}" "$@"
+""",
+    )
 
     invalid_identity_child = fake_commands / "unexpected-lifecycle-child"
     _write_executable(
@@ -132,11 +258,17 @@ done
     _write_executable(
         environment_prefix / "bin/margpa-web",
         """#!/bin/bash
+printf 'margpa-web|%s|%s|%s\\n' \
+  "${MARGPA_WEB_AUTH_MODE+x}" \
+  "${MARGPA_WEB_AUTH_USERNAME+x}" \
+  "${MARGPA_WEB_AUTH_PASSWORD+x}" >> "${MARGPA_TEST_CHILD_ENVIRONMENT_LOG}"
 if [[ "${MARGPA_TEST_WEB_MODE:-service}" == "record" ]]; then
   printf '%s\\n' "$@" > "${MARGPA_TEST_WEB_RECORD}"
   printf 'auth_mode=%s\\n' "${MARGPA_WEB_AUTH_MODE:+present}" >> "${MARGPA_TEST_WEB_RECORD}"
   printf 'auth_username=%s\\n' "${MARGPA_WEB_AUTH_USERNAME:+present}" >> "${MARGPA_TEST_WEB_RECORD}"
   printf 'auth_password=%s\\n' "${MARGPA_WEB_AUTH_PASSWORD:+present}" >> "${MARGPA_TEST_WEB_RECORD}"
+  printf 'documentation_rag_profile=%s\\n' \
+    "${MARGPA_DOCUMENTATION_RAG_PROFILE:-}" >> "${MARGPA_TEST_WEB_RECORD}"
   exit 0
 fi
 if [[ "${MARGPA_TEST_IDENTITY:-valid}" == "invalid" ]]; then
@@ -184,12 +316,26 @@ exec /bin/mv "$@"
     _write_executable(
         uv_directory / "uv",
         """#!/bin/bash
+printf 'uv|%s|%s|%s\\n' \
+  "${MARGPA_WEB_AUTH_MODE+x}" \
+  "${MARGPA_WEB_AUTH_USERNAME+x}" \
+  "${MARGPA_WEB_AUTH_PASSWORD+x}" >> "${MARGPA_TEST_CHILD_ENVIRONMENT_LOG}"
 printf '%s\\n' "$*" >> "${MARGPA_TEST_UV_LOG}"
 if [[ "${1:-}" == "--version" ]]; then
   printf 'uv 0.11.29\\n'
   exit 0
 fi
 exit 91
+""",
+    )
+    _write_executable(
+        fake_commands / "dirname",
+        """#!/bin/bash
+printf 'dirname|%s|%s|%s\\n' \
+  "${MARGPA_WEB_AUTH_MODE+x}" \
+  "${MARGPA_WEB_AUTH_USERNAME+x}" \
+  "${MARGPA_WEB_AUTH_PASSWORD+x}" >> "${MARGPA_TEST_CHILD_ENVIRONMENT_LOG}"
+exec /usr/bin/dirname "$@"
 """,
     )
     _write_executable(
@@ -273,6 +419,8 @@ esac
             "MARGPA_TEST_CURL_LOG": str(curl_log),
             "MARGPA_TEST_UV_LOG": str(uv_log),
             "MARGPA_TEST_WEB_RECORD": str(record_path),
+            "MARGPA_TEST_CHILD_ENVIRONMENT_LOG": str(child_environment_log),
+            "MARGPA_TEST_SYSTEM_PYTHON": sys.executable,
             "MARGPA_TEST_PROCESS_REGISTRY": str(process_registry),
             "MARGPA_TEST_PROCESS_HISTORY": str(process_history),
             "MARGPA_TEST_INVALID_IDENTITY_CHILD": str(invalid_identity_child),
@@ -292,6 +440,7 @@ esac
         process_registry=process_registry,
         process_history=process_history,
         web_record=record_path,
+        child_environment_log=child_environment_log,
         environment=environment,
     )
 
@@ -328,11 +477,20 @@ def _credentials(fixture: LightningFixture) -> tuple[str, str]:
     )
 
 
+def _child_environment_records(fixture: LightningFixture) -> list[tuple[str, ...]]:
+    return [
+        tuple(line.split("|"))
+        for line in fixture.child_environment_log.read_text(encoding="utf-8").splitlines()
+        if line
+    ]
+
+
 def _popen_service(
     fixture: LightningFixture,
     *arguments: str,
     environment_updates: Mapping[str, str | None] | None = None,
     cwd: Path = PROJECT_ROOT,
+    script: Path = SERVICE,
 ) -> subprocess.Popen[str]:
     environment = dict(fixture.environment)
     for name, value in (environment_updates or {}).items():
@@ -341,7 +499,7 @@ def _popen_service(
         else:
             environment[name] = value
     return subprocess.Popen(
-        [str(SERVICE), *arguments],
+        [str(script), *arguments],
         cwd=cwd,
         env=environment,
         stdout=subprocess.PIPE,
@@ -388,7 +546,7 @@ def _assert_processes_stopped(pids: list[int]) -> None:
 def test_help_argument_handling_and_shell_syntax(
     lightning_fixture: LightningFixture,
 ) -> None:
-    for script in (COMMON, AUTO_PREFLIGHT, SERVICE):
+    for script in (COMMON, AUTO_PREFLIGHT, SERVICE, PUBLIC_SERVICE):
         syntax = subprocess.run(
             ["bash", "-n", str(script)],
             cwd=PROJECT_ROOT,
@@ -401,11 +559,16 @@ def test_help_argument_handling_and_shell_syntax(
 
     auto_help = _run(AUTO_PREFLIGHT, lightning_fixture, "--help")
     service_help = _run(SERVICE, lightning_fixture, "--help")
+    public_help = _run(PUBLIC_SERVICE, lightning_fixture, "--help")
     unknown = _run(SERVICE, lightning_fixture, "publish")
 
     assert auto_help.returncode == 0
     assert "read-only" in auto_help.stdout
     assert service_help.returncode == 0
+    assert public_help.returncode == 0
+    assert "preflight" in public_help.stdout
+    assert "run" in public_help.stdout
+    assert "start" not in public_help.stdout
     for command in ("preflight", "run", "start", "stop", "status", "restart"):
         assert command in service_help.stdout
     assert unknown.returncode == 1
@@ -510,13 +673,327 @@ def test_run_passes_only_non_secret_arguments_and_inherits_credentials(
     assert "--host\n0.0.0.0" in recorded
     assert "--port\n8123" in recorded
     assert f"--profile\n{lightning_fixture.project_root}/config/profiles" in recorded
+    assert (
+        f"--access-profile\n"
+        f"{lightning_fixture.project_root}/config/web_profiles/basic_preview.toml" in recorded
+    )
+    assert (
+        f"--documentation-rag-profile\n"
+        f"{lightning_fixture.project_root}/config/feature_profiles/"
+        "lightning_public_documentation_rag.toml" in recorded
+    )
+    assert (
+        f"--registry\n"
+        f"{lightning_fixture.project_root}/config/models/qwen3_4b_q4_k_m.toml" in recorded
+    )
     assert f"--model-root\n{lightning_fixture.model_root}" in recorded
     assert "auth_mode=present" in recorded
     assert "auth_username=present" in recorded
     assert "auth_password=present" in recorded
+    assert all(
+        record[1:] == ("x", "x", "x") for record in _child_environment_records(lightning_fixture)
+    )
     combined_output = result.stdout + result.stderr + recorded
     assert username not in combined_output
     assert password not in combined_output
+
+
+def test_public_preflight_and_run_are_credential_independent_with_public_rag(
+    lightning_fixture: LightningFixture,
+) -> None:
+    username, password = _credentials(lightning_fixture)
+    alternate_profile = (
+        lightning_fixture.project_root / "config/profiles/alternate_public_compute.toml"
+    )
+    source_profile = (
+        lightning_fixture.project_root / "config/profiles/lightning_linux_x86_64_cpu_native.toml"
+    )
+    alternate_profile.write_text(
+        source_profile.read_text(encoding="utf-8").replace(
+            'profile_key = "external.lightning-linux-x86_64.cpu-native"',
+            'profile_key = "external.alternate-compute"',
+        ),
+        encoding="utf-8",
+    )
+    alternate_definition = lightning_fixture.project_root / "config/models/alternate-model.toml"
+    alternate_definition.write_text(
+        f'[artifact]\nrelative_path = "{MODEL_RELATIVE_PATH.as_posix()}"\n',
+        encoding="utf-8",
+    )
+
+    preflight = _run(
+        PUBLIC_SERVICE,
+        lightning_fixture,
+        "preflight",
+        environment_updates={
+            "MARGPA_WEB_ACCESS_PROFILE": None,
+        },
+    )
+    preflight_child_records = _child_environment_records(lightning_fixture)
+    run = _run(
+        PUBLIC_SERVICE,
+        lightning_fixture,
+        "run",
+        environment_updates={
+            "MARGPA_WEB_ACCESS_PROFILE": None,
+            "MARGPA_WEB_PROFILE": str(alternate_profile),
+            "MARGPA_MODEL_DEFINITION": str(alternate_definition),
+            "MARGPA_MODEL_KEY": "replacement.model",
+            "MARGPA_CONTEXT_SIZE": "8192",
+            "MARGPA_TEST_WEB_MODE": "record",
+        },
+    )
+
+    assert preflight.returncode == 0, preflight.stderr
+    assert "mode=public_demo authentication=none" in preflight.stdout
+    assert "capability=eligible default=disabled" in preflight.stdout
+    assert "expected=8 present=0 missing=8" in preflight.stdout
+    assert "check.public_controls=pass mode=off" in preflight.stdout
+    assert {record[0] for record in preflight_child_records} >= {"dirname", "python", "uv"}
+    assert all(record[1:] == ("", "", "") for record in preflight_child_records)
+    assert run.returncode == 0, run.stderr
+
+    recorded = lightning_fixture.web_record.read_text(encoding="utf-8")
+    all_child_records = _child_environment_records(lightning_fixture)
+    run_child_records = all_child_records[len(preflight_child_records) :]
+    assert (
+        f"--access-profile\n"
+        f"{lightning_fixture.project_root}/config/web_profiles/public_demo.toml" in recorded
+    )
+    assert (
+        f"--documentation-rag-profile\n"
+        f"{lightning_fixture.project_root}/config/feature_profiles/"
+        "lightning_public_documentation_rag.toml" in recorded
+    )
+    assert f"--profile\n{alternate_profile}" in recorded
+    assert f"--registry\n{alternate_definition}" in recorded
+    assert "--model-key\nreplacement.model" in recorded
+    assert "--context-size\n8192" in recorded
+    assert "auth_mode=\n" in recorded
+    assert "auth_username=\n" in recorded
+    assert "auth_password=\n" in recorded
+    assert (
+        "documentation_rag_profile="
+        f"{lightning_fixture.project_root}/config/feature_profiles/"
+        "lightning_public_documentation_rag.toml" in recorded
+    )
+    assert {record[0] for record in run_child_records} >= {
+        "dirname",
+        "python",
+        "uv",
+        "margpa-web",
+    }
+    assert all(record[1:] == ("", "", "") for record in run_child_records)
+    combined_output = preflight.stdout + preflight.stderr + run.stdout + run.stderr + recorded
+    assert username not in combined_output
+    assert password not in combined_output
+    assert not lightning_fixture.state_root.exists()
+    assert not (lightning_fixture.workspace_root / LOCK_DIRECTORY_NAME).exists()
+
+
+@pytest.mark.parametrize("script", [SERVICE, PUBLIC_SERVICE])
+def test_documentation_rag_profile_must_remain_project_bounded_and_valid(
+    lightning_fixture: LightningFixture,
+    tmp_path: Path,
+    script: Path,
+) -> None:
+    outside = tmp_path / "outside-documentation-rag.toml"
+    tracked = (
+        lightning_fixture.project_root
+        / "config/feature_profiles/lightning_public_documentation_rag.toml"
+    )
+    outside.write_text(tracked.read_text(encoding="utf-8"), encoding="utf-8")
+
+    result = _run(
+        script,
+        lightning_fixture,
+        "preflight",
+        environment_updates={
+            "MARGPA_DOCUMENTATION_RAG_PROFILE": str(outside),
+            "MARGPA_WEB_ACCESS_PROFILE": None,
+        }
+        if script == PUBLIC_SERVICE
+        else {"MARGPA_DOCUMENTATION_RAG_PROFILE": str(outside)},
+    )
+
+    assert result.returncode == 1
+    assert "project_root_boundary_required" in result.stderr
+
+
+@pytest.mark.parametrize("script", [SERVICE, PUBLIC_SERVICE])
+def test_invalid_documentation_rag_profile_fails_closed_for_both_access_modes(
+    lightning_fixture: LightningFixture,
+    script: Path,
+) -> None:
+    profile = (
+        lightning_fixture.project_root
+        / "config/feature_profiles/lightning_public_documentation_rag.toml"
+    )
+    profile.write_text(
+        profile.read_text(encoding="utf-8").replace(
+            'allowed_access_modes = ["basic_preview", "public_demo"]',
+            'allowed_access_modes = ["basic_preview"]',
+        ),
+        encoding="utf-8",
+    )
+
+    result = _run(
+        script,
+        lightning_fixture,
+        "preflight",
+        environment_updates={"MARGPA_WEB_ACCESS_PROFILE": None}
+        if script == PUBLIC_SERVICE
+        else None,
+    )
+
+    assert result.returncode == 1
+    assert "invalid_profile_or_corpus_boundary" in result.stderr
+
+
+def test_public_preflight_counts_only_explicit_public_files(
+    lightning_fixture: LightningFixture,
+) -> None:
+    public_root = lightning_fixture.project_root / "docs/public"
+    public_root.mkdir(parents=True)
+    (public_root / "overview_ja.md").write_text("# Overview", encoding="utf-8")
+    (public_root / "not_allowlisted.md").write_text("# Extra", encoding="utf-8")
+    internal = lightning_fixture.project_root / "docs/project/current/internal.md"
+    internal.parent.mkdir(parents=True)
+    internal.write_text("# Internal", encoding="utf-8")
+
+    result = _run(
+        PUBLIC_SERVICE,
+        lightning_fixture,
+        "preflight",
+        environment_updates={"MARGPA_WEB_ACCESS_PROFILE": None},
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "expected=8 present=1 missing=7" in result.stdout
+
+
+@pytest.mark.parametrize("artifact_kind", ["state", "marker", "pid", "log", "lock"])
+def test_public_preflight_ignores_invalid_basic_lifecycle_artifacts(
+    lightning_fixture: LightningFixture,
+    artifact_kind: str,
+) -> None:
+    if artifact_kind == "state":
+        lightning_fixture.state_root.mkdir()
+        lightning_fixture.state_root.chmod(0o755)
+        target = lightning_fixture.state_root
+    elif artifact_kind == "lock":
+        target = lightning_fixture.workspace_root / LOCK_DIRECTORY_NAME
+        target.write_text("not-a-lifecycle-lock\n", encoding="utf-8")
+    else:
+        _create_owned_state(lightning_fixture)
+        target = (
+            lightning_fixture.state_root
+            / {
+                "marker": STATE_MARKER_NAME,
+                "pid": "basic-preview.pid",
+                "log": "basic-preview.log",
+            }[artifact_kind]
+        )
+        if artifact_kind == "marker":
+            target.write_text("invalid-marker\n", encoding="utf-8")
+            target.chmod(0o600)
+        else:
+            target.mkdir()
+
+    before = (
+        stat.S_IMODE(target.stat().st_mode),
+        target.is_dir(),
+        target.read_bytes() if target.is_file() else None,
+    )
+    public = _run(
+        PUBLIC_SERVICE,
+        lightning_fixture,
+        "preflight",
+        environment_updates={"MARGPA_WEB_ACCESS_PROFILE": None},
+    )
+    after = (
+        stat.S_IMODE(target.stat().st_mode),
+        target.is_dir(),
+        target.read_bytes() if target.is_file() else None,
+    )
+    basic = _run(SERVICE, lightning_fixture, "preflight")
+
+    assert public.returncode == 0, public.stderr
+    assert "runtime_state_root" not in public.stdout + public.stderr
+    assert before == after
+    assert basic.returncode == 1
+    assert any(
+        check_name in basic.stderr
+        for check_name in ("runtime_state_root", "pid_file", "log_file", "lifecycle_lock")
+    )
+
+
+@pytest.mark.parametrize("runtime_state_override", ["/", "../unsafe", "basic-preview/../unsafe"])
+def test_public_preflight_does_not_resolve_runtime_state_override(
+    lightning_fixture: LightningFixture,
+    runtime_state_override: str,
+) -> None:
+    public = _run(
+        PUBLIC_SERVICE,
+        lightning_fixture,
+        "preflight",
+        environment_updates={
+            "MARGPA_RUNTIME_STATE_ROOT": runtime_state_override,
+            "MARGPA_WEB_ACCESS_PROFILE": None,
+        },
+    )
+    basic = _run(
+        SERVICE,
+        lightning_fixture,
+        "preflight",
+        environment_updates={"MARGPA_RUNTIME_STATE_ROOT": runtime_state_override},
+    )
+
+    assert public.returncode == 0, public.stderr
+    assert "runtime_state_root" not in public.stdout + public.stderr
+    assert basic.returncode == 1
+    assert "runtime_state_root" in basic.stderr
+
+
+def test_public_run_is_foreground_and_term_reaches_the_web_process(
+    lightning_fixture: LightningFixture,
+) -> None:
+    process = _popen_service(
+        lightning_fixture,
+        "run",
+        environment_updates={
+            "MARGPA_RUNTIME_STATE_ROOT": None,
+            "MARGPA_WEB_ACCESS_PROFILE": None,
+        },
+        script=PUBLIC_SERVICE,
+    )
+    try:
+        deadline = time.monotonic() + 10
+        while time.monotonic() < deadline:
+            if (
+                lightning_fixture.process_history.exists()
+                and lightning_fixture.process_history.read_text(encoding="utf-8").strip()
+            ):
+                break
+            if process.poll() is not None:
+                pytest.fail("public foreground process exited before signal test")
+            time.sleep(0.05)
+        else:
+            pytest.fail("public foreground process did not reach margpa-web")
+
+        assert _spawned_pids(lightning_fixture) == [process.pid]
+        process.terminate()
+        stdout, stderr = process.communicate(timeout=5)
+
+        assert process.returncode == 0
+        assert not (lightning_fixture.workspace_root / ".runtime-state").exists()
+        assert not (lightning_fixture.workspace_root / LOCK_DIRECTORY_NAME).exists()
+        for secret in _credentials(lightning_fixture):
+            assert secret not in stdout + stderr
+    finally:
+        if process.poll() is None:
+            process.kill()
+            process.communicate(timeout=5)
 
 
 def test_run_is_foreground_compatible_outside_project_without_runtime_state(

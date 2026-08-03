@@ -19,8 +19,9 @@ from margpa_runtime_llm.modules.inference.contracts.generation import (
     GenerationResult,
     GenerationStream,
     GenerationTiming,
+    ThinkingMode,
 )
-from margpa_runtime_llm.modules.inference.contracts.messages import MessageRole
+from margpa_runtime_llm.modules.inference.contracts.messages import ChatMessage, MessageRole
 from margpa_runtime_llm.modules.inference.contracts.runtime import (
     GpuOffloadEvidence,
     ModelCapabilities,
@@ -287,6 +288,46 @@ class LlamaCppModelAdapter:
                 request_id=request.request_id,
                 model_key=request.model_key,
             )
+
+    def count_text_tokens(self, text: str) -> int:
+        with self._state_lock:
+            if not self._generation_lock.acquire(blocking=False):
+                raise InferenceError(
+                    code=InferenceErrorCode.MODEL_BUSY,
+                    safe_message="The model is already processing another request.",
+                    retryable=True,
+                )
+            try:
+                if self._state is not ModelLifecycleState.LOADED or self._chat_template is None:
+                    raise InferenceError(
+                        code=InferenceErrorCode.MODEL_NOT_LOADED,
+                        safe_message="The model is not loaded.",
+                    )
+                return self._chat_template.count_text_tokens(text)
+            finally:
+                self._generation_lock.release()
+
+    def count_chat_prompt_tokens(
+        self,
+        messages: tuple[ChatMessage, ...],
+        thinking_mode: ThinkingMode,
+    ) -> int:
+        with self._state_lock:
+            if not self._generation_lock.acquire(blocking=False):
+                raise InferenceError(
+                    code=InferenceErrorCode.MODEL_BUSY,
+                    safe_message="The model is already processing another request.",
+                    retryable=True,
+                )
+            try:
+                if self._state is not ModelLifecycleState.LOADED or self._chat_template is None:
+                    raise InferenceError(
+                        code=InferenceErrorCode.MODEL_NOT_LOADED,
+                        safe_message="The model is not loaded.",
+                    )
+                return self._chat_template.format_prompt(messages, thinking_mode).token_count
+            finally:
+                self._generation_lock.release()
 
     def __enter__(self) -> LlamaCppModelAdapter:
         return self

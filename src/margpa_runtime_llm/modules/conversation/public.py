@@ -1,5 +1,7 @@
 """Stable Phase 1-G conversation application surface."""
 
+from margpa_runtime_llm.modules.documentation_rag.contracts import DocumentationRagMode
+
 from .application.conversation_generation import (
     SUMMARY_FALLBACK_WARNING,
     TOKEN_LIMIT_WARNING,
@@ -36,4 +38,5 @@ __all__ = [
     "ConversationMessage",
     "ConversationRole",
     "ConversationSettings",
+    "DocumentationRagMode",
 ]

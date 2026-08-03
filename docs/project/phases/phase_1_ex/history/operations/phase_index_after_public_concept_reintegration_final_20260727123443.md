@@ -1,0 +1,252 @@
+# Phase 1-ex Documentation Index
+
+```yaml
+document_id: phase_1_ex_documentation_index
+phase: phase_1_ex
+status: active
+language: ja
+created_at: 2026-07-26 15:16:24 JST
+updated_at: 2026-07-27 12:32:38 JST
+owner: 設計統括者役
+rag_default: true
+```
+
+## 1. Phase Goal
+
+Phase 1成果を公開可能・継続可能・Git管理可能な構造へ移し、GitHub初回公開と後続Phaseの基盤を整える。
+
+## 2. Documentation Migration
+
+- [ADR-0024](adr/adr_0024_phase_first_project_documentation_and_lossless_history_ja.md)
+- [Target Documentation Structure](architecture/target_documentation_structure_ja.md)
+- [Migration Requirements](requirements/documentation_migration_and_canonical_content_requirements_ja.md)
+- [Source Inventory](operations/documentation_source_inventory_and_classification_ja.md)
+- [Source→Target Manifest](operations/source_to_target_documentation_migration_manifest.json)
+- [Link／Rollback Plan](operations/documentation_link_update_and_rollback_plan_ja.md)
+- [Migration Preflight](operations/documentation_migration_preflight_ja.md)
+- [Candidate Report](operations/documentation_migration_candidate_report.json)
+- [Migration Receipt](operations/documentation_directory_migration_receipt_ja.md)
+- [Migration Validation](operations/documentation_directory_migration_validation_ja.md)
+- [Legacy Root Retirement Manifest](operations/documentation_legacy_root_retirement_manifest.json)
+- [Legacy Root Retirement Validation](operations/documentation_legacy_root_retirement_validation_ja.md)
+- [Target Manifest](operations/documentation_directory_migration_target_manifest.json)
+
+## 2.1 Phase 1-ex追加設計
+
+- [ADR-0025 Public Demo／Auto-start／Pre-release Gate](adr/adr_0025_public_demo_auto_start_and_pre_release_gate_ja.md)
+- [ADR-0026 Lightning Basic Preview Lifecycle／Managed Secrets](adr/adr_0026_lightning_basic_preview_lifecycle_and_managed_secrets_ja.md)
+- [Public Demo／Auto-start／Pre-release Requirements](requirements/public_demo_auto_start_and_pre_release_requirements_ja.md)
+- [Public Demo／Auto-start／RAG Extension Architecture](architecture/public_demo_auto_start_and_rag_extension_architecture_ja.md)
+- [Pre-initial Commit Documentation Refresh Plan](operations/pre_initial_commit_documentation_refresh_plan_ja.md)
+
+## 2.2 Active Implementation Handoff
+
+- [実装担当向け Lightning Auto-start Read-only Preflight Handoff](history/handoffs/implementer_handoff_phase_1_ex_lightning_auto_start_read_only_preflight_20260726192912.md)
+- [実装担当向け Lightning Basic Preview Lifecycle Scripts Handoff](history/handoffs/implementer_handoff_phase_1_ex_lightning_basic_preview_lifecycle_scripts_20260726194949.md)
+- [設計統括者Review：Auto-start／Lifecycle Scripts](history/handoffs/designer_review_phase_1_ex_lightning_auto_start_and_lifecycle_scripts_20260726202036.md)
+- [実装担当向け Lifecycle Safety Follow-up Handoff](history/handoffs/implementer_handoff_phase_1_ex_lightning_lifecycle_safety_follow_up_20260726202036.md)
+- [実装担当 Lifecycle Safety Follow-up最終Status](history/handoffs/implementer_status_phase_1_ex_lightning_lifecycle_safety_follow_up_20260726212010.md)
+- [設計統括者Review：Lifecycle Safety Follow-up Accepted](history/handoffs/designer_review_phase_1_ex_lightning_lifecycle_safety_follow_up_20260726213429.md)
+- [Lightning手動Environment／Preflight Evidence](history/operations/lightning_manual_environment_and_preflight_evidence_20260726233910.md)
+- [実装担当向け Linux `/proc` Test Fixture Follow-up Handoff](history/handoffs/implementer_handoff_phase_1_ex_lightning_linux_proc_test_fixture_follow_up_20260726233910.md)
+- [実装担当 Linux `/proc` Test Fixture Follow-up Status](history/handoffs/implementer_status_phase_1_ex_lightning_linux_proc_test_fixture_follow_up_20260726235039.md)
+- [設計統括者Review：Linux `/proc` Test Fixture Accepted](history/handoffs/designer_review_phase_1_ex_lightning_linux_proc_test_fixture_follow_up_20260726235422.md)
+- [設計統括者Review：Lightning Basic Preview Manual Lifecycle Accepted](history/handoffs/designer_review_phase_1_ex_lightning_basic_preview_manual_lifecycle_acceptance_20260727002440.md)
+- [Lightning Environment Recovery／Lifecycle Acceptance Evidence](history/operations/lightning_basic_preview_environment_recovery_and_lifecycle_acceptance_evidence_20260727003044.md)
+- [実装担当向け Lightning Auto-start Go／No-Go Assessment Handoff](history/handoffs/implementer_handoff_phase_1_ex_lightning_auto_start_go_no_go_assessment_20260727003044.md)
+- [実装担当 Lightning Auto-start Go／No-Go Assessment Status](history/handoffs/implementer_status_phase_1_ex_lightning_auto_start_go_no_go_assessment_20260727050852.md)
+- [設計統括者Review：Lightning Auto-start Go／No-Go Assessment Accepted](history/handoffs/designer_review_phase_1_ex_lightning_auto_start_go_no_go_assessment_20260727051659.md)
+- [設計統括者訂正Review：Lightning Auto-start Requirement Alignment](history/handoffs/designer_review_phase_1_ex_lightning_auto_start_requirement_alignment_correction_20260727052747.md)
+- [実装担当 Stage A Availability Check Status](history/handoffs/implementer_status_phase_1_ex_lightning_auto_start_stage_a_availability_check_20260727053757.md)
+- [実装担当 Stage A Target Correction Status](history/handoffs/implementer_status_phase_1_ex_lightning_auto_start_stage_a_target_correction_20260727054456.md)
+- [設計統括者Review：Stage A Availability／Target Correction Accepted](history/handoffs/designer_review_phase_1_ex_lightning_auto_start_stage_a_availability_and_target_correction_20260727054823.md)
+- [実装担当向け Stage B Preparation Handoff](history/handoffs/implementer_handoff_phase_1_ex_lightning_auto_start_stage_b_preparation_20260727055625.md)
+- [実装担当 Stage B Preparation Status](history/handoffs/implementer_status_phase_1_ex_lightning_auto_start_stage_b_preparation_20260727063323.md)
+- [設計統括者Review：Stage B Preparation Accepted](history/handoffs/designer_review_phase_1_ex_lightning_auto_start_stage_b_preparation_20260727064044.md)
+
+Auto-start Project-side Read-only Preflight、Lightning Basic Preview Lifecycle、正しい対象に対するStage A Read-only Availability CheckおよびStage B Repository PreparationはAcceptedである。API BuilderのInstall候補が現Account／Studio UIに存在し、Free CPU Studioも稼働している。Repository側Blockerはない。Lightning UI／Platform上のStage B作業はユーザーが手動実施し、実装担当は行わない。Traffic-aware Wake-upの成立はStage B実試験まで未確認である。
+
+## 2.3 Shared Documentation Operations
+
+- [Current／Shared／Public Stable Historyおよび設計統括者役完全復元 運用確定Record](history/operations/stable_document_history_and_design_governance_recovery_policy_20260727071721.md)
+- [Current Index Public Roadmap History Link Correction](history/operations/current_index_public_roadmap_history_link_correction_20260727072019.md)
+- [情報保存最優先／累積完全版／設計統括者役専用Handoff 運用確定Record](history/operations/documentation_information_preservation_and_design_governance_handoff_policy_20260727080023.md)
+- [Shared任意Category／Roadmap Lifecycle／Phase 2 History Index予約 運用確定Record](history/operations/shared_documentation_category_and_phase_index_history_policy_20260727081459.md)
+- [全Stable文書Filename適用範囲 明確化Record](history/operations/stable_filename_scope_clarification_20260727083901.md)
+
+Current、SharedおよびPublicのStable文書は、変更前後の原文を対応する`history/`へ`<stem>_<phase>_<language>_YYYYMMDDHHMMSS.md`形式で完全保存する。原則として各Phase完了後、Phase Backup直前に設計統括者役の完全復元PackageとDocs-only Reconstruction Validationを作成する。
+
+Current Indexは`docs/project/current/history/index/`へ変更前後原文を保存する。Sharedでは`schemas/`、`templates/`、`user_manual/`および`design_governance_handoff/`と対応Historyを正式配置とする。PublicではOverview、Concept、RoadmapごとのHistory Directoryを使用する。
+
+Lossless再整理、Current、Project Continuity、Sharedおよび設計統括者役Handoffは、差分だけでなく累積・自己完結の完全版として更新する。Publicも原則追加式とする。
+
+`shared/schemas/`、`shared/templates/`および`shared/user_manual/`は必要な場合だけ使用する。Docs運用は既存`shared/operations/`、権限管理は既存`shared/task_roles/`へ集約する。Roadmap Stable名は`roadmap_ja.md`のまま維持し、Timestamp付き完全SnapshotはHistoryだけへ保存する。Phase 2以降は各Phaseの`history/index/`をAppend-only Index Snapshot置場として使用する。
+
+TimestampなしStable名の規則はRoadmapだけでなく、Current、Shared、Public、Phase Stable、Phase Compilation、Project Continuity、Design Governance Handoffおよび既存DocsのLossless再整理後正本へ共通適用する。Timestampを付けるのはHistory SnapshotとEvent Artifactだけである。
+
+## 2.4 Documentation Reconstruction
+
+- [Documentation Reconstruction Human-readable Inventory](history/operations/documentation_reconstruction_inventory_20260727093727.md)
+- [Documentation Reconstruction Machine-readable Source Manifest](history/operations/documentation_reconstruction_source_inventory_20260727093727.json)
+- [Project Continuity／Roadmap First-pass Record](history/operations/documentation_reconstruction_continuity_and_roadmap_first_pass_20260727094639.md)
+- [Current Canonical Reconstruction Record](history/operations/current_canonical_reconstruction_20260727101132.md)
+- [Phase 1／Phase 1-ex Lossless Reconstruction Record](history/operations/phase_1_and_phase_1_ex_lossless_reconstruction_20260727102850.md)
+- [Phase 1-ex Interim Lossless Compilation](lossless/phase_1_ex_interim_lossless_ja.md)
+- [Phase 1-ex Interim Lossless Manifest](lossless/phase_1_ex_interim_lossless_manifest.json)
+- [Phase 1 Complete Lossless Compilation](../phase_1/lossless/phase_1_lossless_ja.md)
+- [Phase 1 Complete Lossless Manifest](../phase_1/lossless/phase_1_lossless_manifest.json)
+
+Documentation再構築のSource Setとして、Docs 493件とDemo画像6件、合計499件をFreezeした。Machine-readable ManifestはPath、File Type、SizeおよびSHA-512を保持し、499／499件の一致を確認済みである。
+
+`project_continuity_master_ja.md`と`roadmap_ja.md`は第1周を完了した。Current Canonical、Phase 1／Phase 1-ex Lossless、Shared、Publicおよび公開Metadata完成後に第2周を行う。
+
+Phase 1-ex Losslessは、Phase完了版ではなく作成時点までのInterim／Current-to-date Compilationとして識別する。Phase 1-ex完了時には、その後の全資料を含めた正式な完了版を再生成する。
+
+Current Canonical 5文書とCurrent Documentation Indexは、更新前後の完全SnapshotをHistoryへ保存したうえで累積再構築した。Current Markdown 7件のRelative Linkは全件存在確認済みである。
+
+Phase 1は316件、Phase 1-exはSource Freeze時点の145件をPhase単位の単一Lossless Compilationへ直接収録した。Compilationから全Sourceを再抽出し、SizeとSHA-512がPhase 1で316／316件、Phase 1-exで145／145件一致した。
+
+Phase 1-ex版は進行中PhaseのInterim／Current-to-date版であり、Phase完了版ではない。Phase 1-ex完了時に後続Sourceを含めて正式完了版を再生成する。
+
+Shared 4正本は更新前後の完全Snapshotを保持したうえで累積再構築した。Docs運用、Role Authority、設計統括者役Recovery、二周方式、英語版再判断、Phase Lossless検証値および公開準備境界を最新状態へ統一した。
+
+Project Continuity MasterとRoadmapの第2周、Overview、Concept、README、Research Preview LICENSE、TERMS_OF_USE、NOTICEおよびCITATION初版を作成した。Stable Corpusの相対Linkは262件中欠落0、旧名義・個人Pathは0件、`.DS_Store`は18件削除後0件、Phase Lossless再抽出およびTest／Static Checkは全て合格した。
+
+最終対象へIndex／Recordを追加した後の再検証では、21 Files・286 Relative Links中欠落0、Demo画像6／6、旧名義・個人Path0、`.DS_Store` 0、CITATION Parse合格を確認した。Documentation Reconstruction初版は`pass`である。
+
+## 2.5 Post-documentation Design Governance Recovery
+
+- [Design Governance Stable Handoff](../../shared/design_governance_handoff/design_governance_handoff_ja.md)
+- [Interim Current-state Recovery Manifest](../../shared/history/design_governance_handoff/design_governance_recovery_manifest_20260727121343.md)
+- [README Before Phase Position Refresh](history/operations/readme_before_phase_status_and_recovery_refresh_20260727121225.md)
+- [README After Phase Position Refresh](history/operations/readme_after_phase_status_and_recovery_refresh_20260727121343.md)
+- [Phase Index Before Recovery Refresh](history/operations/phase_index_before_post_documentation_recovery_refresh_20260727121343.md)
+
+README上部へ現在地`Phase 1-ex / 最終予定 Phase 10`とRoadmap導線を追加した。設計統括者役Stable Handoffは、Documentation Corpus完成・検証後の現在状態、残作業、Lightning URL更新境界および臨時Recovery Manifest規則を累積反映した。
+
+Recovery Manifestは、ユーザーの明示要求に基づくPhase途中の`interim_current_state`である。新しい設計統括者役Taskは旧Task会話へ依存せず、Current Index、Project Continuity Master、Stable Handoff、本Manifest、Phase 1-ex IndexおよびRoadmapから即時復旧できる。Phase 1-ex完了版Recovery Manifest、Final Lossless、ReviewおよびBackupは別途必要である。
+
+## 2.6 Public Concept Governance Kernel Reintegration
+
+- [Public Concept Stable](../../../public/concept_ja.md)
+- [Public Concept Before Reintegration](../../../public/history/concept/concept_phase_1_ex_before_governance_kernel_reintegration_ja_20260727123044.md)
+- [Public Concept After Reintegration](../../../public/history/concept/concept_phase_1_ex_governance_kernel_reintegration_ja_20260727123238.md)
+- [Reintegration Record](history/operations/public_concept_governance_kernel_reintegration_20260727123238.md)
+- [Phase Index Before Reintegration](history/operations/phase_index_before_public_concept_reintegration_20260727123238.md)
+
+Public Conceptへ、Governance Definitionの実行可能Component化、共有Control Planeと分散Governance Point、反証可能な実験、存在とAuthorityの分離、AI Lifecycle、External R&D Port、Project運用への先行適用およびPhase 1のCross-environment Runtime契約としての位置付けを累積再統合した。
+
+元Sourceの会話口調、感情的評価、人物・採用文脈、個人・企業・役職等の識別情報および過大な実装済み主張は採用していない。「Kernel」「Hypervisor」「実験OS」は概念的比喩であり、実装済みOperating SystemまたはHardware Hypervisorを意味しない。
+
+## 3. Role／Notification
+
+- [Task Role／Write Authority](../../shared/task_roles/task_role_write_authority_policy_ja.md)
+- [Documentation Structure／Task Operations](../../shared/operations/documentation_structure_and_task_operations_ja.md)
+- [Design Governance Handoff](../../shared/design_governance_handoff/design_governance_handoff_ja.md)
+- [Task Notification Plan](handoffs/documentation_migration_task_notification_plan_ja.md)
+
+## 4. Current Canonical
+
+- [Current Documentation Index](../../current/documentation_index_ja.md)
+- [Requirements](../../current/requirements/requirements_specification_ja.md)
+- [System Architecture](../../current/architecture/system_architecture_ja.md)
+- [Technology Selection](../../current/architecture/technology_selection_ja.md)
+- [Basic Design](../../current/architecture/basic_design_ja.md)
+- [Runtime Governance](../../current/governance/runtime_governance_specification_ja.md)
+- [Project Continuity Master](../../current/project_continuity/project_continuity_master_ja.md)
+
+## 5. Phase 1
+
+- [Phase 1 Index](../phase_1/phase_index_ja.md)
+
+## 6. Remaining Phase 1-ex Scope
+
+1. Lightning Stage B Traffic-aware External Wake Manual Validation
+2. Basic Previewと分離したPublic Demo基盤
+3. Local Mac簡易Documentation RAG＋External Hook
+4. Git運用設計
+5. Pre-initial Commit Documentation Refresh
+6. 公開Allowlist／Sanitation
+7. Git初期化／Initial Commit準備
+8. Public Demo最終確認
+9. Phase 1-ex Final Lossless Compilation
+10. Design Governance Recovery Manifest
+11. Phase 1-ex Review／Backup／GitHub公開
+
+英語版は今回の日本語正本再構築には含めない。Phase 1-ex後半で、日本語正本と同粒度の派生版を作成するか再判断する。
+
+匿名Public Accessは、Public Docs、License／Terms、Git運用、SanitationおよびInitial Commit準備の完了後に、ユーザーの明示許可を得て有効化する。
+
+## 7. History
+
+Phase 1-ex開始時の旧Index、Role Transition、Migration Control EventおよびMigration前Stable Source 8件の原文は`history/`へ保持する。旧Root重複配置は全原文のSHA-512一致確認後に退役済みである。
+
+- [Current／Public JA／EN同等粒度決定](history/requirements/current_public_ja_en_equivalent_granularity_decision_20260726180711.md)
+- [Phase Index Append-only History Repair](history/operations/phase_index_append_only_history_repair_20260726202935.md)
+- [Append-only／User Authority Governance Freeze](history/operations/append_only_and_user_authority_governance_freeze_20260726203948.md)
+- [Lifecycle Safety Follow-up Accepted Review](history/handoffs/designer_review_phase_1_ex_lightning_lifecycle_safety_follow_up_20260726213429.md)
+- [Lightning Manual Environment／Preflight Evidence](history/operations/lightning_manual_environment_and_preflight_evidence_20260726233910.md)
+- [Linux `/proc` Test Fixture Follow-up Handoff](history/handoffs/implementer_handoff_phase_1_ex_lightning_linux_proc_test_fixture_follow_up_20260726233910.md)
+- [Linux `/proc` Test Fixture Follow-up Accepted Review](history/handoffs/designer_review_phase_1_ex_lightning_linux_proc_test_fixture_follow_up_20260726235422.md)
+- [Lightning Basic Preview Manual Lifecycle Accepted Review](history/handoffs/designer_review_phase_1_ex_lightning_basic_preview_manual_lifecycle_acceptance_20260727002440.md)
+- [Lightning Environment Recovery／Lifecycle Acceptance Evidence](history/operations/lightning_basic_preview_environment_recovery_and_lifecycle_acceptance_evidence_20260727003044.md)
+- [Lightning Auto-start Go／No-Go Assessment Handoff](history/handoffs/implementer_handoff_phase_1_ex_lightning_auto_start_go_no_go_assessment_20260727003044.md)
+- [Lightning Auto-start Go／No-Go Assessment Status](history/handoffs/implementer_status_phase_1_ex_lightning_auto_start_go_no_go_assessment_20260727050852.md)
+- [Lightning Auto-start Go／No-Go Assessment Accepted Review](history/handoffs/designer_review_phase_1_ex_lightning_auto_start_go_no_go_assessment_20260727051659.md)
+- [Lightning Auto-start Requirement Alignment Correction Review](history/handoffs/designer_review_phase_1_ex_lightning_auto_start_requirement_alignment_correction_20260727052747.md)
+- [Stage A Availability Check Status](history/handoffs/implementer_status_phase_1_ex_lightning_auto_start_stage_a_availability_check_20260727053757.md)
+- [Stage A Target Correction Status](history/handoffs/implementer_status_phase_1_ex_lightning_auto_start_stage_a_target_correction_20260727054456.md)
+- [Stage A Availability／Target Correction Accepted Review](history/handoffs/designer_review_phase_1_ex_lightning_auto_start_stage_a_availability_and_target_correction_20260727054823.md)
+- [Stage B Preparation Handoff](history/handoffs/implementer_handoff_phase_1_ex_lightning_auto_start_stage_b_preparation_20260727055625.md)
+- [Stage B Preparation Status](history/handoffs/implementer_status_phase_1_ex_lightning_auto_start_stage_b_preparation_20260727063323.md)
+- [Stage B Preparation Accepted Review](history/handoffs/designer_review_phase_1_ex_lightning_auto_start_stage_b_preparation_20260727064044.md)
+- [Stable History／Design Governance Recovery Policy](history/operations/stable_document_history_and_design_governance_recovery_policy_20260727071721.md)
+- [Current Index Public Roadmap History Link Correction](history/operations/current_index_public_roadmap_history_link_correction_20260727072019.md)
+- [Information Preservation／Design Governance Handoff Policy](history/operations/documentation_information_preservation_and_design_governance_handoff_policy_20260727080023.md)
+- [Shared Documentation Category／Phase Index History Policy](history/operations/shared_documentation_category_and_phase_index_history_policy_20260727081459.md)
+- [Stable Filename Scope Clarification](history/operations/stable_filename_scope_clarification_20260727083901.md)
+- [Documentation Reconstruction Inventory](history/operations/documentation_reconstruction_inventory_20260727093727.md)
+- [Documentation Reconstruction Source Manifest](history/operations/documentation_reconstruction_source_inventory_20260727093727.json)
+- [Project Continuity／Roadmap First Pass](history/operations/documentation_reconstruction_continuity_and_roadmap_first_pass_20260727094639.md)
+- [Current Canonical Reconstruction](history/operations/current_canonical_reconstruction_20260727101132.md)
+- [Phase 1／Phase 1-ex Lossless Reconstruction](history/operations/phase_1_and_phase_1_ex_lossless_reconstruction_20260727102850.md)
+- [Shared Documentation Reconstruction](history/operations/shared_documentation_reconstruction_20260727104505.md)
+- [Public／Canonical／Legal Documentation Reconstruction](history/operations/public_canonical_and_legal_documentation_reconstruction_20260727110347.md)
+- [Documentation Reconstruction Final Validation](history/operations/documentation_reconstruction_final_validation_20260727110834.md)
+- [Post-documentation Interim Design Governance Recovery Manifest](../../shared/history/design_governance_handoff/design_governance_recovery_manifest_20260727121343.md)
+- [Post-documentation Design Governance Recovery Refresh](history/operations/post_documentation_design_governance_recovery_refresh_20260727121814.md)
+- [Public Concept Governance Kernel Reintegration](history/operations/public_concept_governance_kernel_reintegration_20260727123238.md)
+
+### 7.1 Index Snapshot Chain
+
+- [2026-07-26 15:40:09](history/documentation_index_20260726154009.md)
+- [2026-07-26 17:00:34](history/documentation_index_20260726170034.md)
+- [2026-07-26 17:53:18](history/documentation_index_20260726175318.md)
+- [2026-07-26 18:07:11](history/documentation_index_20260726180711.md)
+- [2026-07-26 19:29:12](history/documentation_index_20260726192912.md)
+- [2026-07-26 19:49:49](history/documentation_index_20260726194949.md)
+- [2026-07-26 20:20:36](history/documentation_index_20260726202036.md)
+- [2026-07-26 20:29:35](history/documentation_index_20260726202935.md)
+- [2026-07-26 20:39:48](history/documentation_index_20260726203948.md)
+- [2026-07-26 21:34:29](history/documentation_index_20260726213429.md)
+- [2026-07-26 23:39:10](history/documentation_index_20260726233910.md)
+- [2026-07-26 23:54:22](history/documentation_index_20260726235422.md)
+- [2026-07-27 00:24:40](history/documentation_index_20260727002440.md)
+- [2026-07-27 00:30:44](history/documentation_index_20260727003044.md)
+- [2026-07-27 05:16:59](history/documentation_index_20260727051659.md)
+- [2026-07-27 05:27:47](history/documentation_index_20260727052747.md)
+- [2026-07-27 05:48:23](history/documentation_index_20260727054823.md)
+- [2026-07-27 05:56:25](history/documentation_index_20260727055625.md)
+- [2026-07-27 06:40:44](history/documentation_index_20260727064044.md)
+- [2026-07-27 07:17:21](history/documentation_index_20260727071721.md)
+- [2026-07-27 07:20:19](history/documentation_index_20260727072019.md)
+- [2026-07-27 08:00:23](history/documentation_index_20260727080023.md)
+- [2026-07-27 08:14:59](history/documentation_index_20260727081459.md)
+- [2026-07-27 08:39:01](history/documentation_index_20260727083901.md)
+- [2026-07-27 09:46:39](history/documentation_index_20260727094639.md)
+- [2026-07-27 10:11:32](history/documentation_index_20260727101132.md)
+- [2026-07-27 10:30:27](history/documentation_index_20260727103027.md)
+- [2026-07-27 10:47:19](history/documentation_index_20260727104719.md)
+- [2026-07-27 11:07:15](history/documentation_index_20260727110715.md)
+- [2026-07-27 11:09:50](history/documentation_index_20260727110950.md)
+- [2026-07-27 12:19:47](history/documentation_index_20260727121947.md)

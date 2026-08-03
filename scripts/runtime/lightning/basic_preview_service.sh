@@ -34,6 +34,11 @@ Configuration:
   MARGPA_WEB_HOST
   MARGPA_WEB_PORT
   MARGPA_WEB_PROFILE
+  MARGPA_WEB_ACCESS_PROFILE
+  MARGPA_DOCUMENTATION_RAG_PROFILE
+  MARGPA_MODEL_DEFINITION
+  MARGPA_MODEL_KEY
+  MARGPA_CONTEXT_SIZE
   MARGPA_RUNTIME_STATE_ROOT
   MARGPA_WEB_AUTH_MODE
   MARGPA_WEB_AUTH_USERNAME
@@ -50,16 +55,13 @@ EOF
 
 validate_basic_preview() {
   margpa_project_preflight
-  margpa_validate_credentials
+  margpa_validate_basic_preview_contract
 }
 
 run_foreground() {
   validate_basic_preview
-  exec "${margpa_web_bin}" \
-    --host "${margpa_web_host}" \
-    --port "${margpa_web_port}" \
-    --profile "${margpa_web_profile}" \
-    --model-root "${margpa_model_root}"
+  margpa_build_web_arguments
+  exec "${margpa_web_bin}" "${margpa_web_arguments[@]}"
 }
 
 prepare_default_state_parent() {
@@ -343,11 +345,8 @@ start_background_locked() {
   fi
 
   prepare_state_directory || return 1
-  nohup "${margpa_web_bin}" \
-    --host "${margpa_web_host}" \
-    --port "${margpa_web_port}" \
-    --profile "${margpa_web_profile}" \
-    --model-root "${margpa_model_root}" \
+  margpa_build_web_arguments
+  nohup "${margpa_web_bin}" "${margpa_web_arguments[@]}" \
     >>"${margpa_log_file}" 2>&1 </dev/null &
   margpa_service_pid=$!
   margpa_spawn_cleanup_required=1

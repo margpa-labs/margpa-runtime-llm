@@ -1,0 +1,49 @@
+schema_version = "2"
+model_key = "main.qwen3-4b-q4-k-m"
+logical_role = "main"
+enabled = true
+
+[source]
+provider = "Qwen"
+distribution_repository = "Qwen/Qwen3-4B-GGUF"
+upstream_model = "Qwen/Qwen3-4B"
+
+[artifact]
+relative_path = "main/qwen3-4b/gguf/Qwen3-4B-Q4_K_M.gguf"
+file_name = "Qwen3-4B-Q4_K_M.gguf"
+format = "gguf"
+quantization = "Q4_K_M"
+size_bytes = 2497280256
+sha512 = "f182f1d40606572d6965e50e0ef33c4be64b43ad65339710ceebb664e3d43e76398a4ef230c7a3dd8fbd643acbce8f0c7cbec28784203ccf26da0fe7e08bfceb"
+
+[backend]
+backend_key = "llama_cpp"
+required_version = "0.3.34"
+
+[model]
+architecture = "qwen3"
+native_context_limit = 32768
+chat_template_source = "gguf_metadata"
+
+[capabilities]
+required_features = [
+  "chat",
+  "streaming",
+  "cooperative_cancel",
+  "stop_sequences",
+  "seed",
+  "token_usage",
+  "model_metadata",
+  "chat_template",
+  "thinking_control",
+]
+optional_features = ["gpu_offload"]
+
+[verification]
+state = "phase_1b_local_artifact_sha512_verified_provenance_incomplete"
+provenance_complete = false
+
+[output_protocol.thinking]
+parser_key = "tagged_thinking_v1"
+opening_delimiter = "<think>"
+closing_delimiter = "</think>"

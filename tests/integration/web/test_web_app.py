@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import hashlib
 import threading
 import time
 from collections.abc import AsyncGenerator, AsyncIterator, Callable, Iterator
@@ -28,6 +29,17 @@ from margpa_runtime_llm.modules.conversation.public import (
     ConversationRole,
     ConversationSettings,
 )
+from margpa_runtime_llm.modules.documentation_rag.contracts import (
+    DocumentationAugmentation,
+    DocumentationCitation,
+    DocumentationEvidence,
+    DocumentationGroundingState,
+    DocumentationMeasurementUnit,
+    DocumentationRagAvailability,
+    DocumentationRagRequestContext,
+    DocumentationRetrievalState,
+)
+from margpa_runtime_llm.modules.documentation_rag.ports import RagOrchestratorPort
 from margpa_runtime_llm.modules.inference.contracts.generation import (
     FinishReason,
     GenerationChunk,
@@ -38,6 +50,7 @@ from margpa_runtime_llm.modules.inference.contracts.generation import (
     GenerationTiming,
     ThinkingMode,
 )
+from margpa_runtime_llm.modules.inference.contracts.messages import ChatMessage
 from margpa_runtime_llm.modules.inference.contracts.response import ResponseLanguage
 from margpa_runtime_llm.modules.presentation.application.thinking_presentation_service import (
     ThinkingPresentationService,
@@ -53,9 +66,23 @@ from margpa_runtime_llm.modules.summarization.public import (
     SummaryMode,
 )
 from margpa_runtime_llm.web import streaming as web_streaming
-from margpa_runtime_llm.web.app import SHUTDOWN_FAILURE_MESSAGE, create_web_app
-from margpa_runtime_llm.web.auth import WebAccessPolicy, WebAuthMode
+from margpa_runtime_llm.web.access_profiles import (
+    DocumentationRagEffectiveState,
+    OptionalControlMode,
+    load_web_access_profile,
+)
+from margpa_runtime_llm.web.app import (
+    SHUTDOWN_FAILURE_MESSAGE,
+    create_web_app,
+    stream_session_with_control_policy,
+)
+from margpa_runtime_llm.web.auth import (
+    WebAccessPolicy,
+    WebAuthMode,
+    load_web_access_policy,
+)
 from margpa_runtime_llm.web.contracts import (
+    DocumentationRagRuntimeSnapshot,
     RuntimeDefaults,
     SafeRuntimeSnapshot,
     WebRuntime,
@@ -64,6 +91,7 @@ from margpa_runtime_llm.web.streaming import SSE_QUEUE_CAPACITY, stream_session_
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 STATIC_ROOT = PROJECT_ROOT / "src/margpa_runtime_llm/web/static"
+PUBLIC_PROFILE = load_web_access_profile(PROJECT_ROOT / "config/web_profiles/public_demo.toml")
 
 
 class FakeStream:
@@ -181,6 +209,100 @@ class FakeInference:
         return stream
 
 
+class RecordingControlPolicy:
+    mode = OptionalControlMode.OFF
+
+    def __init__(self) -> None:
+        self.calls: list[str] = []
+
+    def check_request(self) -> None:
+        self.calls.append("check_request")
+
+    def before_generation(self) -> None:
+        self.calls.append("before_generation")
+
+    def observe_generation(self) -> None:
+        self.calls.append("observe_generation")
+
+    def after_generation(self) -> None:
+        self.calls.append("after_generation")
+
+
+class FakeDocumentationRag:
+    def __init__(
+        self,
+        citation_path: str = "docs/project/current/requirements_ja.md",
+    ) -> None:
+        self.queries: list[str] = []
+        self.request_contexts: list[DocumentationRagRequestContext] = []
+        self.citation_path = citation_path
+
+    def augment_with_context(
+        self,
+        query_text: str,
+        request_context: DocumentationRagRequestContext,
+        *,
+        cancelled: Callable[[], bool] | None = None,
+    ) -> DocumentationAugmentation:
+        self.request_contexts.append(request_context)
+        return self.augment(query_text, cancelled=cancelled)
+
+    def augment(
+        self,
+        query_text: str,
+        *,
+        cancelled: Callable[[], bool] | None = None,
+    ) -> DocumentationAugmentation:
+        del cancelled
+        self.queries.append(query_text)
+        citation = DocumentationCitation(
+            citation_id="citation-1",
+            project_relative_path=self.citation_path,
+            heading_breadcrumb="Requirements",
+            chunk_id=hashlib.sha512(b"chunk").hexdigest(),
+            document_sha512=hashlib.sha512(b"document").hexdigest(),
+            retrieval_score=3.0,
+            selected_order=1,
+        )
+        return DocumentationAugmentation(
+            state=DocumentationRetrievalState.ENABLED,
+            should_generate=True,
+            reference_message="untrusted documentation reference",
+            citations=(citation,),
+            evidence=DocumentationEvidence(
+                query_digest=hashlib.sha512(query_text.encode()).hexdigest(),
+                corpus_manifest_digest=hashlib.sha512(b"manifest").hexdigest(),
+                retriever_key="field_weighted_bm25",
+                retriever_version="1",
+                selected_chunk_ids=(citation.chunk_id,),
+                selected_document_digests=(citation.document_sha512,),
+                selected_scores=(citation.retrieval_score,),
+                base_prompt_used=64,
+                base_prompt_unit=DocumentationMeasurementUnit.TOKENS,
+                base_prompt_exact=True,
+                context_budget=768,
+                context_budget_unit=DocumentationMeasurementUnit.TOKENS,
+                context_used=100,
+                context_measurement_unit=DocumentationMeasurementUnit.TOKENS,
+                context_measurement_limit=768,
+                context_token_budget_used=True,
+                retrieved_chunk_count=1,
+                assembled_block_count=1,
+                identifier_subject_count=1,
+                retrieval_covered_subject_count=1,
+                retrieval_uncovered_subject_count=0,
+                covered_subject_count=1,
+                uncovered_subject_count=0,
+                grounding_state=DocumentationGroundingState.GROUNDED_READY,
+                generation_allowed=True,
+                retrieval_duration_ms=1.0,
+            ),
+            document_count=1,
+            selected_chunk_count=1,
+            duration_ms=1.0,
+        )
+
+
 def presentation_policy() -> ResolvedThinkingPresentationPolicy:
     return ResolvedThinkingPresentationPolicy(
         visibility=ThinkingVisibility.HIDDEN,
@@ -192,11 +314,27 @@ def presentation_policy() -> ResolvedThinkingPresentationPolicy:
     )
 
 
+def exact_chat_prompt_count(
+    messages: tuple[ChatMessage, ...],
+    thinking_mode: ThinkingMode,
+) -> int:
+    return sum(len(message.content) for message in messages) + (
+        1 if thinking_mode is ThinkingMode.ENABLED else 0
+    )
+
+
 def build_runtime(
     inference: FakeInference,
     closed: list[bool],
     *,
     thinking_control_available: bool = True,
+    documentation_rag: RagOrchestratorPort | None = None,
+    documentation_rag_availability: DocumentationRagAvailability = (
+        DocumentationRagAvailability.UNAVAILABLE
+    ),
+    documentation_rag_state: DocumentationRagEffectiveState = (
+        DocumentationRagEffectiveState.UNAVAILABLE
+    ),
 ) -> WebRuntime:
     conversation = ConversationGenerationService(
         inference=inference,
@@ -215,6 +353,10 @@ def build_runtime(
         presentation_default=presentation_policy(),
         summarization=SummarizationConfig(),
         thinking_control_available=thinking_control_available,
+        documentation_rag=documentation_rag,
+        documentation_rag_availability=documentation_rag_availability,
+        chat_prompt_token_counter=exact_chat_prompt_count,
+        effective_context_size=4096,
     )
     return WebRuntime(
         conversation=conversation,
@@ -231,6 +373,15 @@ def build_runtime(
                 thinking_display_label="推論過程",
                 thinking_control_available=thinking_control_available,
                 summary_mode=SummaryMode.OFF,
+            ),
+            documentation_rag=DocumentationRagRuntimeSnapshot(
+                effective_state=documentation_rag_state,
+                control_available=(
+                    documentation_rag_availability is DocumentationRagAvailability.AVAILABLE
+                ),
+                provider_display_name=(
+                    "Local lexical documentation" if documentation_rag is not None else None
+                ),
             ),
         ),
         close_callback=lambda: closed.append(True),
@@ -258,6 +409,7 @@ def request_payload(
     visibility: str = "hidden",
     thinking_mode: str = "disabled",
     summary_mode: str = "off",
+    documentation_rag_mode: str = "disabled",
 ) -> dict[str, object]:
     return {
         "messages": [{"role": "user", "content": "hello"}],
@@ -267,6 +419,7 @@ def request_payload(
             "thinking_mode": thinking_mode,
             "thinking_visibility": visibility,
             "summary_mode": summary_mode,
+            "documentation_rag_mode": documentation_rag_mode,
         },
     }
 
@@ -322,6 +475,188 @@ async def test_basic_auth_protects_ui_assets_and_api_but_not_health() -> None:
     serialized = authorized.text
     assert "preview-password" not in serialized
     assert str(PROJECT_ROOT) not in serialized
+
+
+@pytest.mark.asyncio
+async def test_public_demo_is_credentialless_with_chat_controls_and_public_rag() -> None:
+    inference = FakeInference()
+    rag = FakeDocumentationRag("docs/public/overview_en.md")
+    app = create_web_app(
+        runtime_factory=lambda: build_runtime(
+            inference,
+            [],
+            documentation_rag=rag,
+            documentation_rag_availability=DocumentationRagAvailability.AVAILABLE,
+            documentation_rag_state=DocumentationRagEffectiveState.ENABLED,
+        ),
+        access_policy=load_web_access_policy({}, profile=PUBLIC_PROFILE),
+    )
+
+    async with client_for(app) as client:
+        root = await client.get("/")
+        runtime = await client.get("/api/v1/runtime")
+        stream = await client.post(
+            "/api/v1/chat/stream",
+            json=request_payload(
+                thinking_mode="enabled",
+                visibility="visible",
+                summary_mode="post_generation",
+            ),
+        )
+        inactive_stop = await client.post(
+            "/api/v1/chat/stop",
+            json={"request_id": "not-active"},
+        )
+        rag_override = await client.post(
+            "/api/v1/chat/stream",
+            json={
+                **request_payload(),
+                "documentation_rag": "enabled",
+            },
+        )
+        valid_shape_rag_override = await client.post(
+            "/api/v1/chat/stream",
+            json=request_payload(documentation_rag_mode="enabled"),
+        )
+
+    assert root.status_code == 200
+    assert runtime.status_code == 200
+    assert stream.status_code == 200
+    assert "event: completed" in stream.text
+    assert inactive_stop.status_code == 404
+    assert rag_override.status_code == 422
+    assert rag_override.json() == {
+        "code": "invalid_request",
+        "message": "The request is invalid.",
+    }
+    assert valid_shape_rag_override.status_code == 200
+    assert "docs/public/overview_en.md" in valid_shape_rag_override.text
+    assert rag.queries == ["hello"]
+    assert inference.requests
+    for response in (
+        root,
+        runtime,
+        stream,
+        inactive_stop,
+        rag_override,
+        valid_shape_rag_override,
+    ):
+        assert response.headers["cache-control"] == "no-store"
+        assert response.headers["x-content-type-options"] == "nosniff"
+        assert str(PROJECT_ROOT) not in response.text
+
+
+@pytest.mark.asyncio
+async def test_local_documentation_rag_runtime_stream_and_system_citation() -> None:
+    inference = FakeInference()
+    rag = FakeDocumentationRag()
+    app = create_web_app(
+        runtime_factory=lambda: build_runtime(
+            inference,
+            [],
+            documentation_rag=rag,
+            documentation_rag_availability=DocumentationRagAvailability.AVAILABLE,
+            documentation_rag_state=DocumentationRagEffectiveState.ENABLED,
+        ),
+        access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+    )
+
+    async with client_for(app) as client:
+        snapshot = await client.get("/api/v1/runtime")
+        response = await client.post(
+            "/api/v1/chat/stream",
+            json=request_payload(documentation_rag_mode="enabled"),
+        )
+
+    assert snapshot.json()["documentation_rag"] == {
+        "effective_state": "enabled",
+        "control_available": True,
+        "provider_display_name": "Local lexical documentation",
+        "default_mode": "disabled",
+        "schema_version": "1",
+    }
+    assert rag.queries == ["hello"]
+    assert len(rag.request_contexts) == 1
+    request_context = rag.request_contexts[0]
+    assert request_context.effective_context_size == 4096
+    assert request_context.requested_max_new_tokens == 2048
+    assert request_context.prompt_token_count_exact is True
+    assert request_context.system_history_current_prompt_tokens is not None
+    assert "event: retrieval" in response.text
+    assert "docs/project/current/requirements_ja.md" in response.text
+    assert str(PROJECT_ROOT) not in response.text
+    assert inference.requests[0].messages[1].name == "documentation_reference"
+    assert (
+        request_context.system_history_current_prompt_tokens
+        + request_context.requested_max_new_tokens
+        <= request_context.effective_context_size
+    )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("summary_mode", ["off", "post_generation"])
+async def test_control_policy_wraps_completed_and_summary_generation(
+    summary_mode: str,
+) -> None:
+    policy = RecordingControlPolicy()
+    app = create_web_app(
+        runtime_factory=lambda: build_runtime(FakeInference(), []),
+        access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+        control_policy=policy,
+    )
+
+    async with client_for(app) as client:
+        response = await client.post(
+            "/api/v1/chat/stream",
+            json=request_payload(summary_mode=summary_mode),
+        )
+
+    assert response.status_code == 200
+    assert "event: completed" in response.text
+    assert app.state.public_control_policy is policy
+    assert policy.calls[:2] == ["check_request", "before_generation"]
+    assert policy.calls[-1] == "after_generation"
+    assert policy.calls.count("after_generation") == 1
+    assert set(policy.calls[2:-1]) == {"observe_generation"}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("terminal_kind", ["cancelled", "error"])
+async def test_control_policy_finalizes_cancelled_and_error_generation_once(
+    terminal_kind: str,
+) -> None:
+    if terminal_kind == "cancelled":
+        inference = FakeInference(
+            lambda: FakeStream(
+                text_deltas=(),
+                finish_reason=FinishReason.CANCELLED,
+            )
+        )
+    else:
+
+        class FailingStream(FakeStream):
+            def __iter__(self) -> Iterator[GenerationChunk]:
+                raise RuntimeError("private generation failure")
+                yield  # pragma: no cover
+
+        inference = FakeInference(FailingStream)
+
+    policy = RecordingControlPolicy()
+    app = create_web_app(
+        runtime_factory=lambda: build_runtime(inference, []),
+        access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+        control_policy=policy,
+    )
+
+    async with client_for(app) as client:
+        response = await client.post("/api/v1/chat/stream", json=request_payload())
+
+    assert response.status_code == 200
+    assert f"event: {terminal_kind}" in response.text
+    assert policy.calls[:2] == ["check_request", "before_generation"]
+    assert policy.calls[-1] == "after_generation"
+    assert policy.calls.count("after_generation") == 1
+    assert set(policy.calls[2:-1]) == {"observe_generation"}
 
 
 @pytest.mark.asyncio
@@ -476,9 +811,11 @@ async def test_summary_fallback_presents_original_once_as_assistant_message() ->
 
 @pytest.mark.asyncio
 async def test_request_validation_is_generic_and_rejects_client_system_role() -> None:
+    policy = RecordingControlPolicy()
     app = create_web_app(
         runtime_factory=lambda: build_runtime(FakeInference(), []),
         access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+        control_policy=policy,
     )
     invalid = request_payload()
     invalid["messages"] = [{"role": "system", "content": "private input"}]
@@ -497,6 +834,7 @@ async def test_request_validation_is_generic_and_rejects_client_system_role() ->
         summary_response = await client.post("/api/v1/chat/stream", json=invalid_summary)
     assert summary_response.status_code == 422
     assert summary_response.json()["code"] == "invalid_request"
+    assert policy.calls == []
 
 
 @pytest.mark.asyncio
@@ -530,9 +868,11 @@ async def test_busy_and_stop_endpoints_use_active_request_only() -> None:
         ),
     )
     session = runtime.conversation.start(active_input)
+    policy = RecordingControlPolicy()
     app = create_web_app(
         runtime_factory=lambda: runtime,
         access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+        control_policy=policy,
     )
     async with client_for(app) as client:
         busy = await client.post("/api/v1/chat/stream", json=request_payload())
@@ -549,6 +889,7 @@ async def test_busy_and_stop_endpoints_use_active_request_only() -> None:
     assert stopped.status_code == 200
     assert stopped.json() == {"status": "cancellation_requested"}
     assert events[-1].event.value == "cancelled"
+    assert policy.calls == ["check_request", "before_generation", "after_generation"]
 
 
 def test_static_assets_are_local_thinking_aware_phase_1i_ui() -> None:
@@ -580,8 +921,22 @@ def test_static_assets_are_local_thinking_aware_phase_1i_ui() -> None:
     assert html.count("<select") == 1
     assert html.count('type="number"') == 1
     assert html.count('type="checkbox"') == 2
-    assert html.count('type="radio"') == 2
+    assert html.count('type="radio"') == 4
     assert 'id="thinking-mode"' in html
+    assert 'id="documentation-rag-control"' in html
+    assert 'name="documentation-rag-mode"' in html
+    assert 'name="documentation-rag-mode" value="disabled" checked' in html
+    assert '"documentation-rag-mode"][value="${' in script
+    assert 'event.type === "retrieval"' in script
+    assert "renderCitations(assistantView, data)" in script
+    assert "project_relative_path" in script
+    assert "documentationNoHit" in script
+    assert "documentationContextInsufficient" in script
+    assert "documentationSubjectCoverageInsufficient" in script
+    assert "documentationPromptMeasurementUnavailable" in script
+    assert "documentation_context_budget_insufficient" in script
+    assert "documentation_subject_coverage_insufficient" in script
+    assert "documentation_prompt_measurement_unavailable" in script
     assert 'thinking_mode: elements.thinkingMode.checked ? "enabled" : "disabled"' in script
     assert 'data.channel === "reasoning"' in script
     assert 'data.channel === "final"' in script
@@ -596,6 +951,10 @@ def test_static_assets_are_local_thinking_aware_phase_1i_ui() -> None:
     assert "English" in html
     assert "Nazuna Research Governance LLM" in html
     assert "Nazuna Research Governance LLM" in package_init
+    assert "Research Preview" in html
+    assert "research preview" in script
+    assert "Basic認証は本番Account機能ではありません" not in html
+    assert "Basic authentication is not a production account system" not in script
     deprecated_name = "legacy-public-identity"
     assert deprecated_name not in html.lower()
     assert deprecated_name not in package_init.lower()
@@ -671,12 +1030,21 @@ async def test_client_disconnect_requests_cooperative_cancel() -> None:
         return {"type": "http.disconnect"}
 
     request = Request(scope, receive)
-    events = [chunk async for chunk in stream_session_as_sse(request, session)]
+    policy = RecordingControlPolicy()
+    events = [
+        chunk
+        async for chunk in stream_session_with_control_policy(
+            request=request,
+            session=session,
+            control_policy=policy,
+        )
+    ]
 
     assert any("event: start" in chunk for chunk in events)
     assert inference.streams == []
     assert session.finished is True
     assert runtime.conversation.active_request_id is None
+    assert policy.calls == ["observe_generation", "after_generation"]
 
 
 def test_stop_during_summary_cancels_on_producer_thread_without_fallback() -> None:

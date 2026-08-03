@@ -30,7 +30,7 @@
       </header>
 
       <section id="preview-note" class="preview-note" aria-label="プレビュー利用上の注意">
-        この画面は少人数検証用のPreviewです。Basic認証は本番Account機能ではありません。
+        この画面はResearch Previewです。本番AccountまたはProduction Serviceではありません。
       </section>
 
       <section id="messages" class="messages" aria-live="polite" aria-label="Chatメッセージ">
@@ -86,6 +86,22 @@
             </label>
           </div>
         </fieldset>
+        <fieldset id="documentation-rag-control" class="summary-control" hidden>
+          <legend id="documentation-rag-mode-label">プロジェクトDocs参照</legend>
+          <div class="segmented-control">
+            <label>
+              <input type="radio" name="documentation-rag-mode" value="disabled" checked />
+              <span id="documentation-rag-mode-off">OFF</span>
+            </label>
+            <label>
+              <input type="radio" name="documentation-rag-mode" value="enabled" />
+              <span id="documentation-rag-mode-on">ON</span>
+            </label>
+          </div>
+        </fieldset>
+        <p id="documentation-rag-note" class="setting-note" hidden>
+          ONではProject内の許可されたDocsを参照し、System由来の参照文書を回答と分離して表示します。
+        </p>
         <p id="summary-note" class="setting-note summary-note">
           ONでは通常回答の完了後に同じModelで要約します。
           処理時間とToken使用量が増え、要約により詳細、前提、注意事項等が省略・変形される可能性があります。
