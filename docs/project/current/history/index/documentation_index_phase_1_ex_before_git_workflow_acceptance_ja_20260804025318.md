@@ -5,7 +5,7 @@ document_id: current_documentation_index
 status: current
 language: ja
 created_at: 2026-07-26 15:16:24 JST
-updated_at: 2026-08-04 02:53:18 JST
+updated_at: 2026-08-02 22:36:57 JST
 owner: 設計統括者役
 active_phase: phase_1_ex
 rag_default: true
@@ -29,9 +29,9 @@ Public／Root Initial Set : COMPLETE／VALIDATED
 Design Governance Recovery: INTERIM CURRENT STATE／READY
 Lightning Stage B        : TRAFFIC-AWARE AUTO-START ACCEPTED／GO
 Unattended Wake Trial    : REPEATED WAKE／SLEEP PASS
-Phase 1-ex Order         : REVISED／GIT MAIN INTEGRATION COMPLETE／FINAL DOCS AND REVIEW NEXT
+Phase 1-ex Order         : REVISED／PRE-GIT GITHUB PREPARATION NEXT
 Optional English Docs   : RESERVED／CURRENT＋SHARED＋PUBLIC／HISTORY EXCLUDED
-Git／GitHub              : PR #1 MERGED／MAIN ALIGNED／WORK BRANCH RETIRED／NO TAG OR RELEASE
+Git／GitHub              : EXISTING HISTORY PRESERVED／SSH PASS／STAGING CLONE CLEAN／READ-ONLY DELTA INVENTORY NEXT
 ```
 
 ## Current Canonical
@@ -76,7 +76,6 @@ Git／GitHub              : PR #1 MERGED／MAIN ALIGNED／WORK BRANCH RETIRED／
 - [Git Existing Repository Continuity Decision](../phases/phase_1_ex/history/operations/git_existing_repository_continuity_and_public_account_transition_decision_20260802142024.md)
 - [Public Repository Low-discoverability Adjustment](../phases/phase_1_ex/history/operations/public_repository_low_discoverability_root_surface_adjustment_20260802145825.md)
 - [Git SSH／Clone／Task Routing Consolidation](../phases/phase_1_ex/history/operations/git_low_discoverability_ssh_clone_and_task_routing_consolidation_20260802210438.md)
-- [Git Workflow Acceptance／PR Merge／Branch Retirement](../phases/phase_1_ex/history/operations/git_workflow_acceptance_merge_and_branch_retirement_20260804025318.md)
 
 ## Completed Phase
 
@@ -100,7 +99,6 @@ Git／GitHub              : PR #1 MERGED／MAIN ALIGNED／WORK BRANCH RETIRED／
 - [Experimental Document-driven Codex Task Orchestration](../shared/operations/experimental_document_driven_codex_task_orchestration_ja.md)
 - [Phase 2 Subphase／Task Orchestration Preplan](../shared/operations/phase_2_subphase_and_task_orchestration_preplan_ja.md)
 - [Phase Completion Review／Backup Gate](../shared/operations/phase_completion_review_and_backup_gate_ja.md)
-- [Git Workflow Policy](../shared/operations/git_workflow_policy_ja.md)
 - [GitHub Publication Sanitation Policy](../shared/operations/git_publication_sanitation_policy_ja.md)
 - [Task Role／Write Authority](../shared/task_roles/task_role_write_authority_policy_ja.md)
 - [Design Governance Handoff](../shared/design_governance_handoff/design_governance_handoff_ja.md)
@@ -121,7 +119,7 @@ Sharedには`schemas/`、`templates/`および対応Historyの正式な配置先
 
 PublicのOverview／Concept／RoadmapおよびRoot公開Artifactは、Phase 1-exの初回公開Corpusとして作成済みである。対応History Rootは`docs/public/history/overview/`、`docs/public/history/concept/`および`docs/public/history/roadmap/`である。
 
-Research PreviewはGitHubへ掲載済みである。Existing Repositoryの先行公開Historyを保持したまま、Root公開面とRepository Metadataを低発見性運用へ変更し、`CITATION.cff`はLocal CurrentとDefault Branchから削除した。専用SSH、Git Staging Clone、Source→Target Integration、Sanitation、Test、Draft PR、ReviewおよびMerge Commit方式の`main`統合までAcceptedである。PR #1のMerge Commitは`9fff303175a3224963254eacddd66f9cf5112a5a`で、Local／`origin/main`一致、Clean、`git fsck`およびSource／Target 1,053件一致を確認した。用済み作業Branchは`main`包含を証明した後、ユーザー承認によりLocal／Remoteから削除した。Tag／Releaseは未作成である。
+Research PreviewはGitHubへ掲載済みである。Existing Repositoryの先行公開Historyを保持したまま、Root公開面とRepository Metadataを低発見性運用へ変更し、`CITATION.cff`はLocal CurrentとDefault Branchから削除した。現在は専用SSH経路とCleanなGit Staging CloneまでAcceptedであり、次工程はOriginal ProjectとのRead-only Delta Inventoryである。Commit／Tag／Push前には、公開Allowlist、Secret／Identity、第三者Attribution、Model License、利用条件および全Outgoing Tree／Metadataを再検証する。
 
 ## Stable History
 

@@ -5,7 +5,7 @@ document_id: documentation_rules
 status: current
 language: ja
 created_at: 2026-07-26 15:16:24 JST
-updated_at: 2026-08-04 02:53:18 JST
+updated_at: 2026-07-27 23:59:35 JST
 owner: 設計統括者役
 rag_default: true
 ```
@@ -207,9 +207,9 @@ roadmap_phase_1_ex_ja_20260727071234.md
 
 ### 5.1 Gitの現在状態
 
-- 本ProjectはExisting RepositoryのHistoryを継承し、Git運用を開始している。Branch、Commit、Pull Request、Merge、Tag、Remote、Identity、Backup対応およびLocal Working Rootの正本は[Git Workflow Policy](../operations/git_workflow_policy_ja.md)とする。
-- Git操作はユーザーの明示承認Gateを維持する。Git運用開始を、Commit、Push、Merge、Branch／Tag削除、Remote変更、History RewriteまたはRepository設定変更のStanding Authorizationとして扱わない。
-- Gitは追加の差分管理・証跡手段であり、Append-only Development Log、Timestamp Snapshot、Phase HistoryおよびBackupの代替ではない。
+- 本ProjectのGit運用は未決定である。
+- Git初期化、Commit、Branch、Tag、Remote、Push、公開Repositoryへの投入、履歴加工およびGitを前提とするDocs運用は、ユーザーがGit運用設計を明示承認するまで実施しない。
+- 将来Gitを採用した場合も、Gitは追加の差分管理・証跡手段であり、Append-only Development Log、Timestamp Snapshot、Phase HistoryおよびBackupの代替ではない。
 - 「Gitに履歴が残る」ことを理由に、Docsの履歴保存を省略、削減または廃止しない。
 
 ### 5.2 運用変更の禁止

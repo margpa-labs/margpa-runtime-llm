@@ -5,7 +5,7 @@ document_id: git_publication_sanitation_policy
 status: current_effective
 language: ja
 created_at: 2026-08-02 07:39:01 JST
-updated_at: 2026-08-04 02:53:18 JST
+updated_at: 2026-08-02 21:04:38 JST
 owner: 設計統括者役
 decision_authority: user
 applies_to: github_push_preparation
@@ -195,29 +195,7 @@ Commit／Tag／Push      : none
 
 Clone直下で検出した未追跡`.DS_Store`は、生成経路を断定せず、ユーザー承認済みのExact PathだけをRecoverableにTrashへ移動した。Cleanupのための`.gitignore`変更は行っていない。
 
-上記はClone Acceptance時点の履歴である。その後、Read-only Delta Inventory、Source→Target Manifest、Backup、実統合、Sanitation、Test、Commit、Draft Pull Request、Review、MergeおよびPostflightまで完了した。現在の運用は[Git Workflow Policy](git_workflow_policy_ja.md)に従う。
-
-### 9.3 First Git-managed Publication Acceptance
-
-```text
-Pull Request       : #1 merged
-Merge Method       : merge commit
-Merge Commit       : 9fff303175a3224963254eacddd66f9cf5112a5a
-Default Branch     : main
-Local／origin/main : aligned
-Git fsck           : pass
-Publication Files  : 1,053／1,053
-Source-only        : 0
-Target-only        : 0
-Content Mismatch   : 0
-Legacy docs/phases : 0
-Obsolete Images    : 0
-Tag／Release        : none
-```
-
-作業BranchはPull Request Mergeと`main`包含をLocal／Remote双方で証明した後、ユーザー承認によりLocal／Remoteから削除した。Branch削除はMerge Commit、Commit SHA、PRおよびBackupを削除しない。
-
-本Acceptanceは、既存Historyを壊さず現在のSourceをGitHub `main`へ統合できたことを示す。Phase 1-ex完了、完了Tag、Releaseまたは単一Git Rootへの移行を自動的に意味しない。
+次工程はGit Indexを基準とするOriginal ProjectとのRead-only Delta Inventoryである。設計統括者役が結果をReviewするまで、Original→Clone Copy、Delete、Add、Commit、Tag、Push、Merge、History RewriteまたはRemote変更を行わない。
 
 ## 10. Push Gate Failure
 

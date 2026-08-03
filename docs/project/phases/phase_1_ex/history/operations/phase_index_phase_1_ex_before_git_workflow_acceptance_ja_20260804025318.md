@@ -6,7 +6,7 @@ phase: phase_1_ex
 status: active
 language: ja
 created_at: 2026-07-26 15:16:24 JST
-updated_at: 2026-08-04 02:53:18 JST
+updated_at: 2026-08-03 21:06:58 JST
 owner: 設計統括者役
 rag_default: true
 ```
@@ -389,31 +389,6 @@ Git Staging Cloneの`.git/`とExisting HistoryをGit履歴正本とし、現在�
 
 Phase 2以降の半自動／ほぼ自動Orchestration実験は、事前承認済みEnvelope内だけに適用する完全な別件である。本原則の例外、包括的権限委任または現在作業へのStanding Authorizationとして解釈しない。
 
-## 2.25 Git Workflow Acceptance／PR Merge／Branch Retirement
-
-- [Git Workflow Policy](../../shared/operations/git_workflow_policy_ja.md)
-- [Git Workflow Acceptance／PR Merge／Branch Retirement Record](history/operations/git_workflow_acceptance_merge_and_branch_retirement_20260804025318.md)
-- [GitHub Publication Sanitation Policy](../../shared/operations/git_publication_sanitation_policy_ja.md)
-
-Existing RepositoryのHistoryを保持したままSource→Target Integration、Sanitation、Test、Commit、Draft Pull Request、ReviewおよびMerge Commit方式の`main`統合を完了した。
-
-```text
-Pull Request       : #1 merged
-Merge Commit       : 9fff303175a3224963254eacddd66f9cf5112a5a
-Local／origin/main : aligned
-Working Tree       : clean at postflight
-Git fsck           : pass
-Publication Files  : 1,053／1,053
-Path／Content Delta: 0／0
-Tag／Release        : none
-```
-
-`phase/1-ex-publication-preparation`はLocal／Remote双方で`main`への包含を確認し、ユーザー承認後にLocal／Remoteから削除した。Merge Commit、PR、Commit HistoryおよびBackupは保持されている。
-
-Branch、Commit、PR、Merge、Tag、Remote、Identity、Backup対応およびWorking Root方針をShared Git Workflow正本として確定した。`margpa-runtime-llm_git_staging`はPhase 1-ex残作業中のGit History／Remote操作用に保持するが、恒久必須ではない。Phase 1-ex Final Backup後、Phase 2開始前を第一候補として、別途Backup／SHA-512／Runtime Test／Rollback／ユーザー承認を伴う単一Git Root移行を検討する。
-
-Branch Protection、Phase 1-ex完了Tag、Releaseおよび単一Git Root Cutoverは未実施であり、本Acceptanceから自動実行しない。
-
 ## 3. Role／Notification
 
 - [Task Role／Write Authority](../../shared/task_roles/task_role_write_authority_policy_ja.md)
@@ -440,19 +415,19 @@ Branch Protection、Phase 1-ex完了Tag、Releaseおよび単一Git Root Cutover
 1. Git未使用のGitHub掲載準備／一時掲載。ユーザーにより掲載完了。
 2. Basic認証Previewと分離した最小Public Demo基盤実装、Lightning設定、匿名公開およびTraffic-aware Auto-start。完了／Accepted。Public Corpus Documentation RAGは後続Accepted設計によりBasic／Publicの両Access Profileで利用可能とした。
 3. Local Mac簡易Documentation RAG＋External Hook、およびLightning Public Corpus Adapter。完了／Cross-environment Accepted。検索精度改善は後続Phaseへ延期。
-4. Git運用設計。Existing History、公開Identity、専用SSH、Staging Clone、Branch／Commit／PR／Merge／Tag／Backup規則までAccepted。Branch Protectionと単一Git Root移行は未実施。
-5. Git統合／公開Sanitation。Source→Target Integration、`.gitignore`／`.gitattributes`境界、Privacy Scan、Outgoing Tree、Commit、Draft PR、Reviewおよび`main` Mergeまで完了。作業Branchは包含証明後に退役済み。Tag／Releaseは未作成。
+4. Git運用設計。Existing History継続、公開Identity、専用SSHおよびStaging CloneはAccepted。次にRead-only Delta Inventory、Source→Target Integration、Branch／Tag／Commit、Backup対応を確定する。
+5. Git統合／公開Sanitation。`.gitignore`、`.gitattributes`、除外、Privacy Scan、LICENSE方針、Outgoing Commit TreeおよびPush直前準備を行う。設計統括者Reviewとユーザー承認前にCommit／Pushしない。
 6. 必要なDocsだけを再整理・新規作成し、Phase 1-ex Final LosslessとDesign Governance Recovery情報を更新する。
-7. 全体Review／Test／Privacy ScanとPhase単位最終Checkを行い、Blockerを解消する。
-8. User Acceptance後、Phase 1-ex Final Backupを取得する。
-9. Final Git状態とBackupの対応を確認し、Phase完了Tagの作成可否をユーザーが判断する。
-10. Phase 1-ex完了・Phase 2着手可能宣言後に、必要であれば単一Git Root Cutoverを別Gateで実施し、Phase 2へ進む。
+7. 全体Review／Test／Privacy Scanを行う。
+8. ユーザーの明示許可後に初回Commitを作成する。
+9. Phase 1-ex完了条件とUser Acceptance後にPhase 1-ex Backupを取得する。
+10. Phase 1-ex完了・Phase 2着手可能宣言後にPhase 2へ進む。
 
 Stage 6に作業余力がある場合は、Current／Shared／Publicの非History Stable文書を対象に、日本語正本と同粒度の英語派生版を作成する。余力がない場合は後日またはPhase 2前半へ延期する。
 
 匿名Public Accessは、Public Demo基盤、Explicit Access Profile、Public RAG遮断、Tool／Agent／外部操作非追加、Basic認証Previewとの分離および最終確認に合格した後、ユーザーの明示判断で有効化する。Public専用Rate／Budget／Cost制限は現時点で`off`とし、将来必要時に再評価する。
 
-Stage 1のGit未使用掲載は既存公開Historyとして保持する。Git Staging CloneでそのHistoryを継承し、Original→Clone Integration、Commit、Push、Draft PR、Merge Commitおよび`main` Postflightまで完了した。新しいRoot Commit、Repository再作成、History RewriteまたはForce Pushは行っていない。今後は[Git Workflow Policy](../../shared/operations/git_workflow_policy_ja.md)に従い、Phase Final Backup、完了Tag候補および単一Git Root移行をそれぞれ独立したユーザーGateとして扱う。
+Stage 1のGit未使用掲載は既存公開Historyとして保持する。現在のGit Staging CloneはそのHistoryを基準に次Commitを作る候補であり、新しいRoot CommitまたはRepository再作成は行わない。Original→Clone Integration、Commit、Tag、PushおよびBackupの正確な順序は、Read-only Delta Inventory後に設計統括者役が案を提示し、ユーザー承認で確定する。
 
 ## 7. History
 
@@ -523,8 +498,6 @@ Phase 1-ex開始時の旧Index、Role Transition、Migration Control Eventおよ
 - [Git Read-only Delta Inventory／統合直前Backup Evidence](history/operations/git_read_only_delta_inventory_and_preintegration_backup_evidence_20260803201448.md)
 - [Command-only Request誤実行Incident／Execution Boundary](history/operations/command_only_request_unauthorized_permission_execution_incident_20260803205250.md)
 - [Explicit Confirmation／Workspace Boundary Absolute Rules](history/operations/explicit_confirmation_and_workspace_boundary_absolute_rules_20260803210658.md)
-- [Git Workflow Acceptance／PR Merge／Branch Retirement](history/operations/git_workflow_acceptance_merge_and_branch_retirement_20260804025318.md)
-- [Git Workflow Policy](../../shared/operations/git_workflow_policy_ja.md)
 
 ### 7.1 Index Snapshot Chain
 
@@ -581,4 +554,3 @@ Phase 1-ex開始時の旧Index、Role Transition、Migration Control Eventおよ
 - [2026-08-03 20:14:48](history/documentation_index_20260803201448.md)
 - [2026-08-03 20:52:50](history/documentation_index_20260803205250.md)
 - [2026-08-03 21:06:58](history/documentation_index_20260803210658.md)
-- [2026-08-04 02:53:18](history/documentation_index_20260804025318.md)
