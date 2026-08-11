@@ -10,7 +10,7 @@ subphase: phase_2_0
 work_unit: P2-0-WU-002
 language: ja
 created_at: 2026-08-04 11:17:44 JST
-updated_at: 2026-08-11 13:09:30 JST
+updated_at: 2026-08-11 21:05:03 JST
 owner: プロジェクト責任者兼設計統括者役
 decision_authority: user
 accepted: false
@@ -68,7 +68,21 @@ Human-private Backup、Recovery Assetまたはその存在／場所／状態は�
 
 ## 3. Allowed Controller Actions
 
-全Pre-activation Gate成立後、Controllerが連結できるActionは次だけである。
+### 3.1 `PAUSED`中のDesign／Freeze Preparation
+
+現在のユーザー指示とController自身の共通Role／Docs Authorityの交差内で、ControllerはTaskを作成せず、次だけを実行できる。
+
+1. Design PackageのCross-Document ReviewとCorrection。
+2. Provider AdapterのRead-only Preflight。
+3. 必要ArtifactのDocument ClassとExact Path決定。
+4. Exact Digest計測とDetached Freeze Receiptの新規作成。
+5. READY Evidence候補の検証とUser Acceptance依頼。
+
+このPreparation Authorityは、既存Stableへの無条件Write、既存History Mutation、Task作成、Pilot Start、Git、External、Secret、DestructiveまたはAuthorized Root外Accessを許可しない。
+
+### 3.2 User Acceptance／READY／Start後のBounded Execution
+
+全Pre-activation GateとTwo-key Activation成立後、Controllerが連結できるActionは次だけである。
 
 1. 新しい独立Taskを1件作成する。
 2. Provider上のRegistrationを観測可能になるまでRead-onlyに確認する。
@@ -77,8 +91,7 @@ Human-private Backup、Recovery Assetまたはその存在／場所／状態は�
 5. Authority Acknowledgementを取得する。
 6. ACK合格時だけ、1回のFollow-upでRecovery Assessmentを依頼する。
 7. Status／Final Reportを取得する。
-8. PostflightをRead-onlyで照合し、GO／ADJUST／STOP案をユーザーへ提示する。
-9. Acceptance前に、Controllerが本Work Unitで自身へ委譲されたDocs Authorityと共通Docs／運用規則に沿って必要性を判断し、許可Document ClassとExact Pathを固定したArtifactだけを新規作成する。Role／Task間の移転Artifactに論理的なFrom／Toを記録し、その他のArtifactは責務に応じたOwner／Authority／Reader／Actor情報を持つ。
+8. PostflightをRead-onlyで照合し、Frozen Artifact Scope内で必要な新規Status／Review／Evidenceを記録し、GO／ADJUST／STOP案をユーザーへ提示する。
 
 Task Creation成功後も、Registration未確認、Title設定失敗またはHandoff不成立なら自動再試行せず`PAUSED`へ戻る。固定Sleep、無制限Polling、別Task作成または旧Task再利用は禁止する。
 
@@ -131,7 +144,9 @@ Artifact ClassとExact PathがEnvelope／Freeze Receiptへ列挙されていな�
 
 General Hard-code ProhibitionのNormative本文と判断Authorityは[Task Role／Write Authority Policy](../../../shared/task_roles/task_role_write_authority_policy_ja.md)を参照する。本EnvelopeはArtifact名／件数、Provider Command、Path、ThresholdまたはRole Bindingを再利用されるCoreへ固定せず、Exact Runtime ValueをManifest、Adapter、Role View、EnvelopeまたはFreeze Receiptから解決する。
 
-## 6. Absolute Prohibitions
+## 6. Child Absolute Prohibitions／Controller Boundary
+
+Child Taskには次を絶対禁止する。
 
 - Accepted Adapter Grammar外のShell／Command／Tool実行。
 - Project Root内外のFile Mutation。
@@ -144,6 +159,8 @@ General Hard-code ProhibitionのNormative本文と判断Authorityは[Task Role�
 - Handoff外の要件変更、設計変更、権限拡張またはPhase 2-A移行。
 - 最上位規則の追加、変更、削除、並替え、例外化または候補登録。
 - Incident後のCleanup、Rollback、Move、再生成または証跡整合化。
+
+ControllerはSection 3.1／3.2に列挙されたActionだけを、自身の共通Role／Docs Authority、現在のUser DirectionおよびFrozen Scopeの交差内で実行できる。Childへの禁止をControllerの正当なPreflight／Freezeまで禁止する根拠にせず、Controller AuthorityをChildへ移転する根拠にもしてはならない。
 
 ## 7. Required Output
 
@@ -262,12 +279,14 @@ accepted_at: null
 accepted_revision: null
 accepted_freeze_receipt: null
 new_task_creation_explicitly_requested: false
-provider_read_adapter_preflight: full_preflight_passed_before_authority_correction_recheck_required
-role_authority_matrix_reviewed: false
+provider_read_adapter_preflight: full_recheck_passed_after_final_alignment
+role_authority_matrix_reviewed: true
+role_view_design_reviewed: true
 role_view_accepted: false
-authorized_root_resolved: false
-manifest_frozen: false
-handoff_digest_confirmed: false
+authorized_root_resolved: true_as_non_public_identity_digest_binding
+manifest_frozen: current_candidate_generated_user_acceptance_pending
+handoff_digest_confirmed: current_candidate_generated_user_acceptance_pending
+controller_artifact_paths_frozen: true_in_current_candidate
 ready_evidence_complete: false
 control_state: PAUSED_ROLE_AUTHORITY_DESIGN
 controller_ready_declared: false

@@ -198,7 +198,7 @@ Automation Level Draft          : bounded_unit
 Design Review                    : role authority redesign in progress
 Authorization Envelope          : draft_not_authorized
 Capability Preflight             : passed／recheck before task creation
-Role Authority Matrix            : design candidate／pending user review
+Role Authority Matrix            : design review passed／user acceptance pending
 READY Evidence                   : incomplete
 Two-key Activation               : not completed
 Pilot                            : not started

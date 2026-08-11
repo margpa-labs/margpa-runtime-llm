@@ -2,7 +2,7 @@
 
 ```yaml
 document_id: codex_desktop_bounded_read_adapter
-status: design_draft
+status: design_review_passed_full_preflight_passed_not_activated
 normative_core: false
 provider_specific: true
 language: ja
@@ -127,11 +127,12 @@ Digest一致だけで内容を読んだことにしない。全Page取得だけ�
 ## 9. Current State
 
 ```text
-Design           : draft
+Design           : review passed
 Activated        : no
 Envelope Accepted: no
 Task Authorized  : no
 Design-time Sample: pass for wc／shasum／sed with exact Manifest Entry
+Full Preflight   : pass for 18 regular readable Manifest Entries／no Task created
 Runtime Tested   : no Child Task execution
 ```
 

@@ -7,7 +7,7 @@ status: draft_not_authorized
 normative: false
 language: ja
 created_at: 2026-08-04 11:17:44 JST
-updated_at: 2026-08-11 12:46:35 JST
+updated_at: 2026-08-11 21:05:03 JST
 from_role: プロジェクト責任者兼設計統括者役
 to_role: Phase 2設計担当者役
 owner: プロジェクト責任者兼設計統括者役
@@ -184,10 +184,10 @@ Efficiency:
 
 ```text
 Envelope Revision      : draft-4／not accepted
-Manifest               : draft-2／not frozen
-Role View              : draft-2／document authority included／not accepted
-Provider Adapter       : draft／disabled
-Freeze Receipt         : previous receipts invalidated
+Manifest               : draft-2／current exact digest candidate generated／not accepted
+Role View              : draft-2／design review passed／not accepted
+Provider Adapter       : design review passed／full preflight passed／disabled until Start
+Freeze Receipt         : superseded pre-acceptance candidates preserved／current candidate generated
 Controller READY       : no
 User Start             : no
 New Task               : not created

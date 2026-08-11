@@ -13,7 +13,7 @@ role_name: Phase 2設計担当者役
 automation_level: bounded_unit
 language: ja
 created_at: 2026-08-11 01:09:24 JST
-updated_at: 2026-08-11 12:46:35 JST
+updated_at: 2026-08-11 21:05:03 JST
 decision_authority: user
 ```
 
@@ -128,12 +128,12 @@ Manifest全件の完読前にContext、QuotaまたはTool Failureが発生した
 ## 8. Current State
 
 ```text
-Role View        : draft-2／not accepted
+Role View        : draft-2／design review passed／user acceptance pending
 Envelope         : draft-4／not accepted
 Control State    : PAUSED／ROLE_AUTHORITY_DESIGN
 Task             : not created for P2-0-WU-002
 Autonomous Read  : not started
-Documentation    : delegated role-local judgment projected／exact targets pending review
+Documentation    : delegated role-local judgment projected／Child write none／Controller exact targets frozen in current candidate
 ```
 
 ## 9. Related Documents

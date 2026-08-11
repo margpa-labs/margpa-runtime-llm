@@ -2,11 +2,11 @@
 
 ```yaml
 document_id: role_authority_matrix
-status: design_candidate_pending_user_review
+status: design_review_passed_user_acceptance_pending
 normative_core: true
 language: ja
 created_at: 2026-08-11 01:09:24 JST
-updated_at: 2026-08-11 13:09:30 JST
+updated_at: 2026-08-11 20:47:41 JST
 owner_role_archetype: design_governor
 decision_authority: user
 provider_neutral: true
@@ -245,21 +245,23 @@ Project固有のRole名、Phase、Task、Path、ProviderおよびWork UnitはPro
 
 ## 12. Review Checklist
 
-- [ ] 通常運転とAutomationが一つのRole／Docs Matrixを共有している。
-- [ ] Mode差分がAuthorization Sourceと連結実行だけに限定されている。
-- [ ] 既存Stable文書への直書きがユーザー明示に限定されている。
-- [ ] 各Role／Taskが委譲範囲内で必要ArtifactとRoutine Actionを都度判断している。
-- [ ] 不要な固定Package、Exact File数またはArtifact名をCoreへHard-codeしていない。
-- [ ] Role／Task間の移転ArtifactにFrom／Toがある。
-- [ ] Phase Designerの通常運転／Automation時の指示経路が明確である。
-- [ ] 必要に応じたPhase別Implementer配置を妨げない。
-- [ ] 最上位規則とAuthorized Rootが全Role共通の絶対境界である。
-- [ ] Automation用の重複Role／Docs規則を作らない。
-- [ ] Project／Provider固有値がCoreから分離されている。
-- [ ] 不可避なHard-codeには理由、範囲、代替不能性、除去条件およびEvidenceがある。
-- [ ] Automationを理由に判断責任を固定Resolverまたは一律の人間承認へ移していない。
-- [ ] Routine ActionのMicro-escalationを要求せず、例外／Scope外／Gateだけを上位へ送っている。
-- [ ] Implementer→Phase Designer→最高責任者役→Userの段階的Review／完了連鎖がある。
+- [x] 通常運転とAutomationが一つのRole／Docs Matrixを共有している。
+- [x] Mode差分がAuthorization Sourceと連結実行だけに限定されている。
+- [x] 既存Stable文書への直書きがユーザー明示に限定されている。
+- [x] 各Role／Taskが委譲範囲内で必要ArtifactとRoutine Actionを都度判断している。
+- [x] 不要な固定Package、Exact File数またはArtifact名をCoreへHard-codeしていない。
+- [x] Role／Task間の移転ArtifactにFrom／Toがある。
+- [x] Phase Designerの通常運転／Automation時の指示経路が明確である。
+- [x] 必要に応じたPhase別Implementer配置を妨げない。
+- [x] 最上位規則とAuthorized Rootが全Role共通の絶対境界である。
+- [x] Automation用の重複Role／Docs規則を作らない。
+- [x] Project／Provider固有値がCoreから分離されている。
+- [x] 不可避なHard-codeには理由、範囲、代替不能性、除去条件およびEvidenceがある。
+- [x] Automationを理由に判断責任を固定Resolverまたは一律の人間承認へ移していない。
+- [x] Routine ActionのMicro-escalationを要求せず、例外／Scope外／Gateだけを上位へ送っている。
+- [x] Implementer→Phase Designer→最高責任者役→Userの段階的Review／完了連鎖がある。
+
+本Checklistの合格はDesign Reviewの成立だけを意味する。Normative Acceptance、Work Unit Acceptance、Task作成またはAutomation Startは、別のUser Gateを必要とする。
 
 ## 13. Related Documents
 

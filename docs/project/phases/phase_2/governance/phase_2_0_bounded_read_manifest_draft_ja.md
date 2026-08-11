@@ -4,13 +4,13 @@
 document_id: phase_2_0_bounded_read_manifest_draft
 manifest_id: p2-0-read-manifest-001
 revision: draft-2
-status: draft_not_frozen
+status: exact_digest_candidate_frozen_user_acceptance_pending
 phase: phase_2
 subphase: phase_2_0
 work_unit: P2-0-WU-002
 language: ja
 created_at: 2026-08-11 00:19:18 JST
-updated_at: 2026-08-11 01:09:24 JST
+updated_at: 2026-08-11 21:05:03 JST
 owner: プロジェクト責任者兼設計統括者役
 decision_authority: user
 authorized_root: runtime_resolved_project_manifest
@@ -78,6 +78,22 @@ Freeze Timestamp
 
 本Manifest内へ自己Digestまたは相互参照文書の循環Digestを埋め込まない。Digest FreezeはAppend-only Operations Evidenceへ保存し、Acceptance時にそのReceiptをExact指定する。
 
+Digest Canonicalizationは次へ固定する。
+
+```text
+Ordered Path-set Input:
+  UTF-8 encoded Relative Path + LFをManifest順に18件連結する。
+
+Package Set Input:
+  Order + TAB + Relative Path + TAB + Decimal Line Count + TAB + Lowercase SHA-512 + LF
+  をManifest順に18件連結する。
+
+Digest:
+  上記Canonical InputのRaw Byte列へSHA-512を一回適用する。
+```
+
+Path Separatorは`/`、Line EndingはLF、OrderとLine Countは先頭0なしの10進整数とする。Locale依存Sort、Markdown Table表示、Absolute PathまたはReceipt自身の内容をCanonical Inputへ含めない。
+
 ## 5. Prohibited Interpretation
 
 - `docs/`全体のRead許可ではない。
@@ -89,10 +105,10 @@ Freeze Timestamp
 ## 6. Current State
 
 ```text
-Manifest              : draft-2／not frozen
+Manifest              : draft-2／current exact digest candidate generated／not accepted
 Envelope              : draft-4／not accepted
-Provider Adapter      : design candidate／not activated
-Detached Freeze Receipt: previous receipts invalidated by role authority redesign
+Provider Adapter      : design review passed／full preflight passed／not activated
+Detached Freeze Receipt: superseded pre-acceptance candidates preserved／current candidate generated
 Task                  : not created for P2-0-WU-002
 Control State         : PAUSED／ROLE_AUTHORITY_DESIGN
 ```
