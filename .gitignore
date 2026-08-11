@@ -1,34 +1,144 @@
-# Local Python environment
-.venv/
+# Python virtual environments
+/.venv/
+/venv/
+/ENV/
 
-# Local environment and secrets
+# Local environment variables and secrets
 .env
 .env.*
 !.env.example
 !.env.template
+.envrc
+.direnv/
 
-# External model storage
+# Credentials, keys, certificates, and local authentication material
+credentials*.json
+service-account*.json
+secrets*.json
+token*.json
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# External model storage and model weights
 /models
 *.gguf
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+*.onnx
 
-# Python-generated files
+# Python bytecode and native build artifacts
 __pycache__/
 *.py[cod]
+*$py.class
 *.so
+*.dylib
 
-# Test, lint, type-check, and coverage caches
+# Python packaging and build outputs
+build/
+dist/
+downloads/
+.eggs/
+*.egg
+*.egg-info/
+pip-wheel-metadata/
+wheels/
+MANIFEST
+
+# Test, lint, type-check, and analysis caches
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+.pytype/
+.pyre/
+.hypothesis/
+.tox/
+.nox/
+.cache/
+
+# Coverage outputs
 .coverage
+.coverage.*
+coverage.xml
+coverage.json
 htmlcov/
+pytestdebug.log
 
 # Jupyter
 .ipynb_checkpoints/
 
-# macOS
-.DS_Store
-__MACOSX/
-
 # Local runtime data
 /var/
+/logs/
+/tmp/
+/temp/
+*.log
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.sqlite-journal
+*.sqlite3-journal
+
+# Temporary, backup, and editor swap files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+*_original
+
+# IDE and editor-local configuration
+.idea/
+.vscode/
+.fleet/
+*.code-workspace
+
+# Node and frontend package artifacts
+node_modules/
+.npm/
+.pnpm-store/
+.yarn/
+.yarn-cache/
+.nyc_output/
+coverage/
+
+# Archive and local backup files
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.rar
+
+# macOS artifacts
+.DS_Store
+._*
+__MACOSX/
+.AppleDouble/
+.LSOverride
+.Spotlight-V100/
+.Trashes/
+.fseventsd/
+.TemporaryItems/
+.DocumentRevisions-V100/
+Icon?
+
+# Windows artifacts
+Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Linux desktop and filesystem artifacts
+.directory
+.Trash-*/
+.nfs*
