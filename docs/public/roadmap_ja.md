@@ -183,7 +183,7 @@ Phase 2-0 Role／Docs Authority Design : Corrected／Three-point Review Passed
 Phase 2-0 Automation Control State    : PAUSED／Restart Package Review Completed
 Phase 2-0 Authorization Envelope      : draft-4／Not Accepted／Freeze Pending
 Phase 2-0 Independent Task            : Initial Task Idle／Replacement Task Not Created
-Phase 2-0 Git Checkpoint              : Current Docs Commit／Push Pending
+Phase 2-0 Git Checkpoint              : Content Commit f21829f Pushed／Local・Origin・Remote Aligned
 Phase 2 Functional Implementation     : Not Started
 Optional English Documentation        : Formally Deferred／Non-blocking／History Excluded
 ```
@@ -196,7 +196,7 @@ Phase 1とPhase 1-exは完了した。Phase 1-exでは、Docs Directory Migratio
 
 Phase 2はユーザー確認により開始し、元来の機能実装に先立つPhase 2-0 Document-driven Orchestration Pilotの初回有界Work Unitを実施した。Task作成、Exact Title設定、Handoff、Read-only Recovery Assessmentおよび停止境界のSafetyは成立した一方、全文Recoveryは不合格となり、結果を`Safety Pass／Recovery Fail`として記録した。再試験設計では、通常運転とAutomationで共通のRole／Docs Authorityを用い、Automation側には承認済み到達線内の連結実行だけを追加する構造へ修正した。固定Document Package、独立Dynamic Resolverおよび最高責任者役への判断集中を採用せず、各Role／Taskが委譲範囲内を都度判断し、例外を直属上位へ段階的にEscalateする。
 
-Role-local Judgment、Tiered Escalation、Authorization Envelope投影およびTask作成／Handoff／Status Authority分離のCorrection Reviewは合格した。ユーザーによる大規模Backupも完了している。現在は`PAUSED`であり、本更新を含むDocsのCommit／Push、draft-4／Role View／Manifest／Freeze Receiptの確定、ユーザーAcceptance、Controller READY／`ARMED`および後続User Start／`ON`を順序どおり必要とする。初回TaskはIdle、再試験用Taskは未作成、Phase 2機能実装は未開始である。
+Role-local Judgment、Tiered Escalation、Authorization Envelope投影およびTask作成／Handoff／Status Authority分離のCorrection Reviewは合格した。ユーザーによる大規模Backupも完了している。本状態のDocs CheckpointはCommit `f21829f`として`origin/main`へPushし、Local／Tracking／Remoteの一致を確認した。現在は`PAUSED`であり、draft-4／Role View／Manifest／Freeze Receiptの確定、ユーザーAcceptance、Controller READY／`ARMED`および後続User Start／`ON`を順序どおり必要とする。初回TaskはIdle、再試験用Taskは未作成、Phase 2機能実装は未開始である。
 
 Lightning Auto-startは、Repository側Read-only Preflight、Stage A、Stage B Repository Preparation、Repository外Private Bootstrap、Manual Foreground起動および複数回のTraffic-aware External Wake実試験を完了し、Basic Previewと認証なしPublic Demoの双方で成立した。観測Cold Startは約3～10分、Idle-to-sleepは約10～12分である。一度だけJSONらしき一時応答が表示されたが、再Accessで正常復帰し、再現未確認の非ブロッカー観察事項としている。これらはFree CPU Studioでの観測値であり、SLAまたは将来環境の性能保証ではない。Public Control Hookは保持するが、Rate Limit、Token／Cost保護等は現在OFFである。Tool／外部操作は搭載せず、Documentation RAGは公開8文書だけに限定してBasic PreviewとPublic Demoの双方で利用可能とした。
 

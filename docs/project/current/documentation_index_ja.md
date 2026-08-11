@@ -25,7 +25,7 @@ Project Responsibility Recovery: FINAL／20260804061104
 Documentation Migration   : COMPLETE／LEGACY ROOT RETIRED
 Mac／Lightning RAG         : ACCEPTED／KNOWN QUALITY LIMITATIONS DEFERRED
 Public／Basic Auto-start   : ACCEPTED／GO
-Git／GitHub                : OPERATIONAL／SINGLE CANONICAL ROOT／BASE ALIGNED AT EA320A13／CURRENT DOCS UNCOMMITTED
+Git／GitHub                : OPERATIONAL／SINGLE CANONICAL ROOT／CHECKPOINT CONTENT COMMIT F21829F PUSHED／ALIGNED
 Optional English Docs     : FORMALLY DEFERRED／NON-BLOCKING／HISTORY EXCLUDED
 Phase 2                    : STARTED
 Phase 2-0                  : INITIAL BOUNDED PILOT EXECUTED／ROLE AUTHORITY REDESIGN REVIEW PASSED
@@ -34,7 +34,7 @@ Phase 2 Functional Work   : NOT STARTED
 Combined Control Role     : ACTIVE／PROJECT RESPONSIBILITY AND DESIGN GOVERNANCE COMBINED
 Automation Profile       : BOUNDED UNIT／PAUSED
 Large Backup              : USER REPORTED COMPLETE／PRIVATE ASSET OUTSIDE AI GATE
-Restart Git Checkpoint    : CURRENT DOCS COMMIT／PUSH PENDING
+Restart Git Checkpoint    : CONTENT COMMIT F21829F PUSHED／LOCAL・ORIGIN・REMOTE ALIGNED
 Provider Capability       : TASK MANAGEMENT PASS／BOUNDED READ ADAPTER RECHECK PENDING
 Pilot Result              : SAFETY PASS／RECOVERY FAIL
 Restart Dual Consent      : NOT COMPLETED／OLD ACCEPTANCE NOT REUSED
@@ -84,7 +84,7 @@ Mechanical Enforcement  : RESEARCH CANDIDATES／NOT IMPLEMENTED
 - [Roadmap／Current State Checkpoint Refresh](../phases/phase_2/history/operations/phase_2_0_roadmap_and_checkpoint_state_refresh_20260811132741.md)
 - [Phase 2 Documentation Index Snapshot 20260811132741](../phases/phase_2/history/index/documentation_index_20260811132741.md)
 
-初回有界Pilotは実施済みであり、Task Lifecycleと停止境界はSafety Pass、Docs-only RecoveryはFailとなった。その後、共通Role／Docs Authority、Role-local Judgment、Tiered Escalation、Authorization Envelope投影およびTask作成／Handoff／Status Authority分離を再設計し、Correction Reviewを合格とした。ユーザーによる大規模Backupは完了報告済みである。現在は`PAUSED`であり、本更新を含むCommit／Push、draft-4／Role View／Manifest／Freeze Receiptの確定、ユーザーAcceptance、READY／ARMEDおよび後続User Start／ONを順序どおり必要とする。初回TaskはIdle、再試験用Taskは未作成、Phase 2機能実装は未開始である。
+初回有界Pilotは実施済みであり、Task Lifecycleと停止境界はSafety Pass、Docs-only RecoveryはFailとなった。その後、共通Role／Docs Authority、Role-local Judgment、Tiered Escalation、Authorization Envelope投影およびTask作成／Handoff／Status Authority分離を再設計し、Correction Reviewを合格とした。ユーザーによる大規模Backupは完了報告済みであり、本状態のDocs CheckpointはCommit `f21829f`として`origin/main`へPushし、Local／Tracking／Remoteの一致を確認した。現在は`PAUSED`であり、draft-4／Role View／Manifest／Freeze Receiptの確定、ユーザーAcceptance、READY／ARMEDおよび後続User Start／ONを順序どおり必要とする。初回TaskはIdle、再試験用Taskは未作成、Phase 2機能実装は未開始である。
 
 ### Completed Phase 1-ex Operational Reference
 

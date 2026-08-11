@@ -21,15 +21,15 @@ functional_implementation_started: false
 ```text
 Phase 1-ex          : COMPLETE／ACCEPTED
 Phase 2             : STARTED
-Current Subphase    : Phase 2-0 Pre-restart Commit Checkpoint
+Current Subphase    : Phase 2-0 draft-4 Final Alignment Gate
 Pilot Design        : ROLE-LOCAL JUDGMENT／TIERED ESCALATION／ENVELOPE／HANDOFF AUTHORITY ALIGNED／REVIEW PASSED
 Authorization       : draft-2 CONSUMED／draft-3／3a INVALIDATED／draft-4 NOT ACCEPTED
 Independent Task    : OLD TASK IDLE／NEW TASK NOT CREATED
 Pilot Execution     : SAFETY PASS／RECOVERY FAIL／ADJUST DIRECTION ACCEPTED FOR DESIGN
 Functional Work     : NOT STARTED
 Capability Preflight: TASK MANAGEMENT PASS／LOCAL FILE READER GAP
-Git Checkpoint      : BASE LOCAL／ORIGIN ALIGNED AT ea320a13／CURRENT DOCS COMMIT・PUSH PENDING
-Current Stop Point  : ROADMAP／CURRENT INDEX CHECKPOINT BEFORE DRAFT-4 FREEZE
+Git Checkpoint      : CONTENT COMMIT f21829f PUSHED／LOCAL・ORIGIN・REMOTE ALIGNED／POSTFLIGHT RECORDED
+Current Stop Point  : DRAFT-4 PACKAGE FINAL ALIGNMENT BEFORE FREEZE
 ```
 
 Phase 2開始は、独立Task作成、Pilot実行、Phase 2-A以降の設計／実装またはGit／External Mutationを包括許可しない。
@@ -227,7 +227,7 @@ docs/project/phases/phase_2/history/index/documentation_index_YYYYMMDDHHMMSS.md
 
 初回有界PilotはSafety Pass／Recovery Failで終了した。その後の再設計で、Role／Docs Authorityを通常運転用とAutomation用へ不要に二重化しかけたため、共通Role契約＋Automation Overlayへ修正した。固定Document PackageがHard-codeと過剰生成を生むことをReviewで検出した後、さらに独立したDynamic Resolverを前提にする過剰設計と、全判断を最高責任者役へ集中させる危険を検出した。現行設計は、通常運転と同様に、全Role／Taskが最上位規則群と共通Docs／運用規則を守りつつ委譲範囲内を都度判断し、最高責任者役はProject／Cross-Role／Gateを調整し、Automationは承認済み到達線内の連結だけを追加する構造へ修正した。
 
-現在は`PAUSED／ROLE_AUTHORITY_DESIGN`である。委譲Role-local Judgment、Tiered Escalation、Authorization Envelope投影およびCommunication Authority分離のCorrection Reviewは合格した。次は本状態をRoadmap／Current Index／Phase Indexへ固定したDocs CheckpointのCommit／Push、その後のdraft-4 Package最終整合、FreezeおよびTwo-key Activationであり、それ以前に新Taskを作成しない。
+現在は`PAUSED／ROLE_AUTHORITY_DESIGN`である。委譲Role-local Judgment、Tiered Escalation、Authorization Envelope投影およびCommunication Authority分離のCorrection Reviewは合格し、本状態のDocs CheckpointをCommit `f21829f`として`origin/main`へPushした。次はdraft-4 Package最終整合、FreezeおよびTwo-key Activationであり、それ以前に新Taskを作成しない。
 
 ## 13. Related Current／Public Entry
 
@@ -255,7 +255,7 @@ Task Rename              : exact title confirmed after one user-authorized retry
 Capability Preflight     : task management pass／bounded read grammar sample pass／full recheck pending
 Permission Hardening     : undecided／not authorized
 Mechanical Enforcement  : research candidates only／not implemented
-Commit／Push             : current Docs checkpoint pending／not performed in this update
+Commit／Push             : content commit f21829f pushed／local・origin・remote aligned
 ```
 
 最上位規則の追加・変更・削除・並替え・例外化・候補登録は、ユーザーまたはユーザーが明示指定した人間だけが指示できる。Pilot、Provider、Role、Automation Levelまたは将来の上位権限は例外を生成しない。
