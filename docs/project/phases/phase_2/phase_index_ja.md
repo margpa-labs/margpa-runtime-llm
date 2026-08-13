@@ -2,16 +2,16 @@
 
 ```yaml
 document_id: phase_2_index
-status: p2_0_complete_phase_2_a_ready_start_pending
+status: phase_2_b_to_d_technical_complete_terminal_checkpoint
 phase: phase_2
-active_subphase: phase_2_a_entry
+active_subphase: phase_2_e_not_started
 language: ja
 created_at: 2026-08-04 11:17:44 JST
-updated_at: 2026-08-12 01:23:39 JST
+updated_at: 2026-08-14 04:20:00 JST
 owner: プロジェクト責任者兼設計統括者役
 project_responsibility: combined_with_design_governance
-independent_task_state: p2_0_wu_004_accepted_closed_idle
-functional_implementation_started: false
+independent_task_state: phase_2_b_to_d_designer_implementer_review_chains_passed
+functional_implementation_started: true
 ```
 
 ## 1. Phase Entry Decision
@@ -21,20 +21,22 @@ functional_implementation_started: false
 ```text
 Phase 1-ex          : COMPLETE／ACCEPTED
 Phase 2             : STARTED
-Current Subphase    : Phase 2-A Entry／Start Gate
+Current Subphase    : Phase 2-B～2-D Technical Closure／Terminal Git Checkpoint
 Pilot Design        : COMPLETE／BOUNDED-UNIT VIABILITY ESTABLISHED
 P2-0-WU-002         : ACCEPTED／CLOSED／BOUNDED READ RECOVERY PASS
 P2-0-WU-003         : CONTENT・MUTATION SAFETY PASS／PROVIDER GRAMMAR FAIL／ADJUST REQUIRED
 P2-0-WU-004         : ACCEPTED／CLOSED／CAPABILITY-SEMANTICS RETEST PASS
 Independent Task    : P2-0-WU-004 IDLE／NO FURTHER ACTION AUTHORIZED
 Pilot Execution     : ADJUSTED_GO／USER ACCEPTED／BOUNDED_UNIT CEILING
-Functional Work     : NOT STARTED
+Phase 2-A Work Unit : P2-A-WU-003／COMPLETE／CLOSURE RECOMMENDATION GO
+Functional Work     : PHASE 2-B～2-D TECHNICALLY IMPLEMENTED・FULL VALIDATED
+Automation Evidence : PHASE 2-B～2-D DESIGNER→IMPLEMENTER→DESIGNER REWORK CHAINS PASS
 Capability Contract : ACTIVATED AND VERIFIED IN P2-0-WU-004
 Git Checkpoint      : CONTENT COMMIT f21829f PUSHED／LOCAL・ORIGIN・REMOTE ALIGNED／POSTFLIGHT RECORDED
-Current Stop Point  : USER BACKUP／PHASE 2-A START AUTHORIZATION
+Current Stop Point  : PHASE 2-B～2-D TECHNICAL COMPLETE／PHASE 2-E NOT STARTED／USER MANUAL ACCEPTANCE・BACKUP GATE
 ```
 
-Phase 2開始は、独立Task作成、Pilot実行、Phase 2-A以降の設計／実装またはGit／External Mutationを包括許可しない。
+ユーザーはPhase 2-A開始前BackupとGitHub反映を確認し、Phase 2-Aを完全自動化で完遂する到達線を明示承認した。指定Project Root内のPhase 2-A設計、Domain Contract、Port、対応TestおよびDocsを、`bounded_unit`連結方式で進める。Phase 2-B以降、Git／External／Secret／課金／Destructive ActionまたはAuthorized Root外は許可されない。
 
 ## 2. Phase Goal
 
@@ -80,6 +82,26 @@ P2-0は`ADJUSTED_GO／bounded_unit ceiling`としてAccepted／Closedとなっ�
 
 `*_draft_ja.md`はP2-0設計経緯と初期ContractのStable参照であり、現在有効なTask Authorityまたは未完了Gateを表さない。実行時Authorityは各Work UnitのFrozen History PackageとUser Acceptanceで確定し、P2-0 Closure後に旧Draftを次Subphaseへ流用しない。
 
+## 4.1 Phase 2-A Design／Execution Package
+
+- [Conversation Domain Requirements](requirements/phase_2_a_conversation_domain_requirements_ja.md)
+- [Conversation Domain Architecture](architecture/phase_2_a_conversation_domain_architecture_ja.md)
+- [Conversation Domain ADR](adr/phase_2_a_conversation_domain_adr_ja.md)
+- [Implementation Authorization Envelope](governance/phase_2_a_implementation_authorization_envelope_ja.md)
+- [Execution Plan](operations/phase_2_a_execution_plan_ja.md)
+- [Implementation Handoff](handoffs/phase_2_a_implementation_handoff_ja.md)
+- [P2-A-WU-001 Design Freeze Receipt](history/operations/phase_2_a_wu_001_design_freeze_receipt_20260812015152.md)
+- [P2-A-WU-002 Implementer Status](history/handoffs/implementer_status_phase_2_a_wu_002_20260812020515.md)
+- [P2-A-WU-002 Controller Review](history/operations/phase_2_a_wu_002_controller_review_20260812020515.md)
+- [P2-A-WU-003 Closure Review](history/operations/phase_2_a_wu_003_closure_review_20260812021052.md)
+- [P2-A-WU-003 Final Closure Review](history/operations/phase_2_a_wu_003_final_closure_review_20260812021546.md)
+- [P2-A-WU-001 Freeze Correction Receipt](history/operations/phase_2_a_wu_001_design_freeze_correction_receipt_20260812021546.md)
+- [Phase 2-A Bounded Automation Evidence](history/operations/phase_2_a_bounded_automation_execution_evidence_20260812021546.md)
+- [Phase 2-A Role Delegation Evidence Correction](history/operations/phase_2_a_role_delegation_evidence_correction_20260814002301.md)
+- [Phase 2-B Entry Handoff](handoffs/phase_2_b_entry_handoff_ja.md)
+
+P2-A-WU-001では、Conversation／Scope／Session／Turn／Message／Storage Operation／Generation Requestを分離し、`1 Turn = 1 User + 0/1 Assistant`、Branch Projection、Store-owned CAS Revision、Explicit Migration、Public／Shared Preview Zero-writeおよびPhase 1 v1無変更をFreezeした。Component Registry／SwitchboardはPhase 2-Eであり、Phase 2-Aへ戻さない。
+
 Work Unit State：
 
 ```text
@@ -117,6 +139,97 @@ User Final Acceptance: ACCEPTED／CLOSED
 ```
 
 P2-0-WU-003成果物はEvidenceとして保持し、削除・上書き・再生成しない。P2-0-WU-004では、Raw Command名ではなくAuthority、Exact Scope、Capability Semantics、Provider Mapping、Invocation EvidenceおよびResult／Mutation Reviewを分離する。過去のAcceptanceまたはStart Eventを継承しない。
+
+## 4.2 Phase 2-B Design／Implementation Package
+
+- [Conversation Persistence Requirements](requirements/phase_2_b_conversation_persistence_requirements_ja.md)
+- [Conversation Persistence Architecture](architecture/phase_2_b_conversation_persistence_architecture_ja.md)
+- [Conversation Persistence ADR](adr/phase_2_b_conversation_persistence_adr_ja.md)
+- [Implementation Handoff](handoffs/phase_2_b_implementation_handoff_ja.md)
+- [Acceptance Matrix](operations/phase_2_b_acceptance_matrix_ja.md)
+- [Design Freeze Receipt](history/operations/phase_2_b_design_freeze_receipt_20260814013652.md)
+- [Implementer Status](history/handoffs/implementer_status_phase_2_b_20260814015827.md)
+- [Initial Design Conformance Review](history/operations/phase_2_b_design_conformance_review_20260814020244.md)
+- [Implementer Rework Status](history/handoffs/implementer_rework_status_phase_2_b_20260814021434.md)
+- [Final Design Conformance Review](history/operations/phase_2_b_design_conformance_final_review_20260814021951.md)
+- [Controller Closure](history/operations/phase_2_b_controller_closure_20260814022130.md)
+
+Phase 2-Bでは、Phase 2-AのDomain／Portを変更せず、交換可能なLocal SQLite Adapter、Atomic CAS／Operation Idempotency、Explicit Schema／Migration／Checkpoint、Lifecycle Service、Generation Context MapperおよびCrash Recoveryを実装した。初回ReviewのRequired Finding 4件を実装者へ返し、同一Role Chain内の再作業と再Reviewで全件を解消した。
+
+```text
+Phase 2-B Target       : 49 passed
+Conversation／Web      : 154 passed
+Full Suite             : 528 passed／3 deselected
+Ruff／Mypy             : PASS
+Project runtime_data/  : absent
+Existing v1 mutation   : 0
+Public／Basic binding  : 0
+Sensitive persistence  : 0
+Closure                : PASS／GO
+```
+
+Phase 2-Bは、独立Taskによる`Designer → Implementer → Designer Review → Implementer Rework → Designer Final Review → Controller Closure`を成立させた。これは役割分業型Automationの最初の合格Evidenceであるが、Phase／Project単位の無条件自動化昇格を意味しない。次はPhase 2-Cの別Versioned Persistent API／UX設計から開始する。
+
+## 4.3 Phase 2-C Design／Implementation Package
+
+- [Persistent API／UX Requirements](requirements/phase_2_c_persistent_conversation_api_ux_requirements_ja.md)
+- [Persistent API／UX Architecture](architecture/phase_2_c_persistent_conversation_api_ux_architecture_ja.md)
+- [Persistent API／UX ADR](adr/phase_2_c_persistent_conversation_api_ux_adr_ja.md)
+- [Implementation Handoff](handoffs/phase_2_c_implementation_handoff_ja.md)
+- [Acceptance Matrix](operations/phase_2_c_acceptance_matrix_ja.md)
+- [Design Freeze Receipt](history/operations/phase_2_c_design_freeze_receipt_20260814023310.md)
+- [Implementer Status](history/handoffs/implementer_status_phase_2_c_20260814030637.md)
+- [Initial Design Review](history/operations/phase_2_c_design_conformance_review_20260814031257.md)
+- [Implementer Rework Status](history/handoffs/implementer_rework_status_phase_2_c_20260814032250.md)
+- [Final Design Review](history/operations/phase_2_c_design_conformance_final_review_20260814032523.md)
+- [Controller Closure](history/operations/phase_2_c_controller_closure_20260814032700.md)
+
+Phase 2-Cでは、Local／Loopback／Explicit opt-in専用の`/api/v2/conversations/**`、Server RepositoryをCanonical SourceとするChat List／History／Resume／Retry／Regenerate／Branch／Stop、CAS ConflictおよびBrowser Source-of-truth Cutoverを実装した。Capability確定前のv1 Fallback、非Durable Terminal SSEおよびZero-persistence Evidence不足は、実装者再作業と設計再Reviewで解消した。
+
+```text
+Phase 2-C Target       : 52 passed
+Conversation／Web      : 226 passed
+Full Suite             : 567 passed／3 deselected
+Ruff／Mypy／Node        : PASS
+Project runtime_data/  : absent
+Existing v1 mutation   : 0
+Public／Basic build/read/write: 0
+Client full-history payload  : 0
+Closure                : TECHNICAL PASS／GO
+```
+
+Real BrowserでのLocal Private Persistent UX手動Matrixは、B～D統合後のController／User Acceptance Gateへ残す。これはPhase 2-C Technical ClosureまたはPhase 2-D設計開始のBlockerではない。
+
+## 4.4 Phase 2-D Design／Implementation Package
+
+- [Configuration Control Requirements](requirements/phase_2_d_configuration_control_requirements_ja.md)
+- [Configuration Control Architecture](architecture/phase_2_d_configuration_control_architecture_ja.md)
+- [Configuration Control ADR](adr/phase_2_d_configuration_control_adr_ja.md)
+- [Implementation Handoff](handoffs/phase_2_d_implementation_handoff_ja.md)
+- [Acceptance Matrix](operations/phase_2_d_acceptance_matrix_ja.md)
+- [Design Freeze Receipt](history/operations/phase_2_d_design_freeze_receipt_20260814033900.md)
+- [Test Module Identity Correction](history/operations/phase_2_d_test_module_identity_correction_20260814035021.md)
+- [Implementer Status](history/handoffs/implementer_status_phase_2_d_20260814035807.md)
+- [Initial Design Review](history/operations/phase_2_d_design_conformance_review_20260814040416.md)
+- [Implementer Rework Status](history/handoffs/implementer_rework_status_phase_2_d_20260814040833.md)
+- [Final Design Review](history/operations/phase_2_d_design_conformance_final_review_20260814041029.md)
+- [Controller Closure](history/operations/phase_2_d_controller_closure_20260814041200.md)
+
+Phase 2-Dでは、Local／Loopback／Auth-disabled／Explicit opt-in専用のProcess-local Configuration Controlを実装した。Effective ConfigはTyped Allowlist、Per-field Source、Canonical SHA-512 DigestおよびRevision CASを持ち、Live Applyを`research_developer_mode`だけへ限定する。RAG HookはAvailabilityとEnabled状態を分離し、Recording Hookは通常`off`かつRecorder Call 0である。Public／Basic、既存v1、Persistent Conversation、Tracked TOML、Environment、CLI、Secret、Agent／Tool／Switchboardへ設定WriteまたはAuthority拡張を行わない。
+
+```text
+Phase 2-D Target       : 105 passed
+Config／Conversation／Web: 392 passed
+Full Suite             : 613 passed／3 deselected
+Ruff／Mypy／Node        : PASS
+Project runtime_data/  : absent
+Public／Basic control  : build/read/write/apply/route-call 0
+Config／Secret write   : 0
+Recorder／Agent／Tool  : 0
+Closure                : TECHNICAL PASS／GO
+```
+
+初回ReviewでFeature DisabledとAdapter Unavailableの混同を検出し、4-state Projection、矛盾DescriptorのFail-closedおよびUnavailable変更時のMutation 0へ修正した。Test Module Identity衝突は、実装者が無断Scope拡張せず設計担当者へ戻し、Exact Correctionとして空Package Marker一件だけを追加して解消した。
 
 ## 5. Authorization Boundary／Completed Gate
 
@@ -181,10 +294,16 @@ docs/project/phases/phase_2/history/index/documentation_index_YYYYMMDDHHMMSS.md
 
 ## 10. Current Open Gates
 
-- ユーザー側のPhase 2-A開始前Backup／Checkpoint
-- ユーザーによるPhase 2-A開始指示
+- P2-A-WU-001 Phase Contract／Domain／Storage Boundary Design Freeze：COMPLETE
+- P2-A-WU-002 Domain Contracts／Ports／Unit Test Implementation：COMPLETE
+- P2-A-WU-003 Compatibility／Acceptance／Subphase Closure Review：COMPLETE／GO
+- Phase 2-B Conversation Persistence／Lifecycle：TECHNICAL COMPLETE／GO
+- Phase 2-C Persistent API／Conversation UX：TECHNICAL COMPLETE／GO
+- Phase 2-D Configuration Control Surface：TECHNICAL COMPLETE／GO
 
-P2-0累積Evidenceと`ADJUSTED_GO／bounded_unit ceiling`はユーザーによりAccepted／Closedとなった。Provider Lifecycle、Resource、Multi-provider、機械的Path強制、`workflow／phase／project` AutomationおよびConstitution Compilationは後続研究・昇格条件であり、Phase 2-Aの有界設計開始を止めるCurrent Blockerではない。
+現在のTechnical Blockerはない。Phase 2-B～2-Dでは、独立Taskによる`Phase Designer → Implementer → Phase Designer Review → Implementer Rework → Phase Designer Final Review → Project Controller Closure`を3 Subphase連続で成立させた。Phase 2-AのController兼務Evidenceと区別し、役割分業型`bounded_unit`連結を合格とする。ただし、これだけでPhase／Project単位の無条件Automation、Multi-provider、Resource／Credit自動制御または機械的Authorized Root Enforcementへ昇格しない。
+
+残るHuman Gateは、Local Private Persistent UXおよびConfiguration ControlのReal Browser Manual Matrix、Terminal Git Checkpoint後の区切りBackup、ならびに次のPhase 2-E開始判断である。Phase 2-EのSwitchboard／Documentation RAG Follow-upはまだ設計・実装を開始していない。
 
 ## 10.1 Latest Design Revision Evidence
 
@@ -221,6 +340,16 @@ P2-0累積Evidenceと`ADJUSTED_GO／bounded_unit ceiling`はユーザーによ�
 - [P2-0 Cumulative Controller Review](history/operations/phase_2_0_automation_pilot_cumulative_controller_review_20260812002752.md)
 - [P2-0 Blocker Correction／Closure-ready](history/operations/phase_2_0_blocker_correction_and_closure_ready_20260812004603.md)
 - [P2-0 Final Closure Acceptance／Phase 2-A Ready](history/operations/phase_2_0_final_closure_acceptance_and_phase_2_a_ready_20260812012339.md)
+- [Phase 2-A Start／Automation Activation Receipt](history/operations/phase_2_a_start_and_automation_activation_receipt_20260812014331.md)
+- [P2-A-WU-001 Design Freeze Receipt](history/operations/phase_2_a_wu_001_design_freeze_receipt_20260812015152.md)
+- [P2-A-WU-002 Controller Review](history/operations/phase_2_a_wu_002_controller_review_20260812020515.md)
+- [P2-A-WU-003 Closure Review](history/operations/phase_2_a_wu_003_closure_review_20260812021052.md)
+- [P2-A-WU-003 Final Closure Review](history/operations/phase_2_a_wu_003_final_closure_review_20260812021546.md)
+- [P2-A Role Delegation Evidence Correction](history/operations/phase_2_a_role_delegation_evidence_correction_20260814002301.md)
+- [Phase 2-B Controller Closure](history/operations/phase_2_b_controller_closure_20260814022130.md)
+- [Phase 2-C Controller Closure](history/operations/phase_2_c_controller_closure_20260814032700.md)
+- [Phase 2-D Controller Closure](history/operations/phase_2_d_controller_closure_20260814041200.md)
+- [Phase 2-B～2-D Campaign Controller Closure](history/operations/phase_2_b_to_d_campaign_controller_closure_20260814042000.md)
 
 ## 11. Formal Deferrals
 
@@ -235,7 +364,11 @@ P2-0-WU-002はBounded Read Recoveryに合格した。P2-0-WU-003はExact Result�
 
 P2-0-WU-004はCapability Semantics、Provider Mapping、Invocation EvidenceおよびDimension-separated Reviewを用いて合格し、User Final Acceptanceにより`ACCEPTED／CLOSED`となった。P2-0の有界Automation成立性は確認済みであり、Controller提案は`ADJUSTED_GO／bounded_unit ceiling`である。
 
-P2-0累積Evidence、Stable整合およびController提案はユーザーによりFinal Acceptedとなり、P2-0は`COMPLETE／ACCEPTED／CLOSED`である。現在はPhase 2-Aを開始可能な状態だが、機能作業は未開始である。区切りBackupとユーザーの明示的なPhase 2-A開始指示後に次Subphaseへ進む。
+P2-0累積Evidence、Stable整合およびController提案はユーザーによりFinal Acceptedとなり、P2-0は`COMPLETE／ACCEPTED／CLOSED`である。Phase 2-AもDomain／Port Contract、Compatibility ReviewおよびFull Validationを完了し、ユーザーのPhase 2-B開始指示によってFinal Acceptedとなった。
+
+Phase 2-BはLocal SQLite Persistence／Lifecycle、Phase 2-CはLocal Persistent API／Conversation UX、Phase 2-DはLocal Configuration Controlを実装し、各Subphaseで初回Review Findingを局所再作業によって解消した。統合検証はTarget 272件、Full Suite 613件合格、3件deselected、Ruff／Mypy／Node合格である。Project Rootへの`runtime_data/`生成、Public／BasicへのPersistent／Configuration Binding、Sensitive Data通常保存およびAgent／Tool／Switchboardの先行実装は0である。
+
+Phase 2-B～2-DのTechnical Scopeは`COMPLETE／PASS／GO`である。現在はTerminal Git Checkpoint、ユーザーによるReal Browser Manual AcceptanceおよびPost-push Backup Gateで停止する。Phase 2-Eは`NOT STARTED`であり、本Closureから自動開始しない。
 
 ## 13. Related Current／Public Entry
 
@@ -252,7 +385,7 @@ P2-0累積Evidence、Stable整合およびController提案はユーザーによ�
 - [Phase Completion Review／Backup Gate](../../shared/operations/phase_completion_review_and_backup_gate_ja.md)
 
 ```text
-Control State           : OFF／P2-0 CLOSED／PHASE 2-A READY／BACKUP・START PENDING
+Control State           : PAUSED／PHASE 2-B～2-D TECHNICAL COMPLETE／TERMINAL CHECKPOINT
 Automation Level        : bounded_unit
 P2-0-WU-002             : accepted／closed
 P2-0-WU-003             : content pass／provider grammar fail／adjust required
@@ -263,7 +396,7 @@ Provider Mapping        : semantic_mapping／mechanical enforcement unavailable
 Batch Capability        : unavailable／deny
 Permission Hardening     : undecided／not authorized
 Mechanical Enforcement  : research candidates only／not implemented
-Commit／Push             : content commit f21829f pushed／local・origin・remote aligned
+Commit／Push             : terminal checkpoint authorized／this state is included in commit candidate
 ```
 
 最上位規則の追加・変更・削除・並替え・例外化・候補登録は、ユーザーまたはユーザーが明示指定した人間だけが指示できる。Pilot、Provider、Role、Automation Levelまたは将来の上位権限は例外を生成しない。

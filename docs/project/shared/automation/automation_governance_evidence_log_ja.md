@@ -6,7 +6,7 @@ status: active_cumulative_evidence
 normative: false
 language: ja
 created_at: 2026-08-04 11:17:44 JST
-updated_at: 2026-08-12 01:15:43 JST
+updated_at: 2026-08-14 04:20:00 JST
 owner: プロジェクト責任者兼設計統括者役
 technical_owner: プロジェクト責任者兼設計統括者役
 constitution_input: true
@@ -1060,6 +1060,100 @@ Historical Outcomeは、新しいTransitionが当該Outcomeへ依存する場合
 
 最高責任者役は、分類候補をUserへ返さず、Transition Impact、Owner、Route、再開条件、Human Gate適格性および推奨判定まで統合する。
 
+### OGE-P2A-001 — Controller兼務によるRole Delegation未検証
+
+```yaml
+classification:
+  - RULE_AMBIGUOUS
+  - AUTOMATION_EVIDENCE_CORRECTION
+  - AUTOMATION_CANDIDATE
+source_evidence:
+  - ../../phases/phase_2/history/operations/phase_2_a_role_delegation_evidence_correction_20260814002301.md
+technical_result: valid
+controller_led_bounded_execution: pass
+delegated_role_chain: not_tested
+```
+
+Phase 2-Aは、3件の独立Read-only Review、Design Freeze、Domain／Port／Test実装、Full ValidationおよびClosure RecommendationまでをHuman Intervention 0で連結した。一方、Source／Test実装はプロジェクト責任者兼設計統括者役が論理上のPhase 2実装者役を兼務して行い、独立したPhase 2設計担当者役から独立実装者役へのHandoff、実装結果返却、設計適合Reviewおよび再作業往復は実施していない。
+
+技術成果の合格とAutomation Capabilityの合格を分離する。Controllerが複数Roleを論理的に兼務して成果を完成させても、異なるTask Identity間のAuthority移転、Context分離、Handoff完全性、Review独立性および再作業連鎖を検証したことにはならない。
+
+Phase 2-Aは`controller_led_bounded_execution_pass`までを検証済みとし、`delegated_role_chain_pass`または上位Automationへ昇格させない。Phase 2-Bでは`Project Controller → Phase Designer → Implementer → Phase Designer Review → Project Controller Review → User`の連鎖を独立Taskで実行する。Controller兼務が不可避なWork Unitは、理由とReview不足をEvidence化し、役割分業型Automationの合格母数から除外する。
+
+### OGE-P2BCD-001 — 独立Role Chain／局所Rework連結の成立
+
+```yaml
+classification:
+  - RULE_EFFECTIVE
+  - AUTOMATION_EVIDENCE
+  - AUTOMATION_CANDIDATE
+source_evidence:
+  - ../../phases/phase_2/history/operations/phase_2_b_controller_closure_20260814022130.md
+  - ../../phases/phase_2/history/operations/phase_2_c_controller_closure_20260814032700.md
+  - ../../phases/phase_2/history/operations/phase_2_d_controller_closure_20260814041200.md
+delegated_role_chain: pass
+automation_ceiling_change: none_automatic
+```
+
+Phase 2-B～2-Dでは、プロジェクト責任者兼設計統括者役がPhase目標と境界を渡し、独立したPhase 2設計担当者役がRequirements／Architecture／ADR／Handoff／Acceptance Matrixを作成し、別TaskのPhase 2実装者役がSource／Testを実装した。実装結果はDesignerへ戻され、FindingをImplementerへ局所返却し、再作業、Final Design ReviewおよびController Closureまで連結した。
+
+```text
+Phase 2-B : 4 Required Findings -> local rework -> PASS／GO
+Phase 2-C : 3 Findings／Evidence gaps -> local rework -> PASS／GO
+Phase 2-D : 1 Test-package correction + 1 Hook finding -> local rework -> PASS／GO
+Human routine intervention during B-D technical work: 0
+Final integrated full suite: 613 passed／3 deselected
+```
+
+Routine FindingはUserへ返さず、最初に当該RoleのAuthority内で解消した。ImplementerがTest Module Identity衝突を検出した際は、無断Path拡張を行わずDesignerへ停止報告し、Designerが空Package Marker一件のExact Correctionを発行した。これは「停止」と「人間Escalation」を同一視せず、直属上位Roleで解決できる問題をRole Chain内で閉じる実証となった。
+
+本Evidenceは`delegated_role_chain_pass`を成立させるが、Phase／Project単位Automation、Multi-provider、Resource／Credit自動制御または機械的Authorized Root Enforcementを自動的に合格へ昇格させない。
+
+### OGE-P2BCD-002 — 設計ReviewがGreen Test外の重大欠陥を検出
+
+```yaml
+classification:
+  - RULE_EFFECTIVE
+  - NEAR_MISS
+  - REVIEW_EVIDENCE
+```
+
+Phase 2-B～2-Dの初回Implementer Testは全てGreenだったが、Designerの独立Source／Contract Reviewにより次を検出した。
+
+- Migration中のAccepted Write消失Race。
+- Recovery Root外Writeへ繋がるIdentity／Symlink境界。
+- Unknown Commit Outcomeの不完全収束と失敗後Session Stuck。
+- Persistent Capability確定前のEphemeral v1 Fallback。
+- Durable CommitのないTerminal `error` SSE。
+- Feature DisabledとAdapter Unavailableの混同。
+
+Test合格だけでDesign ConformanceまたはClosureを代替しない。設計者はFrozen InvariantとFailure InterleavingをReviewし、実装者はTest Coverageを追加してFindingを閉じる。Review側はSourceを直接修正せず、Exact FindingとRework PathをImplementerへ返す。
+
+### OGE-P2BCD-003 — Task遅延時の担当交代と成果回収
+
+```yaml
+classification:
+  - RULE_AMBIGUOUS
+  - AUTOMATION_CANDIDATE
+  - RESOURCE_EVIDENCE
+```
+
+初回Phase 2-B Designer Taskは広いCorpus読解に留まり、複数回の待機後も成果物を書き出さなかった。ControllerはSource実装を奪って兼務せず、Taskを中断し、対象をBの5文書へ限定した新Designer Taskへ担当交代した。交代後は設計Packageが完成した。
+
+Task遅延、Context肥大または出力停滞は、直ちにUser BlockerまたはController兼務理由にしない。まず成果物／状態を回収し、同じRole／Authorityを維持した担当交代、Scope縮小またはMaterial Boundaryへの再分割を行う。未完了Taskの待機を無期限に続けず、同時Writerを発生させない。
+
+### OGE-P2BCD-004 — History Snapshot粒度の実運用補正
+
+```yaml
+classification:
+  - RULE_EFFECTIVE
+  - RESOURCE_EVIDENCE
+```
+
+TaskごとのFull History Snapshotを作らず、Design Freeze、Subphase Closure、Campaign Terminal State等のMaterial Boundaryへ集約した。途中はImplementer Status、Review、Rework StatusおよびCorrection Receiptの差分Evidenceで復元可能性を維持した。
+
+Lossless性は「毎操作で全文複製すること」と同義ではない。Stable正本の変更前Snapshot、Material Boundaryの状態、Append-only Status／Review／Receipt、Git Checkpointを組み合わせ、情報保持と容量／Token／Review Costを両立する。
+
 ## 5. Phase 2 Pilotへの直接入力
 
 Phase 2-0の初回有界Work Unitに次を強制する。
@@ -1138,6 +1232,7 @@ Phase 2-0の初回有界Work Unitに次を強制する。
 | Result Success／Provider Grammar Failure分離 | Provider Adapter／Tool Governance／Evidence Audit／Review |
 | Prompt-only GrammarとMechanical Enforcement分離 | Tool Governance／Provider Adapter／Mutation Control／Portability |
 | Transition Impact／Resolution Route／Responsibility-first Escalation／Human Decision Budget／Closure Contract | Authority Roles／Escalation／Human Gate／Resource Budget／Task Lifecycle／Review |
+| Controller兼務／Delegated Role Chain未検証 | Authority Roles／Task Lifecycle／Handoff／Independent Review／Automation Capability |
 
 ## 7. 検証済み範囲／未検証仮説
 
@@ -1147,6 +1242,9 @@ Phase 2-0の初回有界Work Unitに次を強制する。
 - Provider Capabilityが不足する場合に推測実行せず停止できる。P2-0-WU-001で確認した。
 - Task Title、Role、Handoff、Write Scope、StopおよびCapabilityを一つのFrozen Packageへ投影し、一件のDocumentation Createを完了できる。P2-0-WU-004で確認した。
 - Fail-closed ACK Reject後、意味契約を変更しないRoutine Correctionを同じTaskで回復できる。P2-0-WU-004で確認した。
+- Phase 2-AでController主導の有界Work Unit連結、独立Read-only Review Fan-out、実装およびFull ValidationをHuman Intervention 0で完了できる。
+- Phase 2-B～2-Dで、独立したDesigner／Implementer TaskのHandoff、Status返却、重大Findingの局所再作業、Final ReviewおよびController ClosureをHuman Routine Intervention 0で連結できる。
+- Task停滞時にControllerがRoutine実装を奪わず、同一Roleの担当交代とScope縮小で回復できる。
 
 未検証仮説：
 
@@ -1157,6 +1255,7 @@ Phase 2-0の初回有界Work Unitに次を強制する。
 - Automation Levelを下げた際、旧Envelopeの残Actionを確実に失効できるか。
 - Phase 2-A以降で、Blocker Eligibility、Deferred Evidence非再活性化およびHuman Decision Burden Minimizationを安全性低下なしに反復できるか。
 - 新しいTransitionがHistorical Failureへ依存した時、古いEvidenceを無差別に再浮上させず、必要Dimensionだけを正しく再評価できるか。
+- 上記Role Chainを利用可能量／Creditの限界、Task交代、異なるProviderまたはPhase全体の長時間実行でも維持できるか。
 
 ## 8. Update Rule
 

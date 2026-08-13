@@ -10,6 +10,10 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
+from margpa_runtime_llm.modules.configuration_control.contracts import (
+    ConfigurationSource,
+    EffectiveConfigFieldSources,
+)
 from margpa_runtime_llm.modules.inference.contracts.base import ImmutableContract
 from margpa_runtime_llm.modules.inference.contracts.generation import GenerationParameters
 from margpa_runtime_llm.modules.inference.contracts.response import (
@@ -140,6 +144,7 @@ class EffectivePhase1Config(ImmutableContract):
     summarization: SummarizationConfig
     profile_resolution_source: Literal["explicit", "environment", "platform_default"]
     applied_sources: tuple[str, ...] = Field(default_factory=tuple)
+    field_sources: EffectiveConfigFieldSources = EffectiveConfigFieldSources()
 
 
 def load_application_config(path: Path) -> ApplicationConfig:
@@ -271,6 +276,44 @@ def resolve_effective_config(
             explicit_visibility=thinking_visibility,
             explicit_display_label=thinking_label,
         )
+        field_sources = EffectiveConfigFieldSources(
+            selected_model=(
+                ConfigurationSource.EXPLICIT_CLI
+                if cli_model_key is not None
+                else (
+                    ConfigurationSource.ENVIRONMENT
+                    if "MARGPA_MODEL_KEY" in current_environment
+                    else ConfigurationSource.APPLICATION
+                )
+            ),
+            profile_key={
+                "explicit": ConfigurationSource.EXPLICIT_CLI,
+                "environment": ConfigurationSource.ENVIRONMENT,
+                "platform_default": ConfigurationSource.COMPOSED_RUNTIME,
+            }[profile_resolution_source],
+            context_size=(
+                ConfigurationSource.EXPLICIT_CLI
+                if load_overrides is not None and "context_size" in load_overrides
+                else (
+                    ConfigurationSource.ENVIRONMENT
+                    if "MARGPA_CONTEXT_SIZE" in current_environment
+                    else (
+                        ConfigurationSource.DEPLOYMENT_PROFILE
+                        if profile.load_overrides.context_size is not None
+                        else ConfigurationSource.APPLICATION
+                    )
+                )
+            ),
+            max_new_tokens=(
+                ConfigurationSource.EXPLICIT_CLI
+                if generation_overrides is not None and "max_new_tokens" in generation_overrides
+                else (
+                    ConfigurationSource.ENVIRONMENT
+                    if "MARGPA_MAX_NEW_TOKENS" in current_environment
+                    else ConfigurationSource.APPLICATION
+                )
+            ),
+        )
         return EffectivePhase1Config(
             application_schema_version=application.schema_version,
             application_key=application.application_key,
@@ -289,6 +332,7 @@ def resolve_effective_config(
             summarization=application.layers.summarization,
             profile_resolution_source=profile_resolution_source,
             applied_sources=tuple(applied_sources),
+            field_sources=field_sources,
         )
     except ValidationError as exc:
         raise InferenceError(

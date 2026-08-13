@@ -26,6 +26,7 @@ from margpa_runtime_llm.modules.inference.contracts.generation import (
 )
 from margpa_runtime_llm.modules.inference.contracts.messages import ChatMessage, MessageRole
 from margpa_runtime_llm.modules.inference.contracts.response import ResponseLanguage
+from margpa_runtime_llm.modules.inference.domain.errors import InferenceError
 from margpa_runtime_llm.modules.presentation.contracts.thinking import (
     ResolvedThinkingPresentationPolicy,
     ThinkingPersistence,
@@ -60,6 +61,226 @@ def test_web_help_documents_safe_defaults_and_placeholders() -> None:
     assert "basic_preview" in help_text
     assert "public_demo" in help_text
     assert "DOCUMENTATION_RAG_PROFILE_PATH" in help_text
+    assert "--conversation-persistence" in help_text
+    assert "--conversation-runtime-data-root" in help_text
+    assert "--conversation-scope-id" in help_text
+    assert "--configuration-control" in help_text
+
+
+def test_conversation_persistence_requires_explicit_local_loopback_inputs(
+    tmp_path: Path,
+) -> None:
+    root = (tmp_path / "runtime-data").resolve()
+    settings = web_cli._conversation_persistence_settings(
+        enabled=True,
+        runtime_data_root=root,
+        scope_id="server-scope",
+        host="127.0.0.1",
+        access_mode=WebExposureMode.LOCAL,
+        authentication_required=False,
+    )
+    assert settings is not None and settings.runtime_data_root == root
+    assert not root.exists()
+
+    for mode, host, auth in (
+        (WebExposureMode.PUBLIC_DEMO, "0.0.0.0", False),
+        (WebExposureMode.BASIC_PREVIEW, "0.0.0.0", True),
+        (WebExposureMode.LOCAL, "0.0.0.0", False),
+    ):
+        with pytest.raises(InferenceError) as captured:
+            web_cli._conversation_persistence_settings(
+                enabled=True,
+                runtime_data_root=root,
+                scope_id="server-scope",
+                host=host,
+                access_mode=mode,
+                authentication_required=auth,
+            )
+        assert "Conversation persistence" in str(captured.value)
+    assert not root.exists()
+
+
+def test_conversation_persistence_inputs_without_opt_in_are_rejected(tmp_path: Path) -> None:
+    root = (tmp_path / "runtime-data").resolve()
+    with pytest.raises(InferenceError):
+        web_cli._conversation_persistence_settings(
+            enabled=False,
+            runtime_data_root=root,
+            scope_id="server-scope",
+            host="127.0.0.1",
+            access_mode=WebExposureMode.LOCAL,
+            authentication_required=False,
+        )
+    assert not root.exists()
+
+
+def test_configuration_control_gate_requires_explicit_local_loopback() -> None:
+    assert web_cli._configuration_control_enabled(
+        enabled=True,
+        host="127.0.0.1",
+        access_mode=WebExposureMode.LOCAL,
+        authentication_required=False,
+    )
+    assert not web_cli._configuration_control_enabled(
+        enabled=False,
+        host="0.0.0.0",
+        access_mode=WebExposureMode.PUBLIC_DEMO,
+        authentication_required=False,
+    )
+    for mode, host, auth in (
+        (WebExposureMode.PUBLIC_DEMO, "0.0.0.0", False),
+        (WebExposureMode.BASIC_PREVIEW, "0.0.0.0", True),
+        (WebExposureMode.LOCAL, "0.0.0.0", False),
+        (WebExposureMode.LOCAL, "127.0.0.1", True),
+    ):
+        with pytest.raises(InferenceError, match="Configuration control"):
+            web_cli._configuration_control_enabled(
+                enabled=True,
+                host=host,
+                access_mode=mode,
+                authentication_required=auth,
+            )
+
+
+def test_configuration_control_opt_in_is_passed_only_for_local_runtime(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: list[object] = []
+
+    def fake_create_web_app(**kwargs: object) -> FastAPI:
+        runtime_factory = kwargs["runtime_factory"]
+        assert isinstance(runtime_factory, partial)
+        captured.append(runtime_factory.keywords["configuration_control_enabled"])
+        return FastAPI()
+
+    monkeypatch.setattr(
+        "margpa_runtime_llm.entrypoints.web.main.create_web_app",
+        fake_create_web_app,
+    )
+    monkeypatch.setattr(
+        "margpa_runtime_llm.entrypoints.web.main.uvicorn.run",
+        lambda *_args, **_kwargs: None,
+    )
+
+    assert web_cli.main(["--configuration-control"]) == 0
+    assert captured == [True]
+
+
+@pytest.mark.parametrize("access_profile", [BASIC_PROFILE, PUBLIC_PROFILE])
+def test_shared_profile_configuration_opt_in_fails_before_runtime_factory(
+    access_profile: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    create_calls = 0
+    if access_profile == BASIC_PROFILE:
+        monkeypatch.setenv(AUTH_MODE_ENV, "basic")
+        monkeypatch.setenv(AUTH_USERNAME_ENV, "preview-user")
+        monkeypatch.setenv(AUTH_PASSWORD_ENV, "preview-password")
+    else:
+        monkeypatch.delenv(AUTH_MODE_ENV, raising=False)
+        monkeypatch.delenv(AUTH_USERNAME_ENV, raising=False)
+        monkeypatch.delenv(AUTH_PASSWORD_ENV, raising=False)
+
+    def fake_create_web_app(**kwargs: object) -> FastAPI:
+        nonlocal create_calls
+        del kwargs
+        create_calls += 1
+        return FastAPI()
+
+    monkeypatch.setattr(
+        "margpa_runtime_llm.entrypoints.web.main.create_web_app",
+        fake_create_web_app,
+    )
+    monkeypatch.setattr(
+        "margpa_runtime_llm.entrypoints.web.main.uvicorn.run",
+        lambda *_args, **_kwargs: None,
+    )
+
+    assert (
+        web_cli.main(
+            [
+                "--host",
+                "0.0.0.0",
+                "--access-profile",
+                str(access_profile),
+                "--configuration-control",
+            ]
+        )
+        == 2
+    )
+    assert create_calls == 0
+
+
+def test_public_persistence_opt_in_fails_before_runtime_or_uvicorn(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = (tmp_path / "runtime-data").resolve()
+    uvicorn_calls = 0
+
+    def fake_run(*args: object, **kwargs: object) -> None:
+        nonlocal uvicorn_calls
+        del args, kwargs
+        uvicorn_calls += 1
+
+    monkeypatch.setattr("margpa_runtime_llm.entrypoints.web.main.uvicorn.run", fake_run)
+    result = web_cli.main(
+        [
+            "--host",
+            "0.0.0.0",
+            "--access-profile",
+            str(PUBLIC_PROFILE),
+            "--conversation-persistence",
+            "--conversation-runtime-data-root",
+            str(root),
+            "--conversation-scope-id",
+            "server-scope",
+        ]
+    )
+    assert result == 2
+    assert uvicorn_calls == 0
+    assert not root.exists()
+
+
+@pytest.mark.parametrize("access_profile", [BASIC_PROFILE, PUBLIC_PROFILE])
+def test_shared_profiles_normal_start_passes_no_persistent_composition(
+    access_profile: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured_settings: list[tuple[object, object]] = []
+
+    def fake_create_web_app(**kwargs: object) -> FastAPI:
+        runtime_factory = kwargs["runtime_factory"]
+        assert isinstance(runtime_factory, partial)
+        captured_settings.append(
+            (
+                runtime_factory.keywords["conversation_persistence_settings"],
+                runtime_factory.keywords["configuration_control_enabled"],
+            )
+        )
+        return FastAPI()
+
+    if access_profile == BASIC_PROFILE:
+        monkeypatch.setenv(AUTH_MODE_ENV, "basic")
+        monkeypatch.setenv(AUTH_USERNAME_ENV, "preview-user")
+        monkeypatch.setenv(AUTH_PASSWORD_ENV, "preview-password")
+    else:
+        monkeypatch.delenv(AUTH_MODE_ENV, raising=False)
+        monkeypatch.delenv(AUTH_USERNAME_ENV, raising=False)
+        monkeypatch.delenv(AUTH_PASSWORD_ENV, raising=False)
+    monkeypatch.setattr(
+        "margpa_runtime_llm.entrypoints.web.main.create_web_app",
+        fake_create_web_app,
+    )
+    monkeypatch.setattr(
+        "margpa_runtime_llm.entrypoints.web.main.uvicorn.run",
+        lambda *_args, **_kwargs: None,
+    )
+
+    result = web_cli.main(["--host", "0.0.0.0", "--access-profile", str(access_profile)])
+
+    assert result == 0
+    assert captured_settings == [(None, False)]
 
 
 def test_non_loopback_without_auth_fails_before_uvicorn(
@@ -235,6 +456,13 @@ def test_web_runtime_binds_loaded_service_counter_without_loading_another_model(
         web_application_module,
         "build_phase1_application",
         fake_build,
+    )
+    monkeypatch.setattr(
+        web_application_module,
+        "start_local_conversation_persistence",
+        lambda *_args, **_kwargs: pytest.fail(
+            "runtime without explicit settings must not build/read/write persistence"
+        ),
     )
 
     runtime = build_phase1_web_runtime(

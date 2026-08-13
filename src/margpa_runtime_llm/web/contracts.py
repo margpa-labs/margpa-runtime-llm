@@ -6,6 +6,8 @@ from dataclasses import dataclass, field
 
 from pydantic import Field, field_validator
 
+from margpa_runtime_llm.modules.configuration_control import ConfigurationControlService
+from margpa_runtime_llm.modules.conversation.application import PersistentConversationService
 from margpa_runtime_llm.modules.conversation.public import ConversationGenerationService
 from margpa_runtime_llm.modules.documentation_rag.contracts import DocumentationRagMode
 from margpa_runtime_llm.modules.inference.contracts.base import ImmutableContract
@@ -63,6 +65,8 @@ class WebRuntime:
     conversation: ConversationGenerationService
     snapshot: SafeRuntimeSnapshot
     close_callback: Callable[[], None]
+    persistent_conversation: PersistentConversationService | None = None
+    configuration_control: ConfigurationControlService | None = None
     _close_lock: threading.Lock = field(default_factory=threading.Lock, init=False, repr=False)
     _closed: bool = field(default=False, init=False, repr=False)
 

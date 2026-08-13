@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Nazuna Research Governance LLM プレビュー</title>
     <link rel="stylesheet" href="/assets/app.css" />
+    <script id="configuration-bootstrap" type="application/json">{"enabled":false}</script>
     <script src="/assets/app.js" type="module"></script>
   </head>
   <body>
@@ -33,10 +34,70 @@
         この画面はResearch Previewです。本番AccountまたはProduction Serviceではありません。
       </section>
 
+      <section id="configuration-panel" class="configuration-panel" aria-label="Runtime設定制御" hidden>
+        <div class="configuration-panel-header">
+          <div>
+            <h2 id="configuration-title">Runtime設定制御</h2>
+            <p id="configuration-note">Local Process内だけの一時的な制御です。</p>
+          </div>
+          <button id="configuration-refresh" class="secondary" type="button">再読み込み</button>
+        </div>
+        <p id="configuration-status" role="status">設定情報を読み込んでいます。</p>
+        <dl id="configuration-meta" class="configuration-meta"></dl>
+        <div id="configuration-fields" class="configuration-fields" role="list"></div>
+        <div class="configuration-controls">
+          <div class="configuration-toggle">
+            <span id="configuration-research-mode-label">Research・Developer Mode</span>
+            <button
+              id="configuration-research-mode"
+              class="secondary"
+              type="button"
+              aria-pressed="false"
+            >
+              OFF
+            </button>
+          </div>
+          <label>
+            <span id="configuration-model-label">選択Model（Restart必要）</span>
+            <input id="configuration-model" type="text" maxlength="128" />
+          </label>
+          <label>
+            <span id="configuration-context-label">Context Size（Restart必要）</span>
+            <input
+              id="configuration-context"
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]+"
+              maxlength="7"
+            />
+          </label>
+        </div>
+        <div class="configuration-actions">
+          <button id="configuration-preview" class="secondary" type="button">Preview</button>
+          <button id="configuration-apply" class="primary" type="button">Research Modeを適用</button>
+        </div>
+        <pre id="configuration-result" class="configuration-result" aria-live="polite"></pre>
+      </section>
+
+      <section id="persistent-panel" class="persistent-panel" aria-label="保存済みChat" hidden>
+        <div class="persistent-panel-header">
+          <div>
+            <h2 id="persistent-title">保存済みChat</h2>
+            <p id="persistent-note">Server上の会話が正本です。</p>
+          </div>
+          <div class="persistent-panel-actions">
+            <button id="persistent-refresh" class="secondary" type="button">再読み込み</button>
+            <button id="persistent-resume" class="secondary" type="button" hidden>再開</button>
+            <button id="persistent-archive" class="secondary" type="button" hidden>アーカイブ</button>
+          </div>
+        </div>
+        <div id="persistent-list" class="persistent-list" role="list"></div>
+      </section>
+
       <section id="messages" class="messages" aria-live="polite" aria-label="Chatメッセージ">
         <div class="empty-state" id="empty-state">
-          <h2 id="empty-title">一時的なChatを開始</h2>
-          <p id="empty-note">会話はこのBrowser TabのMemoryだけに保持され、Reloadで失われます。</p>
+          <h2 id="empty-title">会話Modeを確認中</h2>
+          <p id="empty-note">永続会話を利用できるかServerへ確認しています。</p>
         </div>
       </section>
 
@@ -47,7 +108,7 @@
           <span id="generation-status" role="status">待機中</span>
           <span id="shortcut-hint" class="shortcut-hint">Cmd+Enter／Ctrl+Enterで送信</span>
           <button id="stop" class="secondary" type="button" disabled>停止</button>
-          <button id="send" class="primary" type="button">送信</button>
+          <button id="send" class="primary" type="button" disabled>送信</button>
         </div>
       </section>
 

@@ -19,6 +19,7 @@ from margpa_runtime_llm.bootstrap.profile_resolver import (
     PlatformRegistry,
     load_platform_registry,
 )
+from margpa_runtime_llm.modules.configuration_control import ConfigurationSource
 from margpa_runtime_llm.modules.inference.contracts.generation import ThinkingMode
 from margpa_runtime_llm.modules.inference.contracts.response import (
     ResponseLanguage,
@@ -346,6 +347,9 @@ def test_load_composition_uses_field_specific_precedence() -> None:
     assert explicit.load.context_size == 1024
     assert explicit.load.batch_size == 256
     assert not explicit.load.verbose_backend
+    assert deployment.field_sources.context_size is ConfigurationSource.DEPLOYMENT_PROFILE
+    assert environment.field_sources.context_size is ConfigurationSource.ENVIRONMENT
+    assert explicit.field_sources.context_size is ConfigurationSource.EXPLICIT_CLI
 
 
 def test_invalid_profile_is_mapped_to_safe_configuration_error(tmp_path: Path) -> None:

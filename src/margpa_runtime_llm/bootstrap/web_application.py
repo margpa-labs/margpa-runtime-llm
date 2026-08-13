@@ -5,6 +5,13 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from pathlib import Path
 
+from margpa_runtime_llm.modules.conversation.adapters import (
+    LocalConversationPersistenceSettings,
+)
+from margpa_runtime_llm.modules.conversation.adapters.persistence_factory import (
+    start_local_conversation_persistence,
+)
+from margpa_runtime_llm.modules.conversation.domain import ConversationStorageError
 from margpa_runtime_llm.modules.conversation.public import ConversationGenerationService
 from margpa_runtime_llm.modules.documentation_rag.contracts import (
     DocumentationRagAvailability,
@@ -27,6 +34,7 @@ from margpa_runtime_llm.web.contracts import (
     WebRuntime,
 )
 
+from .configuration_control import build_configuration_control
 from .phase1_application import Phase1Application, build_phase1_application
 
 TextTokenCounter = Callable[[str], int]
@@ -53,6 +61,8 @@ def build_phase1_web_runtime(
     documentation_rag_default_mode: DocumentationRagMode = DocumentationRagMode.DISABLED,
     documentation_rag_provider_display_name: str | None = None,
     documentation_rag_token_counter_binder: TextTokenCounterBinder | None = None,
+    conversation_persistence_settings: LocalConversationPersistenceSettings | None = None,
+    configuration_control_enabled: bool = False,
 ) -> WebRuntime:
     application: Phase1Application | None = None
     try:
@@ -95,6 +105,19 @@ def build_phase1_web_runtime(
             ),
             effective_context_size=runtime_info.loaded_context_size,
         )
+        persistent = None
+        if conversation_persistence_settings is not None:
+            try:
+                composition = start_local_conversation_persistence(
+                    conversation_persistence_settings,
+                    generation_service=conversation,
+                )
+            except ConversationStorageError as exc:
+                raise InferenceError(
+                    code=InferenceErrorCode.INVALID_CONFIGURATION,
+                    safe_message="The persistent conversation store could not start safely.",
+                ) from exc
+            persistent = composition.service
         snapshot = SafeRuntimeSnapshot(
             model_key=runtime_info.model_key,
             profile_key=application.config.profile_key,
@@ -119,10 +142,20 @@ def build_phase1_web_runtime(
                 default_mode=documentation_rag_default_mode,
             ),
         )
+        configuration_control = (
+            build_configuration_control(
+                effective=application.config,
+                documentation_rag_state=documentation_rag_effective_state,
+            )
+            if configuration_control_enabled
+            else None
+        )
         return WebRuntime(
             conversation=conversation,
             snapshot=snapshot,
             close_callback=application.close,
+            persistent_conversation=persistent,
+            configuration_control=configuration_control,
         )
     except BaseException:
         if application is not None:

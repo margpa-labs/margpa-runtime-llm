@@ -5,18 +5,63 @@ import { renderSafeMarkdown } from "./safe_markdown.js";
 const UI_LANGUAGE_KEY = "margpa.ui_language.v1";
 const DEFAULT_UI_LANGUAGE = "ja";
 
+function readConfigurationBootstrap() {
+  const node = document.querySelector("#configuration-bootstrap");
+  try {
+    const value = JSON.parse(node?.textContent ?? "{}");
+    return value.enabled === true;
+  } catch {
+    return false;
+  }
+}
+
+const configurationBootstrapEnabled = readConfigurationBootstrap();
+
 const translations = {
   ja: {
     documentTitle: "Nazuna Research Governance LLM プレビュー",
     uiLanguageLabel: "表示言語",
     newChat: "新規Chat",
+    persistentTitle: "保存済みChat",
+    persistentNote: "Server上の会話が正本です。",
+    persistentRefresh: "再読み込み",
+    persistentResume: "再開",
+    persistentArchive: "アーカイブ",
+    persistentUnarchive: "アーカイブ解除",
+    persistentRetry: "再試行",
+    persistentRegenerate: "再生成",
+    persistentSelectBranch: "このBranchを選択",
+    persistentConflict: "会話が更新されました。Serverから再読み込みします。",
+    persistentCapabilityPending: "会話Modeを確認中です。",
+    persistentCapabilityFailed: "会話Modeを安全に確定できませんでした。",
     previewLabel: "プレビュー利用上の注意",
     previewNote: "この画面はResearch Previewです。本番AccountまたはProduction Serviceではありません。",
+    configurationTitle: "Runtime設定制御",
+    configurationNote: "Local Process内だけの一時的な制御です。ReloadまたはRestartで再取得します。",
+    configurationRefresh: "再読み込み",
+    configurationLoading: "設定情報を読み込んでいます。",
+    configurationReady: "設定情報を読み込みました。",
+    configurationFailed: "設定制御を安全に利用できません。",
+    configurationPreview: "Preview",
+    configurationApply: "Research Modeを適用",
+    configurationResearchMode: "Research・Developer Mode",
+    configurationModel: "選択Model（Restart必要）",
+    configurationContext: "Context Size（Restart必要）",
+    configurationRevision: "Revision",
+    configurationDigest: "Safe Digest",
+    configurationPreviewReady: "Preview完了",
+    configurationApplied: "Apply完了",
+    configurationRestartRequired: "Restartが必要です。値は保存されていません。",
+    configurationConflict: "設定が更新されました。再読み込します。",
     messagesLabel: "Chatメッセージ",
     emptyTitle: "一時的なChatを開始",
     emptyNote: "会話はこのBrowser TabのMemoryだけに保持され、Reloadで失われます。",
     resetEmptyTitle: "新しいChat",
     resetEmptyNote: "Browser Memoryを初期化しました。ModelはReloadされません。",
+    persistentEmptyTitle: "新しい保存Chat",
+    persistentEmptyNote: "このChatはServer上の永続会話として作成されます。",
+    capabilityEmptyTitle: "会話Modeを確認中",
+    capabilityEmptyNote: "永続会話を利用できるかServerへ確認しています。",
     composerLabel: "メッセージ入力",
     promptLabel: "メッセージ",
     promptPlaceholder: "メッセージを入力してください",
@@ -89,13 +134,46 @@ const translations = {
     documentTitle: "Nazuna Research Governance LLM Preview",
     uiLanguageLabel: "Interface language",
     newChat: "New Chat",
+    persistentTitle: "Saved chats",
+    persistentNote: "The server conversation is the canonical source.",
+    persistentRefresh: "Refresh",
+    persistentResume: "Resume",
+    persistentArchive: "Archive",
+    persistentUnarchive: "Unarchive",
+    persistentRetry: "Retry",
+    persistentRegenerate: "Regenerate",
+    persistentSelectBranch: "Select this branch",
+    persistentConflict: "The conversation changed. Reloading it from the server.",
+    persistentCapabilityPending: "Checking the conversation mode.",
+    persistentCapabilityFailed: "The conversation mode could not be determined safely.",
     previewLabel: "Preview access notice",
     previewNote: "This is a research preview, not a production account or service.",
+    configurationTitle: "Runtime configuration control",
+    configurationNote: "This control is temporary and process-local. It is reloaded after page reload or process restart.",
+    configurationRefresh: "Refresh",
+    configurationLoading: "Loading configuration information.",
+    configurationReady: "Configuration information loaded.",
+    configurationFailed: "Configuration control could not be used safely.",
+    configurationPreview: "Preview",
+    configurationApply: "Apply Research Mode",
+    configurationResearchMode: "Research / Developer Mode",
+    configurationModel: "Selected model (restart required)",
+    configurationContext: "Context Size (restart required)",
+    configurationRevision: "Revision",
+    configurationDigest: "Safe Digest",
+    configurationPreviewReady: "Preview complete",
+    configurationApplied: "Apply complete",
+    configurationRestartRequired: "A restart is required. The proposed value was not stored.",
+    configurationConflict: "The configuration changed. Reloading it.",
     messagesLabel: "Chat messages",
     emptyTitle: "Start an ephemeral chat",
     emptyNote: "This conversation exists only in this browser tab's memory and is lost on reload.",
     resetEmptyTitle: "New Chat",
     resetEmptyNote: "Browser memory was cleared. The model was not reloaded.",
+    persistentEmptyTitle: "New saved chat",
+    persistentEmptyNote: "This chat will be created as a persistent server conversation.",
+    capabilityEmptyTitle: "Checking conversation mode",
+    capabilityEmptyNote: "Checking whether persistent server conversations are available.",
     composerLabel: "Message composer",
     promptLabel: "Message",
     promptPlaceholder: "Enter a message",
@@ -204,6 +282,29 @@ const elements = {
   documentationRagNote: document.querySelector("#documentation-rag-note"),
   uiLanguageJa: document.querySelector("#ui-language-ja"),
   uiLanguageEn: document.querySelector("#ui-language-en"),
+  persistentPanel: document.querySelector("#persistent-panel"),
+  persistentList: document.querySelector("#persistent-list"),
+  persistentRefresh: document.querySelector("#persistent-refresh"),
+  persistentResume: document.querySelector("#persistent-resume"),
+  persistentArchive: document.querySelector("#persistent-archive"),
+  configurationPanel: document.querySelector("#configuration-panel"),
+  configurationStatus: document.querySelector("#configuration-status"),
+  configurationMeta: document.querySelector("#configuration-meta"),
+  configurationFields: document.querySelector("#configuration-fields"),
+  configurationRefresh: document.querySelector("#configuration-refresh"),
+  configurationResearchMode: document.querySelector("#configuration-research-mode"),
+  configurationModel: document.querySelector("#configuration-model"),
+  configurationContext: document.querySelector("#configuration-context"),
+  configurationPreview: document.querySelector("#configuration-preview"),
+  configurationApply: document.querySelector("#configuration-apply"),
+  configurationResult: document.querySelector("#configuration-result"),
+};
+
+const configurationState = {
+  capability: configurationBootstrapEnabled ? "loading" : "disabled",
+  snapshot: null,
+  preview: null,
+  apply: null,
 };
 
 const state = {
@@ -216,8 +317,14 @@ const state = {
   documentationRagControlAvailable: false,
   documentationRagEffectiveState: "unavailable",
   uiLanguage: readStoredUiLanguage(),
-  status: { key: "idle", values: {} },
+  status: { key: "persistentCapabilityPending", values: {} },
   runtimeStatus: { kind: "loading", translationKey: "runtimeLoading", text: null },
+  persistentEnabled: false,
+  conversationMode: "capability_pending",
+  persistentDetail: null,
+  persistentConversations: [],
+  selectedConversationId: null,
+  persistentRevision: null,
 };
 
 function readStoredUiLanguage() {
@@ -288,9 +395,21 @@ function applyTranslations() {
 
   const bindings = {
     "#new-chat": "newChat",
+    "#persistent-title": "persistentTitle",
+    "#persistent-note": "persistentNote",
+    "#persistent-refresh": "persistentRefresh",
+    "#persistent-resume": "persistentResume",
     "#preview-note": "previewNote",
-    "#empty-title": "emptyTitle",
-    "#empty-note": "emptyNote",
+    "#configuration-title": "configurationTitle",
+    "#configuration-note": "configurationNote",
+    "#configuration-refresh": "configurationRefresh",
+    "#configuration-research-mode-label": "configurationResearchMode",
+    "#configuration-model-label": "configurationModel",
+    "#configuration-context-label": "configurationContext",
+    "#configuration-preview": "configurationPreview",
+    "#configuration-apply": "configurationApply",
+    "#empty-title": "capabilityEmptyTitle",
+    "#empty-note": "capabilityEmptyNote",
     "#prompt-label": "promptLabel",
     "#shortcut-hint": "shortcutHint",
     "#stop": "stop",
@@ -325,6 +444,7 @@ function applyTranslations() {
   syncDocumentationRagControls();
   renderRuntimeStatus();
   renderStatus();
+  renderConfigurationControl();
 }
 
 function setUiLanguage(language) {
@@ -339,11 +459,17 @@ function setUiLanguage(language) {
 
 function setActive(active) {
   state.active = active;
-  elements.send.disabled = active;
+  syncConversationCapabilityControls();
   elements.stop.disabled = !active;
-  elements.prompt.disabled = active;
   syncThinkingControls();
   syncDocumentationRagControls();
+}
+
+function syncConversationCapabilityControls() {
+  const ready = ["persistent", "ephemeral"].includes(state.conversationMode);
+  elements.send.disabled = state.active || !ready;
+  elements.newChat.disabled = state.active || !ready;
+  elements.prompt.disabled = state.active || !ready;
 }
 
 function syncDocumentationRagControls() {
@@ -617,6 +743,200 @@ async function loadRuntime() {
   }
 }
 
+function configurationField(key) {
+  return configurationState.snapshot?.fields?.find((item) => item.key === key) ?? null;
+}
+
+function renderConfigurationControl() {
+  elements.configurationPanel.hidden = !configurationBootstrapEnabled;
+  if (!configurationBootstrapEnabled) {
+    return;
+  }
+  const statusKey =
+    configurationState.capability === "loading"
+      ? "configurationLoading"
+      : configurationState.capability === "ready"
+        ? "configurationReady"
+        : "configurationFailed";
+  elements.configurationStatus.textContent = t(statusKey);
+  const snapshot = configurationState.snapshot;
+  elements.configurationMeta.replaceChildren();
+  elements.configurationFields.replaceChildren();
+  if (snapshot === null) {
+    elements.configurationRefresh.disabled = configurationState.capability === "loading";
+    elements.configurationPreview.disabled = true;
+    elements.configurationApply.disabled = true;
+    return;
+  }
+  const developerDetailsVisible =
+    snapshot.fields.some(
+      (item) => item.key === "research_developer_mode" && item.value === "on",
+    );
+  elements.configurationMeta.hidden = !developerDetailsVisible;
+  elements.configurationFields.hidden = !developerDetailsVisible;
+  elements.configurationModel.closest("label").hidden = !developerDetailsVisible;
+  elements.configurationContext.closest("label").hidden = !developerDetailsVisible;
+  elements.configurationPreview.hidden = !developerDetailsVisible;
+  for (const [labelKey, value] of [
+    ["configurationRevision", snapshot.revision],
+    ["configurationDigest", snapshot.digest_sha512],
+  ]) {
+    const term = document.createElement("dt");
+    term.textContent = t(labelKey);
+    const detail = document.createElement("dd");
+    detail.textContent = String(value);
+    elements.configurationMeta.append(term, detail);
+  }
+  for (const item of snapshot.fields) {
+    const row = document.createElement("div");
+    row.className = "configuration-field";
+    row.setAttribute("role", "listitem");
+    const key = document.createElement("strong");
+    key.textContent = item.key;
+    const value = document.createElement("span");
+    value.textContent = String(item.value);
+    const metadata = document.createElement("small");
+    metadata.textContent = `${item.source} · ${item.apply_disposition}`;
+    row.append(key, value, metadata);
+    elements.configurationFields.append(row);
+  }
+  elements.configurationRefresh.disabled = false;
+  elements.configurationPreview.disabled = false;
+  elements.configurationApply.disabled = false;
+}
+
+function synchronizeConfigurationInputs() {
+  const research = configurationField("research_developer_mode");
+  const model = configurationField("selected_model");
+  const context = configurationField("context_size");
+  const enabled = research?.value === "on";
+  elements.configurationResearchMode.setAttribute("aria-pressed", String(enabled));
+  elements.configurationResearchMode.textContent = enabled ? "ON" : "OFF";
+  elements.configurationModel.value = model === null ? "" : String(model.value);
+  elements.configurationContext.value = context === null ? "" : String(context.value);
+}
+
+async function loadConfigurationControl() {
+  if (!configurationBootstrapEnabled) {
+    return;
+  }
+  configurationState.capability = "loading";
+  renderConfigurationControl();
+  try {
+    const runtimeResponse = await fetch("/api/v2/configuration/runtime", { cache: "no-store" });
+    if (!runtimeResponse.ok) {
+      throw new Error("configuration_runtime_unavailable");
+    }
+    const runtime = await runtimeResponse.json();
+    if (runtime.enabled !== true || runtime.non_persistent !== true) {
+      throw new Error("configuration_runtime_invalid");
+    }
+    const effectiveResponse = await fetch("/api/v2/configuration/effective", {
+      cache: "no-store",
+    });
+    if (!effectiveResponse.ok) {
+      throw new Error("configuration_effective_unavailable");
+    }
+    configurationState.snapshot = await effectiveResponse.json();
+    configurationState.preview = null;
+    configurationState.apply = null;
+    configurationState.capability = "ready";
+    synchronizeConfigurationInputs();
+    elements.configurationResult.textContent = "";
+  } catch {
+    configurationState.snapshot = null;
+    configurationState.capability = "failed";
+  }
+  renderConfigurationControl();
+}
+
+function configurationPreviewPatch() {
+  const patch = {};
+  const research = configurationField("research_developer_mode");
+  const model = configurationField("selected_model");
+  const context = configurationField("context_size");
+  const researchValue =
+    elements.configurationResearchMode.getAttribute("aria-pressed") === "true" ? "on" : "off";
+  const modelValue = elements.configurationModel.value.trim();
+  const contextValue = Number(elements.configurationContext.value);
+  if (research !== null && research.value !== researchValue) {
+    patch.research_developer_mode = researchValue;
+  }
+  if (model !== null && modelValue && model.value !== modelValue) {
+    patch.selected_model = modelValue;
+  }
+  if (context !== null && Number.isInteger(contextValue) && context.value !== contextValue) {
+    patch.context_size = contextValue;
+  }
+  return Object.keys(patch).length === 0
+    ? { research_developer_mode: researchValue }
+    : patch;
+}
+
+async function previewConfiguration() {
+  if (configurationState.capability !== "ready") {
+    return;
+  }
+  try {
+    const response = await fetch("/api/v2/configuration/preview", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ patch: configurationPreviewPatch() }),
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      throw new Error("configuration_preview_failed");
+    }
+    configurationState.preview = await response.json();
+    const message =
+      configurationState.preview.outcome === "restart_required"
+        ? t("configurationRestartRequired")
+        : t("configurationPreviewReady");
+    elements.configurationResult.textContent = `${message}\n${JSON.stringify(
+      configurationState.preview.redacted_changes,
+      null,
+      2,
+    )}`;
+  } catch {
+    elements.configurationResult.textContent = t("configurationFailed");
+  }
+}
+
+async function applyConfiguration() {
+  const snapshot = configurationState.snapshot;
+  if (configurationState.capability !== "ready" || snapshot === null) {
+    return;
+  }
+  const researchValue =
+    elements.configurationResearchMode.getAttribute("aria-pressed") === "true" ? "on" : "off";
+  try {
+    const response = await fetch("/api/v2/configuration/apply", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        operation_id: newActionId(),
+        expected_revision: snapshot.revision,
+        expected_digest: snapshot.digest_sha512,
+        patch: { research_developer_mode: researchValue },
+      }),
+      cache: "no-store",
+    });
+    if (response.status === 409) {
+      elements.configurationResult.textContent = t("configurationConflict");
+      await loadConfigurationControl();
+      return;
+    }
+    if (!response.ok) {
+      throw new Error("configuration_apply_failed");
+    }
+    configurationState.apply = await response.json();
+    await loadConfigurationControl();
+    elements.configurationResult.textContent = t("configurationApplied");
+  } catch {
+    elements.configurationResult.textContent = t("configurationFailed");
+  }
+}
+
 function parseEventBlock(block) {
   let eventType = "message";
   const dataLines = [];
@@ -758,6 +1078,18 @@ async function sendMessage() {
   if (state.active) {
     return;
   }
+  if (state.conversationMode === "persistent") {
+    await sendPersistentMessage();
+    return;
+  }
+  if (state.conversationMode !== "ephemeral") {
+    setStatus(
+      state.conversationMode === "capability_pending"
+        ? "persistentCapabilityPending"
+        : "persistentCapabilityFailed",
+    );
+    return;
+  }
   const content = elements.prompt.value;
   if (!content.trim()) {
     setStatus("emptyMessage");
@@ -819,6 +1151,10 @@ async function stopGeneration() {
   if (!state.active) {
     return;
   }
+  if (state.persistentEnabled) {
+    await stopPersistentGeneration();
+    return;
+  }
   if (state.requestId !== null) {
     try {
       await fetch("/api/v1/chat/stop", {
@@ -840,11 +1176,23 @@ function renderNewChatEmptyState() {
   empty.id = "empty-state";
   empty.className = "empty-state";
   const title = document.createElement("h2");
-  title.dataset.i18nMessage = "resetEmptyTitle";
-  title.textContent = t("resetEmptyTitle");
+  const titleKey =
+    state.conversationMode === "persistent"
+      ? "persistentEmptyTitle"
+      : state.conversationMode === "ephemeral"
+        ? "resetEmptyTitle"
+        : "capabilityEmptyTitle";
+  const noteKey =
+    state.conversationMode === "persistent"
+      ? "persistentEmptyNote"
+      : state.conversationMode === "ephemeral"
+        ? "resetEmptyNote"
+        : "capabilityEmptyNote";
+  title.dataset.i18nMessage = titleKey;
+  title.textContent = t(titleKey);
   const note = document.createElement("p");
-  note.dataset.i18nMessage = "resetEmptyNote";
-  note.textContent = t("resetEmptyNote");
+  note.dataset.i18nMessage = noteKey;
+  note.textContent = t(noteKey);
   empty.append(title, note);
   elements.messages.append(empty);
   elements.emptyState = empty;
@@ -852,10 +1200,437 @@ function renderNewChatEmptyState() {
 
 async function newChat() {
   await stopGeneration();
+  if (state.conversationMode === "persistent") {
+    await createPersistentConversation();
+    return;
+  }
+  if (state.conversationMode !== "ephemeral") {
+    setStatus(
+      state.conversationMode === "capability_pending"
+        ? "persistentCapabilityPending"
+        : "persistentCapabilityFailed",
+    );
+    return;
+  }
   state.messages = [];
   state.terminalWarning = null;
   renderNewChatEmptyState();
   setStatus("idle");
+}
+
+function newActionId() {
+  if (typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  return Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("");
+}
+
+async function loadPersistentRuntime() {
+  try {
+    const response = await fetch("/api/v2/conversations/runtime", { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error("persistent_capability_load_failed");
+    }
+    const runtime = await response.json();
+    if (runtime.source_of_truth !== "server" || typeof runtime.enabled !== "boolean") {
+      throw new Error("persistent_capability_invalid");
+    }
+    if (runtime.enabled === true) {
+      state.conversationMode = "persistent";
+      state.persistentEnabled = true;
+      elements.persistentPanel.hidden = false;
+      state.messages = [];
+      await loadPersistentList();
+    } else {
+      state.conversationMode = "ephemeral";
+      state.persistentEnabled = false;
+      elements.persistentPanel.hidden = true;
+    }
+    if (state.persistentDetail === null) {
+      renderNewChatEmptyState();
+    }
+    setStatus("idle");
+  } catch {
+    state.conversationMode = "capability_failed";
+    state.persistentEnabled = false;
+    elements.persistentPanel.hidden = true;
+    renderNewChatEmptyState();
+    setStatus("persistentCapabilityFailed");
+  } finally {
+    syncConversationCapabilityControls();
+  }
+}
+
+async function loadPersistentList() {
+  const response = await fetch("/api/v2/conversations?limit=50", { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error((await safeError(response)).message);
+  }
+  const page = await response.json();
+  state.persistentConversations = Array.isArray(page.items) ? page.items : [];
+  renderPersistentList();
+}
+
+function renderPersistentList() {
+  elements.persistentList.replaceChildren();
+  for (const item of state.persistentConversations) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "secondary persistent-conversation-button";
+    button.setAttribute("role", "listitem");
+    button.setAttribute("aria-current", String(item.conversation_id === state.selectedConversationId));
+    const shortId = String(item.conversation_id).slice(0, 10);
+    button.textContent = `${new Date(item.updated_at).toLocaleString()} · ${shortId}`;
+    button.addEventListener("click", () => selectPersistentConversation(item.conversation_id));
+    elements.persistentList.append(button);
+  }
+}
+
+async function selectPersistentConversation(conversationId) {
+  if (state.active) {
+    return;
+  }
+  state.selectedConversationId = conversationId;
+  await loadPersistentDetail();
+  renderPersistentList();
+}
+
+async function loadPersistentDetail() {
+  if (state.selectedConversationId === null) {
+    return;
+  }
+  const response = await fetch(
+    `/api/v2/conversations/${encodeURIComponent(state.selectedConversationId)}`,
+    { cache: "no-store" },
+  );
+  if (!response.ok) {
+    throw new Error((await safeError(response)).message);
+  }
+  state.persistentDetail = await response.json();
+  state.persistentRevision = state.persistentDetail.storage_revision;
+  renderPersistentDetail();
+}
+
+function renderPersistentDetail() {
+  const detail = state.persistentDetail;
+  elements.messages.replaceChildren();
+  elements.emptyState = null;
+  if (detail === null || !Array.isArray(detail.turns) || detail.turns.length === 0) {
+    renderNewChatEmptyState();
+  } else {
+    for (const turn of detail.turns) {
+      const user = turn.messages?.find((message) => message.role === "user");
+      const assistant = turn.messages?.find((message) => message.role === "assistant");
+      if (user !== undefined) {
+        appendUserMessage(user.content);
+      }
+      let actionHost = null;
+      if (assistant !== undefined) {
+        const view = appendAssistantMessage();
+        renderCompletedMarkdown(view.finalContent, assistant.content);
+        view.actions.append(createCopyButton(assistant.content));
+        actionHost = view.actions;
+      } else {
+        actionHost = elements.messages.lastElementChild;
+      }
+      if (actionHost !== null) {
+        const actions = document.createElement("div");
+        actions.className = "persistent-turn-actions";
+        if (["failed", "cancelled", "interrupted"].includes(turn.state)) {
+          actions.append(persistentActionButton("persistentRetry", () => persistentDerived(turn, "retry")));
+        }
+        if (turn.state === "completed") {
+          actions.append(
+            persistentActionButton("persistentRegenerate", () => persistentDerived(turn, "regenerate")),
+          );
+          if (turn.turn_id !== detail.head_turn_id) {
+            actions.append(
+              persistentActionButton("persistentSelectBranch", () => selectPersistentBranch(turn)),
+            );
+          }
+        }
+        actionHost.append(actions);
+      }
+    }
+  }
+  const hasActiveSession = detail?.sessions?.some((session) => session.state === "active") === true;
+  elements.persistentResume.hidden = detail === null || detail.state !== "active" || hasActiveSession;
+  elements.persistentArchive.hidden = detail === null;
+  elements.persistentArchive.dataset.i18nMessage =
+    detail?.state === "archived" ? "persistentUnarchive" : "persistentArchive";
+  elements.persistentArchive.textContent = t(elements.persistentArchive.dataset.i18nMessage);
+}
+
+function persistentActionButton(translationKey, callback) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "secondary";
+  button.dataset.i18nMessage = translationKey;
+  button.textContent = t(translationKey);
+  button.addEventListener("click", callback);
+  return button;
+}
+
+async function createPersistentConversation() {
+  const response = await fetch("/api/v2/conversations", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ operation_id: newActionId(), expected_revision: null }),
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    setStatus("requestFailed");
+    return;
+  }
+  const result = await response.json();
+  state.persistentDetail = result.detail;
+  state.selectedConversationId = result.detail.conversation_id;
+  state.persistentRevision = result.detail.storage_revision;
+  await loadPersistentList();
+  renderPersistentDetail();
+  setStatus("idle");
+}
+
+async function sendPersistentMessage() {
+  const content = elements.prompt.value;
+  if (!content.trim()) {
+    setStatus("emptyMessage");
+    return;
+  }
+  if (state.selectedConversationId === null) {
+    await createPersistentConversation();
+  }
+  if (state.selectedConversationId === null || state.persistentRevision === null) {
+    return;
+  }
+  const maxNewTokens = Number(elements.maxNewTokens.value);
+  if (!Number.isInteger(maxNewTokens) || maxNewTokens < 1 || maxNewTokens > 2048) {
+    setStatus("invalidTokenLimit");
+    return;
+  }
+  const assistantView = appendAssistantMessage();
+  state.controller = new AbortController();
+  state.requestId = null;
+  setActive(true);
+  setStatus("connecting");
+  const operationId = newActionId();
+  try {
+    const response = await fetch(
+      `/api/v2/conversations/${encodeURIComponent(state.selectedConversationId)}/turns/stream`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content,
+          settings: settingsPayload(),
+          operation_id: operationId,
+          expected_revision: state.persistentRevision,
+        }),
+        signal: state.controller.signal,
+        cache: "no-store",
+      },
+    );
+    if (!response.ok) {
+      await handlePersistentFailure(response);
+      return;
+    }
+    elements.prompt.value = "";
+    await readPersistentEventStream(response, assistantView);
+  } catch (error) {
+    if (!(error instanceof DOMException && error.name === "AbortError")) {
+      setStatus("requestFailed");
+    }
+  } finally {
+    state.controller = null;
+    state.requestId = null;
+    setActive(false);
+    await loadPersistentDetail();
+    await loadPersistentList();
+    elements.prompt.focus();
+  }
+}
+
+async function persistentDerived(turn, kind) {
+  if (state.active || state.selectedConversationId === null || state.persistentRevision === null) {
+    return;
+  }
+  const assistantView = appendAssistantMessage();
+  state.controller = new AbortController();
+  setActive(true);
+  try {
+    const response = await fetch(
+      `/api/v2/conversations/${encodeURIComponent(state.selectedConversationId)}/turns/${encodeURIComponent(turn.turn_id)}/${kind}/stream`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          settings: settingsPayload(),
+          operation_id: newActionId(),
+          expected_revision: state.persistentRevision,
+        }),
+        signal: state.controller.signal,
+        cache: "no-store",
+      },
+    );
+    if (!response.ok) {
+      await handlePersistentFailure(response);
+      return;
+    }
+    await readPersistentEventStream(response, assistantView);
+  } finally {
+    state.controller = null;
+    state.requestId = null;
+    setActive(false);
+    await loadPersistentDetail();
+    await loadPersistentList();
+  }
+}
+
+async function readPersistentEventStream(response, assistantView) {
+  if (response.body === null) {
+    throw new Error(t("streamUnavailable"));
+  }
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let durableTerminalObserved = false;
+  while (true) {
+    const { value, done } = await reader.read();
+    buffer += decoder.decode(value, { stream: !done }).replaceAll("\r\n", "\n");
+    let boundary = buffer.indexOf("\n\n");
+    while (boundary >= 0) {
+      const event = parseEventBlock(buffer.slice(0, boundary));
+      buffer = buffer.slice(boundary + 2);
+      if (event !== null) {
+        durableTerminalObserved =
+          handlePersistentEvent(event, assistantView) || durableTerminalObserved;
+      }
+      boundary = buffer.indexOf("\n\n");
+    }
+    if (done) {
+      if (!durableTerminalObserved) {
+        assistantView.container.classList.add("message-error");
+        setKnownNodeMessage(
+          assistantView.finalContent,
+          "unexpected_error",
+          t("requestFailed"),
+        );
+        setStatus("requestFailed");
+        await loadPersistentDetail();
+      }
+      return;
+    }
+  }
+}
+
+function handlePersistentEvent(event, assistantView) {
+  if (event.type === "start") {
+    state.requestId = event.data.request_id;
+    state.persistentRevision = event.data.durable_revision;
+    setStatus("generating");
+    return false;
+  }
+  if (["retrieval", "status", "delta", "warning"].includes(event.type)) {
+    handleEvent(event, assistantView);
+    return false;
+  }
+  if (["completed", "cancelled", "error"].includes(event.type)) {
+    if (Number.isInteger(event.data.durable_revision)) {
+      state.persistentRevision = event.data.durable_revision;
+    }
+    if (event.type === "completed") {
+      setStatus("completed", { reason: event.data.finish_reason ?? "unknown" });
+    } else if (event.type === "cancelled") {
+      setStatus("stopped");
+    } else {
+      setStatus("errorStatus", { code: event.data.code ?? "generation_failed" });
+    }
+    return Number.isInteger(event.data.durable_revision);
+  }
+  return false;
+}
+
+async function stopPersistentGeneration() {
+  if (
+    state.requestId === null ||
+    state.selectedConversationId === null ||
+    state.persistentRevision === null
+  ) {
+    state.controller?.abort();
+    return;
+  }
+  try {
+    const response = await fetch(
+      `/api/v2/conversations/${encodeURIComponent(state.selectedConversationId)}/generations/${encodeURIComponent(state.requestId)}/stop`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          request_id: state.requestId,
+          expected_revision: state.persistentRevision,
+        }),
+        cache: "no-store",
+      },
+    );
+    if (!response.ok) {
+      await handlePersistentFailure(response);
+    }
+  } catch {
+    setStatus("stopRequestFailed");
+  }
+}
+
+async function handlePersistentFailure(response) {
+  const failure = await safeError(response);
+  if (failure.code === "revision_conflict" || failure.code === "operation_already_applied") {
+    setStatus("persistentConflict");
+    await loadPersistentDetail();
+    return;
+  }
+  setStatus("requestFailed");
+}
+
+async function selectPersistentBranch(turn) {
+  await persistentMutation(
+    `/api/v2/conversations/${encodeURIComponent(state.selectedConversationId)}/branches/${encodeURIComponent(turn.turn_id)}/select`,
+  );
+}
+
+async function persistentMutation(path) {
+  if (state.selectedConversationId === null || state.persistentRevision === null) {
+    return;
+  }
+  const response = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      operation_id: newActionId(),
+      expected_revision: state.persistentRevision,
+    }),
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    await handlePersistentFailure(response);
+    return;
+  }
+  state.persistentDetail = (await response.json()).detail;
+  state.persistentRevision = state.persistentDetail.storage_revision;
+  renderPersistentDetail();
+  await loadPersistentList();
+}
+
+async function resumePersistentConversation() {
+  await persistentMutation(
+    `/api/v2/conversations/${encodeURIComponent(state.selectedConversationId)}/resume`,
+  );
+}
+
+async function togglePersistentArchive() {
+  const action = state.persistentDetail?.state === "archived" ? "unarchive" : "archive";
+  await persistentMutation(
+    `/api/v2/conversations/${encodeURIComponent(state.selectedConversationId)}/${action}`,
+  );
 }
 
 elements.send.addEventListener("click", sendMessage);
@@ -864,6 +1639,17 @@ elements.newChat.addEventListener("click", newChat);
 elements.uiLanguageJa.addEventListener("click", () => setUiLanguage("ja"));
 elements.uiLanguageEn.addEventListener("click", () => setUiLanguage("en"));
 elements.thinkingMode.addEventListener("change", syncThinkingControls);
+elements.persistentRefresh.addEventListener("click", loadPersistentList);
+elements.persistentResume.addEventListener("click", resumePersistentConversation);
+elements.persistentArchive.addEventListener("click", togglePersistentArchive);
+elements.configurationRefresh.addEventListener("click", loadConfigurationControl);
+elements.configurationResearchMode.addEventListener("click", () => {
+  const enabled = elements.configurationResearchMode.getAttribute("aria-pressed") === "true";
+  elements.configurationResearchMode.setAttribute("aria-pressed", String(!enabled));
+  elements.configurationResearchMode.textContent = enabled ? "OFF" : "ON";
+});
+elements.configurationPreview.addEventListener("click", previewConfiguration);
+elements.configurationApply.addEventListener("click", applyConfiguration);
 elements.prompt.addEventListener("keydown", (event) => {
   if (!event.isComposing && (event.metaKey || event.ctrlKey) && event.key === "Enter") {
     event.preventDefault();
@@ -874,4 +1660,7 @@ elements.prompt.addEventListener("keydown", (event) => {
 applyTranslations();
 syncThinkingControls();
 syncDocumentationRagControls();
+syncConversationCapabilityControls();
 loadRuntime();
+loadPersistentRuntime();
+loadConfigurationControl();

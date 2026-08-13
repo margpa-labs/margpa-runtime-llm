@@ -10,24 +10,54 @@ from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import Response
 
+from margpa_runtime_llm.modules.configuration_control import ConfigurationControlError
+from margpa_runtime_llm.modules.conversation.application import PersistentConversationError
+from margpa_runtime_llm.modules.conversation.domain import (
+    ConversationOperationId,
+    ConversationStorageError,
+    ConversationStorageErrorCode,
+)
 from margpa_runtime_llm.modules.conversation.public import (
     ConversationGenerationInput,
     ConversationGenerationSession,
 )
 from margpa_runtime_llm.modules.inference.domain.errors import InferenceError
 
-from .access_profiles import DisabledPublicControlPolicy, PublicControlPolicyPort
-from .auth import WebAccessPolicy
+from .access_profiles import (
+    DisabledPublicControlPolicy,
+    PublicControlPolicyPort,
+    WebExposureMode,
+)
+from .auth import WebAccessPolicy, WebAuthMode
+from .configuration_routes import (
+    ConfigurationWebError,
+    configuration_error_response,
+    configuration_web_error_response,
+    create_configuration_router,
+)
 from .contracts import StopGenerationRequest, WebRuntime
 from .error_mapping import http_status_for_inference_error
+from .persistent_routes import (
+    PersistentWebError,
+    create_persistent_router,
+    persistent_error_response,
+)
 from .streaming import stream_session_as_sse
 
 MAX_CHAT_REQUEST_BYTES = 262_144
+MAX_PERSISTENT_REQUEST_BYTES = 131_072
+MAX_CONFIGURATION_REQUEST_BYTES = 32_768
 STATIC_ROOT = Path(__file__).resolve().parent / "static"
+CONFIGURATION_BOOTSTRAP_DISABLED = (
+    '<script id="configuration-bootstrap" type="application/json">{"enabled":false}</script>'
+)
+CONFIGURATION_BOOTSTRAP_ENABLED = (
+    '<script id="configuration-bootstrap" type="application/json">{"enabled":true}</script>'
+)
 SHUTDOWN_FAILURE_MESSAGE = "The web runtime could not shut down cleanly."
 RuntimeFactory = Callable[[], WebRuntime]
 CallNext = Callable[[Request], Awaitable[Response]]
@@ -49,6 +79,28 @@ def create_web_app(
             raise RuntimeError(exc.safe_message) from None
         except Exception:
             raise RuntimeError("The web runtime could not start.") from None
+        if runtime.persistent_conversation is not None and (
+            access_policy.exposure_mode is not WebExposureMode.LOCAL
+            or access_policy.mode is not WebAuthMode.DISABLED
+            or access_policy.non_loopback_allowed
+        ):
+            try:
+                await asyncio.to_thread(runtime.close)
+            finally:
+                raise RuntimeError(
+                    "Persistent conversations require local loopback access."
+                ) from None
+        if runtime.configuration_control is not None and (
+            access_policy.exposure_mode is not WebExposureMode.LOCAL
+            or access_policy.mode is not WebAuthMode.DISABLED
+            or access_policy.non_loopback_allowed
+        ):
+            try:
+                await asyncio.to_thread(runtime.close)
+            finally:
+                raise RuntimeError(
+                    "Configuration control requires local loopback access."
+                ) from None
         app.state.runtime = runtime
         try:
             yield
@@ -84,14 +136,21 @@ def create_web_app(
                     headers={"WWW-Authenticate": 'Basic realm="MARGPA Preview", charset="UTF-8"'},
                 )
             )
+        request_limit = None
         if request.url.path == "/api/v1/chat/stream":
+            request_limit = MAX_CHAT_REQUEST_BYTES
+        elif request.url.path.startswith("/api/v2/conversations"):
+            request_limit = MAX_PERSISTENT_REQUEST_BYTES
+        elif request.url.path.startswith("/api/v2/configuration"):
+            request_limit = MAX_CONFIGURATION_REQUEST_BYTES
+        if request_limit is not None:
             content_length = request.headers.get("content-length")
             if content_length is not None:
                 try:
                     request_size = int(content_length)
                 except ValueError:
-                    request_size = MAX_CHAT_REQUEST_BYTES + 1
-                if request_size > MAX_CHAT_REQUEST_BYTES:
+                    request_size = request_limit + 1
+                if request_size > request_limit:
                     return _apply_security_headers(
                         JSONResponse(
                             status_code=413,
@@ -127,6 +186,63 @@ def create_web_app(
             },
         )
 
+    @app.exception_handler(ConfigurationWebError)
+    async def configuration_web_error(
+        request: Request,
+        exc: ConfigurationWebError,
+    ) -> JSONResponse:
+        del request
+        return configuration_web_error_response(exc)
+
+    @app.exception_handler(ConfigurationControlError)
+    async def configuration_control_error(
+        request: Request,
+        exc: ConfigurationControlError,
+    ) -> JSONResponse:
+        del request
+        return configuration_error_response(exc)
+
+    @app.exception_handler(PersistentWebError)
+    async def persistent_web_error(
+        request: Request,
+        exc: PersistentWebError,
+    ) -> JSONResponse:
+        del request
+        return persistent_error_response(exc)
+
+    @app.exception_handler(PersistentConversationError)
+    async def persistent_application_error(
+        request: Request,
+        exc: PersistentConversationError,
+    ) -> JSONResponse:
+        del request
+        return persistent_error_response(exc)
+
+    @app.exception_handler(ConversationStorageError)
+    async def persistent_storage_error(
+        request: Request,
+        exc: ConversationStorageError,
+    ) -> JSONResponse:
+        if exc.code is ConversationStorageErrorCode.CONFLICT and exc.operation_id is not None:
+            service = _runtime(request).persistent_conversation
+            if service is not None:
+                try:
+                    already_applied = await asyncio.to_thread(
+                        service.operation_was_applied,
+                        ConversationOperationId(value=exc.operation_id),
+                    )
+                except Exception:
+                    already_applied = False
+                if already_applied:
+                    return persistent_error_response(
+                        PersistentWebError(
+                            409,
+                            "operation_already_applied",
+                            ("The operation was already applied. Reload the conversation detail."),
+                        )
+                    )
+        return persistent_error_response(exc)
+
     @app.exception_handler(Exception)
     async def unexpected_error(request: Request, exc: Exception) -> JSONResponse:
         del request, exc
@@ -143,8 +259,16 @@ def create_web_app(
         return {"status": "ok"}
 
     @app.get("/")
-    async def index() -> FileResponse:
-        return FileResponse(STATIC_ROOT / "index.html", media_type="text/html")
+    async def index(request: Request) -> HTMLResponse:
+        html = (STATIC_ROOT / "index.html").read_text(encoding="utf-8")
+        if _runtime(request).configuration_control is not None:
+            if html.count(CONFIGURATION_BOOTSTRAP_DISABLED) != 1:
+                raise RuntimeError("The configuration bootstrap marker is invalid.")
+            html = html.replace(
+                CONFIGURATION_BOOTSTRAP_DISABLED,
+                CONFIGURATION_BOOTSTRAP_ENABLED,
+            )
+        return HTMLResponse(html)
 
     @app.get("/api/v1/runtime")
     async def runtime_info(request: Request) -> dict[str, object]:
@@ -187,6 +311,9 @@ def create_web_app(
                 },
             )
         return JSONResponse(content={"status": "cancellation_requested"})
+
+    app.include_router(create_persistent_router())
+    app.include_router(create_configuration_router())
 
     app.mount("/assets", StaticFiles(directory=STATIC_ROOT), name="assets")
     return app

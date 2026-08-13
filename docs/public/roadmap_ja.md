@@ -5,7 +5,7 @@ document_type: public_roadmap
 document_state: current
 language: ja
 created_at: 2026-07-22
-updated_at: 2026-08-12 01:23:39 JST
+updated_at: 2026-08-14 04:20:00 JST
 public_author: Nazuna Research
 project: MARGPA Runtime LLM
 ```
@@ -140,9 +140,9 @@ FutureまたはPlannedと書かれた項目は、実装済みを意味しない�
 
 ---
 
-## 4. 現在地 — Phase 2 Started／Phase 2-0 Complete／Phase 2-A Ready
+## 4. 現在地 — Phase 2 In Progress／Phase 2-B～2-D Technical Complete
 
-2026年8月12日時点の現在地は次のとおりである。
+2026年8月14日時点の現在地は次のとおりである。
 
 ```text
 Phase 0                               : Complete
@@ -182,10 +182,17 @@ Phase 2-0 Bounded Pilot               : Complete／Accepted／Closed／Adjusted 
 Phase 2-0 Read Recovery               : P2-0-WU-002 Accepted／Closed
 Phase 2-0 Grammar Deviation Evidence  : P2-0-WU-003 Adjust Required／Retained
 Phase 2-0 Capability Retest           : P2-0-WU-004 Accepted／Closed
-Phase 2-0 Automation Control State    : OFF／P2-0 Closed／Phase 2-A Ready／Backup・Start Pending
+Phase 2-0 Automation Control State    : Bounded Chained Execution／Phase 2-B～2-D Technical PASS
 Phase 2-0 Independent Task            : P2-0-WU-004 Idle／No Further Action Authorized
 Phase 2-0 Git Checkpoint              : Content Commit f21829f Pushed／Local・Origin・Remote Aligned
-Phase 2 Functional Implementation     : Not Started
+Phase 2-A Conversation Foundation     : Complete／Accepted／479 Tests Passed
+Phase 2-A Automation Evidence         : Controller-led Bounded Execution Pass／Delegated Role Chain Not Tested
+Phase 2-B Persistence／Lifecycle       : Technical Complete／Accepted／528 Tests Passed
+Phase 2-C Persistent API／UX           : Technical Complete／Accepted／567 Tests Passed
+Phase 2-D Configuration Control       : Technical Complete／Accepted／613 Tests Passed
+Phase 2-B～2-D Automation Evidence     : Designer／Implementer／Review／Rework Chain Passed
+Phase 2 Functional Implementation     : Phase 2-A～2-D Complete／Phase 2-E Not Started
+Phase 2 Manual Acceptance             : Local Persistent UX／Configuration Control Browser Matrix Pending
 Optional English Documentation        : Formally Deferred／Non-blocking／History Excluded
 ```
 
@@ -199,7 +206,13 @@ Phase 2はユーザー確認により開始し、元来の機能実装に先立�
 
 再設計では、通常運転とAutomationで共通のRole／Docs Authorityを用い、Automation側には承認済み到達線内の連結実行だけを追加する構造へ修正した。固定Document Package、独立Dynamic Resolverおよび最高責任者役への判断集中を採用せず、各Role／Taskが委譲範囲内を都度判断し、例外を直属上位へ段階的にEscalateする。Capability SemanticsとProvider Mapping、成果物、Authority、Scope、EvidenceおよびStopを独立評価し、Prompt-only Raw Command Grammarを機械的強制済みと扱わない。
 
-P2-0累積Controller提案`ADJUSTED_GO／bounded_unit ceiling`はユーザーによりFinal Acceptedとなり、P2-0は完了した。上位Automation、機械的Path Enforcement、Resource Limit、Multi-providerおよびConstitution Compilationは後続Evidence項目であり、Phase 2-Aの有界設計開始を止めるCurrent Blockerではない。現在はPhase 2-A Readyであり、ユーザー側の区切りBackupと明示的な開始指示後に次Subphaseへ進む。
+P2-0累積Controller提案`ADJUSTED_GO／bounded_unit ceiling`はユーザーによりFinal Acceptedとなり、P2-0は完了した。上位Automation、機械的Path Enforcement、Resource Limit、Multi-providerおよびConstitution Compilationは後続Evidence項目であり、Phase 2-Aの有界実装を止めるCurrent Blockerではない。
+
+Phase 2-Aはユーザーによる開始前Backupと完全自動化開始指示を受け、Conversation Scope／Identity、Session／Turn／Message State、Retry／Regenerate Branch、Completed-only Generation Projection、Storage CAS／Idempotency、Schema／Migration／FailureおよびPhase 1 CompatibilityをDomain／Port Contractとして実装し、Acceptedとなった。既存`/api/v1/chat/*`、Web、Public／Basic PreviewおよびStorage Write 0の互換Pathは変更していない。
+
+Phase 2-Bでは、交換可能なLocal SQLite Conversation Adapter、Atomic CAS／Operation Idempotency、Explicit Migration／Checkpoint、Lifecycle Service、Generation Context MapperおよびCrash Recoveryを実装した。Phase 2-CではLocal／Loopback／Explicit opt-in専用の別Versioned Persistent API、Chat List／History／Resume／Retry／Regenerate／Branch／Stop、Multi-browser ConflictおよびServer Source-of-truth Browser UXを実装した。Phase 2-DではLocal専用の非永続Configuration Control、Safe Effective Projection、Source Trace、SHA-512 Digest、Revision CAS、Research／Developer表示ModeおよびTyped Feature／Recording Hookを実装した。
+
+Phase 2-B～2-Dは独立したPhase 2設計担当者役とPhase 2実装者役を使用し、`Designer → Implementer → Designer Review → Implementer Rework → Designer Final Review → Controller Closure`を成立させた。Migration Race／Path封じ込め、Capability確定前Fallback、非Durable Terminal SSEおよびHook Availability等のFindingをRole間の再作業で解消し、最終Full Suiteは613件合格、3件deselected、Ruff／Mypy／Node検証も合格した。Project RootへのRuntime Data生成、Public／BasicへのPersistent／Configuration Binding、Sensitive Dataの通常保存は0である。Local Persistent UXとConfiguration ControlのReal Browser Manual MatrixはUser Acceptance項目として残り、Phase 2-Eはまだ開始していない。
 
 Lightning Auto-startは、Repository側Read-only Preflight、Stage A、Stage B Repository Preparation、Repository外Private Bootstrap、Manual Foreground起動および複数回のTraffic-aware External Wake実試験を完了し、Basic Previewと認証なしPublic Demoの双方で成立した。観測Cold Startは約3～10分、Idle-to-sleepは約10～12分である。一度だけJSONらしき一時応答が表示されたが、再Accessで正常復帰し、再現未確認の非ブロッカー観察事項としている。これらはFree CPU Studioでの観測値であり、SLAまたは将来環境の性能保証ではない。Public Control Hookは保持するが、Rate Limit、Token／Cost保護等は現在OFFである。Tool／外部操作は搭載せず、Documentation RAGは公開8文書だけに限定してBasic PreviewとPublic Demoの双方で利用可能とした。
 
@@ -600,7 +613,7 @@ PhaseごとのDocumentation統合は、要約や意訳ではなくLossless Compi
 
 ## 8. Phase 2 — Conversation Continuity and Experimental Control Surface
 
-**State: `In Progress — Phase 2-0 Complete／Phase 2-A Ready／Start Pending`**
+**State: `In Progress — Phase 2-0～2-D Complete／2-B～2-D Technical Accepted／Phase 2-E Not Started`**
 
 Phase 1の一時的なWeb Previewを、継続利用と研究設定に耐えられるApplicationへ発展させる。
 
@@ -762,7 +775,11 @@ Automationは単純なON／OFFではなく、`manual／advisory／bounded_unit�
 
 各試験では過去のAcceptanceまたはStart Eventを再利用せず、Control TaskのREADYと後続User Startを順序どおり成立させた。片方の発言、過去の同意または類似表現から開始を推測しない。P2-0 Closureでは最高責任者役がEvidence、Stable整合およびPreflightを自律完了し、ユーザーのFinal Acceptanceを受けてClosedとした。
 
-P2-0-WU-004では、Correction Review、Capability再照合、Exact Design Freeze、Exact Envelope／Child Task範囲Acceptance、Controller READY／`ARMED`、後続User Start／`ON`、Child ACK、実行、Controller ReviewおよびUser Final Acceptanceを完了した。P2-0累積判定もFinal Accepted／Closedである。現在は新Task、追加Work Unitまたは上位Automationを開始せず、Phase 2-A開始前の区切りBackupと明示的な開始指示を待つ。
+P2-0-WU-004では、Correction Review、Capability再照合、Exact Design Freeze、Exact Envelope／Child Task範囲Acceptance、Controller READY／`ARMED`、後続User Start／`ON`、Child ACK、実行、Controller ReviewおよびUser Final Acceptanceを完了した。P2-0累積判定もFinal Accepted／Closedである。
+
+Phase 2-Aでは、設計Freeze、Domain／Port／Unit Test実装、Compatibility／Full Validationを有界Work Unitとして連結実行した。Persistent Conversationは既存Ephemeral v1へ未接続であり、Concrete Storage、Lifecycle ServiceおよびCrash RecoveryはPhase 2-B、Persistent API／Chat List／Resume／Regenerate UIはPhase 2-Cへ渡す。Phase 2-AのTechnical Blockerは0であり、User Final Acceptance前にPhase 2-Bへ自動移行しない。
+
+Phase 2-Aの連結実行はController兼務で完了したため、独立Role Chainは未検証だった。Phase 2-B～2-Dでは各Roleを異なるTaskへ割り当て、責任移転、Context分離、Status返却、重大Findingの再作業、独立適合Reviewおよび段階的Closureを実証した。技術成果とAutomation Capabilityを分離して評価する原則は維持し、この成功だけでPhase／Project単位の無条件Automationへ昇格しない。
 
 Phase 2をOrchestrationの成立性検証、Phase 3を再現性・移植性検証とする。Phase 2の結果がAcceptedされた場合はPhase 3でもPilotを継続し、異なる要件、Task ContextおよびEvidence Domainで同じ運用骨格が成立するかを確認する。その結果に基づき、以降のSubphase、Phase完了単位またはProject完了単位への拡張を段階的に判断する。
 

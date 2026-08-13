@@ -1,0 +1,47 @@
+"""Public process-local configuration-control contracts."""
+
+from .application import ConfigurationControlService
+from .contracts import (
+    ApplyDisposition,
+    ConfigurationApplyOutcome,
+    ConfigurationApplyResult,
+    ConfigurationControlError,
+    ConfigurationControlErrorCode,
+    ConfigurationField,
+    ConfigurationPatch,
+    ConfigurationPreview,
+    ConfigurationPreviewOutcome,
+    ConfigurationSource,
+    DocumentationRagControlMode,
+    EffectiveConfigFieldSources,
+    EffectiveConfigurationSnapshot,
+    FeatureHookDescriptor,
+    RecordingControlMode,
+    RecordingHookDescriptor,
+    RedactedConfigurationChange,
+    ResearchDeveloperMode,
+    configuration_digest,
+)
+
+__all__ = [
+    "ApplyDisposition",
+    "ConfigurationApplyOutcome",
+    "ConfigurationApplyResult",
+    "ConfigurationControlError",
+    "ConfigurationControlErrorCode",
+    "ConfigurationControlService",
+    "ConfigurationField",
+    "ConfigurationPatch",
+    "ConfigurationPreview",
+    "ConfigurationPreviewOutcome",
+    "ConfigurationSource",
+    "DocumentationRagControlMode",
+    "EffectiveConfigFieldSources",
+    "EffectiveConfigurationSnapshot",
+    "FeatureHookDescriptor",
+    "RecordingControlMode",
+    "RecordingHookDescriptor",
+    "RedactedConfigurationChange",
+    "ResearchDeveloperMode",
+    "configuration_digest",
+]

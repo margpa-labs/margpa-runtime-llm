@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import ipaddress
 import platform
 import sys
 from collections.abc import Sequence
@@ -16,12 +17,19 @@ from margpa_runtime_llm.bootstrap.documentation_rag import (
     build_local_documentation_rag,
 )
 from margpa_runtime_llm.bootstrap.web_application import build_phase1_web_runtime
+from margpa_runtime_llm.modules.conversation.adapters import (
+    LocalConversationPersistenceSettings,
+)
+from margpa_runtime_llm.modules.conversation.domain import ConversationScopeId
 from margpa_runtime_llm.modules.documentation_rag.contracts import (
     DocumentationRagAvailability,
     DocumentationRagMode,
     DocumentationRagPlatform,
 )
-from margpa_runtime_llm.modules.inference.domain.errors import InferenceError
+from margpa_runtime_llm.modules.inference.domain.errors import (
+    InferenceError,
+    InferenceErrorCode,
+)
 from margpa_runtime_llm.web.access_profiles import (
     DocumentationRagCapability,
     DocumentationRagFeatureMode,
@@ -113,6 +121,27 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="TOKENS",
         help="Loaded context size (default source: profile/application config)",
     )
+    parser.add_argument(
+        "--conversation-persistence",
+        action="store_true",
+        help="Enable explicit loopback-only local conversation persistence",
+    )
+    parser.add_argument(
+        "--conversation-runtime-data-root",
+        type=Path,
+        metavar="RUNTIME_DATA_ROOT",
+        help="Absolute server-owned runtime-data root for conversation persistence",
+    )
+    parser.add_argument(
+        "--conversation-scope-id",
+        metavar="SCOPE_ID",
+        help="Server-owned local conversation scope identity",
+    )
+    parser.add_argument(
+        "--configuration-control",
+        action="store_true",
+        help="Enable loopback-only process-local configuration control",
+    )
     return parser
 
 
@@ -126,6 +155,20 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         access_policy = load_web_access_policy(profile=web_access_profile)
         validate_bind_access_policy(args.host, access_policy)
+        configuration_control_enabled = _configuration_control_enabled(
+            enabled=args.configuration_control,
+            host=args.host,
+            access_mode=web_access_profile.access.mode,
+            authentication_required=access_policy.authentication_required,
+        )
+        conversation_persistence_settings = _conversation_persistence_settings(
+            enabled=args.conversation_persistence,
+            runtime_data_root=args.conversation_runtime_data_root,
+            scope_id=args.conversation_scope_id,
+            host=args.host,
+            access_mode=web_access_profile.access.mode,
+            authentication_required=access_policy.authentication_required,
+        )
         control_policy = build_disabled_control_policy(web_access_profile)
         documentation_rag = None
         documentation_rag_default_mode = DocumentationRagMode.DISABLED
@@ -195,6 +238,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             documentation_rag_default_mode=documentation_rag_default_mode,
             documentation_rag_provider_display_name=documentation_rag_provider_display_name,
             documentation_rag_token_counter_binder=documentation_rag_token_counter_binder,
+            conversation_persistence_settings=conversation_persistence_settings,
+            configuration_control_enabled=configuration_control_enabled,
         )
         app = create_web_app(
             runtime_factory=runtime_factory,
@@ -254,6 +299,82 @@ def _documentation_rag_platform(
     if resolved_system == "Linux" and normalized_machine in {"x86_64", "amd64"}:
         return DocumentationRagPlatform.LINUX_X86_64_CONTAINER
     return None
+
+
+def _conversation_persistence_settings(
+    *,
+    enabled: bool,
+    runtime_data_root: Path | None,
+    scope_id: str | None,
+    host: str,
+    access_mode: WebExposureMode,
+    authentication_required: bool,
+) -> LocalConversationPersistenceSettings | None:
+    supplied = runtime_data_root is not None or scope_id is not None
+    if not enabled:
+        if supplied:
+            raise InferenceError(
+                code=InferenceErrorCode.INVALID_CONFIGURATION,
+                safe_message="Conversation persistence inputs require explicit opt-in.",
+            )
+        return None
+    if (
+        runtime_data_root is None
+        or scope_id is None
+        or access_mode is not WebExposureMode.LOCAL
+        or authentication_required
+        or not _is_loopback_host(host)
+    ):
+        raise InferenceError(
+            code=InferenceErrorCode.INVALID_CONFIGURATION,
+            safe_message=(
+                "Conversation persistence requires local loopback access and explicit inputs."
+            ),
+        )
+    try:
+        return LocalConversationPersistenceSettings(
+            enabled=True,
+            runtime_data_root=runtime_data_root,
+            scope_id=ConversationScopeId(value=scope_id),
+        )
+    except ValueError as exc:
+        raise InferenceError(
+            code=InferenceErrorCode.INVALID_CONFIGURATION,
+            safe_message="Conversation persistence inputs are invalid.",
+        ) from exc
+
+
+def _configuration_control_enabled(
+    *,
+    enabled: bool,
+    host: str,
+    access_mode: WebExposureMode,
+    authentication_required: bool,
+) -> bool:
+    if not enabled:
+        return False
+    if (
+        access_mode is not WebExposureMode.LOCAL
+        or authentication_required
+        or not _is_loopback_host(host)
+    ):
+        raise InferenceError(
+            code=InferenceErrorCode.INVALID_CONFIGURATION,
+            safe_message=(
+                "Configuration control requires local loopback access and explicit opt-in."
+            ),
+        )
+    return True
+
+
+def _is_loopback_host(host: str) -> bool:
+    normalized = host.strip().lower().strip("[]")
+    if normalized == "localhost":
+        return True
+    try:
+        return ipaddress.ip_address(normalized).is_loopback
+    except ValueError:
+        return False
 
 
 if __name__ == "__main__":
