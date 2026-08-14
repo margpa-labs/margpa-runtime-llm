@@ -140,7 +140,7 @@ FutureまたはPlannedと書かれた項目は、実装済みを意味しない�
 
 ---
 
-## 4. 現在地 — Phase 2 In Progress／Phase 2-A～2-D Complete／User Accepted
+## 4. 現在地 — Phase 2 In Progress／Phase 2-B～2-D Technical Complete
 
 2026年8月14日時点の現在地は次のとおりである。
 
@@ -182,18 +182,17 @@ Phase 2-0 Bounded Pilot               : Complete／Accepted／Closed／Adjusted 
 Phase 2-0 Read Recovery               : P2-0-WU-002 Accepted／Closed
 Phase 2-0 Grammar Deviation Evidence  : P2-0-WU-003 Adjust Required／Retained
 Phase 2-0 Capability Retest           : P2-0-WU-004 Accepted／Closed
-Phase 2-0 Automation Control State    : Bounded Chained Execution／Phase 2-A～2-D User Accepted
+Phase 2-0 Automation Control State    : Bounded Chained Execution／Phase 2-B～2-D Technical PASS
 Phase 2-0 Independent Task            : P2-0-WU-004 Idle／No Further Action Authorized
 Phase 2-0 Git Checkpoint              : Content Commit f21829f Pushed／Local・Origin・Remote Aligned
 Phase 2-A Conversation Foundation     : Complete／Accepted／479 Tests Passed
 Phase 2-A Automation Evidence         : Controller-led Bounded Execution Pass／Delegated Role Chain Not Tested
-Phase 2-B Persistence／Lifecycle       : Complete／User Accepted／Restart Recovery Passed
-Phase 2-C Persistent API／UX           : Complete／User Accepted／Saved Chats and RAG Citations Passed
-Phase 2-D Configuration Control       : Complete／User Accepted／Manual Checklist Passed
+Phase 2-B Persistence／Lifecycle       : Technical Complete／Accepted／528 Tests Passed
+Phase 2-C Persistent API／UX           : Technical Complete／Accepted／567 Tests Passed
+Phase 2-D Configuration Control       : Technical Complete／Accepted／613 Tests Passed
 Phase 2-B～2-D Automation Evidence     : Designer／Implementer／Review／Rework Chain Passed
 Phase 2 Functional Implementation     : Phase 2-A～2-D Complete／Phase 2-E Not Started
-Phase 2 Manual Acceptance             : Checklist 1～7 Passed／Item 8 Deferred Non-blocking
-Phase 2 Latest Full Suite             : 615 Passed／3 Deselected
+Phase 2 Manual Acceptance             : Local Persistent UX／Configuration Control Browser Matrix Pending
 Optional English Documentation        : Formally Deferred／Non-blocking／History Excluded
 ```
 
@@ -213,7 +212,7 @@ Phase 2-Aはユーザーによる開始前Backupと完全自動化開始指示�
 
 Phase 2-Bでは、交換可能なLocal SQLite Conversation Adapter、Atomic CAS／Operation Idempotency、Explicit Migration／Checkpoint、Lifecycle Service、Generation Context MapperおよびCrash Recoveryを実装した。Phase 2-CではLocal／Loopback／Explicit opt-in専用の別Versioned Persistent API、Chat List／History／Resume／Retry／Regenerate／Branch／Stop、Multi-browser ConflictおよびServer Source-of-truth Browser UXを実装した。Phase 2-DではLocal専用の非永続Configuration Control、Safe Effective Projection、Source Trace、SHA-512 Digest、Revision CAS、Research／Developer表示ModeおよびTyped Feature／Recording Hookを実装した。
 
-Phase 2-B～2-Dは独立したPhase 2設計担当者役とPhase 2実装者役を使用し、`Designer → Implementer → Designer Review → Implementer Rework → Designer Final Review → Controller Closure`を成立させた。Migration Race／Path封じ込め、Capability確定前Fallback、非Durable Terminal SSEおよびHook Availability等のFindingをRole間の再作業で解消した。Technical Closure後のReal Browser Manual Acceptanceでは、最大長Conversation IDのRestart RecoveryとPersistent Detail再描画時のRAG Citation維持を追加修正した。最終Full Suiteは615件合格、3件deselected、Ruff／Mypy／JavaScript検証も合格し、ユーザーは起動、「再開」、保存済み全Chatの存続、RAG引用元およびChecklist 1～7の合格を確認した。Checklist 8は後続検討であり、Phase 2-A～2-DのCompletion Blockerではない。Phase 2-Eはまだ開始していない。
+Phase 2-B～2-Dは独立したPhase 2設計担当者役とPhase 2実装者役を使用し、`Designer → Implementer → Designer Review → Implementer Rework → Designer Final Review → Controller Closure`を成立させた。Migration Race／Path封じ込め、Capability確定前Fallback、非Durable Terminal SSEおよびHook Availability等のFindingをRole間の再作業で解消し、最終Full Suiteは613件合格、3件deselected、Ruff／Mypy／Node検証も合格した。Project RootへのRuntime Data生成、Public／BasicへのPersistent／Configuration Binding、Sensitive Dataの通常保存は0である。Local Persistent UXとConfiguration ControlのReal Browser Manual MatrixはUser Acceptance項目として残り、Phase 2-Eはまだ開始していない。
 
 Lightning Auto-startは、Repository側Read-only Preflight、Stage A、Stage B Repository Preparation、Repository外Private Bootstrap、Manual Foreground起動および複数回のTraffic-aware External Wake実試験を完了し、Basic Previewと認証なしPublic Demoの双方で成立した。観測Cold Startは約3～10分、Idle-to-sleepは約10～12分である。一度だけJSONらしき一時応答が表示されたが、再Accessで正常復帰し、再現未確認の非ブロッカー観察事項としている。これらはFree CPU Studioでの観測値であり、SLAまたは将来環境の性能保証ではない。Public Control Hookは保持するが、Rate Limit、Token／Cost保護等は現在OFFである。Tool／外部操作は搭載せず、Documentation RAGは公開8文書だけに限定してBasic PreviewとPublic Demoの双方で利用可能とした。
 
@@ -614,7 +613,7 @@ PhaseごとのDocumentation統合は、要約や意訳ではなくLossless Compi
 
 ## 8. Phase 2 — Conversation Continuity and Experimental Control Surface
 
-**State: `In Progress — Phase 2-0～2-D Complete／Phase 2-A～2-D User Accepted／Phase 2-E Not Started`**
+**State: `In Progress — Phase 2-0～2-D Complete／2-B～2-D Technical Accepted／Phase 2-E Not Started`**
 
 Phase 1の一時的なWeb Previewを、継続利用と研究設定に耐えられるApplicationへ発展させる。
 
@@ -746,8 +745,6 @@ READMEへの表示は実装状態と一致させる。公開文書全体の再�
 - Source表示や既知の限界を併記し、Project全体を完全に理解しているとは主張しない。
 
 Mac Local、Lightning Basic PreviewおよびLightning Public Demoで、RAG OFF／ON、Retrieval、Citation、停止、再送信およびAccess分離を確認した。Lexical Retrievalと軽量Modelの組合せでは、無関係Chunkの採用、質問意図とのずれ、根拠から逸脱した要約および不正確なProject Status生成が残る。Adapter成立と回答品質を分離し、機能実装はAccepted、精度調整はGuard／Judge／Governance、より高性能なModelおよび後続RAG Phaseと合わせて再開する。
-
-Phase 2-CのPersistent Conversationでは、Citationは同一Browser Page内のCanonical Detail再描画まで維持できる。Browser Reload、Server Restartまたは保存済みChatの後日再表示を越えるCitation復元は、Phase 2-E `Runtime Composition Switchboard／Documentation RAG Follow-up`で実装する。Citation EvidenceはAssistant Message本文と分離し、Canonical Turn、Project-relative Source、DigestおよびCorpus／Index Revisionに関連付ける。Absolute Path、Secret、Raw Thinking、System Prompt、Tool内部情報または未確定Partial OutputをCitation Evidenceへ含めない。
 
 ### Component Registry／Switchboard Foundation
 

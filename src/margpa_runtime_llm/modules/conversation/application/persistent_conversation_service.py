@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+import hashlib
 from collections.abc import Callable, Iterator
 from datetime import UTC, datetime
 from functools import partial
-from uuid import uuid4
 
 from ..contracts import ConversationEvent, ConversationEventType, ConversationSettings
 from ..domain import (
@@ -61,7 +61,8 @@ def _utc_now() -> datetime:
 
 
 def _recovery_operation_id(label: str) -> ConversationOperationId:
-    return ConversationOperationId(value=f"recovery:{label}:{uuid4()}")
+    digest = hashlib.sha512(f"margpa:conversation-recovery:v1:{label}".encode()).hexdigest()
+    return ConversationOperationId(value=digest)
 
 
 class PersistentConversationService:

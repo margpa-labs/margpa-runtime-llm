@@ -7,7 +7,7 @@ phase: phase_2
 active_subphase: phase_2_e_not_started
 language: ja
 created_at: 2026-08-04 11:17:44 JST
-updated_at: 2026-08-14 21:51:10 JST
+updated_at: 2026-08-14 21:05:00 JST
 owner: プロジェクト責任者兼設計統括者役
 project_responsibility: combined_with_design_governance
 independent_task_state: phase_2_b_to_d_designer_implementer_review_chains_passed
@@ -353,15 +353,12 @@ Real Browser Manual Matrixはユーザー受入済みである。現在のGate�
 - [Phase 2-B～2-D Manual Acceptance Rework](history/operations/phase_2_b_to_d_manual_acceptance_rework_20260814205814.md)
 - [Phase 2-A～2-D User Manual Acceptance](history/operations/phase_2_a_to_d_user_manual_acceptance_20260814210500.md)
 - [Documentation Index Snapshot 20260814210500](history/index/documentation_index_20260814210500.md)
-- [Phase 2-E Persistent RAG Citation Evidence Reservation](history/operations/phase_2_e_persistent_rag_citation_evidence_reservation_20260814215110.md)
-- [Documentation Index Snapshot 20260814215110](history/index/documentation_index_20260814215110.md)
 
 ## 11. Formal Deferrals
 
 - Current／Shared／Public非History Stableの英語派生版は、日本語正本と同粒度で作成する後続作業へ延期する。Phase 2開始のBlockerではない。
 - Constitution本体のCompilationはAgent／Tool本格実装前の別Gateであり、Phase 2-0ではEvidence収集だけを行う。
 - Phase 1-ex Documentation RAG回答品質の追加調整は、Guard／Judge／Governance、高性能Modelまたは後続RAG Phaseと合わせて再開する。
-- Browser Reload、Server Restartおよび保存済みChat再表示を越えるPersistent Citation Evidenceは、Phase 2-E Documentation RAG Follow-upのExact Designへ引き継ぐ。Current Page-memory Citation境界はPhase 2-A～2-DのAccepted Stateとして保持する。
 - Claude Code等とのMulti-provider Orchestrationは未決定の将来検証候補であり、Phase 2-0初回Work Unitには含めない。
 
 ## 12. Current Closure State

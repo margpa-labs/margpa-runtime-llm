@@ -141,3 +141,41 @@ def test_durable_generation_survives_new_adapter_instance(tmp_path: Path) -> Non
         "user canonical",
         "durable final",
     ]
+
+
+def test_restart_recovers_max_length_conversation_identity(tmp_path: Path) -> None:
+    root = tmp_path / "explicit-runtime"
+    long_conversation_id = ConversationId(value="c" * 128)
+    built = build_local_conversation_persistence(
+        LocalConversationPersistenceSettings(
+            enabled=True,
+            runtime_data_root=root,
+            scope_id=SCOPE,
+        ),
+        generation_service=FakeGeneration(),  # type: ignore[arg-type]
+    )
+    assert built.store is not None and built.service is not None
+    built.store.initialize_new_store()
+    built.service.recover_incomplete_conversations()
+    built.service.create_conversation(
+        conversation_id=long_conversation_id,
+        session_id=ConversationSessionId(value="session-before-restart"),
+        operation_id=op("create-before-restart"),
+    )
+
+    reopened = build_local_conversation_persistence(
+        LocalConversationPersistenceSettings(
+            enabled=True,
+            runtime_data_root=root,
+            scope_id=SCOPE,
+        ),
+        generation_service=FakeGeneration(),  # type: ignore[arg-type]
+    )
+    assert reopened.store is not None and reopened.service is not None
+    reopened.store.open_ready_store()
+    result = reopened.service.recover_incomplete_conversations()
+
+    assert result.recovered_conversations == 1
+    stored = reopened.store.get(SCOPE, long_conversation_id)
+    assert stored is not None
+    assert stored.conversation.sessions[0].state.value == "interrupted"

@@ -130,15 +130,12 @@ Phase 2 Milestoneは`Persistent Chat and Explicit Runtime Composition`とする�
 - 将来Governance Bindingの`off／observe／enforce`を収容できるが、Phase 2でFull Governance Runtimeを先行実装しない。
 - `Agent OFF + Agent Governance ON`等の無意味または危険な組み合わせを黙って受理しない。
 - Phase 1-ex Documentation RAGを、Sourceを保持したMulti-turn Follow-upへ拡張する。
-- Persistent Citation EvidenceをCanonical Turnへ関連付け、Browser Reload、Server Restartおよび保存済みChat再表示後もSafe Citation Projectionを復元できる境界を作る。
 - RAG Adapter成立と回答精度保証を引き続き分離する。
 
 主な完了条件：
 
 - Componentの存在、登録、有効化、権限、承認および実行を混同しない。
 - RAG Follow-upがSource／Citation／Unavailable境界を維持する。
-- Citation EvidenceをMessage本文、Raw Thinking、System Prompt、SecretまたはAbsolute Pathと分離し、Turn／Source Digest／Corpus RevisionによるTypedで復元可能な関係を持つ。
-- CompletionとCitation Evidenceの整合、Crash Recovery、Schema Version／Migration／RollbackおよびCorruption時のFail-closedを検証する。
 - 後続Phase 3以降のGovernance／EvidenceとPhase 7のFull RAGへ差替え可能である。
 
 ### Phase 2-F — Cross-environment Acceptance／Phase Closure

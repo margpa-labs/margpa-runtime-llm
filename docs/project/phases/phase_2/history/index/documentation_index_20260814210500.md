@@ -2,12 +2,12 @@
 
 ```yaml
 document_id: phase_2_index
-status: phase_2_a_to_d_complete_user_accepted
+status: phase_2_b_to_d_technical_complete_terminal_checkpoint
 phase: phase_2
 active_subphase: phase_2_e_not_started
 language: ja
 created_at: 2026-08-04 11:17:44 JST
-updated_at: 2026-08-14 21:51:10 JST
+updated_at: 2026-08-14 04:20:00 JST
 owner: プロジェクト責任者兼設計統括者役
 project_responsibility: combined_with_design_governance
 independent_task_state: phase_2_b_to_d_designer_implementer_review_chains_passed
@@ -21,19 +21,19 @@ functional_implementation_started: true
 ```text
 Phase 1-ex          : COMPLETE／ACCEPTED
 Phase 2             : STARTED
-Current Subphase    : Phase 2-A～2-D Complete／User Accepted／Phase 2-E Not Started
+Current Subphase    : Phase 2-B～2-D Technical Closure／Terminal Git Checkpoint
 Pilot Design        : COMPLETE／BOUNDED-UNIT VIABILITY ESTABLISHED
 P2-0-WU-002         : ACCEPTED／CLOSED／BOUNDED READ RECOVERY PASS
 P2-0-WU-003         : CONTENT・MUTATION SAFETY PASS／PROVIDER GRAMMAR FAIL／ADJUST REQUIRED
 P2-0-WU-004         : ACCEPTED／CLOSED／CAPABILITY-SEMANTICS RETEST PASS
 Independent Task    : P2-0-WU-004 IDLE／NO FURTHER ACTION AUTHORIZED
 Pilot Execution     : ADJUSTED_GO／USER ACCEPTED／BOUNDED_UNIT CEILING
-Phase 2-A Work Unit : P2-A-WU-003／COMPLETE／USER ACCEPTED
-Functional Work     : PHASE 2-A～2-D COMPLETE／USER ACCEPTED
+Phase 2-A Work Unit : P2-A-WU-003／COMPLETE／CLOSURE RECOMMENDATION GO
+Functional Work     : PHASE 2-B～2-D TECHNICALLY IMPLEMENTED・FULL VALIDATED
 Automation Evidence : PHASE 2-B～2-D DESIGNER→IMPLEMENTER→DESIGNER REWORK CHAINS PASS
 Capability Contract : ACTIVATED AND VERIFIED IN P2-0-WU-004
 Git Checkpoint      : CONTENT COMMIT f21829f PUSHED／LOCAL・ORIGIN・REMOTE ALIGNED／POSTFLIGHT RECORDED
-Current Stop Point  : PHASE 2-A～2-D COMPLETE／PHASE 2-E NOT STARTED／CURRENT DELTA COMMIT・BACKUP GATE
+Current Stop Point  : PHASE 2-B～2-D TECHNICAL COMPLETE／PHASE 2-E NOT STARTED／USER MANUAL ACCEPTANCE・BACKUP GATE
 ```
 
 ユーザーはPhase 2-A開始前BackupとGitHub反映を確認し、Phase 2-Aを完全自動化で完遂する到達線を明示承認した。指定Project Root内のPhase 2-A設計、Domain Contract、Port、対応TestおよびDocsを、`bounded_unit`連結方式で進める。Phase 2-B以降、Git／External／Secret／課金／Destructive ActionまたはAuthorized Root外は許可されない。
@@ -198,7 +198,7 @@ Client full-history payload  : 0
 Closure                : TECHNICAL PASS／GO
 ```
 
-Real BrowserでのLocal Private Persistent UX手動Matrixは、Phase 2-B～2-D統合後にユーザーが実施した。Startup Recovery、Conversation復元、RAG Citation再描画およびManual Checklist 1～7は合格し、Phase 2-Cは`COMPLETE／USER ACCEPTED`である。Checklist 8は後続検討であり、Completion Blockerではない。
+Real BrowserでのLocal Private Persistent UX手動Matrixは、B～D統合後のController／User Acceptance Gateへ残す。これはPhase 2-C Technical ClosureまたはPhase 2-D設計開始のBlockerではない。
 
 ## 4.4 Phase 2-D Design／Implementation Package
 
@@ -297,13 +297,13 @@ docs/project/phases/phase_2/history/index/documentation_index_YYYYMMDDHHMMSS.md
 - P2-A-WU-001 Phase Contract／Domain／Storage Boundary Design Freeze：COMPLETE
 - P2-A-WU-002 Domain Contracts／Ports／Unit Test Implementation：COMPLETE
 - P2-A-WU-003 Compatibility／Acceptance／Subphase Closure Review：COMPLETE／GO
-- Phase 2-B Conversation Persistence／Lifecycle：COMPLETE／USER ACCEPTED
-- Phase 2-C Persistent API／Conversation UX：COMPLETE／USER ACCEPTED
-- Phase 2-D Configuration Control Surface：COMPLETE／USER ACCEPTED
+- Phase 2-B Conversation Persistence／Lifecycle：TECHNICAL COMPLETE／GO
+- Phase 2-C Persistent API／Conversation UX：TECHNICAL COMPLETE／GO
+- Phase 2-D Configuration Control Surface：TECHNICAL COMPLETE／GO
 
 現在のTechnical Blockerはない。Phase 2-B～2-Dでは、独立Taskによる`Phase Designer → Implementer → Phase Designer Review → Implementer Rework → Phase Designer Final Review → Project Controller Closure`を3 Subphase連続で成立させた。Phase 2-AのController兼務Evidenceと区別し、役割分業型`bounded_unit`連結を合格とする。ただし、これだけでPhase／Project単位の無条件Automation、Multi-provider、Resource／Credit自動制御または機械的Authorized Root Enforcementへ昇格しない。
 
-Real Browser Manual Matrixはユーザー受入済みである。現在のGateは、Manual Acceptance Reworkを含むSource／Test／Docs差分のCommit／Push、その後の区切りBackup、ならびにPhase 2-E開始判断である。Phase 2-EのSwitchboard／Documentation RAG Follow-upはまだ設計・実装を開始していない。
+残るHuman Gateは、Local Private Persistent UXおよびConfiguration ControlのReal Browser Manual Matrix、Terminal Git Checkpoint後の区切りBackup、ならびに次のPhase 2-E開始判断である。Phase 2-EのSwitchboard／Documentation RAG Follow-upはまだ設計・実装を開始していない。
 
 ## 10.1 Latest Design Revision Evidence
 
@@ -350,18 +350,12 @@ Real Browser Manual Matrixはユーザー受入済みである。現在のGate�
 - [Phase 2-C Controller Closure](history/operations/phase_2_c_controller_closure_20260814032700.md)
 - [Phase 2-D Controller Closure](history/operations/phase_2_d_controller_closure_20260814041200.md)
 - [Phase 2-B～2-D Campaign Controller Closure](history/operations/phase_2_b_to_d_campaign_controller_closure_20260814042000.md)
-- [Phase 2-B～2-D Manual Acceptance Rework](history/operations/phase_2_b_to_d_manual_acceptance_rework_20260814205814.md)
-- [Phase 2-A～2-D User Manual Acceptance](history/operations/phase_2_a_to_d_user_manual_acceptance_20260814210500.md)
-- [Documentation Index Snapshot 20260814210500](history/index/documentation_index_20260814210500.md)
-- [Phase 2-E Persistent RAG Citation Evidence Reservation](history/operations/phase_2_e_persistent_rag_citation_evidence_reservation_20260814215110.md)
-- [Documentation Index Snapshot 20260814215110](history/index/documentation_index_20260814215110.md)
 
 ## 11. Formal Deferrals
 
 - Current／Shared／Public非History Stableの英語派生版は、日本語正本と同粒度で作成する後続作業へ延期する。Phase 2開始のBlockerではない。
 - Constitution本体のCompilationはAgent／Tool本格実装前の別Gateであり、Phase 2-0ではEvidence収集だけを行う。
 - Phase 1-ex Documentation RAG回答品質の追加調整は、Guard／Judge／Governance、高性能Modelまたは後続RAG Phaseと合わせて再開する。
-- Browser Reload、Server Restartおよび保存済みChat再表示を越えるPersistent Citation Evidenceは、Phase 2-E Documentation RAG Follow-upのExact Designへ引き継ぐ。Current Page-memory Citation境界はPhase 2-A～2-DのAccepted Stateとして保持する。
 - Claude Code等とのMulti-provider Orchestrationは未決定の将来検証候補であり、Phase 2-0初回Work Unitには含めない。
 
 ## 12. Current Closure State
@@ -374,7 +368,7 @@ P2-0累積Evidence、Stable整合およびController提案はユーザーによ�
 
 Phase 2-BはLocal SQLite Persistence／Lifecycle、Phase 2-CはLocal Persistent API／Conversation UX、Phase 2-DはLocal Configuration Controlを実装し、各Subphaseで初回Review Findingを局所再作業によって解消した。統合検証はTarget 272件、Full Suite 613件合格、3件deselected、Ruff／Mypy／Node合格である。Project Rootへの`runtime_data/`生成、Public／BasicへのPersistent／Configuration Binding、Sensitive Data通常保存およびAgent／Tool／Switchboardの先行実装は0である。
 
-Phase 2-B～2-DのTechnical Scopeは`COMPLETE／PASS／GO`である。その後のManual AcceptanceでRecovery ID OverflowとCitation Rerender Lossを検出したが、Bounded Rework、252件のConversation／Web Regression、615件のFull Suiteおよびユーザーの再起動／復元／RAG引用確認で解消した。Phase 2-A～2-Dは`COMPLETE／USER ACCEPTED`である。現在はCurrent DeltaのCommit／PushとPost-push Backup Gateで停止する。Phase 2-Eは`NOT STARTED`であり、本Acceptanceから自動開始しない。
+Phase 2-B～2-DのTechnical Scopeは`COMPLETE／PASS／GO`である。現在はTerminal Git Checkpoint、ユーザーによるReal Browser Manual AcceptanceおよびPost-push Backup Gateで停止する。Phase 2-Eは`NOT STARTED`であり、本Closureから自動開始しない。
 
 ## 13. Related Current／Public Entry
 
@@ -391,7 +385,7 @@ Phase 2-B～2-DのTechnical Scopeは`COMPLETE／PASS／GO`である。その後�
 - [Phase Completion Review／Backup Gate](../../shared/operations/phase_completion_review_and_backup_gate_ja.md)
 
 ```text
-Control State           : PAUSED／PHASE 2-A～2-D COMPLETE／USER ACCEPTED／CURRENT DELTA CHECKPOINT
+Control State           : PAUSED／PHASE 2-B～2-D TECHNICAL COMPLETE／TERMINAL CHECKPOINT
 Automation Level        : bounded_unit
 P2-0-WU-002             : accepted／closed
 P2-0-WU-003             : content pass／provider grammar fail／adjust required

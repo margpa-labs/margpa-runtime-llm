@@ -325,6 +325,8 @@ const state = {
   persistentConversations: [],
   selectedConversationId: null,
   persistentRevision: null,
+  activePersistentTurnId: null,
+  persistentCitationEvidence: new Map(),
 };
 
 function readStoredUiLanguage() {
@@ -1330,6 +1332,10 @@ function renderPersistentDetail() {
         const view = appendAssistantMessage();
         renderCompletedMarkdown(view.finalContent, assistant.content);
         view.actions.append(createCopyButton(assistant.content));
+        const citationEvidence = state.persistentCitationEvidence.get(turn.turn_id);
+        if (citationEvidence !== undefined) {
+          renderCitations(view, citationEvidence);
+        }
         actionHost = view.actions;
       } else {
         actionHost = elements.messages.lastElementChild;
@@ -1528,10 +1534,17 @@ function handlePersistentEvent(event, assistantView) {
   if (event.type === "start") {
     state.requestId = event.data.request_id;
     state.persistentRevision = event.data.durable_revision;
+    state.activePersistentTurnId = event.data.turn_id ?? null;
     setStatus("generating");
     return false;
   }
   if (["retrieval", "status", "delta", "warning"].includes(event.type)) {
+    if (event.type === "retrieval" && state.activePersistentTurnId !== null) {
+      state.persistentCitationEvidence.set(state.activePersistentTurnId, {
+        citations: Array.isArray(event.data.citations) ? event.data.citations : [],
+        warnings: Array.isArray(event.data.warnings) ? event.data.warnings : [],
+      });
+    }
     handleEvent(event, assistantView);
     return false;
   }
@@ -1546,6 +1559,7 @@ function handlePersistentEvent(event, assistantView) {
     } else {
       setStatus("errorStatus", { code: event.data.code ?? "generation_failed" });
     }
+    state.activePersistentTurnId = null;
     return Number.isInteger(event.data.durable_revision);
   }
   return false;

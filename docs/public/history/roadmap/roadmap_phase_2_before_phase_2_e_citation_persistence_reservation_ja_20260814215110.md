@@ -747,8 +747,6 @@ READMEへの表示は実装状態と一致させる。公開文書全体の再�
 
 Mac Local、Lightning Basic PreviewおよびLightning Public Demoで、RAG OFF／ON、Retrieval、Citation、停止、再送信およびAccess分離を確認した。Lexical Retrievalと軽量Modelの組合せでは、無関係Chunkの採用、質問意図とのずれ、根拠から逸脱した要約および不正確なProject Status生成が残る。Adapter成立と回答品質を分離し、機能実装はAccepted、精度調整はGuard／Judge／Governance、より高性能なModelおよび後続RAG Phaseと合わせて再開する。
 
-Phase 2-CのPersistent Conversationでは、Citationは同一Browser Page内のCanonical Detail再描画まで維持できる。Browser Reload、Server Restartまたは保存済みChatの後日再表示を越えるCitation復元は、Phase 2-E `Runtime Composition Switchboard／Documentation RAG Follow-up`で実装する。Citation EvidenceはAssistant Message本文と分離し、Canonical Turn、Project-relative Source、DigestおよびCorpus／Index Revisionに関連付ける。Absolute Path、Secret、Raw Thinking、System Prompt、Tool内部情報または未確定Partial OutputをCitation Evidenceへ含めない。
-
 ### Component Registry／Switchboard Foundation
 
 - Functional Component Descriptor

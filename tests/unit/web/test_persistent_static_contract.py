@@ -56,6 +56,16 @@ def test_persistent_eof_without_durable_terminal_fails_and_rereads_detail() -> N
     assert "return Number.isInteger(event.data.durable_revision)" in stream
 
 
+def test_persistent_citations_survive_canonical_detail_rerender_in_page_memory() -> None:
+    script = (STATIC_ROOT / "app.js").read_text(encoding="utf-8")
+    assert "activePersistentTurnId: null" in script
+    assert "persistentCitationEvidence: new Map()" in script
+    assert "state.activePersistentTurnId = event.data.turn_id ?? null" in script
+    assert "state.persistentCitationEvidence.set(state.activePersistentTurnId" in script
+    assert "state.persistentCitationEvidence.get(turn.turn_id)" in script
+    assert "renderCitations(view, citationEvidence)" in script
+
+
 def test_persistent_mutations_do_not_send_client_history_or_scope() -> None:
     script = (STATIC_ROOT / "app.js").read_text(encoding="utf-8")
     persistent_source = script[script.index("async function sendPersistentMessage") :]
