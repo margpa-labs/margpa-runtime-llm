@@ -2,15 +2,15 @@
 
 ```yaml
 document_id: phase_2_index
-status: phase_2_e_claude_handoff_ready
+status: phase_2_a_to_d_complete_user_accepted
 phase: phase_2
-active_subphase: phase_2_e_claude_execution_pending
+active_subphase: phase_2_e_not_started
 language: ja
 created_at: 2026-08-04 11:17:44 JST
-updated_at: 2026-08-14 22:57:35 JST
+updated_at: 2026-08-14 21:51:10 JST
 owner: プロジェクト責任者兼設計統括者役
 project_responsibility: combined_with_design_governance
-independent_task_state: claude_phase_2_e_roles_not_started
+independent_task_state: phase_2_b_to_d_designer_implementer_review_chains_passed
 functional_implementation_started: true
 ```
 
@@ -21,7 +21,7 @@ functional_implementation_started: true
 ```text
 Phase 1-ex          : COMPLETE／ACCEPTED
 Phase 2             : STARTED
-Current Subphase    : Phase 2-A～2-D Complete／User Accepted／Phase 2-E Claude Handoff Ready
+Current Subphase    : Phase 2-A～2-D Complete／User Accepted／Phase 2-E Not Started
 Pilot Design        : COMPLETE／BOUNDED-UNIT VIABILITY ESTABLISHED
 P2-0-WU-002         : ACCEPTED／CLOSED／BOUNDED READ RECOVERY PASS
 P2-0-WU-003         : CONTENT・MUTATION SAFETY PASS／PROVIDER GRAMMAR FAIL／ADJUST REQUIRED
@@ -31,10 +31,9 @@ Pilot Execution     : ADJUSTED_GO／USER ACCEPTED／BOUNDED_UNIT CEILING
 Phase 2-A Work Unit : P2-A-WU-003／COMPLETE／USER ACCEPTED
 Functional Work     : PHASE 2-A～2-D COMPLETE／USER ACCEPTED
 Automation Evidence : PHASE 2-B～2-D DESIGNER→IMPLEMENTER→DESIGNER REWORK CHAINS PASS
-Multi-provider Gate : CLAUDE BOOTSTRAP READY／EXECUTION NOT STARTED
 Capability Contract : ACTIVATED AND VERIFIED IN P2-0-WU-004
 Git Checkpoint      : CONTENT COMMIT f21829f PUSHED／LOCAL・ORIGIN・REMOTE ALIGNED／POSTFLIGHT RECORDED
-Current Stop Point  : PHASE 2-E CLAUDE BOOTSTRAP CHECKPOINT／COMMIT・PUSH・USER BACKUP GATE
+Current Stop Point  : PHASE 2-A～2-D COMPLETE／PHASE 2-E NOT STARTED／CURRENT DELTA COMMIT・BACKUP GATE
 ```
 
 ユーザーはPhase 2-A開始前BackupとGitHub反映を確認し、Phase 2-Aを完全自動化で完遂する到達線を明示承認した。指定Project Root内のPhase 2-A設計、Domain Contract、Port、対応TestおよびDocsを、`bounded_unit`連結方式で進める。Phase 2-B以降、Git／External／Secret／課金／Destructive ActionまたはAuthorized Root外は許可されない。
@@ -232,19 +231,6 @@ Closure                : TECHNICAL PASS／GO
 
 初回ReviewでFeature DisabledとAdapter Unavailableの混同を検出し、4-state Projection、矛盾DescriptorのFail-closedおよびUnavailable変更時のMutation 0へ修正した。Test Module Identity衝突は、実装者が無断Scope拡張せず設計担当者へ戻し、Exact Correctionとして空Package Marker一件だけを追加して解消した。
 
-## 4.5 Phase 2-E Claude Code Provider Bootstrap
-
-- [Claude Design Governance Index](handoffs/claude_code/phase_2_e_claude_design_governance_index_ja.md)
-- [Claude Design Governance Handoff](handoffs/claude_code/phase_2_e_claude_design_governance_handoff_ja.md)
-- [Persistent RAG Citation Evidence Reservation](history/operations/phase_2_e_persistent_rag_citation_evidence_reservation_20260814215110.md)
-- [Multi-provider Claude Code Delegation Decision](../../shared/history/automation/multi_provider_claude_code_phase_2_e_delegation_decision_20260814224356.md)
-
-Codex側の利用可能量をPhase 2-E完了後の最終Reviewへ残すため、Phase 2-EはClaude Code側へ有界委譲する。Codexプロジェクト責任者兼設計統括者役を最高責任者として維持し、Claude設計統括者役、Claude Phase 2-E設計担当者役およびClaude Phase 2-E実装者役が、Recovery、Design、Freeze、Implementation、Test、ReworkおよびFinal Reviewを`COMPLETE_CANDIDATE`まで連結する。
-
-Claude側は既存Stable文書を変更せず、設計・Handoff・Status・Review・CorrectionおよびCompletion EvidenceをTimestamp付きHistoryへAppend-onlyで新規作成する。Source／Test／必要最小限のConfigはFrozen Design範囲内で変更できる。Routine確認はClaude側Role Chainで解決し、`COMPLETE_CANDIDATE`または真のCurrent Transition Blockerの場合だけCodexへ返す。
-
-Phase 2-EのClaude実行はまだ開始していない。Claude完了後はCodexがDiff、Design、TestおよびBoundaryを最終Reviewし、ユーザーMac手動Acceptanceへ渡す。Phase 2-FはCodex側で別途開始し、LightningへのPhase 2反映は行わず、Phase 3またはPhase 4完了後の別Gateへ延期する。
-
 ## 5. Authorization Boundary／Completed Gate
 
 P2-0-WU-004では次のGateが順序どおり成立した。
@@ -314,11 +300,10 @@ docs/project/phases/phase_2/history/index/documentation_index_YYYYMMDDHHMMSS.md
 - Phase 2-B Conversation Persistence／Lifecycle：COMPLETE／USER ACCEPTED
 - Phase 2-C Persistent API／Conversation UX：COMPLETE／USER ACCEPTED
 - Phase 2-D Configuration Control Surface：COMPLETE／USER ACCEPTED
-- Phase 2-E Claude Provider Bootstrap：READY／EXECUTION NOT STARTED
 
-現在のTechnical Blockerはない。Phase 2-B～2-Dでは、独立Taskによる`Phase Designer → Implementer → Phase Designer Review → Implementer Rework → Phase Designer Final Review → Project Controller Closure`を3 Subphase連続で成立させた。Phase 2-AのController兼務Evidenceと区別し、役割分業型`bounded_unit`連結を合格とする。Phase 2-Eでは最初のCross-provider Delegationを実施するが、この準備だけでPhase／Project単位の無条件Automation、全Providerへの一般化、Resource／Credit自動制御または機械的Authorized Root Enforcementへ昇格しない。
+現在のTechnical Blockerはない。Phase 2-B～2-Dでは、独立Taskによる`Phase Designer → Implementer → Phase Designer Review → Implementer Rework → Phase Designer Final Review → Project Controller Closure`を3 Subphase連続で成立させた。Phase 2-AのController兼務Evidenceと区別し、役割分業型`bounded_unit`連結を合格とする。ただし、これだけでPhase／Project単位の無条件Automation、Multi-provider、Resource／Credit自動制御または機械的Authorized Root Enforcementへ昇格しない。
 
-Real Browser Manual Matrixはユーザー受入済みである。現在のGateは、Claude Provider Bootstrapと関連DocsのCommit／Push、その後のユーザー区切りBackup、ならびにClaude Code側でのPhase 2-E開始である。Phase 2-EのSwitchboard／Documentation RAG Follow-upはまだ設計・実装を開始していない。
+Real Browser Manual Matrixはユーザー受入済みである。現在のGateは、Manual Acceptance Reworkを含むSource／Test／Docs差分のCommit／Push、その後の区切りBackup、ならびにPhase 2-E開始判断である。Phase 2-EのSwitchboard／Documentation RAG Follow-upはまだ設計・実装を開始していない。
 
 ## 10.1 Latest Design Revision Evidence
 
@@ -370,9 +355,6 @@ Real Browser Manual Matrixはユーザー受入済みである。現在のGate�
 - [Documentation Index Snapshot 20260814210500](history/index/documentation_index_20260814210500.md)
 - [Phase 2-E Persistent RAG Citation Evidence Reservation](history/operations/phase_2_e_persistent_rag_citation_evidence_reservation_20260814215110.md)
 - [Documentation Index Snapshot 20260814215110](history/index/documentation_index_20260814215110.md)
-- [Claude Design Governance Index](handoffs/claude_code/phase_2_e_claude_design_governance_index_ja.md)
-- [Claude Design Governance Handoff](handoffs/claude_code/phase_2_e_claude_design_governance_handoff_ja.md)
-- [Multi-provider Claude Code Delegation Decision](../../shared/history/automation/multi_provider_claude_code_phase_2_e_delegation_decision_20260814224356.md)
 
 ## 11. Formal Deferrals
 
@@ -380,7 +362,7 @@ Real Browser Manual Matrixはユーザー受入済みである。現在のGate�
 - Constitution本体のCompilationはAgent／Tool本格実装前の別Gateであり、Phase 2-0ではEvidence収集だけを行う。
 - Phase 1-ex Documentation RAG回答品質の追加調整は、Guard／Judge／Governance、高性能Modelまたは後続RAG Phaseと合わせて再開する。
 - Browser Reload、Server Restartおよび保存済みChat再表示を越えるPersistent Citation Evidenceは、Phase 2-E Documentation RAG Follow-upのExact Designへ引き継ぐ。Current Page-memory Citation境界はPhase 2-A～2-DのAccepted Stateとして保持する。
-- Phase 2-0では未決定だったMulti-provider Orchestrationは、Phase 2-EでClaude Codeを用いる最初の有界検証へ移行した。Claude以外のProviderへの拡張、正式Mode化およびPhase／Project単位への昇格は、Phase 2-EのEvidenceとCodex最終Review後まで延期する。
+- Claude Code等とのMulti-provider Orchestrationは未決定の将来検証候補であり、Phase 2-0初回Work Unitには含めない。
 
 ## 12. Current Closure State
 
@@ -392,9 +374,7 @@ P2-0累積Evidence、Stable整合およびController提案はユーザーによ�
 
 Phase 2-BはLocal SQLite Persistence／Lifecycle、Phase 2-CはLocal Persistent API／Conversation UX、Phase 2-DはLocal Configuration Controlを実装し、各Subphaseで初回Review Findingを局所再作業によって解消した。統合検証はTarget 272件、Full Suite 613件合格、3件deselected、Ruff／Mypy／Node合格である。Project Rootへの`runtime_data/`生成、Public／BasicへのPersistent／Configuration Binding、Sensitive Data通常保存およびAgent／Tool／Switchboardの先行実装は0である。
 
-Phase 2-B～2-DのTechnical Scopeは`COMPLETE／PASS／GO`である。その後のManual AcceptanceでRecovery ID OverflowとCitation Rerender Lossを検出したが、Bounded Rework、252件のConversation／Web Regression、615件のFull Suiteおよびユーザーの再起動／復元／RAG引用確認で解消した。Phase 2-A～2-Dは`COMPLETE／USER ACCEPTED`である。
-
-Phase 2-Eは、Claude Code用Recovery Index、Frozen HandoffおよびCross-provider Delegation Decisionの作成まで完了し、`CLAUDE HANDOFF READY／EXECUTION NOT STARTED`である。現在はこのBootstrap CheckpointのCommit／PushとユーザーBackup Gateで停止する。Phase 2-EのClaude実行、Phase 2-F、Lightningまたは別Providerを本Checkpointから自動開始しない。
+Phase 2-B～2-DのTechnical Scopeは`COMPLETE／PASS／GO`である。その後のManual AcceptanceでRecovery ID OverflowとCitation Rerender Lossを検出したが、Bounded Rework、252件のConversation／Web Regression、615件のFull Suiteおよびユーザーの再起動／復元／RAG引用確認で解消した。Phase 2-A～2-Dは`COMPLETE／USER ACCEPTED`である。現在はCurrent DeltaのCommit／PushとPost-push Backup Gateで停止する。Phase 2-Eは`NOT STARTED`であり、本Acceptanceから自動開始しない。
 
 ## 13. Related Current／Public Entry
 
@@ -411,7 +391,7 @@ Phase 2-Eは、Claude Code用Recovery Index、Frozen HandoffおよびCross-provi
 - [Phase Completion Review／Backup Gate](../../shared/operations/phase_completion_review_and_backup_gate_ja.md)
 
 ```text
-Control State           : PAUSED／PHASE 2-E CLAUDE BOOTSTRAP READY／EXECUTION NOT STARTED
+Control State           : PAUSED／PHASE 2-A～2-D COMPLETE／USER ACCEPTED／CURRENT DELTA CHECKPOINT
 Automation Level        : bounded_unit
 P2-0-WU-002             : accepted／closed
 P2-0-WU-003             : content pass／provider grammar fail／adjust required
@@ -422,7 +402,7 @@ Provider Mapping        : semantic_mapping／mechanical enforcement unavailable
 Batch Capability        : unavailable／deny
 Permission Hardening     : undecided／not authorized
 Mechanical Enforcement  : research candidates only／not implemented
-Commit／Push             : pre-Claude bootstrap checkpoint authorized／pending
+Commit／Push             : terminal checkpoint authorized／this state is included in commit candidate
 ```
 
 最上位規則の追加・変更・削除・並替え・例外化・候補登録は、ユーザーまたはユーザーが明示指定した人間だけが指示できる。Pilot、Provider、Role、Automation Levelまたは将来の上位権限は例外を生成しない。

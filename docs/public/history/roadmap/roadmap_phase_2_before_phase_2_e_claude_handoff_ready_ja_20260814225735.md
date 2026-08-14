@@ -5,7 +5,7 @@ document_type: public_roadmap
 document_state: current
 language: ja
 created_at: 2026-07-22
-updated_at: 2026-08-14 22:57:35 JST
+updated_at: 2026-08-14 04:20:00 JST
 public_author: Nazuna Research
 project: MARGPA Runtime LLM
 ```
@@ -140,7 +140,7 @@ FutureまたはPlannedと書かれた項目は、実装済みを意味しない�
 
 ---
 
-## 4. 現在地 — Phase 2 In Progress／Phase 2-E Cross-provider Handoff Ready
+## 4. 現在地 — Phase 2 In Progress／Phase 2-A～2-D Complete／User Accepted
 
 2026年8月14日時点の現在地は次のとおりである。
 
@@ -191,10 +191,7 @@ Phase 2-B Persistence／Lifecycle       : Complete／User Accepted／Restart Rec
 Phase 2-C Persistent API／UX           : Complete／User Accepted／Saved Chats and RAG Citations Passed
 Phase 2-D Configuration Control       : Complete／User Accepted／Manual Checklist Passed
 Phase 2-B～2-D Automation Evidence     : Designer／Implementer／Review／Rework Chain Passed
-Phase 2 Functional Implementation     : Phase 2-A～2-D Complete／Phase 2-E Handoff Ready
-Phase 2-E Cross-provider Delegation   : Claude Bootstrap Ready／Execution Not Started
-Phase 2-F Routing                     : Returns to Codex after Claude COMPLETE_CANDIDATE
-Phase 2 Lightning Follow-up           : Deferred until after Phase 3 or 4
+Phase 2 Functional Implementation     : Phase 2-A～2-D Complete／Phase 2-E Not Started
 Phase 2 Manual Acceptance             : Checklist 1～7 Passed／Item 8 Deferred Non-blocking
 Phase 2 Latest Full Suite             : 615 Passed／3 Deselected
 Optional English Documentation        : Formally Deferred／Non-blocking／History Excluded
@@ -216,9 +213,7 @@ Phase 2-Aはユーザーによる開始前Backupと完全自動化開始指示�
 
 Phase 2-Bでは、交換可能なLocal SQLite Conversation Adapter、Atomic CAS／Operation Idempotency、Explicit Migration／Checkpoint、Lifecycle Service、Generation Context MapperおよびCrash Recoveryを実装した。Phase 2-CではLocal／Loopback／Explicit opt-in専用の別Versioned Persistent API、Chat List／History／Resume／Retry／Regenerate／Branch／Stop、Multi-browser ConflictおよびServer Source-of-truth Browser UXを実装した。Phase 2-DではLocal専用の非永続Configuration Control、Safe Effective Projection、Source Trace、SHA-512 Digest、Revision CAS、Research／Developer表示ModeおよびTyped Feature／Recording Hookを実装した。
 
-Phase 2-B～2-Dは独立したPhase 2設計担当者役とPhase 2実装者役を使用し、`Designer → Implementer → Designer Review → Implementer Rework → Designer Final Review → Controller Closure`を成立させた。Migration Race／Path封じ込め、Capability確定前Fallback、非Durable Terminal SSEおよびHook Availability等のFindingをRole間の再作業で解消した。Technical Closure後のReal Browser Manual Acceptanceでは、最大長Conversation IDのRestart RecoveryとPersistent Detail再描画時のRAG Citation維持を追加修正した。最終Full Suiteは615件合格、3件deselected、Ruff／Mypy／JavaScript検証も合格し、ユーザーは起動、「再開」、保存済み全Chatの存続、RAG引用元およびChecklist 1～7の合格を確認した。Checklist 8は後続検討であり、Phase 2-A～2-DのCompletion Blockerではない。
-
-Phase 2-Eでは最初のCross-provider Delegationを試行する。Codexプロジェクト責任者兼設計統括者役を最高責任者として維持し、Claude設計統括者役、Claude Phase 2-E設計担当者役およびClaude Phase 2-E実装者役が、Repository内のRecovery Index／Handoffから設計・実装・再Reviewを`COMPLETE_CANDIDATE`まで行う。Claude側は既存Stable文書を変更せず、EvidenceをHistoryへAppend-onlyで追加する。完了後はCodexが最終Reviewし、ユーザーMac手動Acceptanceへ渡す。Phase 2-EのBootstrapは準備済みだが、Claude実行はまだ開始していない。Phase 2-FはCodex側へ戻し、Lightningへの追加反映はPhase 3またはPhase 4完了後へ延期する。
+Phase 2-B～2-Dは独立したPhase 2設計担当者役とPhase 2実装者役を使用し、`Designer → Implementer → Designer Review → Implementer Rework → Designer Final Review → Controller Closure`を成立させた。Migration Race／Path封じ込め、Capability確定前Fallback、非Durable Terminal SSEおよびHook Availability等のFindingをRole間の再作業で解消した。Technical Closure後のReal Browser Manual Acceptanceでは、最大長Conversation IDのRestart RecoveryとPersistent Detail再描画時のRAG Citation維持を追加修正した。最終Full Suiteは615件合格、3件deselected、Ruff／Mypy／JavaScript検証も合格し、ユーザーは起動、「再開」、保存済み全Chatの存続、RAG引用元およびChecklist 1～7の合格を確認した。Checklist 8は後続検討であり、Phase 2-A～2-DのCompletion Blockerではない。Phase 2-Eはまだ開始していない。
 
 Lightning Auto-startは、Repository側Read-only Preflight、Stage A、Stage B Repository Preparation、Repository外Private Bootstrap、Manual Foreground起動および複数回のTraffic-aware External Wake実試験を完了し、Basic Previewと認証なしPublic Demoの双方で成立した。観測Cold Startは約3～10分、Idle-to-sleepは約10～12分である。一度だけJSONらしき一時応答が表示されたが、再Accessで正常復帰し、再現未確認の非ブロッカー観察事項としている。これらはFree CPU Studioでの観測値であり、SLAまたは将来環境の性能保証ではない。Public Control Hookは保持するが、Rate Limit、Token／Cost保護等は現在OFFである。Tool／外部操作は搭載せず、Documentation RAGは公開8文書だけに限定してBasic PreviewとPublic Demoの双方で利用可能とした。
 
@@ -619,7 +614,7 @@ PhaseごとのDocumentation統合は、要約や意訳ではなくLossless Compi
 
 ## 8. Phase 2 — Conversation Continuity and Experimental Control Surface
 
-**State: `In Progress — Phase 2-A～2-D User Accepted／Phase 2-E Claude Handoff Ready／Execution Not Started`**
+**State: `In Progress — Phase 2-0～2-D Complete／Phase 2-A～2-D User Accepted／Phase 2-E Not Started`**
 
 Phase 1の一時的なWeb Previewを、継続利用と研究設定に耐えられるApplicationへ発展させる。
 
@@ -754,8 +749,6 @@ Mac Local、Lightning Basic PreviewおよびLightning Public Demoで、RAG OFF�
 
 Phase 2-CのPersistent Conversationでは、Citationは同一Browser Page内のCanonical Detail再描画まで維持できる。Browser Reload、Server Restartまたは保存済みChatの後日再表示を越えるCitation復元は、Phase 2-E `Runtime Composition Switchboard／Documentation RAG Follow-up`で実装する。Citation EvidenceはAssistant Message本文と分離し、Canonical Turn、Project-relative Source、DigestおよびCorpus／Index Revisionに関連付ける。Absolute Path、Secret、Raw Thinking、System Prompt、Tool内部情報または未確定Partial OutputをCitation Evidenceへ含めない。
 
-Phase 2-Eの実行入口はRepository内のClaude Code用Recovery Index／Handoffとして準備した。会話上の長文Promptを正本にせず、Claude側の設計、Status、ReviewおよびCompletion HandoffをTimestamp付きHistoryへAppend-onlyで残す。Codexは`COMPLETE_CANDIDATE`返却後にStable統合と最終Reviewを担当する。
-
 ### Component Registry／Switchboard Foundation
 
 - Functional Component Descriptor
@@ -797,7 +790,7 @@ Codexの利用可能量、Creditまたは外部Service制限で作業が途中�
 
 明示されたAuthorized Root／Allowed Path外へ無許可で触れない規則は、将来の上位Role、Automation Level、Phase／Project ScopeおよびProviderにかかわらず最上位である。Automation／Constitution Coreへ特定Project、Provider、Absolute Path、Phase、Task、CommandまたはUIをHard-codeせず、Project ManifestとProvider Adapterへ分離する。
 
-CodexからClaude CodeへTaskをHandoffする最初のMulti-provider構成をPhase 2-Eで有界試行する。Provider間で共通のAuthority、Single Writer、Stable／History境界、Evidence、Context、CostおよびRecoveryを維持し、Provider固有Promptへ共通規則をHard-codeしない。Claude側はPhase 2-Eの`COMPLETE_CANDIDATE`までを担当し、Codexが最終Review、ユーザーがMac手動Acceptanceを担当する。この試行だけで正式なMulti-provider Automation Modeまたは他Providerへの一般化を完了扱いにしない。
+CodexからClaude Code等の別ProviderへTaskをHandoffするMulti-provider構成は、開発速度向上の可能性と他社環境での運用規則再現性を検証する将来候補である。現時点では未決定であり、Authority、Single Writer、Evidence、Context、CostおよびRecoveryの同等性を確認するまで採用済みと扱わない。
 
 ### Phase 2 Milestone
 
