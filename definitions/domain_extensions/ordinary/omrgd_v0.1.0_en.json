@@ -1,0 +1,2103 @@
+{
+  "omrgd": {
+    "operations_maintenance_and_reliability_governance_definition": {
+      "description": "OMRGD (Operations, Maintenance, and Reliability Governance Definition) is an additive domain governance extension for preserving the operational state, maintainability, recoverability, and reliability of systems, processes, artifacts, services, workflows, and operational targets. It governs service health, monitoring, logging, metrics, alerting, incidents, failures, degradation, outages, recovery, rollback, runbooks, maintenance tasks, dependency health, operational load, technical debt visibility, post-incident review, recurrence prevention, and continuous reliability improvement. OMRGD does not govern new development strategy, implementation itself, whole-project management, strategic priority decisions, artifact-composition review itself, formal legal judgment, or organizational approval.",
+      "inheritance": {
+        "inheritance_mode": "additive_domain_extension",
+        "parent_definitions": [
+          {
+            "syntax_id": "argd",
+            "role": "general_reasoning_procedure_governance",
+            "required": true
+          },
+          {
+            "syntax_id": "dagd",
+            "role": "general_behavior_audit_repair_activation_and_status_governance",
+            "required": true
+          }
+        ],
+        "dependency_version_policy": {
+          "specific_parent_versions_are_not_hardcoded_in_domain_compatibility_labels": true,
+          "parent_version_binding_is_external_to_this_domain_definition": true,
+          "version_binding_owner": "runtime_bundle_or_release_manifest"
+        },
+        "standalone_reference_use": {
+          "allowed": true,
+          "condition": "standalone_readers_must_treat_parent_mechanisms_as_external_prerequisites_or_reference_context",
+          "does_not_grant_parent_functionality": true,
+          "runtime_conformance_requires_parent_definitions": true
+        },
+        "replaces_parent_definitions": false,
+        "duplicates_parent_rules": false,
+        "parent_rules_remain_authoritative": true,
+        "domain_delta_only": true,
+        "preserved_parent_mechanism_policy": {
+          "inherited_governance_must_be_referenced_not_reexpanded": true,
+          "silent_parent_rule_override_prohibited": true,
+          "parent_mechanism_lists_must_not_be_recreated_unless_required_by_explicit_context": true
+        },
+        "conflict_policy": {
+          "general_reasoning_conflicts": "resolve_under_parent_reasoning_governance",
+          "general_behavior_and_governance_conflicts": "resolve_under_parent_behavior_governance",
+          "operations_maintenance_reliability_domain_conflicts": "resolve_under_omrgd_when_not_in_conflict_with_parent_governance_or_higher_authority",
+          "higher_level_system_policies_remain_authoritative": true
+        }
+      },
+      "orchestration_reference": {
+        "orchestration_definition": "cdogd",
+        "relationship": "external_orchestration_reference",
+        "cdogd_is_not_reimplemented_here": true,
+        "registry_and_activation_logic_are_external": true,
+        "routing_priority_and_domain_selection_are_external": true,
+        "registered_domain_extension_storage_is_external": true
+      },
+      "domain_scope": {
+        "domain": "operations_maintenance_reliability",
+        "scope_statement": "Govern the operations, maintenance, and reliability aspects of existing or operational targets by preserving the ability to determine current state, evaluate health, observe behavior, detect abnormal conditions, assess impact, recover, roll back when needed, maintain runbooks and procedures, review dependency health, expose operational load, preserve technical-debt visibility, prevent recurrence, and identify continuous improvement points.",
+        "governed_target_categories": [
+          "runtime_state",
+          "operational_state",
+          "service_health",
+          "monitoring_target",
+          "log",
+          "metric",
+          "alert",
+          "incident",
+          "failure",
+          "degradation",
+          "outage",
+          "runbook",
+          "rollback_procedure",
+          "recovery_procedure",
+          "maintenance_task",
+          "operational_risk",
+          "change_impact",
+          "service_level",
+          "reliability_target",
+          "error_budget",
+          "dependency_health",
+          "operational_load",
+          "technical_debt",
+          "maintenance_window",
+          "escalation_path",
+          "post_incident_review",
+          "recurrence_prevention",
+          "continuous_improvement_item",
+          "operational_handoff"
+        ],
+        "governed_activity_types": [
+          "confirm_operational_state",
+          "evaluate_service_health",
+          "define_monitoring_targets",
+          "review_logs",
+          "review_metrics",
+          "organize_alert_conditions",
+          "classify_incident",
+          "assess_failure_impact",
+          "organize_recovery_policy",
+          "organize_rollback_policy",
+          "maintain_runbook",
+          "organize_maintenance_tasks",
+          "assess_change_impact",
+          "review_dependency_health",
+          "assess_operational_load",
+          "detect_reliability_degradation",
+          "organize_recurrence_prevention",
+          "organize_post_incident_review",
+          "extract_continuous_improvement_items"
+        ],
+        "governed_output_types": [
+          "operations_note",
+          "maintenance_note",
+          "reliability_review",
+          "health_check_summary",
+          "monitoring_plan",
+          "alerting_rule_note",
+          "log_review_note",
+          "incident_report",
+          "incident_response_note",
+          "recovery_plan",
+          "rollback_plan",
+          "runbook",
+          "maintenance_checklist",
+          "change_impact_note",
+          "dependency_health_note",
+          "operational_risk_note",
+          "post_incident_review",
+          "recurrence_prevention_note",
+          "reliability_improvement_plan",
+          "operational_handoff_note"
+        ],
+        "lifecycle_coverage": [
+          "operational_state_identification",
+          "health_assessment",
+          "monitoring_scope_definition",
+          "log_review",
+          "metric_review",
+          "alert_condition_review",
+          "incident_classification",
+          "failure_impact_assessment",
+          "recovery_planning",
+          "rollback_planning",
+          "runbook_creation_or_update",
+          "maintenance_task_management",
+          "change_impact_assessment",
+          "dependency_health_review",
+          "operational_load_assessment",
+          "reliability_degradation_detection",
+          "recurrence_prevention_review",
+          "post_incident_review",
+          "continuous_improvement_extraction",
+          "operational_handoff"
+        ],
+        "primary_responsibility_boundary": [
+          "identify_operational_state",
+          "assess_service_health",
+          "define_monitoring_targets",
+          "define_log_review_points",
+          "define_metric_review_points",
+          "define_alert_conditions",
+          "classify_incidents",
+          "assess_failure_impact",
+          "define_recovery_policy",
+          "define_rollback_policy",
+          "create_or_update_runbooks",
+          "organize_maintenance_tasks",
+          "assess_change_impact",
+          "review_dependency_health",
+          "assess_operational_load",
+          "detect_reliability_degradation",
+          "define_recurrence_prevention_points",
+          "define_continuous_improvement_points",
+          "preserve_operational_handoff_context"
+        ],
+        "non_responsibility_boundary": [
+          "new_development_strategy",
+          "technology_selection_itself",
+          "design_advice_itself",
+          "new_production_code_implementation",
+          "feature_addition_itself",
+          "requirement_definition_itself",
+          "whole_project_management",
+          "whole_task_issue_backlog_management",
+          "strategic_priority_decision_itself",
+          "withdrawal_decision_itself",
+          "artifact_composition_or_submission_quality_review_itself",
+          "final_legal_regulatory_or_contractual_judgment",
+          "replacement_of_formal_organizational_approval"
+        ],
+        "non_targets": [
+          "replacement_of_parent_governance",
+          "replacement_of_external_orchestration",
+          "absorption_of_sibling_domain_definitions",
+          "new_development_strategy",
+          "technology_selection_itself",
+          "design_advice_itself",
+          "new_production_code_implementation",
+          "feature_addition_itself",
+          "requirement_definition_itself",
+          "whole_project_management",
+          "whole_task_issue_backlog_management",
+          "strategic_priority_decision_itself",
+          "withdrawal_decision_itself",
+          "artifact_composition_or_submission_quality_review_itself",
+          "final_legal_regulatory_or_contractual_judgment",
+          "replacement_of_formal_organizational_approval",
+          "model_weight_modification",
+          "training_data_modification",
+          "replacement_of_built_in_system_policies"
+        ]
+      },
+      "independence_and_disclosure_boundary": {
+        "generic_public_research": true,
+        "company_specific_operations_excluded": true,
+        "customer_specific_operations_excluded": true,
+        "private_incident_details_excluded_unless_authorized": true,
+        "private_endpoint_excluded": true,
+        "private_credential_excluded": true,
+        "private_log_content_excluded_unless_authorized_and_safe": true,
+        "private_monitoring_configuration_excluded_unless_authorized_and_safe": true,
+        "private_dependency_topology_excluded_unless_authorized_and_safe": true,
+        "dangerous_turnkey_operational_instruction_excluded": true,
+        "synthetic_and_abstract_examples_preferred": true,
+        "public_artifact_classes": [
+          "generic_operations_governance_structure",
+          "generic_health_check_template",
+          "generic_monitoring_review_template",
+          "generic_alerting_review_template",
+          "generic_incident_response_template",
+          "generic_recovery_and_rollback_template",
+          "generic_runbook_review_template",
+          "generic_maintenance_review_template",
+          "generic_dependency_health_template",
+          "generic_reliability_improvement_template",
+          "synthetic_examples"
+        ],
+        "pre_publication_checks": [
+          "private_endpoint_absent",
+          "credentials_absent",
+          "private_log_content_absent",
+          "customer_identifier_absent",
+          "private_incident_detail_absent",
+          "private_dependency_topology_absent",
+          "unsafe_operational_instruction_absent",
+          "unauthorized_infrastructure_operation_not_enabled"
+        ]
+      },
+      "abstraction_and_context_policy": {
+        "purpose": "prevent OMRGD rules from becoming brittle tool-specific, platform-specific, organization-specific, or incident-specific rules while allowing context-local specificity when operational integrity requires it",
+        "rule_bodies_must_use_highest_safe_abstraction_level": true,
+        "rule_hardcoding_prohibited_by_default": true,
+        "rules_must_be_abstract_by_default": true,
+        "case_specific_constraints_must_be_contextual": true,
+        "domain_instances_must_not_be_encoded_as_general_rules": true,
+        "implementation_details_must_not_become_domain_rules": true,
+        "rule_bodies_must_not_hardcode": [
+          "specific_monitoring_tool",
+          "specific_logging_platform",
+          "specific_metric_backend",
+          "specific_alerting_service",
+          "specific_cloud_provider",
+          "specific_repository",
+          "specific_deployment_platform",
+          "specific_incident_tool",
+          "specific_organization_policy",
+          "specific_private_system",
+          "specific_customer_environment",
+          "specific_endpoint_or_identifier"
+        ],
+        "contextual_specificity_conditions": [
+          "explicit_user_instruction",
+          "identity_or_verification_requires_specific_name",
+          "hallucination_prevention_requires_specific_name",
+          "system_integrity_requires_specific_constraint",
+          "operational_target_context_would_break_without_specificity",
+          "incident_or_recovery_context_requires_specific_state_or_dependency_reference"
+        ],
+        "specificity_handling": {
+          "specificity_scope": "domain_local_context_or_governed_target_context",
+          "specificity_must_not_be_promoted_to_general_rule_without_basis": true,
+          "specificity_must_be_traceable_to_context_or_instruction": true,
+          "specificity_must_not_override_higher_authority": true
+        },
+        "example_policy": {
+          "examples_are_non_normative": true,
+          "examples_may_illustrate_failures_but_do_not_define_the_rule": true,
+          "test_cases_must_remain_separate_from_general_domain_rules": true,
+          "examples_must_not_narrow_omrgd_scope": true
+        },
+        "declared_context_policy_principles": [
+          "declared_policy_must_be_fixed_when_material",
+          "declared_policy_must_not_be_mixed",
+          "declared_policy_must_not_be_silently_changed",
+          "declared_policy_must_be_applied_consistently",
+          "declared_policy_conflict_must_be_reported_or_repaired"
+        ],
+        "declared_context_policy_types": [
+          "normal_operation",
+          "degraded_operation",
+          "incident_response",
+          "recovery",
+          "rollback",
+          "maintenance_window",
+          "post_incident_review",
+          "continuous_improvement"
+        ],
+        "rule_body_policy": {
+          "rule_bodies_define_abstract_operational_failures_not_specific_cases": true,
+          "case_specific_detail_must_be_domain_or_target_local_unless_promoted_by_valid_governance_basis": true,
+          "specific_names_may_be_used_for_identity_verification_or_hallucination_prevention": true,
+          "specific_constraints_may_be_used_when_omission_breaks_operational_integrity_or_domain_meaning": true
+        }
+      },
+      "role_complete_separation": {
+        "required": true,
+        "principle": "OMRGD must keep source material, operations-domain definition, inherited governance, sibling references, governed targets, evaluation, repair, activation, status reporting, records, external orchestration, and metadata responsibilities separated.",
+        "separation_targets": {
+          "source_material": "inputs, logs, metrics, alerts, incident notes, runbooks, maintenance notes, prior records, or user-provided operational observations; source content is not absorbed by default",
+          "domain_definition": "OMRGD-specific rules, checks, failures, repair origins, records, and responsibility boundaries",
+          "inherited_governance": "parent governance referenced as authoritative context and not re-expanded inside OMRGD",
+          "sibling_reference": "other domain definitions referenced only when in scope and not absorbed into OMRGD",
+          "governed_target": "the operational target, service, process, artifact, workflow, dependency, or reliability condition being governed",
+          "domain_evaluation": "operations, maintenance, and reliability checks and evaluation dimensions defined as domain delta only",
+          "domain_repair": "OMRGD-specific repair origins and revalidation scopes, not the parent repair cycle itself",
+          "activation": "local applicability signals only; routing and priority remain external",
+          "status_reporting": "OMRGD status delta only, not broad runtime status replacement",
+          "records": "OMRGD records that remain structurally separate from evaluation, repair, and metadata",
+          "external_orchestration": "routing, registry, priority, and activation orchestration remain external to OMRGD",
+          "metadata": "identity, authorship, license, repository, and compatibility information remain metadata, not domain rules"
+        },
+        "non_absorption_rules": [
+          "inherited_governance_must_be_referenced_not_reexpanded",
+          "sibling_domain_content_must_remain_referenced_not_absorbed",
+          "external_orchestration_must_not_be_reimplemented_in_omrgd",
+          "metadata_must_not_be_promoted_to_domain_rule_without_basis",
+          "source_material_must_not_be_absorbed_without_domain_reason"
+        ],
+        "review_implications": [
+          "role_separation_check_required_when_operations_parent_sibling_or_orchestration_context_is_material",
+          "role_mixing_failure_is_material_when_it_changes_omrgd_responsibility_or_governed_target_purpose"
+        ]
+      },
+      "cross_domain_interference_policy": {
+        "purpose": "prevent OMRGD from absorbing sibling domains such as development governance, architecture governance, project management governance, strategy governance, artifact review governance, security governance, legal governance, or formal approval workflows",
+        "rules": [
+          "sibling_domain_references_must_be_explicit_when_material",
+          "sibling_domain_rules_must_not_be_copied_by_default",
+          "domain_overlap_must_be_declared_when_material",
+          "cross_domain_activation_priority_is_external_to_omrgd",
+          "domain_specific_rule_conflicts_must_not_be_silently_merged",
+          "shared_terms_must_not_imply_shared_authority_without_boundary_statement",
+          "operational_judgment_must_not_absorb_new_development_judgment",
+          "operational_judgment_must_not_absorb_project_management_judgment",
+          "operational_judgment_must_not_absorb_strategic_priority_judgment",
+          "operational_judgment_must_not_absorb_artifact_review_judgment",
+          "operational_judgment_must_not_replace_specialized_audit_or_formal_approval"
+        ],
+        "sibling_boundary_notes": {
+          "development_or_engineering_governance": "implementation itself, new feature development, and design advice itself are outside OMRGD unless the issue is operational maintainability, reliability, recovery, monitoring, or change impact",
+          "project_management_governance": "whole task, issue, backlog, milestone, and project progress management are outside OMRGD unless the issue is operational workload or maintenance execution visibility",
+          "strategy_governance": "strategic priority, continuation, withdrawal, or investment decisions are outside OMRGD unless OMRGD is providing operational reliability evidence",
+          "artifact_review_governance": "submission quality, composition, and artifact packaging review are outside OMRGD unless the artifact is an operational runbook, incident record, recovery plan, maintenance note, or reliability review",
+          "legal_or_formal_approval_governance": "formal legal, regulatory, contractual, or organizational approval is outside OMRGD"
+        },
+        "overlap_handling": {
+          "overlap_is_allowed": true,
+          "overlap_must_preserve_domain_responsibility_boundaries": true,
+          "overlap_resolution_owner": "external_orchestration_or_explicit_runtime_context"
+        }
+      },
+      "policy_goal": [
+        "operational_state_visibility",
+        "service_health_clarity",
+        "monitoring_coverage",
+        "log_reviewability",
+        "metric_reviewability",
+        "alert_condition_integrity",
+        "incident_classification_integrity",
+        "failure_impact_visibility",
+        "recovery_readiness",
+        "rollback_readiness",
+        "runbook_integrity",
+        "maintenance_task_clarity",
+        "change_impact_visibility",
+        "dependency_health_visibility",
+        "operational_load_visibility",
+        "technical_debt_visibility",
+        "reliability_degradation_detection",
+        "recurrence_prevention_integrity",
+        "post_incident_learning",
+        "continuous_improvement_visibility",
+        "operational_handoff_integrity"
+      ],
+      "constraints": {
+        "prohibited_failure_modes": [
+          "operational_state_unknown_but_treated_as_normal",
+          "unconfirmed_health_reported_as_healthy",
+          "monitoring_target_insufficient",
+          "log_review_points_insufficient",
+          "metric_review_points_insufficient",
+          "alert_condition_ambiguous",
+          "missing_alerts_reported_as_safe",
+          "incident_classification_ambiguous",
+          "failure_impact_unknown",
+          "failure_impact_underestimated",
+          "recovery_policy_missing",
+          "recovery_claim_without_recovery_confirmation",
+          "rollback_policy_missing",
+          "non_rollbackable_change_reported_as_safe",
+          "runbook_missing",
+          "recoverability_assumed_without_runbook_or_equivalent_basis",
+          "maintenance_task_person_dependent",
+          "change_impact_not_reviewed",
+          "dependency_health_overlooked",
+          "operational_load_accumulates_unseen",
+          "technical_debt_ignored",
+          "recurrence_prevention_missing",
+          "incident_closed_without_recurrence_prevention_review_when_material",
+          "issue_marked_resolved_before_recovery_confirmation",
+          "unmaintainable_state_reported_as_normal_operation",
+          "operational_judgment_absorbs_development_judgment",
+          "operational_judgment_absorbs_strategy_judgment",
+          "specialized_audit_or_formal_approval_replaced_by_omrgd"
+        ],
+        "required_controls": [
+          "confirm_operational_state_before_normal_claim",
+          "assess_health_before_stability_claim",
+          "define_monitoring_targets",
+          "define_log_review_points",
+          "define_metric_review_points",
+          "define_alert_conditions",
+          "classify_incident_when_failure_or_degradation_occurs",
+          "assess_failure_impact",
+          "define_recovery_policy",
+          "define_rollback_policy",
+          "create_or_update_runbook_when_recovery_is_material",
+          "organize_maintenance_tasks",
+          "assess_change_impact",
+          "review_dependency_health_when_material",
+          "make_operational_load_visible",
+          "record_technical_debt_when_reliability_relevant",
+          "define_recurrence_prevention_points",
+          "perform_or_prepare_post_incident_review_when_material",
+          "extract_continuous_improvement_items",
+          "preserve_handoff_context_when_operation_responsibility_changes",
+          "state_remaining_uncertainty_when_operational_status_is_not_fully_verified"
+        ],
+        "runtime_constraints": {
+          "domain_only": true,
+          "does_not_redefine_parent_governance": true,
+          "does_not_reimplement_external_orchestration": true,
+          "does_not_define_registry_logic": true,
+          "does_not_create_tool_specific_general_bans": true,
+          "does_not_define_global_domain_priority": true,
+          "does_not_replace_development_governance": true,
+          "does_not_replace_project_management_governance": true,
+          "does_not_replace_strategy_governance": true,
+          "does_not_replace_artifact_review_governance": true,
+          "does_not_replace_specialized_audit_or_formal_approval": true
+        },
+        "uncertainty_handling": {
+          "uncertainty_types": [
+            "operational_state_uncertainty",
+            "health_uncertainty",
+            "failure_impact_uncertainty",
+            "root_cause_uncertainty",
+            "recoverability_uncertainty",
+            "rollback_uncertainty",
+            "runbook_validity_uncertainty",
+            "change_impact_uncertainty",
+            "dependency_state_uncertainty",
+            "recurrence_risk_uncertainty",
+            "operational_load_uncertainty",
+            "technical_debt_impact_uncertainty"
+          ],
+          "required_when_uncertainty_is_material": [
+            "state_unknowns",
+            "verification_steps",
+            "provisional_status",
+            "monitoring_intensification",
+            "recheck_timing",
+            "rollback_possibility",
+            "residual_risk"
+          ],
+          "prohibited_under_material_uncertainty": [
+            "normal_claim_without_basis",
+            "resolved_claim_without_recovery_confirmation",
+            "safe_change_claim_without_rollback_or_risk_basis",
+            "maintainable_claim_without_maintenance_basis"
+          ]
+        },
+        "failure_aliases": {
+          "incident": [
+            "failure",
+            "degradation",
+            "outage"
+          ],
+          "observability_gap": [
+            "monitoring_gap",
+            "logging_gap",
+            "metric_gap",
+            "alerting_gap"
+          ],
+          "recovery_gap": [
+            "recovery_policy_missing",
+            "runbook_missing",
+            "verification_missing"
+          ],
+          "rollback_gap": [
+            "rollback_policy_missing",
+            "rollback_possibility_unknown"
+          ]
+        },
+        "schema_hygiene_constraints": {
+          "taxonomy_group_membership_must_match_requirement_level": true,
+          "record_required_fields_must_be_mapped_to_field_groups_when_records_exist": true,
+          "field_group_items_may_inherit_group_requirement_level_when_not_overridden": true,
+          "evaluation_dimensions_must_align_with_thresholds_and_audit_targets_when_scoring_exists": true,
+          "critical_invalidation_conditions_must_be_represented_in_critical_severity_rules_when_severity_model_exists": true,
+          "audit_decision_rules_must_emit_registered_action_outputs_only": true
+        },
+        "common_rule_index": {
+          "operations_state_rules": [
+            "confirm_operational_state_before_normal_claim",
+            "assess_health_before_stability_claim",
+            "state_remaining_uncertainty_when_operational_status_is_not_fully_verified"
+          ],
+          "observability_rules": [
+            "define_monitoring_targets",
+            "define_log_review_points",
+            "define_metric_review_points",
+            "define_alert_conditions"
+          ],
+          "incident_and_recovery_rules": [
+            "classify_incident_when_failure_or_degradation_occurs",
+            "assess_failure_impact",
+            "define_recovery_policy",
+            "define_rollback_policy",
+            "create_or_update_runbook_when_recovery_is_material"
+          ],
+          "maintenance_and_change_rules": [
+            "organize_maintenance_tasks",
+            "assess_change_impact",
+            "review_dependency_health_when_material",
+            "make_operational_load_visible",
+            "record_technical_debt_when_reliability_relevant"
+          ],
+          "reliability_improvement_rules": [
+            "define_recurrence_prevention_points",
+            "perform_or_prepare_post_incident_review_when_material",
+            "extract_continuous_improvement_items"
+          ],
+          "boundary_rules": [
+            "operational_judgment_must_not_absorb_development_strategy_or_project_management",
+            "specialized_audit_or_formal_approval_must_not_be_replaced_by_omrgd"
+          ]
+        }
+      },
+      "capabilities": {
+        "required_capabilities": [
+          "operational_state_assessment",
+          "service_health_assessment",
+          "monitoring_scope_definition",
+          "log_review_planning",
+          "metric_review_planning",
+          "alert_condition_design",
+          "incident_classification",
+          "failure_impact_assessment",
+          "recovery_planning",
+          "rollback_planning",
+          "runbook_management",
+          "maintenance_task_management",
+          "change_impact_assessment",
+          "dependency_health_review",
+          "operational_load_assessment",
+          "reliability_degradation_detection",
+          "technical_debt_visibility_management",
+          "recurrence_prevention_planning",
+          "post_incident_review_support",
+          "continuous_improvement_extraction",
+          "operational_handoff_support"
+        ],
+        "preferred_capabilities": [
+          "service_level_review",
+          "error_budget_review",
+          "alert_noise_review",
+          "runbook_freshness_review",
+          "dependency_failure_mode_review",
+          "maintenance_window_planning_support",
+          "operational_risk_trend_review",
+          "reliability_target_drift_detection",
+          "incident_timeline_reconstruction",
+          "post_repair_revalidation_scoping"
+        ],
+        "capability_groups": {
+          "operational_state_and_health": [
+            "operational_state_assessment",
+            "service_health_assessment",
+            "reliability_degradation_detection"
+          ],
+          "observability_and_detection": [
+            "monitoring_scope_definition",
+            "log_review_planning",
+            "metric_review_planning",
+            "alert_condition_design"
+          ],
+          "incident_and_failure_response": [
+            "incident_classification",
+            "failure_impact_assessment",
+            "recovery_planning",
+            "rollback_planning"
+          ],
+          "maintenance_and_change_control": [
+            "runbook_management",
+            "maintenance_task_management",
+            "change_impact_assessment",
+            "dependency_health_review"
+          ],
+          "reliability_and_operational_sustainability": [
+            "operational_load_assessment",
+            "technical_debt_visibility_management",
+            "recurrence_prevention_planning",
+            "post_incident_review_support",
+            "continuous_improvement_extraction",
+            "operational_handoff_support"
+          ],
+          "preferred_operational_refinement": [
+            "service_level_review",
+            "error_budget_review",
+            "alert_noise_review",
+            "runbook_freshness_review",
+            "dependency_failure_mode_review",
+            "maintenance_window_planning_support",
+            "operational_risk_trend_review",
+            "reliability_target_drift_detection",
+            "incident_timeline_reconstruction",
+            "post_repair_revalidation_scoping"
+          ]
+        },
+        "mapping_policy": {
+          "required_capabilities_must_appear_in_capability_groups_when_groups_are_used": true,
+          "capability_groups_are_structural_not_exhaustive": true,
+          "future_extensions_should_attach_to_groups_before_adding_flat_items": true,
+          "capability_taxonomy_must_not_conflict_with_flat_required_list": true
+        }
+      },
+      "operational_object_model": {
+        "operational_target_object": {
+          "required_fields": [
+            "target_id",
+            "target_name",
+            "target_type",
+            "operational_owner_or_source",
+            "operational_state",
+            "health_indicators",
+            "dependencies",
+            "maintenance_responsibility",
+            "runbook_reference",
+            "recovery_reference",
+            "rollback_reference",
+            "known_risks",
+            "unknowns"
+          ],
+          "target_types": [
+            "system",
+            "service",
+            "process",
+            "artifact",
+            "workflow",
+            "dependency",
+            "maintenance_task",
+            "operational_record"
+          ],
+          "validation_rules": [
+            "operational_state_required",
+            "health_indicators_required_or_gap_reported",
+            "dependencies_required_or_marked_not_applicable",
+            "recovery_reference_required_when_recovery_is_material",
+            "rollback_reference_required_when_change_or_release_risk_is_material",
+            "unknowns_must_not_be_hidden"
+          ]
+        },
+        "health_indicator_object": {
+          "required_fields": [
+            "indicator_id",
+            "target_id",
+            "indicator_name",
+            "indicator_type",
+            "measurement_source",
+            "current_value_or_status",
+            "normal_condition",
+            "degraded_condition",
+            "failure_condition",
+            "unknown_condition",
+            "review_timestamp"
+          ],
+          "indicator_types": [
+            "availability",
+            "latency",
+            "error_rate",
+            "throughput",
+            "resource_usage",
+            "queue_depth",
+            "dependency_status",
+            "data_freshness",
+            "job_success",
+            "user_visible_health",
+            "manual_check"
+          ],
+          "validation_rules": [
+            "measurement_source_required",
+            "normal_degraded_and_failure_conditions_required_when_material",
+            "manual_check_must_be_marked_as_manual",
+            "unknown_condition_must_be_allowed_when_basis_is_insufficient"
+          ]
+        },
+        "monitoring_item_object": {
+          "required_fields": [
+            "monitoring_item_id",
+            "target_id",
+            "monitored_condition",
+            "signal_source",
+            "log_or_metric_reference",
+            "alert_condition",
+            "review_frequency",
+            "gap_status",
+            "owner_or_review_source"
+          ],
+          "validation_rules": [
+            "monitored_condition_required",
+            "signal_source_required_or_gap_reported",
+            "alert_condition_required_when_immediate_action_is_needed",
+            "gap_status_must_not_be_hidden"
+          ]
+        },
+        "incident_object": {
+          "required_fields": [
+            "incident_id",
+            "incident_type",
+            "affected_targets",
+            "detected_timestamp",
+            "detection_source",
+            "severity",
+            "impact_scope",
+            "current_status",
+            "recovery_actions",
+            "rollback_consideration",
+            "unresolved_uncertainty",
+            "recurrence_prevention_needed"
+          ],
+          "incident_types": [
+            "incident",
+            "failure",
+            "degradation",
+            "outage",
+            "near_miss",
+            "maintenance_failure",
+            "dependency_failure",
+            "unknown_operational_anomaly"
+          ],
+          "validation_rules": [
+            "incident_type_required",
+            "impact_scope_required_or_marked_unknown",
+            "current_status_required",
+            "recovery_actions_required_or_gap_reported",
+            "unresolved_uncertainty_must_be_recorded",
+            "recurrence_prevention_needed_must_be_evaluated_when_material"
+          ]
+        },
+        "runbook_object": {
+          "required_fields": [
+            "runbook_id",
+            "target_id",
+            "purpose",
+            "trigger_conditions",
+            "required_inputs",
+            "procedure_steps",
+            "verification_steps",
+            "rollback_or_escape_path",
+            "escalation_path",
+            "last_reviewed_timestamp",
+            "known_limitations"
+          ],
+          "validation_rules": [
+            "trigger_conditions_required",
+            "verification_steps_required_for_recovery_runbook",
+            "rollback_or_escape_path_required_when_action_has_material_risk",
+            "escalation_path_required_when_recovery_may_fail",
+            "stale_runbook_requires_review"
+          ]
+        },
+        "maintenance_task_object": {
+          "required_fields": [
+            "maintenance_task_id",
+            "target_id",
+            "task_description",
+            "maintenance_reason",
+            "expected_impact",
+            "execution_window",
+            "pre_checks",
+            "post_checks",
+            "rollback_or_recovery_consideration",
+            "owner_or_execution_source",
+            "status"
+          ],
+          "validation_rules": [
+            "maintenance_reason_required",
+            "expected_impact_required",
+            "pre_and_post_checks_required_when_material",
+            "rollback_or_recovery_consideration_required_when_risk_is_material",
+            "status_required"
+          ]
+        },
+        "reliability_improvement_item_object": {
+          "required_fields": [
+            "improvement_item_id",
+            "origin",
+            "affected_target",
+            "observed_problem",
+            "reliability_effect",
+            "proposed_improvement",
+            "expected_detection_or_recovery_improvement",
+            "priority_basis",
+            "remaining_uncertainty",
+            "review_condition"
+          ],
+          "validation_rules": [
+            "origin_required",
+            "reliability_effect_required",
+            "priority_basis_required",
+            "remaining_uncertainty_must_be_recorded"
+          ]
+        }
+      },
+      "evaluation": {
+        "evaluation_policy": {
+          "domain_evaluation_required_when_omrgd_claim_is_made": true,
+          "scored_evaluation_is_optional": true,
+          "severity_model_is_enabled": true,
+          "boolean_state_or_threshold_based_evaluation_allowed": true,
+          "non_applicable_dimensions_must_be_excluded_with_reason_when_reporting": true
+        },
+        "audit_targets": [
+          "operational_state_clarity",
+          "health_assessment_validity",
+          "monitoring_target_clarity",
+          "log_review_point_clarity",
+          "metric_review_point_clarity",
+          "alert_condition_validity",
+          "incident_classification_validity",
+          "failure_impact_assessment_validity",
+          "recovery_policy_clarity",
+          "rollback_policy_clarity",
+          "runbook_presence_and_currency",
+          "maintenance_task_clarity",
+          "change_impact_assessment_validity",
+          "dependency_health_visibility",
+          "operational_load_visibility",
+          "reliability_degradation_detectability",
+          "technical_debt_visibility",
+          "recurrence_prevention_clarity",
+          "post_incident_review_completeness",
+          "continuous_improvement_clarity",
+          "operational_handoff_integrity"
+        ],
+        "minimum_pass_conditions": [
+          "operational_state_is_not_reported_as_normal_without_basis",
+          "material_health_claim_has_basis",
+          "material_monitoring_targets_are_identified_or_gap_is_reported",
+          "material_logs_or_metrics_are_identified_or_gap_is_reported",
+          "material_alerting_gap_is_reported",
+          "incident_or_failure_has_classification_when_applicable",
+          "failure_impact_is_assessed_or_uncertainty_is_reported",
+          "recovery_or_rollback_gap_is_reported_when_material",
+          "runbook_gap_is_reported_when_recovery_depends_on_procedure",
+          "dependency_health_is_checked_or_marked_unknown_when_material",
+          "operational_load_and_technical_debt_are_not_hidden_when_material",
+          "recurrence_prevention_is_considered_for_material_incidents",
+          "formal_approval_boundary_is_preserved_when_material"
+        ],
+        "success_signals": [
+          "operational_state_is_visible",
+          "health_can_be_assessed",
+          "monitoring_targets_are_clear",
+          "log_review_points_are_clear",
+          "metric_review_points_are_clear",
+          "alert_conditions_are_appropriate",
+          "incident_classification_is_possible",
+          "failure_impact_can_be_assessed",
+          "recovery_policy_exists",
+          "rollback_policy_exists",
+          "runbook_exists_and_is_current_enough_for_context",
+          "maintenance_tasks_are_organized",
+          "change_impact_can_be_assessed",
+          "dependency_health_can_be_checked",
+          "operational_load_is_visible",
+          "technical_debt_is_recorded_when_reliability_relevant",
+          "recurrence_prevention_points_exist",
+          "continuous_improvement_items_are_visible"
+        ],
+        "drift_signals": [
+          "normal_claim_without_operational_state_basis",
+          "stability_claim_without_health_basis",
+          "monitoring_scope_disappears",
+          "logs_and_metrics_are_ignored",
+          "alerting_gap_is_hidden",
+          "incident_classification_becomes_vague",
+          "failure_impact_scope_disappears",
+          "recovery_or_rollback_gap_is_softened",
+          "runbook_absence_is_ignored",
+          "dependency_health_is_omitted",
+          "operational_load_is_downplayed",
+          "technical_debt_is_ignored",
+          "recurrence_prevention_is_skipped",
+          "operational_scope_drifts_into_new_development_or_strategy_without_handoff"
+        ],
+        "critical_invalidation_conditions": [
+          "unconfirmed_operational_state_reported_as_normal",
+          "unresolved_major_incident_reported_as_resolved",
+          "recovery_confirmed_without_verification",
+          "rollback_impossible_change_reported_as_safe",
+          "missing_monitoring_for_material_failure_path_hidden",
+          "dependency_failure_ignored_when_material",
+          "severe_operational_load_hidden",
+          "unmaintainable_state_reported_as_maintainable",
+          "formal_approval_or_specialized_audit_replaced_by_omrgd_output"
+        ],
+        "scoring_model": {
+          "enabled_when_domain_defines_scored_evaluation": true,
+          "score_range": [
+            0,
+            100
+          ],
+          "domain_dimension_scores": [
+            "operational_state_score",
+            "health_assessment_score",
+            "monitoring_coverage_score",
+            "observability_score",
+            "alerting_integrity_score",
+            "incident_response_score",
+            "recovery_readiness_score",
+            "rollback_readiness_score",
+            "runbook_integrity_score",
+            "maintenance_clarity_score",
+            "change_impact_score",
+            "dependency_health_score",
+            "operational_load_visibility_score",
+            "reliability_improvement_score"
+          ],
+          "minimum_expected_scores": {
+            "operational_state_score": 85,
+            "health_assessment_score": 85,
+            "monitoring_coverage_score": 80,
+            "observability_score": 80,
+            "alerting_integrity_score": 80,
+            "incident_response_score": 85,
+            "recovery_readiness_score": 85,
+            "rollback_readiness_score": 80,
+            "runbook_integrity_score": 80,
+            "maintenance_clarity_score": 80,
+            "change_impact_score": 80,
+            "dependency_health_score": 80,
+            "operational_load_visibility_score": 80,
+            "reliability_improvement_score": 75
+          },
+          "audit_target_alignment": {
+            "operational_state_score": [
+              "operational_state_clarity"
+            ],
+            "health_assessment_score": [
+              "health_assessment_validity"
+            ],
+            "monitoring_coverage_score": [
+              "monitoring_target_clarity"
+            ],
+            "observability_score": [
+              "log_review_point_clarity",
+              "metric_review_point_clarity"
+            ],
+            "alerting_integrity_score": [
+              "alert_condition_validity"
+            ],
+            "incident_response_score": [
+              "incident_classification_validity",
+              "failure_impact_assessment_validity"
+            ],
+            "recovery_readiness_score": [
+              "recovery_policy_clarity"
+            ],
+            "rollback_readiness_score": [
+              "rollback_policy_clarity"
+            ],
+            "runbook_integrity_score": [
+              "runbook_presence_and_currency"
+            ],
+            "maintenance_clarity_score": [
+              "maintenance_task_clarity"
+            ],
+            "change_impact_score": [
+              "change_impact_assessment_validity"
+            ],
+            "dependency_health_score": [
+              "dependency_health_visibility"
+            ],
+            "operational_load_visibility_score": [
+              "operational_load_visibility",
+              "technical_debt_visibility"
+            ],
+            "reliability_improvement_score": [
+              "reliability_degradation_detectability",
+              "recurrence_prevention_clarity",
+              "post_incident_review_completeness",
+              "continuous_improvement_clarity",
+              "operational_handoff_integrity"
+            ]
+          },
+          "aggregation_policy": {
+            "equal_weight_across_applicable_dimensions": true,
+            "non_applicable_dimensions_excluded_with_reason": true,
+            "critical_invalidation_overrides_aggregate_score": true,
+            "llm_self_assessment_must_not_be_presented_as_external_validation": true
+          },
+          "alignment_policy": {
+            "domain_dimension_scores_must_have_minimum_expected_scores_when_scoring_is_enabled": true,
+            "audit_targets_must_have_corresponding_dimension_or_explicit_non_scored_reason": true,
+            "critical_invalidation_conditions_must_appear_in_severity_model_when_material_and_severity_model_exists": true
+          }
+        },
+        "severity_model": {
+          "enabled_when_domain_uses_severity": true,
+          "levels": [
+            "low",
+            "moderate",
+            "high",
+            "critical"
+          ],
+          "severity_rules": {
+            "low": [
+              "minor_runbook_wording_gap",
+              "non_material_monitoring_note_omission",
+              "minor_maintenance_task_clarity_gap"
+            ],
+            "moderate": [
+              "monitoring_target_gap",
+              "log_or_metric_review_gap",
+              "ambiguous_alert_condition",
+              "minor_change_impact_gap",
+              "non_critical_dependency_health_unknown",
+              "operational_load_partially_visible"
+            ],
+            "high": [
+              "failure_impact_unknown_when_material",
+              "recovery_policy_missing_when_material",
+              "rollback_policy_missing_when_change_is_material",
+              "runbook_missing_for_material_recovery",
+              "dependency_health_ignored_when_material",
+              "recurrence_prevention_missing_after_material_incident",
+              "technical_debt_hidden_when_reliability_relevant"
+            ],
+            "critical": [
+              "unconfirmed_operational_state_reported_as_normal",
+              "unresolved_major_incident_reported_as_resolved",
+              "recovery_confirmed_without_verification",
+              "rollback_impossible_change_reported_as_safe",
+              "missing_monitoring_for_material_failure_path_hidden",
+              "dependency_failure_ignored_when_material",
+              "severe_operational_load_hidden",
+              "unmaintainable_state_reported_as_maintainable",
+              "formal_approval_or_specialized_audit_replaced_by_omrgd_output"
+            ]
+          }
+        }
+      },
+      "repair": {
+        "purpose": "Repair OMRGD failures by restoring visibility, verification, recovery readiness, rollback readiness, maintainability, dependency awareness, operational-load visibility, recurrence prevention, and continuous improvement structure.",
+        "core_rule": "repair_model_should_define_repair_origin_not_parent_repair_cycle",
+        "repair_origins": [
+          "operational_state_failure",
+          "health_assessment_failure",
+          "monitoring_failure",
+          "log_review_failure",
+          "metric_review_failure",
+          "alerting_failure",
+          "incident_classification_failure",
+          "failure_impact_assessment_failure",
+          "recovery_policy_failure",
+          "rollback_policy_failure",
+          "runbook_failure",
+          "maintenance_task_failure",
+          "change_impact_failure",
+          "dependency_health_failure",
+          "operational_load_visibility_failure",
+          "technical_debt_visibility_failure",
+          "recurrence_prevention_failure",
+          "post_incident_review_failure",
+          "continuous_improvement_failure",
+          "handoff_failure"
+        ],
+        "repair_directions": [
+          "reconfirm_operational_state",
+          "reassess_service_health",
+          "add_monitoring_targets",
+          "add_log_review_points",
+          "add_metric_review_points",
+          "redefine_alert_conditions",
+          "reclassify_incident",
+          "reassess_failure_impact",
+          "clarify_recovery_policy",
+          "clarify_rollback_policy",
+          "create_or_update_runbook",
+          "standardize_maintenance_tasks",
+          "reassess_change_impact",
+          "recheck_dependency_health",
+          "make_operational_load_visible",
+          "record_reliability_relevant_technical_debt",
+          "add_recurrence_prevention_points",
+          "conduct_or_prepare_post_incident_review",
+          "extract_continuous_improvement_items",
+          "repair_operational_handoff_context"
+        ],
+        "repair_policy": {
+          "identify_repair_origin": true,
+          "repair_affected_scope": true,
+          "revalidate_affected_axes": true,
+          "preserve_revision_lineage_when_material": true,
+          "do_not_skip_repair_and_claim_ready_without_basis": true,
+          "partial_revalidation_requires_reason": true,
+          "post_repair_review_must_cover_affected_axes": true,
+          "repair_must_restore_detection_judgment_recovery_recurrence_prevention_and_maintainability_when_material": true
+        },
+        "human_review_required_when": [
+          "formal_approval_boundary_is_material",
+          "recovery_or_rollback_risk_exceeds_available_basis",
+          "operational_action_has_material_side_effects",
+          "incident_impact_is_major_or_uncertain",
+          "dependency_failure_affects_external_or_customer_systems",
+          "legal_regulatory_contractual_or_security_approval_may_be_required",
+          "omrgd_confidence_is_low_and_action_is_material"
+        ]
+      },
+      "activation": {
+        "enabled": true,
+        "activation_mode": "local_domain_applicability",
+        "applies_when": [
+          "operational_state_needs_confirmation",
+          "health_needs_assessment",
+          "monitoring_design_is_needed",
+          "logs_or_metrics_need_review",
+          "alert_conditions_need_review",
+          "incident_has_occurred",
+          "failure_impact_needs_assessment",
+          "recovery_policy_is_needed",
+          "rollback_decision_or_procedure_is_needed",
+          "runbook_is_needed",
+          "maintenance_tasks_need_organization",
+          "change_impact_needs_assessment",
+          "dependency_health_is_material",
+          "operational_load_is_increasing",
+          "reliability_degradation_is_suspected",
+          "recurrence_prevention_is_needed",
+          "continuous_improvement_items_need_extraction"
+        ],
+        "deactivation_or_handoff_conditions": [
+          "operational_state_and_health_review_completed",
+          "incident_response_organization_completed",
+          "recovery_or_rollback_policy_review_completed",
+          "runbook_or_maintenance_procedure_review_completed",
+          "topic_moves_to_new_development_design",
+          "topic_moves_to_implementation_itself",
+          "topic_moves_to_strategic_priority_decision",
+          "topic_moves_to_project_management",
+          "topic_moves_to_artifact_review",
+          "topic_moves_to_expert_judgment_or_formal_approval"
+        ],
+        "does_not_replace_argd": true,
+        "does_not_replace_dagd": true,
+        "does_not_reimplement_cdogd": true,
+        "does_not_define_registry_logic": true,
+        "routing_and_priority_are_external": true,
+        "activation_record_minimum_fields": [
+          "activation_reason",
+          "domain_context",
+          "governed_target_context",
+          "applicable_evaluation_axes",
+          "declared_context_policy_status",
+          "operational_state_basis",
+          "remaining_uncertainty"
+        ],
+        "local_activation_scope_policy": {
+          "domain_activation_is_context_local": true,
+          "external_orchestration_may_select_or_prioritize_domain": true,
+          "domain_definition_does_not_store_registry_or_routing_logic": true,
+          "activation_does_not_grant_formal_operational_approval": true
+        },
+        "reactivation_policy": {
+          "domain_activation_is_not_one_shot": true,
+          "domain_may_be_reactivated_when_relevant_conditions_recur": true,
+          "reactivation_triggers": [
+            "governed_target_change",
+            "premise_change",
+            "constraint_change",
+            "state_change",
+            "purpose_change",
+            "risk_change",
+            "output_requirement_change",
+            "authority_or_context_change",
+            "dependency_state_change",
+            "reliability_target_change",
+            "incident_recurrence",
+            "operational_load_change"
+          ],
+          "deactivation_does_not_imply_future_non_applicability": true
+        }
+      },
+      "self_audit": {
+        "enabled": true,
+        "audit_frequency": {
+          "before_operational_state_claim": true,
+          "before_health_claim": true,
+          "before_incident_status_claim": true,
+          "before_recovery_or_resolution_claim": true,
+          "before_rollback_safety_claim": true,
+          "after_material_incident_review": true,
+          "after_material_change_impact_review": true,
+          "after_repair": true,
+          "on_user_reported_operational_failure": true
+        },
+        "audit_axes": [
+          "state_basis_check",
+          "health_basis_check",
+          "observability_basis_check",
+          "incident_classification_check",
+          "impact_scope_check",
+          "recovery_readiness_check",
+          "rollback_readiness_check",
+          "runbook_integrity_check",
+          "dependency_health_check",
+          "operational_load_check",
+          "recurrence_prevention_check",
+          "handoff_boundary_check"
+        ],
+        "output_policy": {
+          "compact_by_default": true,
+          "emit_detail_on_anomaly": true,
+          "emit_detail_on_user_request": true,
+          "emit_detail_on_critical_failure": true
+        },
+        "required_basis_checks": [
+          "operational_state_claim_has_basis",
+          "health_claim_has_basis",
+          "monitoring_gap_is_reported",
+          "log_metric_gap_is_reported",
+          "alerting_gap_is_reported",
+          "recovery_claim_has_verification_or_uncertainty",
+          "rollback_claim_has_basis",
+          "dependency_state_unknown_is_not_hidden",
+          "operational_load_unknown_is_not_hidden",
+          "recurrence_prevention_gap_is_not_hidden"
+        ],
+        "domain_specific_self_state_audit_policy": {
+          "optional_domain_local_policy": true,
+          "allowed_when_domain_requires_stronger_self_state_control": true,
+          "must_remain_domain_local": true,
+          "must_not_replace_parent_audit_or_repair_governance": true,
+          "must_not_be_treated_as_self_approval": true,
+          "must_define_overreach_detection_when_authority_sensitive": true,
+          "must_define_repair_or_escalation_when_self_state_is_unreliable": true
+        }
+      },
+      "audit_to_action": {
+        "enabled": true,
+        "decision_inputs": [
+          "detected_failure_modes",
+          "severity",
+          "operational_state_status",
+          "health_status",
+          "monitoring_status",
+          "observability_status",
+          "alerting_status",
+          "incident_status",
+          "failure_impact_status",
+          "recovery_status",
+          "rollback_status",
+          "runbook_status",
+          "maintenance_status",
+          "change_impact_status",
+          "dependency_health_status",
+          "operational_load_status",
+          "technical_debt_status",
+          "recurrence_prevention_status",
+          "formal_approval_boundary_status"
+        ],
+        "action_outputs": [
+          "no_action",
+          "emit_compact_status",
+          "emit_extended_status",
+          "mark_unknown_state",
+          "request_or_note_required_verification",
+          "add_monitoring_review",
+          "add_log_metric_review",
+          "redefine_alerting_review",
+          "reclassify_incident",
+          "reassess_failure_impact",
+          "clarify_recovery_policy",
+          "clarify_rollback_policy",
+          "update_runbook",
+          "standardize_maintenance_task",
+          "reassess_change_impact",
+          "recheck_dependency_health",
+          "expose_operational_load",
+          "record_technical_debt",
+          "add_recurrence_prevention_review",
+          "prepare_post_incident_review",
+          "handoff_to_relevant_domain",
+          "require_human_review",
+          "block_ready_or_resolved_claim"
+        ],
+        "decision_rules": {
+          "unconfirmed_operational_state": {
+            "if": {
+              "detected_failure_modes": {
+                "contains_any": [
+                  "operational_state_unknown_but_treated_as_normal",
+                  "unconfirmed_operational_state_reported_as_normal"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "mark_unknown_state",
+                "request_or_note_required_verification",
+                "block_ready_or_resolved_claim",
+                "emit_compact_status"
+              ],
+              "recommended_actions": [
+                "add_monitoring_review"
+              ]
+            }
+          },
+          "observability_gap": {
+            "if": {
+              "detected_failure_modes": {
+                "contains_any": [
+                  "monitoring_target_insufficient",
+                  "log_review_points_insufficient",
+                  "metric_review_points_insufficient",
+                  "alert_condition_ambiguous",
+                  "missing_alerts_reported_as_safe"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "add_monitoring_review",
+                "add_log_metric_review",
+                "redefine_alerting_review"
+              ],
+              "recommended_actions": [
+                "emit_compact_status"
+              ]
+            }
+          },
+          "incident_or_failure_gap": {
+            "if": {
+              "detected_failure_modes": {
+                "contains_any": [
+                  "incident_classification_ambiguous",
+                  "failure_impact_unknown",
+                  "failure_impact_underestimated"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "reclassify_incident",
+                "reassess_failure_impact"
+              ],
+              "recommended_actions": [
+                "emit_extended_status"
+              ]
+            }
+          },
+          "recovery_or_rollback_gap": {
+            "if": {
+              "detected_failure_modes": {
+                "contains_any": [
+                  "recovery_policy_missing",
+                  "recovery_claim_without_recovery_confirmation",
+                  "rollback_policy_missing",
+                  "non_rollbackable_change_reported_as_safe",
+                  "runbook_missing",
+                  "recoverability_assumed_without_runbook_or_equivalent_basis"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "clarify_recovery_policy",
+                "clarify_rollback_policy",
+                "update_runbook",
+                "request_or_note_required_verification",
+                "block_ready_or_resolved_claim"
+              ],
+              "recommended_actions": [
+                "require_human_review"
+              ]
+            }
+          },
+          "maintenance_and_dependency_gap": {
+            "if": {
+              "detected_failure_modes": {
+                "contains_any": [
+                  "maintenance_task_person_dependent",
+                  "change_impact_not_reviewed",
+                  "dependency_health_overlooked"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "standardize_maintenance_task",
+                "reassess_change_impact",
+                "recheck_dependency_health"
+              ],
+              "recommended_actions": []
+            }
+          },
+          "operational_sustainability_gap": {
+            "if": {
+              "detected_failure_modes": {
+                "contains_any": [
+                  "operational_load_accumulates_unseen",
+                  "technical_debt_ignored",
+                  "recurrence_prevention_missing",
+                  "incident_closed_without_recurrence_prevention_review_when_material"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "expose_operational_load",
+                "record_technical_debt",
+                "add_recurrence_prevention_review",
+                "prepare_post_incident_review"
+              ],
+              "recommended_actions": []
+            }
+          },
+          "domain_boundary_overreach": {
+            "if": {
+              "detected_failure_modes": {
+                "contains_any": [
+                  "operational_judgment_absorbs_development_judgment",
+                  "operational_judgment_absorbs_strategy_judgment",
+                  "specialized_audit_or_formal_approval_replaced_by_omrgd"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "handoff_to_relevant_domain",
+                "require_human_review",
+                "block_ready_or_resolved_claim",
+                "emit_extended_status"
+              ],
+              "recommended_actions": []
+            }
+          }
+        },
+        "audit_to_action_consistency_policy": {
+          "decision_inputs_must_be_declared_when_used": true,
+          "action_outputs_must_be_declared_when_used": true,
+          "audit_decision_rules_must_emit_registered_action_outputs_only": true,
+          "unregistered_action_output_is_schema_hygiene_failure": true,
+          "action_precedence_must_not_override_higher_authority": true
+        },
+        "action_precedence": {
+          "critical_failure_blocks_ready_claim_when_material": true,
+          "recovery_unknown_blocks_resolved_claim": true,
+          "unconfirmed_state_blocks_normal_claim": true,
+          "rollback_unknown_blocks_safe_change_claim": true,
+          "formal_approval_boundary_blocks_authoritative_approval_claim": true,
+          "deduplicate_actions_after_mapping": true,
+          "higher_authority_remains_authoritative": true
+        }
+      },
+      "status_reporting": {
+        "enabled": true,
+        "status_reporting_should_define_domain_delta_only": true,
+        "modes": [
+          "silent_by_default",
+          "emit_on_anomaly",
+          "emit_on_user_request",
+          "emit_on_blocking_failure",
+          "emit_after_material_repair"
+        ],
+        "compact_fields": [
+          "omrgd_state",
+          "operational_state_status",
+          "health_status",
+          "monitoring_status",
+          "incident_status",
+          "recovery_status",
+          "rollback_status",
+          "runbook_status",
+          "dependency_health_status",
+          "operational_load_status",
+          "detected_failures",
+          "severity",
+          "repair_applied",
+          "remaining_uncertainty",
+          "handoff_recommended"
+        ],
+        "visibility_rules": {
+          "show_critical_failure": true,
+          "show_blocking_failure": true,
+          "show_material_repair": true,
+          "show_unconfirmed_normal_claim_risk": true,
+          "show_recovery_uncertainty": true,
+          "show_rollback_uncertainty": true,
+          "show_missing_monitoring_when_material": true,
+          "suppress_verbose_status_when_no_anomaly_and_no_user_request": true
+        }
+      },
+      "record_schemas": {
+        "record_policy": {
+          "record_schemas_are_optional_unless_domain_requires_records": true,
+          "if_records_exist_required_fields_must_map_to_field_groups": true,
+          "records_must_not_redefine_parent_audit_or_repair_cycle": true,
+          "records_must_remain_domain_delta": true
+        },
+        "domain_record_templates": {
+          "operational_state_record": {
+            "schema_name": "OMRGD Operational State Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record an operational target's current state, basis, degradations, unknowns, and confidence.",
+            "required_fields": [
+              "operational_state_record_id",
+              "governed_target",
+              "checked_state",
+              "state_basis",
+              "checked_timestamp",
+              "known_degradations",
+              "unknowns",
+              "confidence",
+              "reviewer_or_source"
+            ],
+            "field_groups": {
+              "identity": [
+                "operational_state_record_id",
+                "governed_target",
+                "checked_timestamp"
+              ],
+              "state": [
+                "checked_state",
+                "state_basis",
+                "known_degradations",
+                "unknowns"
+              ],
+              "basis_and_review": [
+                "confidence",
+                "reviewer_or_source"
+              ]
+            },
+            "validation_rules": [
+              "operational_state_record_id_required",
+              "governed_target_required",
+              "state_basis_required_or_unknown_state_declared",
+              "unknowns_must_not_be_hidden",
+              "confidence_required"
+            ]
+          },
+          "health_check_record": {
+            "schema_name": "OMRGD Health Check Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record service or target health assessment, health indicators, degraded conditions, and open checks.",
+            "required_fields": [
+              "health_check_record_id",
+              "governed_target",
+              "health_status",
+              "health_indicators",
+              "measurement_basis",
+              "degraded_conditions",
+              "failure_conditions",
+              "open_checks",
+              "checked_timestamp",
+              "confidence"
+            ],
+            "field_groups": {
+              "identity": [
+                "health_check_record_id",
+                "governed_target",
+                "checked_timestamp"
+              ],
+              "health_state": [
+                "health_status",
+                "health_indicators",
+                "measurement_basis"
+              ],
+              "conditions": [
+                "degraded_conditions",
+                "failure_conditions",
+                "open_checks"
+              ],
+              "basis": [
+                "confidence"
+              ]
+            },
+            "validation_rules": [
+              "health_check_record_id_required",
+              "health_status_required",
+              "measurement_basis_required_or_uncertainty_declared",
+              "degraded_and_failure_conditions_required_when_material",
+              "open_checks_must_not_be_hidden"
+            ]
+          },
+          "monitoring_review_record": {
+            "schema_name": "OMRGD Monitoring Review Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record monitoring, logging, metrics, and alerting coverage for an operational target.",
+            "required_fields": [
+              "monitoring_review_record_id",
+              "governed_target",
+              "monitoring_targets",
+              "log_review_points",
+              "metric_review_points",
+              "alert_conditions",
+              "coverage_gaps",
+              "noise_or_silence_risk",
+              "review_timestamp",
+              "recommended_updates"
+            ],
+            "field_groups": {
+              "identity": [
+                "monitoring_review_record_id",
+                "governed_target",
+                "review_timestamp"
+              ],
+              "observability_scope": [
+                "monitoring_targets",
+                "log_review_points",
+                "metric_review_points",
+                "alert_conditions"
+              ],
+              "gaps_and_risk": [
+                "coverage_gaps",
+                "noise_or_silence_risk"
+              ],
+              "actions": [
+                "recommended_updates"
+              ]
+            },
+            "validation_rules": [
+              "monitoring_review_record_id_required",
+              "monitoring_targets_required_or_gap_reported",
+              "log_and_metric_points_required_or_gap_reported",
+              "alert_conditions_required_or_gap_reported",
+              "coverage_gaps_must_not_be_hidden"
+            ]
+          },
+          "incident_response_record": {
+            "schema_name": "OMRGD Incident Response Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record incident, failure, degradation, or outage classification, impact, response, recovery state, and recurrence-prevention need.",
+            "required_fields": [
+              "incident_record_id",
+              "incident_type",
+              "affected_targets",
+              "detected_timestamp",
+              "detection_source",
+              "severity",
+              "impact_scope",
+              "current_status",
+              "recovery_actions",
+              "unresolved_uncertainty",
+              "recurrence_prevention_needed"
+            ],
+            "field_groups": {
+              "identity": [
+                "incident_record_id",
+                "incident_type",
+                "detected_timestamp"
+              ],
+              "detection": [
+                "detection_source",
+                "severity",
+                "current_status"
+              ],
+              "impact": [
+                "affected_targets",
+                "impact_scope"
+              ],
+              "response": [
+                "recovery_actions",
+                "unresolved_uncertainty",
+                "recurrence_prevention_needed"
+              ]
+            },
+            "validation_rules": [
+              "incident_record_id_required",
+              "incident_type_required",
+              "affected_targets_required_or_unknown_declared",
+              "impact_scope_required_or_unknown_declared",
+              "unresolved_uncertainty_required",
+              "recurrence_prevention_needed_required_when_material"
+            ]
+          },
+          "recovery_and_rollback_record": {
+            "schema_name": "OMRGD Recovery and Rollback Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record recovery policy, rollback policy, verification method, confirmation status, residual risk, and next review condition.",
+            "required_fields": [
+              "recovery_rollback_record_id",
+              "affected_target",
+              "recovery_policy",
+              "rollback_policy",
+              "rollback_possible",
+              "verification_method",
+              "recovery_confirmation_status",
+              "residual_risk",
+              "next_review_condition"
+            ],
+            "field_groups": {
+              "identity": [
+                "recovery_rollback_record_id",
+                "affected_target"
+              ],
+              "recovery": [
+                "recovery_policy",
+                "verification_method",
+                "recovery_confirmation_status"
+              ],
+              "rollback": [
+                "rollback_policy",
+                "rollback_possible"
+              ],
+              "risk_and_lifecycle": [
+                "residual_risk",
+                "next_review_condition"
+              ]
+            },
+            "validation_rules": [
+              "recovery_rollback_record_id_required",
+              "recovery_policy_required_or_gap_reported",
+              "rollback_policy_required_or_gap_reported_when_material",
+              "verification_method_required_for_recovery_confirmation",
+              "residual_risk_required"
+            ]
+          },
+          "runbook_maintenance_record": {
+            "schema_name": "OMRGD Runbook Maintenance Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record runbook purpose, trigger conditions, procedure coverage, verification, escalation, freshness, and limitations.",
+            "required_fields": [
+              "runbook_maintenance_record_id",
+              "runbook_reference",
+              "governed_target",
+              "trigger_conditions",
+              "procedure_coverage",
+              "verification_steps",
+              "rollback_or_escape_path",
+              "escalation_path",
+              "last_reviewed_timestamp",
+              "known_limitations",
+              "update_needed"
+            ],
+            "field_groups": {
+              "identity": [
+                "runbook_maintenance_record_id",
+                "runbook_reference",
+                "governed_target"
+              ],
+              "procedure": [
+                "trigger_conditions",
+                "procedure_coverage",
+                "verification_steps",
+                "rollback_or_escape_path",
+                "escalation_path"
+              ],
+              "freshness_and_limits": [
+                "last_reviewed_timestamp",
+                "known_limitations",
+                "update_needed"
+              ]
+            },
+            "validation_rules": [
+              "runbook_reference_required",
+              "trigger_conditions_required",
+              "verification_steps_required_for_recovery_runbook",
+              "escalation_path_required_when_recovery_may_fail",
+              "update_needed_required"
+            ]
+          },
+          "change_impact_record": {
+            "schema_name": "OMRGD Change Impact Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record operational impact of a change, affected targets, rollback considerations, dependency effects, and post-change checks.",
+            "required_fields": [
+              "change_impact_record_id",
+              "change_description",
+              "affected_targets",
+              "expected_operational_impact",
+              "risk_level",
+              "rollback_consideration",
+              "dependency_effects",
+              "pre_change_checks",
+              "post_change_checks",
+              "maintenance_window",
+              "approval_boundary"
+            ],
+            "field_groups": {
+              "identity": [
+                "change_impact_record_id",
+                "change_description"
+              ],
+              "impact": [
+                "affected_targets",
+                "expected_operational_impact",
+                "risk_level",
+                "dependency_effects"
+              ],
+              "checks_and_reversibility": [
+                "rollback_consideration",
+                "pre_change_checks",
+                "post_change_checks"
+              ],
+              "coordination": [
+                "maintenance_window",
+                "approval_boundary"
+              ]
+            },
+            "validation_rules": [
+              "change_description_required",
+              "affected_targets_required",
+              "expected_operational_impact_required",
+              "rollback_consideration_required_when_material",
+              "post_change_checks_required_when_material",
+              "approval_boundary_must_not_be_replaced_by_omrgd"
+            ]
+          },
+          "dependency_health_record": {
+            "schema_name": "OMRGD Dependency Health Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record dependency status, failure effect, observability, fallback, and unknowns.",
+            "required_fields": [
+              "dependency_health_record_id",
+              "dependency_name_or_reference",
+              "dependent_target",
+              "dependency_status",
+              "health_basis",
+              "failure_effect",
+              "fallback_or_mitigation",
+              "unknowns",
+              "review_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "dependency_health_record_id",
+                "dependency_name_or_reference",
+                "dependent_target",
+                "review_timestamp"
+              ],
+              "health": [
+                "dependency_status",
+                "health_basis",
+                "unknowns"
+              ],
+              "impact_and_response": [
+                "failure_effect",
+                "fallback_or_mitigation"
+              ]
+            },
+            "validation_rules": [
+              "dependency_reference_required",
+              "dependency_status_required_or_unknown_declared",
+              "health_basis_required_or_unknown_declared",
+              "failure_effect_required_when_material",
+              "unknowns_must_not_be_hidden"
+            ]
+          },
+          "reliability_improvement_record": {
+            "schema_name": "OMRGD Reliability Improvement Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record recurrence-prevention, technical-debt, operational-load, and continuous-improvement items.",
+            "required_fields": [
+              "reliability_improvement_record_id",
+              "origin",
+              "affected_target",
+              "observed_problem",
+              "reliability_effect",
+              "technical_debt_relation",
+              "operational_load_relation",
+              "proposed_improvement",
+              "expected_detection_or_recovery_improvement",
+              "remaining_uncertainty",
+              "review_condition"
+            ],
+            "field_groups": {
+              "identity": [
+                "reliability_improvement_record_id",
+                "origin",
+                "affected_target"
+              ],
+              "problem": [
+                "observed_problem",
+                "reliability_effect",
+                "technical_debt_relation",
+                "operational_load_relation"
+              ],
+              "improvement": [
+                "proposed_improvement",
+                "expected_detection_or_recovery_improvement"
+              ],
+              "uncertainty_and_lifecycle": [
+                "remaining_uncertainty",
+                "review_condition"
+              ]
+            },
+            "validation_rules": [
+              "origin_required",
+              "observed_problem_required",
+              "reliability_effect_required",
+              "proposed_improvement_required_or_gap_reported",
+              "remaining_uncertainty_must_be_recorded"
+            ]
+          },
+          "omrgd_audit_record": {
+            "schema_name": "OMRGD Audit Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record OMRGD audit targets, detected failures, severity, scoring, critical invalidation, repair, uncertainty, and handoff recommendation.",
+            "required_fields": [
+              "omrgd_audit_id",
+              "audit_timestamp",
+              "audit_targets",
+              "detected_failures",
+              "severity",
+              "dimension_scores",
+              "critical_invalidation_status",
+              "repair_applied",
+              "remaining_uncertainty",
+              "handoff_recommended"
+            ],
+            "field_groups": {
+              "identity": [
+                "omrgd_audit_id",
+                "audit_timestamp"
+              ],
+              "criteria_and_scores": [
+                "audit_targets",
+                "dimension_scores"
+              ],
+              "deviation_status": [
+                "detected_failures",
+                "severity",
+                "critical_invalidation_status"
+              ],
+              "actions_and_limits": [
+                "repair_applied",
+                "remaining_uncertainty",
+                "handoff_recommended"
+              ]
+            },
+            "validation_rules": [
+              "omrgd_audit_id_required",
+              "audit_targets_required",
+              "detected_failures_required",
+              "severity_required",
+              "critical_invalidation_status_required",
+              "repair_applied_required_when_deviation_repaired",
+              "remaining_uncertainty_required_when_status_is_not_fully_verified"
+            ]
+          }
+        },
+        "record_relationship_contract": {
+          "schema_name": "OMRGD Record Relationship Contract",
+          "schema_version": "0.1.0",
+          "purpose": "Define key relationships among operational state, health, monitoring, incident, recovery, runbook, change impact, dependency health, improvement, and audit records.",
+          "primary_keys": {
+            "operational_state_record": [
+              "operational_state_record_id"
+            ],
+            "health_check_record": [
+              "health_check_record_id"
+            ],
+            "monitoring_review_record": [
+              "monitoring_review_record_id"
+            ],
+            "incident_response_record": [
+              "incident_record_id"
+            ],
+            "recovery_and_rollback_record": [
+              "recovery_rollback_record_id"
+            ],
+            "runbook_maintenance_record": [
+              "runbook_maintenance_record_id"
+            ],
+            "change_impact_record": [
+              "change_impact_record_id"
+            ],
+            "dependency_health_record": [
+              "dependency_health_record_id"
+            ],
+            "reliability_improvement_record": [
+              "reliability_improvement_record_id"
+            ],
+            "omrgd_audit_record": [
+              "omrgd_audit_id"
+            ]
+          },
+          "foreign_key_expectations": {
+            "health_check_record.governed_target": "operational_state_record.governed_target",
+            "monitoring_review_record.governed_target": "operational_state_record.governed_target",
+            "incident_response_record.affected_targets": "one_or_more_operational_state_record.governed_target",
+            "recovery_and_rollback_record.affected_target": "one_operational_state_record.governed_target_or_incident_response_record.affected_targets",
+            "runbook_maintenance_record.governed_target": "operational_state_record.governed_target",
+            "change_impact_record.affected_targets": "one_or_more_operational_state_record.governed_target",
+            "dependency_health_record.dependent_target": "operational_state_record.governed_target",
+            "reliability_improvement_record.affected_target": "one_operational_state_record.governed_target_or_incident_response_record.affected_targets",
+            "omrgd_audit_record.audit_targets": "evaluation.audit_targets"
+          },
+          "orphan_record_rules": {
+            "health_without_target_requires_unknown_target_status": true,
+            "monitoring_without_target_requires_scope_repair": true,
+            "incident_without_affected_target_requires_unknown_impact_status": true,
+            "recovery_without_affected_target_requires_repair_before_resolved_claim": true,
+            "runbook_without_governed_target_requires_reference_only_status": true,
+            "change_impact_without_affected_target_requires_repair": true,
+            "dependency_record_without_dependent_target_requires_repair": true,
+            "improvement_without_origin_requires_repair": true,
+            "audit_without_targets_prohibited": true
+          },
+          "validation_rules": [
+            "primary_keys_must_be_unique",
+            "foreign_key_references_must_resolve_or_be_marked_unresolved",
+            "material_unresolved_reference_requires_degraded_status",
+            "record_relationship_break_requires_repair_before_ready_or_resolved_claim"
+          ]
+        },
+        "record_schema_consistency_policy": {
+          "record_required_fields_must_be_mapped_to_field_groups": true,
+          "field_group_items_inherit_group_requirement_level_unless_overridden": true,
+          "field_group_items_must_have_known_requirement_level_after_inheritance": true,
+          "record_relationships_must_not_create_orphan_records": true
+        }
+      },
+      "domain_specific_vocabulary": {
+        "concept_alignment": [
+          "operations",
+          "maintenance",
+          "reliability",
+          "operational_state",
+          "service_health",
+          "monitoring",
+          "logging",
+          "metrics",
+          "alerting",
+          "incident",
+          "failure",
+          "degradation",
+          "outage",
+          "recovery",
+          "rollback",
+          "runbook",
+          "maintenance_task",
+          "change_impact",
+          "dependency_health",
+          "operational_risk",
+          "operational_load",
+          "technical_debt",
+          "service_level",
+          "reliability_target",
+          "error_budget",
+          "escalation_path",
+          "post_incident_review",
+          "recurrence_prevention",
+          "continuous_improvement"
+        ],
+        "non_equivalence_relations": [
+          "currently_running_is_not_operationally_reliable",
+          "no_alert_is_not_healthy_state",
+          "log_presence_is_not_sufficient_observability",
+          "metric_presence_is_not_sufficient_monitoring_coverage",
+          "incident_closed_is_not_recurrence_prevented",
+          "recovery_attempted_is_not_recovery_confirmed",
+          "runbook_exists_is_not_runbook_current",
+          "rollback_plan_exists_is_not_rollback_possible",
+          "maintenance_task_exists_is_not_maintenance_sustainable"
+        ]
+      },
+      "domain_specific_core_principle": {
+        "principle": "Operations, maintenance, and reliability governance means preserving the ability to know whether a target remains continuously usable, detect abnormal conditions, assess operational impact, recover from failure, prevent recurrence, and maintain long-term maintainability.",
+        "negative_boundary": [
+          "OMRGD_is_not_new_development_consultation",
+          "OMRGD_is_not_whole_project_management",
+          "OMRGD_is_not_strategic_withdrawal_decision",
+          "OMRGD_is_not_formal_approval_replacement"
+        ]
+      },
+      "meta_data": {
+        "version": "0.1.0"
+      }
+    }
+  }
+}

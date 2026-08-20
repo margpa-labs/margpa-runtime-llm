@@ -19,6 +19,7 @@ from margpa_runtime_llm.adapters.output_protocols.tagged_thinking import (
 )
 from margpa_runtime_llm.modules.conversation.public import (
     TOKEN_LIMIT_WARNING,
+    ContextUsagePromptInjectionMode,
     ConversationEvent,
     ConversationEventType,
     ConversationGenerationInput,
@@ -26,6 +27,7 @@ from margpa_runtime_llm.modules.conversation.public import (
     ConversationMessage,
     ConversationRole,
     ConversationSettings,
+    ExpressiveMode,
 )
 from margpa_runtime_llm.modules.documentation_rag.contracts import (
     DocumentationAugmentation,
@@ -49,6 +51,7 @@ from margpa_runtime_llm.modules.inference.contracts.generation import (
     GenerationTerminalState,
     GenerationTiming,
     ThinkingMode,
+    TokenUsage,
 )
 from margpa_runtime_llm.modules.inference.contracts.messages import ChatMessage, MessageRole
 from margpa_runtime_llm.modules.inference.contracts.response import ResponseLanguage
@@ -73,10 +76,12 @@ class FakeStream:
         text_deltas: tuple[str, ...] = ("answer",),
         finish_reason: FinishReason = FinishReason.STOP,
         failure: InferenceError | None = None,
+        usage: TokenUsage | None = None,
     ) -> None:
         self.text_deltas = text_deltas
         self.finish_reason = finish_reason
         self.failure = failure
+        self.usage = usage
         self.cancelled = False
         self.closed = False
 
@@ -112,6 +117,7 @@ class FakeStream:
             text_delta="",
             is_final=True,
             finish_reason=self.finish_reason,
+            usage=self.usage,
         )
 
     def cancel(self) -> None:
@@ -345,6 +351,10 @@ def conversation_input(
     max_new_tokens: int = 128,
     summary_mode: SummaryMode = SummaryMode.OFF,
     documentation_rag_mode: DocumentationRagMode = DocumentationRagMode.DISABLED,
+    context_usage_prompt_injection_mode: ContextUsagePromptInjectionMode = (
+        ContextUsagePromptInjectionMode.DISABLED
+    ),
+    expressive_mode: ExpressiveMode = ExpressiveMode.DISABLED,
 ) -> ConversationGenerationInput:
     return ConversationGenerationInput(
         messages=(
@@ -359,6 +369,8 @@ def conversation_input(
             thinking_visibility=visibility,
             summary_mode=summary_mode,
             documentation_rag_mode=documentation_rag_mode,
+            context_usage_prompt_injection_mode=context_usage_prompt_injection_mode,
+            expressive_mode=expressive_mode,
         ),
     )
 
@@ -997,3 +1009,283 @@ def test_cancel_between_normal_and_summary_is_not_a_fallback_or_history_result()
     assert len(inference.requests) == 1
     assert all(event.event is not ConversationEventType.WARNING for event in remaining)
     assert session.finished
+
+
+def test_context_usage_is_absent_when_backend_reports_no_usage() -> None:
+    events = list(service(FakeInference()).start(conversation_input()).events())
+
+    completed = next(event for event in events if event.event is ConversationEventType.COMPLETED)
+    assert completed.data["context_usage"] is None
+
+
+def test_context_usage_breakdown_uses_text_token_counter_and_effective_context_size() -> None:
+    usage = TokenUsage(prompt_tokens=100, completion_tokens=20, total_tokens=120)
+    inference = FakeInference(lambda: FakeStream(usage=usage))
+    generation = ConversationGenerationService(
+        inference=inference,
+        presentation=ThinkingPresentationService(PlainTextOutputParser()),
+        model_key="main.model",
+        generation_defaults=GenerationParameters(),
+        response_language_default=ResponseLanguage.JA,
+        presentation_default=presentation_policy(),
+        text_token_counter=len,
+        effective_context_size=1000,
+    )
+
+    events = list(
+        generation.start(conversation_input(thinking_mode=ThinkingMode.DISABLED)).events()
+    )
+
+    completed = next(event for event in events if event.event is ConversationEventType.COMPLETED)
+    context_usage = completed.data["context_usage"]
+    assert context_usage is not None
+    system_prompt_tokens = len(JAPANESE_RESPONSE_INSTRUCTION)
+    assert context_usage == {
+        "prompt_tokens": 100,
+        "completion_tokens": 20,
+        "total_tokens": 120,
+        "loaded_context_size": 1000,
+        "usage_ratio": pytest.approx(0.12),
+        "breakdown": {
+            "conversation_history_tokens": 100 - system_prompt_tokens,
+            "system_prompt_tokens": system_prompt_tokens,
+            "rag_context_tokens": 0,
+            "free_tokens": 880,
+        },
+    }
+
+
+def test_context_usage_breakdown_separates_rag_reference_from_system_prompt() -> None:
+    usage = TokenUsage(prompt_tokens=500, completion_tokens=50, total_tokens=550)
+    inference = FakeInference(lambda: FakeStream(usage=usage))
+    rag = BudgetAwareGroundedRag()
+    generation = ConversationGenerationService(
+        inference=inference,
+        presentation=ThinkingPresentationService(PlainTextOutputParser()),
+        model_key="main.model",
+        generation_defaults=GenerationParameters(max_new_tokens=128),
+        response_language_default=ResponseLanguage.JA,
+        presentation_default=presentation_policy(),
+        documentation_rag=rag,
+        documentation_rag_availability=DocumentationRagAvailability.AVAILABLE,
+        chat_prompt_token_counter=lambda messages, thinking_mode: sum(
+            len(message.content) for message in messages
+        ),
+        text_token_counter=len,
+        effective_context_size=4096,
+    )
+    value = ConversationGenerationInput(
+        messages=(ConversationMessage(role=ConversationRole.USER, content="EASAとは?"),),
+        settings=ConversationSettings(
+            response_language=ResponseLanguage.JA,
+            max_new_tokens=128,
+            thinking_mode=ThinkingMode.DISABLED,
+            thinking_visibility=ThinkingVisibility.HIDDEN,
+            documentation_rag_mode=DocumentationRagMode.ENABLED,
+        ),
+    )
+
+    events = list(generation.start(value).events())
+
+    completed = next(event for event in events if event.event is ConversationEventType.COMPLETED)
+    breakdown = completed.data["context_usage"]["breakdown"]
+    reference_message = inference.requests[0].messages[1]
+    assert reference_message.name == "documentation_reference"
+    assert breakdown["rag_context_tokens"] == len(reference_message.content)
+    assert breakdown["system_prompt_tokens"] == len(JAPANESE_RESPONSE_INSTRUCTION)
+    assert breakdown["conversation_history_tokens"] == 500 - (
+        breakdown["rag_context_tokens"] + breakdown["system_prompt_tokens"]
+    )
+
+
+def test_context_usage_reflects_original_turn_not_summary_subrequest() -> None:
+    pending_streams = iter(
+        (
+            FakeStream(
+                text_deltas=("Long original answer",),
+                usage=TokenUsage(prompt_tokens=800, completion_tokens=100, total_tokens=900),
+            ),
+            FakeStream(
+                text_deltas=("Short summary",),
+                usage=TokenUsage(prompt_tokens=30, completion_tokens=10, total_tokens=40),
+            ),
+        )
+    )
+    inference = FakeInference(lambda: next(pending_streams))
+    generation = ConversationGenerationService(
+        inference=inference,
+        presentation=ThinkingPresentationService(PlainTextOutputParser()),
+        model_key="main.model",
+        generation_defaults=GenerationParameters(max_new_tokens=128),
+        response_language_default=ResponseLanguage.JA,
+        presentation_default=presentation_policy(),
+        text_token_counter=len,
+        effective_context_size=4096,
+    )
+
+    events = list(
+        generation.start(
+            conversation_input(
+                thinking_mode=ThinkingMode.DISABLED,
+                summary_mode=SummaryMode.POST_GENERATION,
+            )
+        ).events()
+    )
+
+    completed = next(event for event in events if event.event is ConversationEventType.COMPLETED)
+    context_usage = completed.data["context_usage"]
+    assert context_usage["prompt_tokens"] == 800
+    assert context_usage["completion_tokens"] == 100
+    assert context_usage["total_tokens"] == 900
+
+
+def test_context_usage_prompt_injection_defaults_off_and_adds_no_system_message() -> None:
+    inference = FakeInference()
+    generation = ConversationGenerationService(
+        inference=inference,
+        presentation=ThinkingPresentationService(PlainTextOutputParser()),
+        model_key="main.model",
+        generation_defaults=GenerationParameters(max_new_tokens=128),
+        response_language_default=ResponseLanguage.JA,
+        presentation_default=presentation_policy(),
+        chat_prompt_token_counter=lambda messages, thinking_mode: sum(
+            len(message.content) for message in messages
+        ),
+        effective_context_size=4096,
+    )
+
+    list(generation.start(conversation_input(thinking_mode=ThinkingMode.DISABLED)).events())
+
+    request = inference.requests[0]
+    assert all(message.name != "context_usage_notice" for message in request.messages)
+
+
+def test_context_usage_prompt_injection_when_enabled_adds_reactive_only_system_message() -> None:
+    inference = FakeInference()
+    generation = ConversationGenerationService(
+        inference=inference,
+        presentation=ThinkingPresentationService(PlainTextOutputParser()),
+        model_key="main.model",
+        generation_defaults=GenerationParameters(max_new_tokens=128),
+        response_language_default=ResponseLanguage.JA,
+        presentation_default=presentation_policy(),
+        chat_prompt_token_counter=lambda messages, thinking_mode: sum(
+            len(message.content) for message in messages
+        ),
+        effective_context_size=4096,
+    )
+
+    list(
+        generation.start(
+            conversation_input(
+                thinking_mode=ThinkingMode.DISABLED,
+                context_usage_prompt_injection_mode=ContextUsagePromptInjectionMode.ENABLED,
+            )
+        ).events()
+    )
+
+    request = inference.requests[0]
+    notice = next(message for message in request.messages if message.name == "context_usage_notice")
+    assert notice.role is MessageRole.SYSTEM
+    assert "%" in notice.content
+    assert "尋ねられた場合にのみ" in notice.content
+    assert "自発的に言及しないで" in notice.content
+
+
+def test_context_usage_prompt_injection_is_skipped_without_a_chat_prompt_token_counter() -> None:
+    inference = FakeInference()
+    generation = service(inference)
+
+    list(
+        generation.start(
+            conversation_input(
+                context_usage_prompt_injection_mode=ContextUsagePromptInjectionMode.ENABLED,
+            )
+        ).events()
+    )
+
+    request = inference.requests[0]
+    assert all(message.name != "context_usage_notice" for message in request.messages)
+
+
+def test_expressive_mode_defaults_off_and_adds_no_system_message() -> None:
+    inference = FakeInference()
+    generation = service(inference)
+
+    list(generation.start(conversation_input()).events())
+
+    request = inference.requests[0]
+    assert all(message.name != "expressive_style_notice" for message in request.messages)
+
+
+def test_expressive_mode_when_enabled_adds_a_style_only_system_message() -> None:
+    inference = FakeInference()
+    generation = service(inference)
+
+    list(
+        generation.start(
+            conversation_input(expressive_mode=ExpressiveMode.ENABLED),
+        ).events()
+    )
+
+    request = inference.requests[0]
+    notice = next(
+        message for message in request.messages if message.name == "expressive_style_notice"
+    )
+    assert notice.role is MessageRole.SYSTEM
+    assert "推論の正確性" in notice.content
+    assert "www" in notice.content
+    assert "絵文字" in notice.content
+    assert "顔文字" in notice.content
+
+
+def test_expressive_and_context_notices_follow_base_instruction() -> None:
+    inference = FakeInference()
+    generation = ConversationGenerationService(
+        inference=inference,
+        presentation=ThinkingPresentationService(PlainTextOutputParser()),
+        model_key="main.model",
+        generation_defaults=GenerationParameters(max_new_tokens=128),
+        response_language_default=ResponseLanguage.JA,
+        presentation_default=presentation_policy(),
+        chat_prompt_token_counter=lambda messages, thinking_mode: sum(
+            len(message.content) for message in messages
+        ),
+        effective_context_size=4096,
+    )
+
+    list(
+        generation.start(
+            conversation_input(
+                thinking_mode=ThinkingMode.DISABLED,
+                expressive_mode=ExpressiveMode.ENABLED,
+                context_usage_prompt_injection_mode=ContextUsagePromptInjectionMode.ENABLED,
+            )
+        ).events()
+    )
+
+    request = inference.requests[0]
+    names = [message.name for message in request.messages]
+    # Both injections always insert right after the leading (unnamed) base
+    # instruction, so the base instruction stays first regardless of order;
+    # the two notices' relative order between themselves is incidental.
+    assert names[0] is None
+    assert request.messages[0].role is MessageRole.SYSTEM
+    assert "expressive_style_notice" in names
+    assert "context_usage_notice" in names
+
+
+def test_context_usage_breakdown_defaults_to_zero_without_a_text_token_counter() -> None:
+    usage = TokenUsage(prompt_tokens=64, completion_tokens=8, total_tokens=72)
+    inference = FakeInference(lambda: FakeStream(usage=usage))
+
+    events = list(service(inference).start(conversation_input()).events())
+
+    completed = next(event for event in events if event.event is ConversationEventType.COMPLETED)
+    breakdown = completed.data["context_usage"]["breakdown"]
+    assert breakdown == {
+        "conversation_history_tokens": 64,
+        "system_prompt_tokens": 0,
+        "rag_context_tokens": 0,
+        "free_tokens": 4096 - 72,
+    }

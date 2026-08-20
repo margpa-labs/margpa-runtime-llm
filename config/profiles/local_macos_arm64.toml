@@ -28,6 +28,7 @@ required_acceleration_api = "metal"
 fallback_policy = "deny"
 
 [load_overrides]
+context_size = 8192
 batch_size = 256
 micro_batch_size = 256
 threads = 6

@@ -1,0 +1,2434 @@
+{
+  "pmogd": {
+    "project_management_and_orchestration_governance_definition": {
+      "description": "PMOGD (Project Management and Orchestration Governance Definition) is an additive domain governance definition for coordinating project execution across multiple work items, owners, deliverables, domains, stakeholders, states, dependencies, blockers, handoffs, agreements, action items, and delivery readiness. PMOGD governs how already-existing or explicitly requested work should be made visible, sequenced, assigned, tracked, synchronized, escalated, handed off, and prepared for delivery. It does not replace strategy, technical, implementation, operations, legal, regulatory, artifact-quality, or other specialized expert judgment.",
+      "inheritance": {
+        "inheritance_mode": "additive_domain_extension",
+        "parent_definitions": [
+          {
+            "syntax_id": "argd",
+            "role": "general_reasoning_procedure_governance",
+            "required": true
+          },
+          {
+            "syntax_id": "dagd",
+            "role": "general_behavior_audit_repair_activation_and_status_governance",
+            "required": true
+          }
+        ],
+        "dependency_version_policy": {
+          "specific_parent_versions_are_not_hardcoded_in_domain_compatibility_labels": true,
+          "parent_version_binding_is_external_to_this_domain_definition": true,
+          "version_binding_owner": "runtime_bundle_or_release_manifest"
+        },
+        "standalone_reference_use": {
+          "allowed": true,
+          "condition": "standalone_readers_must_treat_parent_mechanisms_as_external_prerequisites_or_reference_context",
+          "does_not_grant_parent_functionality": true,
+          "runtime_conformance_requires_parent_definitions": true
+        },
+        "replaces_parent_definitions": false,
+        "duplicates_parent_rules": false,
+        "parent_rules_remain_authoritative": true,
+        "domain_delta_only": true,
+        "preserved_parent_mechanism_policy": {
+          "inherited_governance_must_be_referenced_not_reexpanded": true,
+          "silent_parent_rule_override_prohibited": true,
+          "parent_mechanism_lists_must_not_be_recreated_unless_required_by_explicit_context": true
+        },
+        "conflict_policy": {
+          "general_reasoning_conflicts": "resolve_under_parent_reasoning_governance",
+          "general_behavior_and_governance_conflicts": "resolve_under_parent_behavior_governance",
+          "project_management_and_orchestration_domain_conflicts": "resolve_under_pmogd_when_not_in_conflict_with_parent_governance_or_higher_authority",
+          "specialized_domain_judgment_conflicts": "handoff_to_or_resolve_under_relevant_specialized_domain_or_authoritative_responsible_party",
+          "higher_level_system_policies_remain_authoritative": true,
+          "formal_organizational_authority_is_not_replaced": true
+        }
+      },
+      "orchestration_reference": {
+        "orchestration_definition": "cdogd",
+        "relationship": "external_orchestration_reference",
+        "cdogd_is_not_reimplemented_here": true,
+        "registry_and_activation_logic_are_external": true,
+        "routing_priority_and_domain_selection_are_external": true,
+        "registered_domain_extension_storage_is_external": true,
+        "pmogd_project_orchestration_is_not_cdogd_cross_domain_routing": true
+      },
+      "domain_scope": {
+        "domain": "project_management_and_orchestration",
+        "scope_statement": "Governs project execution coordination, task state management, owner and deadline clarity, dependency and blocker tracking, handoff coordination, delivery readiness, action item management, meeting-to-action continuity, and cross-domain work synchronization without replacing strategy, technical, implementation, operational, legal, artifact-quality, regulatory, or other specialized expert judgment.",
+        "governed_target_categories": [
+          "work_item",
+          "task",
+          "issue",
+          "backlog_item",
+          "milestone",
+          "deliverable",
+          "owner_assignment",
+          "deadline",
+          "progress_state",
+          "dependency",
+          "blocker",
+          "handoff",
+          "agreement",
+          "open_item",
+          "meeting",
+          "decision_log",
+          "action_item",
+          "next_action",
+          "delivery_timing",
+          "delivery_readiness",
+          "scope_tracking",
+          "status_update",
+          "escalation_point",
+          "cross_domain_work_state"
+        ],
+        "governed_activity_types": [
+          "task_organization",
+          "issue_organization",
+          "backlog_organization",
+          "milestone_planning",
+          "owner_clarification",
+          "deadline_clarification",
+          "status_update",
+          "progress_confirmation",
+          "dependency_mapping",
+          "blocker_identification",
+          "handoff_coordination",
+          "action_item_definition",
+          "next_action_definition",
+          "meeting_coordination",
+          "agreement_recording",
+          "open_item_recording",
+          "delivery_readiness_confirmation",
+          "delivery_timing_coordination",
+          "escalation_point_clarification",
+          "cross_domain_work_synchronization"
+        ],
+        "governed_output_types": [
+          "project_status_summary",
+          "task_list",
+          "issue_list",
+          "backlog_summary",
+          "milestone_plan",
+          "action_item_list",
+          "owner_assignment",
+          "dependency_map",
+          "blocker_list",
+          "handoff_note",
+          "meeting_agenda",
+          "meeting_minutes",
+          "decision_log",
+          "follow_up_list",
+          "delivery_checklist",
+          "readiness_summary",
+          "escalation_note",
+          "progress_report",
+          "coordination_memo",
+          "cross_domain_work_plan"
+        ],
+        "lifecycle_coverage": [
+          "work_item_intake",
+          "task_breakdown",
+          "issue_registration",
+          "backlog_organization",
+          "milestone_planning",
+          "owner_assignment",
+          "deadline_tracking",
+          "status_update",
+          "dependency_mapping",
+          "blocker_tracking",
+          "handoff_coordination",
+          "meeting_coordination",
+          "agreement_recording",
+          "open_item_tracking",
+          "action_item_definition",
+          "delivery_readiness_confirmation",
+          "escalation_management",
+          "cross_domain_synchronization",
+          "progress_reporting",
+          "coordination_repair"
+        ],
+        "primary_responsibility_boundary": [
+          "make_work_items_visible",
+          "manage_task_state",
+          "manage_issue_state",
+          "manage_backlog_state",
+          "manage_milestone_state",
+          "clarify_owner",
+          "clarify_deadline",
+          "confirm_progress",
+          "clarify_dependencies",
+          "surface_blockers",
+          "clarify_action_items",
+          "clarify_next_actions",
+          "record_agreements",
+          "record_open_items",
+          "manage_handoffs",
+          "confirm_delivery_readiness",
+          "synchronize_cross_domain_work_state"
+        ],
+        "non_targets": [
+          "replacement_of_parent_governance",
+          "replacement_of_external_orchestration",
+          "absorption_of_sibling_domain_definitions",
+          "model_weight_modification",
+          "training_data_modification",
+          "replacement_of_built_in_system_policies",
+          "strategy_decision_itself",
+          "fundamental_priority_decision_itself",
+          "withdrawal_or_stop_decision_itself",
+          "technical_selection_itself",
+          "design_advice_itself",
+          "implementation_itself",
+          "code_generation_itself",
+          "test_execution_itself",
+          "operations_or_maintenance_judgment_itself",
+          "incident_response_execution_itself",
+          "artifact_composition_review_or_submission_quality_itself",
+          "legal_accounting_regulatory_or_other_expert_judgment",
+          "formal_organizational_approval_substitution",
+          "specialized_domain_final_judgment_substitution"
+        ]
+      },
+      "independence_and_disclosure_boundary": {
+        "generic_public_research": true,
+        "company_specific_project_state_excluded": true,
+        "customer_specific_project_state_excluded": true,
+        "private_issue_tracker_excluded": true,
+        "private_backlog_excluded": true,
+        "private_milestone_plan_excluded": true,
+        "private_delivery_schedule_excluded": true,
+        "private_responsible_party_identity_excluded_unless_explicitly_declared": true,
+        "synthetic_and_abstract_examples_preferred": true,
+        "public_artifact_classes": [
+          "generic_project_coordination_governance_structure",
+          "generic_task_state_model",
+          "generic_issue_and_backlog_model",
+          "generic_milestone_model",
+          "generic_dependency_and_blocker_model",
+          "generic_handoff_and_action_item_model",
+          "generic_delivery_readiness_model",
+          "generic_cross_domain_synchronization_model",
+          "synthetic_examples"
+        ],
+        "pre_publication_checks": [
+          "private_project_identifier_absent",
+          "private_customer_identifier_absent",
+          "private_issue_tracker_content_absent",
+          "private_backlog_content_absent",
+          "private_delivery_schedule_absent",
+          "private_meeting_content_absent",
+          "private_responsible_party_identity_absent_or_explicitly_allowed",
+          "unsupported_completion_claim_absent",
+          "unsupported_delivery_readiness_claim_absent"
+        ]
+      },
+      "naming_conventions": {
+        "canonical_case": "lower_snake_case",
+        "versioning": "semantic_versioning_major_minor_patch",
+        "timestamp_format": "rfc3339_utc",
+        "canonical_file_names": [
+          "pmogd_v0.1.0_en.json",
+          "pmogd_v0.1.0_ja.json"
+        ],
+        "identifier_patterns": {
+          "project_coordination_id": "^pmogd_coord_[a-z0-9][a-z0-9_-]*$",
+          "work_item_id": "^pmogd_work_[a-z0-9][a-z0-9_-]*$",
+          "issue_id": "^pmogd_issue_[a-z0-9][a-z0-9_-]*$",
+          "backlog_item_id": "^pmogd_backlog_[a-z0-9][a-z0-9_-]*$",
+          "milestone_id": "^pmogd_ms_[a-z0-9][a-z0-9_-]*$",
+          "dependency_id": "^pmogd_dep_[a-z0-9][a-z0-9_-]*$",
+          "blocker_id": "^pmogd_blocker_[a-z0-9][a-z0-9_-]*$",
+          "handoff_id": "^pmogd_handoff_[a-z0-9][a-z0-9_-]*$",
+          "meeting_id": "^pmogd_meeting_[a-z0-9][a-z0-9_-]*$",
+          "decision_id": "^pmogd_decision_[a-z0-9][a-z0-9_-]*$",
+          "action_item_id": "^pmogd_action_[a-z0-9][a-z0-9_-]*$",
+          "readiness_id": "^pmogd_ready_[a-z0-9][a-z0-9_-]*$",
+          "escalation_id": "^pmogd_esc_[a-z0-9][a-z0-9_-]*$",
+          "sync_id": "^pmogd_sync_[a-z0-9][a-z0-9_-]*$",
+          "audit_id": "^pmogd_audit_[a-z0-9][a-z0-9_-]*$",
+          "revision_id": "^pmogd_rev_[a-z0-9][a-z0-9_-]*$"
+        }
+      },
+      "abstraction_and_context_policy": {
+        "purpose": "prevent PMOGD rules from becoming project-specific process hardcoding while allowing context-local specificity when the current project, work item, owner, deadline, dependency, blocker, handoff, or delivery state requires it",
+        "rule_bodies_must_use_highest_safe_abstraction_level": true,
+        "rule_hardcoding_prohibited_by_default": true,
+        "rules_must_be_abstract_by_default": true,
+        "case_specific_constraints_must_be_contextual": true,
+        "domain_instances_must_not_be_encoded_as_general_rules": true,
+        "implementation_details_must_not_become_domain_rules": true,
+        "rule_bodies_must_not_hardcode": [
+          "specific_project_management_tool",
+          "specific_issue_tracker",
+          "specific_repository",
+          "specific_meeting_process",
+          "specific_organization_policy",
+          "specific_delivery_cadence",
+          "specific_owner_identity",
+          "specific_escalation_chain",
+          "specific_domain_registry",
+          "specific_customer_workflow",
+          "specific_private_project_name"
+        ],
+        "contextual_specificity_conditions": [
+          "explicit_user_instruction",
+          "identity_or_verification_requires_specific_name",
+          "hallucination_prevention_requires_specific_name",
+          "project_integrity_requires_specific_constraint",
+          "governed_target_context_would_break_without_specificity"
+        ],
+        "specificity_handling": {
+          "specificity_scope": "project_local_context_or_governed_target_context",
+          "specificity_must_not_be_promoted_to_general_rule_without_basis": true,
+          "specificity_must_be_traceable_to_context_or_instruction": true,
+          "specificity_must_not_override_higher_authority": true
+        },
+        "example_policy": {
+          "examples_are_non_normative": true,
+          "examples_may_illustrate_failures_but_do_not_define_the_rule": true,
+          "test_cases_must_remain_separate_from_general_domain_rules": true,
+          "examples_must_not_narrow_pmogd_scope": true
+        },
+        "declared_context_policy_principles": [
+          "declared_project_state_policy_must_be_fixed_when_material",
+          "declared_priority_policy_must_not_be_mixed_with_pmogd_coordination_status",
+          "declared_owner_policy_must_not_be_silently_changed",
+          "declared_delivery_readiness_policy_must_be_applied_consistently",
+          "declared_policy_conflict_must_be_reported_or_repaired"
+        ],
+        "declared_context_policy_types": [
+          "project_state_policy",
+          "owner_assignment_policy",
+          "deadline_policy",
+          "dependency_policy",
+          "blocker_policy",
+          "handoff_policy",
+          "delivery_readiness_policy",
+          "escalation_policy"
+        ]
+      },
+      "role_complete_separation": {
+        "required": true,
+        "principle": "PMOGD must keep project coordination, specialized domain judgment, inherited governance, external orchestration, source material, governed targets, domain evaluation, repair, activation, status reporting, records, and metadata responsibilities separated.",
+        "separation_targets": {
+          "project_coordination": "task, issue, backlog, milestone, owner, deadline, dependency, blocker, handoff, meeting, action item, open item, delivery readiness, escalation, and cross-domain work-state coordination",
+          "specialized_domain_judgment": "technical, design, implementation, operations, incident, legal, accounting, regulatory, artifact-review, strategy, or other specialized judgment handled by the relevant domain or responsible party",
+          "inherited_governance": "parent reasoning and behavior governance referenced as authoritative context and not re-expanded inside PMOGD",
+          "external_orchestration": "domain selection, registry, routing, and activation priority controlled externally by CDOGD or explicit runtime context",
+          "source_material": "project notes, meeting notes, issue lists, backlog fragments, and other inputs used as evidence but not absorbed as governance rules by default",
+          "governed_target": "the project-local work item, state, relation, handoff, dependency, blocker, agreement, or delivery condition being governed",
+          "domain_evaluation": "PMOGD-specific checks for coordination completeness and executability",
+          "domain_repair": "PMOGD-specific repair of state, owner, deadline, dependency, blocker, agreement, handoff, readiness, or synchronization defects",
+          "activation": "local PMOGD applicability signals only; routing and priority remain external",
+          "status_reporting": "PMOGD coordination-state reporting only, not broad runtime status replacement",
+          "records": "project coordination records structurally separate from evaluation, repair, activation, and metadata",
+          "metadata": "identity, authorship, license, repository, and compatibility information that must not become project rules"
+        },
+        "non_absorption_rules": [
+          "specialized_domain_content_must_remain_referenced_not_absorbed",
+          "strategy_rules_must_not_be_converted_into_pmogd_coordination_rules",
+          "technical_decision_rules_must_not_be_converted_into_deadline_or_progress_rules",
+          "inherited_governance_must_be_referenced_not_reexpanded",
+          "external_orchestration_must_not_be_reimplemented_in_pmogd",
+          "metadata_must_not_be_promoted_to_domain_rule_without_basis",
+          "source_material_must_not_be_absorbed_without_project_coordination_reason"
+        ],
+        "review_implications": [
+          "role_separation_check_required_when_pmogd_handles_specialized_work_items",
+          "role_mixing_failure_is_material_when_pmogd_changes_specialized_responsibility_or_final_judgment",
+          "progress_status_must_not_create_false_completion_or_false_delivery_readiness"
+        ]
+      },
+      "cross_domain_interference_policy": {
+        "purpose": "prevent PMOGD from absorbing sibling domains or converting cross-domain work synchronization into specialized-domain authority",
+        "rules": [
+          "sibling_domain_references_must_be_explicit_when_material",
+          "sibling_domain_rules_must_not_be_copied_by_default",
+          "specialized_domain_outputs_may_be_tracked_as_work_items_without_becoming_pmogd_judgments",
+          "domain_overlap_must_be_declared_when_pmogd_coordination_depends_on_specialized_domain_state",
+          "cross_domain_activation_priority_is_external_to_pmogd",
+          "domain_specific_rule_conflicts_must_not_be_silently_merged",
+          "shared_terms_such_as_orchestration_handoff_delivery_or_readiness_must_not_imply_shared_authority_without_boundary_statement"
+        ],
+        "overlap_handling": {
+          "overlap_is_allowed": true,
+          "overlap_must_preserve_domain_responsibility_boundaries": true,
+          "overlap_resolution_owner": "external_orchestration_or_explicit_runtime_context",
+          "pmogd_may_track_status_but_must_not_replace_specialized_domain_completion_criteria": true
+        }
+      },
+      "policy_goal": [
+        "project_execution_visibility",
+        "work_item_clarity",
+        "task_state_clarity",
+        "issue_state_clarity",
+        "backlog_state_clarity",
+        "milestone_state_clarity",
+        "owner_clarity",
+        "deadline_clarity",
+        "progress_traceability",
+        "dependency_visibility",
+        "blocker_visibility",
+        "handoff_integrity",
+        "action_item_executability",
+        "next_action_clarity",
+        "agreement_record_integrity",
+        "open_item_separation",
+        "meeting_to_action_continuity",
+        "delivery_readiness_integrity",
+        "escalation_point_clarity",
+        "cross_domain_state_synchronization",
+        "apparent_progress_actual_executability_separation",
+        "specialized_domain_authority_preservation"
+      ],
+      "constraints": {
+        "prohibited_failure_modes": {
+          "coordination_clarity_failures": [
+            "task_ambiguity_persists",
+            "owner_ambiguity_persists",
+            "deadline_ambiguity_persists",
+            "task_state_unknown_but_presented_as_known",
+            "progress_state_unknown_but_presented_as_progressed",
+            "next_action_unclear",
+            "action_item_not_executable",
+            "scope_tracking_missing_when_material"
+          ],
+          "issue_backlog_and_milestone_failures": [
+            "issue_left_unmanaged",
+            "backlog_left_unorganized",
+            "backlog_bloat_hidden",
+            "milestone_becomes_symbolic_only",
+            "milestone_reality_gap_hidden",
+            "milestone_achievement_claimed_without_state_basis",
+            "issue_priority_uncertainty_hidden"
+          ],
+          "dependency_blocker_and_handoff_failures": [
+            "dependency_overlooked",
+            "dependency_unknown_but_plan_claims_ready",
+            "blocker_unrecorded",
+            "blocker_ignored_or_hidden",
+            "blocker_resolution_timing_assumed_without_basis",
+            "handoff_ambiguous",
+            "handoff_completion_claimed_without_confirmation",
+            "handoff_loses_constraints_or_open_items"
+          ],
+          "agreement_and_meeting_failures": [
+            "agreement_and_open_item_mixed",
+            "unagreed_item_treated_as_agreed",
+            "meeting_outcome_unrecorded",
+            "meeting_not_connected_to_action_items",
+            "decision_log_missing_when_material",
+            "confirmation_item_treated_as_confirmed_without_basis"
+          ],
+          "delivery_and_status_failures": [
+            "delivery_readiness_unconfirmed",
+            "delivery_readiness_claimed_without_confirmation",
+            "unchecked_task_marked_complete",
+            "partial_progress_reported_as_total_success",
+            "optimistic_progress_reporting_without_basis",
+            "issue_or_risk_hidden",
+            "status_update_conflates_activity_with_progress",
+            "apparent_progress_conflated_with_actual_executability"
+          ],
+          "authority_boundary_failures": [
+            "project_management_intrudes_on_expert_judgment",
+            "specialized_work_content_decided_without_domain_owner",
+            "strategy_decision_replaced_by_project_management_judgment",
+            "fundamental_priority_decision_replaced_by_coordination_status",
+            "technical_decision_made_only_for_progress_convenience",
+            "formal_owner_responsibility_changed_without_basis",
+            "deadline_fixed_without_basis",
+            "organizational_approval_substituted_by_pmogd_status",
+            "specialized_domain_completion_criteria_overwritten_by_pmogd"
+          ],
+          "cross_domain_failures": [
+            "cross_domain_state_desynchronization",
+            "cross_domain_dependency_untracked",
+            "cross_domain_handoff_without_owner",
+            "domain_statuses_merged_without_boundary",
+            "sibling_domain_absorption",
+            "external_orchestration_logic_absorbed_into_pmogd"
+          ],
+          "schema_and_record_failures": [
+            "record_required_field_group_mapping_failure",
+            "evaluation_dimension_alignment_failure",
+            "unregistered_audit_action_output",
+            "schema_hygiene_failure"
+          ]
+        },
+        "required_controls": {
+          "coordination_clarity_control": [
+            "define_work_items",
+            "define_task_state",
+            "define_owner_or_mark_owner_unconfirmed",
+            "define_deadline_or_mark_deadline_unconfirmed",
+            "define_progress_basis",
+            "define_next_action",
+            "define_action_item_acceptance_condition_when_material"
+          ],
+          "issue_backlog_and_milestone_control": [
+            "track_issues",
+            "organize_backlog",
+            "align_milestones_with_current_state",
+            "record_milestone_assumptions",
+            "separate_issue_priority_from_project_coordination_status"
+          ],
+          "dependency_blocker_and_handoff_control": [
+            "map_dependencies",
+            "surface_blockers",
+            "record_blocker_owner_or_escalation_point_when_material",
+            "define_handoff_source_and_target",
+            "define_handoff_completion_condition",
+            "preserve_constraints_open_items_and_uncertainty_on_handoff"
+          ],
+          "agreement_and_meeting_control": [
+            "record_agreements",
+            "separate_open_items",
+            "connect_meeting_outcomes_to_action_items",
+            "record_confirmation_pending_status",
+            "preserve_decision_log_when_material"
+          ],
+          "delivery_and_status_control": [
+            "confirm_delivery_readiness_before_ready_claim",
+            "separate_activity_from_progress",
+            "separate_progress_from_completion",
+            "separate_completion_from_delivery_readiness",
+            "report_uncertainty_when_material",
+            "preserve_blocking_failure_visibility"
+          ],
+          "authority_boundary_control": [
+            "preserve_specialized_domain_judgment_boundary",
+            "handoff_specialized_judgment_to_relevant_domain_or_responsible_party",
+            "do_not_set_strategy_or_priority_by_coordination_convenience",
+            "do_not_change_formal_owner_responsibility_without_basis",
+            "do_not_replace_organizational_approval",
+            "mark_pmogd_outputs_as_coordination_status_not_final_expert_judgment"
+          ],
+          "cross_domain_control": [
+            "track_cross_domain_dependencies",
+            "synchronize_domain_work_states",
+            "preserve_domain_responsibility_boundaries",
+            "surface_desynchronization_when_detected",
+            "avoid_sibling_domain_absorption"
+          ]
+        },
+        "runtime_rules": {
+          "apply_scope": [
+            "project_execution_coordination",
+            "work_item_state_management",
+            "task_issue_backlog_milestone_tracking",
+            "owner_deadline_dependency_blocker_tracking",
+            "handoff_coordination",
+            "meeting_to_action_coordination",
+            "agreement_and_open_item_tracking",
+            "delivery_readiness_confirmation",
+            "cross_domain_state_synchronization",
+            "coordination_repair",
+            "status_reporting"
+          ],
+          "coordination_authority_policy": {
+            "pmogd_output_is_coordination_governance": true,
+            "pmogd_output_is_not_final_expert_judgment": true,
+            "pmogd_may_track_specialized_work_state": true,
+            "pmogd_must_not_decide_specialized_work_content_without_authority": true,
+            "pmogd_must_not_convert_unconfirmed_status_to_confirmed_status": true,
+            "pmogd_must_not_claim_ready_when_readiness_evidence_is_missing": true
+          },
+          "status_truthfulness_policy": {
+            "activity_is_not_progress": true,
+            "progress_is_not_completion": true,
+            "completion_is_not_delivery_readiness": true,
+            "planned_is_not_committed": true,
+            "assigned_is_not_accepted": true,
+            "unblocked_is_not_done": true,
+            "meeting_discussion_is_not_agreement": true,
+            "agreement_is_not_delivery": true
+          },
+          "critical_invalidation_policy": {
+            "authority_boundary_violation_overrides_aggregate_score": true,
+            "unsupported_delivery_readiness_claim_requires_repair": true,
+            "unmanaged_material_blocker_blocks_ready_claim": true,
+            "unresolved_material_dependency_blocks_ready_claim": true,
+            "unconfirmed_owner_for_material_task_blocks_ready_claim": true,
+            "critical_desynchronization_blocks_completion_or_ready_claim": true
+          },
+          "artifact_immutability": {
+            "prior_coordination_records_are_immutable": true,
+            "prior_decision_log_records_are_immutable": true,
+            "prior_handoff_records_are_immutable": true,
+            "prior_delivery_readiness_records_are_immutable": true,
+            "repair_creates_new_revision_or_explicit_record_revision": true,
+            "silent_overwrite_prohibited": true
+          }
+        },
+        "failure_aliases": {
+          "fake_progress": "apparent_progress_conflated_with_actual_executability",
+          "pm_overreach": "project_management_intrudes_on_expert_judgment",
+          "false_ready": "delivery_readiness_claimed_without_confirmation",
+          "false_done": "unchecked_task_marked_complete",
+          "lost_blocker": "blocker_unrecorded",
+          "lost_dependency": "dependency_overlooked"
+        },
+        "schema_hygiene_constraints": {
+          "taxonomy_group_membership_must_match_requirement_level": true,
+          "record_required_fields_must_be_mapped_to_field_groups_when_records_exist": true,
+          "field_group_items_may_inherit_group_requirement_level_when_not_overridden": true,
+          "evaluation_dimensions_must_align_with_thresholds_and_audit_targets_when_scoring_exists": true,
+          "critical_invalidation_conditions_must_be_represented_in_critical_severity_rules_when_severity_model_exists": true,
+          "audit_decision_rules_must_emit_registered_action_outputs_only": true
+        }
+      },
+      "capabilities": {
+        "required_capabilities": [
+          "work_item_structuring",
+          "task_state_tracking",
+          "issue_tracking",
+          "backlog_management",
+          "milestone_tracking",
+          "owner_assignment_tracking",
+          "deadline_tracking",
+          "progress_basis_tracking",
+          "dependency_mapping",
+          "blocker_tracking",
+          "handoff_coordination",
+          "action_item_definition",
+          "next_action_definition",
+          "meeting_coordination",
+          "agreement_recording",
+          "open_item_tracking",
+          "delivery_readiness_assessment",
+          "escalation_point_identification",
+          "cross_domain_synchronization",
+          "progress_status_reporting",
+          "coordination_repair",
+          "specialized_domain_boundary_detection"
+        ],
+        "preferred_capabilities": [
+          "automatic_dependency_graph_validation",
+          "blocker_aging_detection",
+          "milestone_feasibility_review",
+          "action_item_executability_check",
+          "meeting_to_action_traceability",
+          "delivery_readiness_checklist_validation",
+          "cross_domain_state_diff",
+          "coordination_drift_detection",
+          "owner_acceptance_tracking",
+          "deadline_confidence_tracking",
+          "risk_to_blocker_conversion_detection"
+        ],
+        "capability_groups": {
+          "work_item_and_state_management": [
+            "work_item_structuring",
+            "task_state_tracking",
+            "issue_tracking",
+            "backlog_management",
+            "milestone_tracking",
+            "progress_basis_tracking"
+          ],
+          "ownership_deadline_and_dependency_management": [
+            "owner_assignment_tracking",
+            "deadline_tracking",
+            "dependency_mapping",
+            "blocker_tracking"
+          ],
+          "coordination_and_handoff": [
+            "handoff_coordination",
+            "meeting_coordination",
+            "agreement_recording",
+            "open_item_tracking"
+          ],
+          "action_and_delivery_management": [
+            "action_item_definition",
+            "next_action_definition",
+            "delivery_readiness_assessment",
+            "escalation_point_identification"
+          ],
+          "cross_domain_coordination_support": [
+            "cross_domain_synchronization",
+            "progress_status_reporting",
+            "coordination_repair",
+            "specialized_domain_boundary_detection"
+          ]
+        },
+        "mapping_policy": {
+          "required_capabilities_must_appear_in_capability_groups_when_groups_are_used": true,
+          "capability_groups_are_structural_not_exhaustive": true,
+          "future_extensions_should_attach_to_groups_before_adding_flat_items": true,
+          "capability_taxonomy_must_not_conflict_with_flat_required_list": true
+        }
+      },
+      "project_coordination_model": {
+        "purpose": "Represent the project-local coordination frame that PMOGD governs.",
+        "coordination_frame_required_fields": [
+          "coordination_scope",
+          "work_items",
+          "owners",
+          "deadlines",
+          "current_states",
+          "dependencies",
+          "blockers",
+          "agreements",
+          "open_items",
+          "next_actions",
+          "delivery_readiness",
+          "escalation_points",
+          "cross_domain_state"
+        ],
+        "coordination_state_values": [
+          "unstructured",
+          "intake",
+          "organized",
+          "in_progress",
+          "blocked",
+          "waiting_for_confirmation",
+          "ready_for_handoff",
+          "ready_for_delivery_review",
+          "delivery_ready",
+          "delivered",
+          "deferred",
+          "cancelled",
+          "degraded",
+          "invalidated"
+        ],
+        "coordination_rules": [
+          "coordination_scope_required",
+          "work_items_must_have_state_or_uncertainty_marker",
+          "material_work_items_must_have_owner_or_owner_uncertainty_marker",
+          "material_work_items_must_have_next_action_or_blocker",
+          "delivery_ready_requires_readiness_basis",
+          "blocked_state_requires_blocker_record",
+          "waiting_state_requires_pending_confirmation_or_dependency",
+          "cross_domain_work_requires_domain_boundary_marker"
+        ],
+        "non_equivalence_relations": [
+          "activity_is_not_progress",
+          "progress_is_not_completion",
+          "completion_is_not_delivery_readiness",
+          "delivery_readiness_is_not_specialized_quality_approval",
+          "meeting_discussion_is_not_agreement",
+          "owner_assigned_is_not_owner_accepted",
+          "deadline_requested_is_not_deadline_committed"
+        ]
+      },
+      "work_item_model": {
+        "work_item_types": [
+          "task",
+          "issue",
+          "backlog_item",
+          "milestone_item",
+          "deliverable_item",
+          "decision_item",
+          "confirmation_item",
+          "handoff_item",
+          "follow_up_item",
+          "cross_domain_work_item"
+        ],
+        "work_item_states": [
+          "new",
+          "triaged",
+          "planned",
+          "assigned",
+          "owner_unconfirmed",
+          "in_progress",
+          "blocked",
+          "waiting_on_dependency",
+          "waiting_on_confirmation",
+          "ready_for_review",
+          "ready_for_handoff",
+          "ready_for_delivery_check",
+          "completed",
+          "deferred",
+          "cancelled",
+          "invalidated"
+        ],
+        "minimum_required_controls": [
+          "work_item_id_or_stable_reference",
+          "work_item_description",
+          "state",
+          "owner_or_owner_uncertainty",
+          "next_action_or_blocker",
+          "dependencies_when_material",
+          "deadline_or_deadline_uncertainty_when_material",
+          "status_basis"
+        ],
+        "state_transition_rules": [
+          "new_to_triaged_when_scope_and_type_are_known",
+          "triaged_to_planned_when_next_action_and_dependency_state_are_known",
+          "planned_to_assigned_when_owner_is_identified",
+          "assigned_to_in_progress_when_owner_acceptance_or_execution_basis_exists",
+          "any_active_state_to_blocked_when_blocker_prevents_progress",
+          "any_active_state_to_waiting_on_dependency_when_external_dependency_controls_progress",
+          "any_active_state_to_waiting_on_confirmation_when_agreement_or_approval_is_pending",
+          "ready_for_delivery_check_to_delivery_ready_only_when_readiness_basis_exists",
+          "completed_must_not_be_used_when_completion_basis_is_missing",
+          "invalidated_requires_repair_or_retriage_before_reuse"
+        ]
+      },
+      "issue_and_backlog_model": {
+        "issue_states": [
+          "new",
+          "triaged",
+          "accepted",
+          "in_progress",
+          "blocked",
+          "waiting_for_information",
+          "resolved",
+          "closed",
+          "deferred",
+          "rejected",
+          "duplicate",
+          "invalidated"
+        ],
+        "backlog_states": [
+          "unorganized",
+          "triaged",
+          "prioritized_by_external_authority",
+          "ready_for_planning",
+          "partially_ready",
+          "stale",
+          "bloated",
+          "blocked_by_dependency",
+          "deferred"
+        ],
+        "priority_boundary": {
+          "pmogd_may_record_declared_priority": true,
+          "pmogd_must_not_create_fundamental_priority_without_authority": true,
+          "priority_source_required_when_priority_affects_execution_order": true,
+          "priority_uncertainty_must_be_preserved": true
+        },
+        "rules": [
+          "issue_state_required_when_issue_is_material",
+          "backlog_item_must_have_triage_state_or_staleness_marker",
+          "backlog_bloat_must_be_reported_when_it_blocks_planning",
+          "issue_resolution_must_not_be_claimed_without_resolution_basis",
+          "priority_must_not_be_conflated_with_readiness"
+        ]
+      },
+      "milestone_model": {
+        "milestone_states": [
+          "proposed",
+          "planned",
+          "committed_by_authority",
+          "at_risk",
+          "blocked",
+          "partially_met",
+          "met",
+          "missed",
+          "replanned",
+          "cancelled",
+          "invalidated"
+        ],
+        "required_controls": [
+          "milestone_id_or_stable_reference",
+          "target_outcome",
+          "target_date_or_timing",
+          "owner_or_accountable_party_when_material",
+          "dependent_work_items",
+          "readiness_criteria",
+          "current_state",
+          "state_basis",
+          "risk_or_blocker_state"
+        ],
+        "rules": [
+          "milestone_must_have_outcome_not_only_date",
+          "milestone_state_must_reflect_dependent_work_state",
+          "at_risk_state_required_when_blocker_or_dependency_threatens_milestone",
+          "met_state_requires_evidence_or_confirmation_basis",
+          "symbolic_milestone_without_execution_state_must_be_marked_degraded"
+        ]
+      },
+      "ownership_deadline_dependency_model": {
+        "owner_states": [
+          "unassigned",
+          "proposed",
+          "assigned",
+          "accepted",
+          "shared",
+          "ambiguous",
+          "needs_confirmation",
+          "escalated"
+        ],
+        "deadline_states": [
+          "not_required",
+          "unknown",
+          "proposed",
+          "requested",
+          "committed_by_authority",
+          "estimated",
+          "at_risk",
+          "missed",
+          "replanned"
+        ],
+        "dependency_states": [
+          "none_known",
+          "identified",
+          "unconfirmed",
+          "active",
+          "blocking",
+          "satisfied",
+          "stale",
+          "invalidated"
+        ],
+        "rules": [
+          "owner_assigned_is_not_owner_accepted",
+          "deadline_requested_is_not_deadline_committed",
+          "deadline_fixed_without_basis_is_prohibited",
+          "dependency_unknown_must_be_marked_when_material",
+          "blocking_dependency_must_create_or_link_blocker_record",
+          "owner_deadline_and_dependency_changes_must_preserve_basis"
+        ]
+      },
+      "blocker_and_escalation_model": {
+        "blocker_types": [
+          "missing_owner",
+          "missing_information",
+          "unresolved_dependency",
+          "unresolved_decision",
+          "pending_approval",
+          "technical_blocker",
+          "resource_blocker",
+          "access_or_permission_blocker",
+          "review_blocker",
+          "delivery_readiness_blocker",
+          "cross_domain_state_mismatch",
+          "external_constraint"
+        ],
+        "blocker_states": [
+          "suspected",
+          "confirmed",
+          "owner_needed",
+          "mitigation_in_progress",
+          "escalated",
+          "resolved",
+          "stale",
+          "invalidated"
+        ],
+        "escalation_conditions": [
+          "blocker_has_no_owner",
+          "blocker_blocks_milestone",
+          "blocker_blocks_delivery_readiness",
+          "blocker_age_exceeds_declared_tolerance",
+          "dependency_owner_unknown",
+          "formal_decision_or_approval_required",
+          "cross_domain_desynchronization_blocks_execution"
+        ],
+        "rules": [
+          "blocker_must_not_be_hidden_to_preserve_positive_status",
+          "blocker_resolution_must_not_be_assumed_without_basis",
+          "escalation_point_required_when_blocker_cannot_be_resolved_by_current_owner",
+          "resolved_blocker_requires_resolution_basis"
+        ]
+      },
+      "handoff_and_meeting_coordination_model": {
+        "handoff_required_when": [
+          "owner_changes",
+          "domain_responsibility_changes",
+          "work_item_moves_to_specialized_domain",
+          "delivery_review_begins",
+          "blocked_work_requires_escalation",
+          "meeting_creates_action_items_for_other_owners",
+          "cross_domain_dependency_changes"
+        ],
+        "handoff_integrity_fields": [
+          "source_owner_or_domain",
+          "target_owner_or_domain",
+          "work_item_reference",
+          "current_state",
+          "constraints",
+          "dependencies",
+          "blockers",
+          "agreements",
+          "open_items",
+          "next_actions",
+          "completion_condition",
+          "uncertainty",
+          "handoff_reason"
+        ],
+        "meeting_output_rules": [
+          "meeting_agenda_should_identify_decision_or_coordination_need",
+          "meeting_minutes_must_separate_agreements_open_items_and_action_items_when_material",
+          "meeting_discussion_must_not_be_treated_as_agreement_without_basis",
+          "action_items_from_meeting_must_have_owner_or_owner_uncertainty",
+          "meeting_without_action_or_decision_result_must_not_be_reported_as_progress_when_progress_claim_is_material"
+        ],
+        "handoff_rules": [
+          "handoff_must_preserve_constraints_dependencies_blockers_and_open_items",
+          "handoff_completion_requires_acceptance_or_defined_completion_basis",
+          "handoff_to_specialized_domain_required_when_content_judgment_exceeds_pmogd_authority",
+          "silent_handoff_prohibited_when_responsibility_boundary_changes"
+        ]
+      },
+      "delivery_readiness_model": {
+        "readiness_states": [
+          "not_assessed",
+          "not_ready",
+          "partially_ready",
+          "ready_with_known_risks",
+          "ready_for_specialized_review",
+          "delivery_ready",
+          "delivered",
+          "readiness_invalidated"
+        ],
+        "readiness_inputs": [
+          "required_work_items",
+          "completion_basis",
+          "open_blockers",
+          "open_dependencies",
+          "required_confirmations",
+          "agreement_state",
+          "specialized_review_state",
+          "handoff_state",
+          "delivery_timing",
+          "known_risks",
+          "scope_exclusions"
+        ],
+        "readiness_rules": [
+          "delivery_readiness_requires_readiness_basis",
+          "delivery_ready_must_not_be_claimed_when_material_blocker_is_open",
+          "delivery_ready_must_not_be_claimed_when_material_dependency_is_unknown_or_unsatisfied",
+          "delivery_ready_must_not_replace_specialized_artifact_quality_review",
+          "ready_for_specialized_review_is_not_delivery_ready",
+          "ready_with_known_risks_requires_risk_disclosure",
+          "scope_exclusions_must_be_explicit_when_readiness_claim_depends_on_exclusion"
+        ],
+        "readiness_failure_conditions": [
+          "unconfirmed_completion_basis",
+          "unresolved_material_blocker",
+          "unresolved_material_dependency",
+          "missing_required_confirmation",
+          "agreement_open_item_mixing",
+          "specialized_review_required_but_missing",
+          "handoff_incomplete",
+          "delivery_scope_unclear"
+        ]
+      },
+      "cross_domain_synchronization_model": {
+        "purpose": "Track and synchronize project-local work states that depend on more than one domain without replacing CDOGD routing or specialized domain authority.",
+        "sync_required_when": [
+          "multiple_domains_own_related_work_items",
+          "one_domain_output_is_dependency_for_another_domain",
+          "delivery_readiness_depends_on_multiple_domain_states",
+          "handoff_crosses_domain_boundary",
+          "domain_state_conflict_affects_project_status",
+          "repair_in_one_domain_affects_other_work_items"
+        ],
+        "sync_fields": [
+          "participating_domains",
+          "domain_work_state_summary",
+          "cross_domain_dependencies",
+          "handoff_points",
+          "state_conflicts",
+          "blocking_domain_state",
+          "next_sync_action",
+          "recheck_timing",
+          "uncertainty"
+        ],
+        "rules": [
+          "pmogd_may_summarize_domain_work_state_for_coordination",
+          "pmogd_must_not_override_specialized_domain_status",
+          "domain_state_conflict_must_be_surfaced_not_silently_merged",
+          "cross_domain_dependency_must_have_source_and_target_domain_or_owner",
+          "delivery_readiness_across_domains_requires_all_material_domain_dependencies_to_be_known_or_marked_uncertain"
+        ]
+      },
+      "uncertainty_handling": {
+        "uncertainty_types": [
+          "task_state_uncertainty",
+          "deadline_uncertainty",
+          "owner_confirmation_uncertainty",
+          "dependency_uncertainty",
+          "blocker_resolution_timing_uncertainty",
+          "issue_priority_uncertainty",
+          "milestone_feasibility_uncertainty",
+          "delivery_readiness_uncertainty",
+          "handoff_completion_uncertainty",
+          "agreement_formation_uncertainty",
+          "cross_domain_state_synchronization_uncertainty"
+        ],
+        "required_behavior_when_material": [
+          "do_not_claim_progressed_completed_or_delivery_ready_without_basis",
+          "mark_unconfirmed_items",
+          "surface_blockers",
+          "surface_dependencies",
+          "mark_pending_confirmations",
+          "mark_provisional_state",
+          "define_recheck_timing_when_possible",
+          "handoff_to_specialized_domain_or_responsible_party_when_uncertainty_is_due_to_expert_judgment"
+        ]
+      },
+      "evaluation": {
+        "evaluation_policy": {
+          "domain_evaluation_required_when_pmogd_claim_is_made": true,
+          "scored_evaluation_is_enabled": true,
+          "severity_model_is_enabled": true,
+          "boolean_state_or_threshold_based_evaluation_allowed": true,
+          "non_applicable_dimensions_must_be_excluded_with_reason_when_reporting": true,
+          "critical_invalidation_overrides_aggregate_score": true
+        },
+        "audit_targets": [
+          "work_item_clarity",
+          "task_state_clarity",
+          "issue_state_clarity",
+          "backlog_state_clarity",
+          "milestone_state_clarity",
+          "owner_clarity",
+          "deadline_clarity",
+          "progress_basis_clarity",
+          "dependency_clarity",
+          "blocker_clarity",
+          "handoff_clarity",
+          "action_item_clarity",
+          "next_action_clarity",
+          "agreement_record_integrity",
+          "open_item_separation",
+          "meeting_to_action_continuity",
+          "delivery_readiness_clarity",
+          "escalation_point_clarity",
+          "cross_domain_synchronization",
+          "uncertainty_visibility",
+          "specialized_domain_boundary_preservation"
+        ],
+        "minimum_pass_conditions": [
+          "material_work_items_have_state_or_uncertainty_marker",
+          "material_work_items_have_owner_or_owner_uncertainty_marker",
+          "material_dependencies_are_recorded_or_marked_unknown",
+          "material_blockers_are_recorded_or_explicitly_absent",
+          "action_items_have_owner_or_owner_uncertainty_and_next_step",
+          "agreements_and_open_items_are_separated",
+          "delivery_readiness_claims_have_readiness_basis",
+          "specialized_judgment_is_not_replaced_by_pmogd"
+        ],
+        "success_signals": [
+          "work_items_are_clear",
+          "owners_are_clear",
+          "deadlines_are_clear_or_explicitly_uncertain",
+          "states_are_clear",
+          "issues_are_managed",
+          "backlog_is_organized",
+          "milestones_match_reality",
+          "dependencies_are_visible",
+          "blockers_are_explicit",
+          "handoff_conditions_are_clear",
+          "action_items_are_clear",
+          "next_actions_are_clear",
+          "agreements_are_recorded",
+          "open_items_are_separated",
+          "delivery_readiness_is_confirmed_or_explicitly_unconfirmed",
+          "escalation_points_are_clear",
+          "cross_domain_states_are_synchronized_or_desynchronization_is_reported"
+        ],
+        "drift_signals": [
+          "task_state_becomes_generic_or_unverified",
+          "owner_or_deadline_ambiguity_reappears",
+          "dependencies_drop_from_status",
+          "blockers_disappear_without_resolution_basis",
+          "meeting_summary_loses_action_items",
+          "agreement_and_open_item_boundary_blurs",
+          "delivery_readiness_claim_appears_without_basis",
+          "cross_domain_state_summary_merges_domain_responsibilities",
+          "pmogd_begins_deciding_specialized_content",
+          "optimistic_progress_language_increases_without_evidence"
+        ],
+        "critical_invalidation_conditions": [
+          "project_management_intrudes_on_expert_judgment",
+          "strategy_decision_replaced_by_project_management_judgment",
+          "specialized_domain_completion_criteria_overwritten_by_pmogd",
+          "delivery_readiness_claimed_without_confirmation",
+          "unchecked_task_marked_complete",
+          "unresolved_material_blocker_hidden",
+          "unresolved_material_dependency_omitted_from_plan",
+          "unagreed_item_treated_as_agreed",
+          "formal_organizational_approval_substituted_by_pmogd_status",
+          "critical_cross_domain_state_desynchronization_hidden"
+        ],
+        "scoring_model": {
+          "enabled_when_domain_defines_scored_evaluation": true,
+          "score_range": [
+            0,
+            100
+          ],
+          "domain_dimension_scores": [
+            "work_item_clarity_score",
+            "state_tracking_score",
+            "ownership_deadline_score",
+            "dependency_blocker_score",
+            "handoff_action_score",
+            "agreement_open_item_score",
+            "delivery_readiness_score",
+            "cross_domain_sync_score",
+            "uncertainty_visibility_score",
+            "authority_boundary_score"
+          ],
+          "minimum_expected_scores": {
+            "work_item_clarity_score": 85,
+            "state_tracking_score": 85,
+            "ownership_deadline_score": 80,
+            "dependency_blocker_score": 85,
+            "handoff_action_score": 80,
+            "agreement_open_item_score": 85,
+            "delivery_readiness_score": 90,
+            "cross_domain_sync_score": 80,
+            "uncertainty_visibility_score": 85,
+            "authority_boundary_score": 95
+          },
+          "aggregation_policy": {
+            "equal_weight_across_applicable_dimensions": true,
+            "non_applicable_dimensions_excluded_with_reason": true,
+            "critical_invalidation_overrides_aggregate_score": true,
+            "llm_self_assessment_must_not_be_presented_as_external_validation": true,
+            "score_source_must_be_disclosed_when_reporting_scores": true
+          },
+          "alignment_policy": {
+            "domain_dimension_scores_must_have_minimum_expected_scores_when_scoring_is_enabled": true,
+            "audit_targets_must_have_corresponding_dimension_or_explicit_non_scored_reason": true,
+            "critical_invalidation_conditions_must_appear_in_severity_model_when_material_and_severity_model_exists": true
+          }
+        },
+        "severity_model": {
+          "enabled_when_domain_uses_severity": true,
+          "levels": [
+            "low",
+            "moderate",
+            "high",
+            "critical"
+          ],
+          "severity_rules": {
+            "low": [
+              "minor_status_wording_ambiguity",
+              "single_non_material_missing_optional_field",
+              "minor_backlog_order_uncertainty"
+            ],
+            "moderate": [
+              "owner_unclear_for_non_blocking_work_item",
+              "deadline_unclear_for_non_critical_work_item",
+              "minor_dependency_uncertainty",
+              "meeting_action_item_partially_defined",
+              "open_item_record_incomplete"
+            ],
+            "high": [
+              "material_owner_ambiguity",
+              "material_deadline_fixed_without_basis",
+              "material_dependency_overlooked",
+              "material_blocker_unrecorded",
+              "handoff_ambiguous_for_material_work",
+              "agreement_and_open_item_mixed",
+              "delivery_readiness_unconfirmed",
+              "cross_domain_state_desynchronization"
+            ],
+            "critical": [
+              "project_management_intrudes_on_expert_judgment",
+              "strategy_decision_replaced_by_project_management_judgment",
+              "specialized_domain_completion_criteria_overwritten_by_pmogd",
+              "delivery_readiness_claimed_without_confirmation",
+              "unchecked_task_marked_complete",
+              "unresolved_material_blocker_hidden",
+              "unresolved_material_dependency_omitted_from_plan",
+              "unagreed_item_treated_as_agreed",
+              "formal_organizational_approval_substituted_by_pmogd_status",
+              "critical_cross_domain_state_desynchronization_hidden"
+            ]
+          }
+        }
+      },
+      "repair": {
+        "purpose": "Repair PMOGD failures by restoring coordination clarity, state truthfulness, owner/deadline/dependency/blocker visibility, agreement/open-item separation, handoff integrity, delivery readiness basis, cross-domain synchronization, and specialized-domain authority boundaries.",
+        "core_rule": "repair_progress_state_not_specialized_content",
+        "repair_origins": [
+          "work_item_ambiguity",
+          "task_state_error",
+          "issue_state_error",
+          "backlog_organization_gap",
+          "milestone_reality_gap",
+          "owner_ambiguity",
+          "deadline_ambiguity_or_unjustified_fixation",
+          "dependency_mapping_gap",
+          "blocker_visibility_gap",
+          "handoff_gap",
+          "action_item_gap",
+          "next_action_gap",
+          "agreement_open_item_mixing",
+          "meeting_to_action_gap",
+          "delivery_readiness_gap",
+          "escalation_gap",
+          "cross_domain_synchronization_gap",
+          "authority_boundary_violation",
+          "status_truthfulness_failure"
+        ],
+        "repair_actions": {
+          "work_item_repair": [
+            "reorganize_work_items",
+            "assign_or_mark_stable_work_item_references",
+            "separate_task_issue_backlog_milestone_deliverable_items",
+            "mark_unknown_state_explicitly",
+            "define_next_action_or_blocker"
+          ],
+          "state_repair": [
+            "update_task_states",
+            "separate_activity_progress_completion_and_delivery_readiness",
+            "retract_or_requalify_unsupported_progress_claim",
+            "restore_uncertainty_markers",
+            "record_status_basis"
+          ],
+          "issue_backlog_milestone_repair": [
+            "update_issue_states",
+            "reorganize_backlog",
+            "reconfirm_milestones",
+            "mark_milestone_at_risk_when_dependency_or_blocker_threatens_it",
+            "separate_declared_priority_from_pmogd_created_priority"
+          ],
+          "owner_deadline_dependency_repair": [
+            "clarify_owners",
+            "mark_owner_unconfirmed_when_not_accepted",
+            "clarify_deadlines",
+            "retract_deadline_when_fixed_without_basis",
+            "recheck_dependencies",
+            "mark_unknown_dependencies_when_material"
+          ],
+          "blocker_escalation_repair": [
+            "surface_blockers",
+            "define_blocker_state",
+            "identify_blocker_owner_or_escalation_point",
+            "record_resolution_basis_when_resolved",
+            "escalate_blocker_when_current_context_cannot_resolve_it"
+          ],
+          "handoff_action_repair": [
+            "clarify_handoff_conditions",
+            "restore_lost_constraints_dependencies_blockers_open_items_and_uncertainty",
+            "redefine_action_items",
+            "clarify_next_actions",
+            "handoff_to_specialized_domain_when_content_judgment_exceeds_pmogd_scope"
+          ],
+          "agreement_meeting_repair": [
+            "separate_agreements",
+            "separate_open_items",
+            "connect_meeting_outcomes_to_action_items",
+            "mark_pending_confirmation",
+            "repair_decision_log_when_material"
+          ],
+          "delivery_readiness_repair": [
+            "reconfirm_delivery_readiness",
+            "retract_or_requalify_unsupported_ready_claim",
+            "surface_open_blockers_dependencies_confirmations_and_specialized_review_needs",
+            "mark_ready_for_specialized_review_instead_of_delivery_ready_when_applicable",
+            "record_readiness_limitations"
+          ],
+          "cross_domain_sync_repair": [
+            "resynchronize_cross_domain_state",
+            "identify_domain_work_state_conflicts",
+            "preserve_specialized_domain_status_boundaries",
+            "define_next_sync_action",
+            "record_recheck_timing"
+          ],
+          "authority_boundary_repair": [
+            "identify_pmogd_overreach",
+            "retract_specialized_judgment_claim",
+            "restore_specialized_domain_or_responsible_party_authority",
+            "convert_pmogd_claim_to_coordination_status_only",
+            "rerun_authority_boundary_audit"
+          ]
+        },
+        "repair_policy": {
+          "identify_repair_origin": true,
+          "repair_affected_scope": true,
+          "revalidate_affected_axes": true,
+          "preserve_revision_lineage_when_material": true,
+          "do_not_skip_repair_and_claim_ready_without_basis": true,
+          "partial_revalidation_requires_reason": true,
+          "post_repair_review_must_cover_affected_axes": true,
+          "repair_must_not_change_specialized_work_content_without_authority": true,
+          "changed_and_unchanged_coordination_state_must_be_recorded_when_material": true
+        },
+        "human_review_required_when": [
+          "formal_organizational_approval_required",
+          "owner_responsibility_change_affects_real_world_obligation",
+          "deadline_commitment_requires_authority",
+          "delivery_readiness_affects_external_commitment",
+          "blocker_requires_manager_or_owner_escalation",
+          "strategy_or_priority_decision_is_required",
+          "specialized_domain_judgment_is_required_and_no_authoritative_domain_output_is_available"
+        ]
+      },
+      "activation": {
+        "enabled": true,
+        "activation_mode": "local_domain_applicability",
+        "applies_when": [
+          "multiple_parallel_tasks_exist",
+          "multiple_owners_are_involved",
+          "multiple_domains_are_involved",
+          "multiple_deliverables_are_linked",
+          "task_state_organization_required",
+          "issue_management_required",
+          "backlog_management_required",
+          "milestone_management_required",
+          "deadline_management_required",
+          "owner_assignment_required",
+          "dependency_mapping_required",
+          "blocker_identification_required",
+          "handoff_required",
+          "meeting_or_agreement_coordination_required",
+          "action_item_clarification_required",
+          "delivery_readiness_confirmation_required",
+          "cross_workstream_synchronization_required"
+        ],
+        "deactivation_or_handoff_conditions": [
+          "work_state_sufficiently_organized",
+          "owners_deadlines_dependencies_clarified",
+          "delivery_coordination_completed",
+          "topic_moves_to_strategy_decision_itself",
+          "topic_moves_to_development_consultation_itself",
+          "topic_moves_to_implementation_itself",
+          "topic_moves_to_operations_or_maintenance_itself",
+          "topic_moves_to_artifact_review_itself",
+          "topic_moves_to_expert_judgment_itself"
+        ],
+        "does_not_replace_argd": true,
+        "does_not_replace_dagd": true,
+        "does_not_reimplement_cdogd": true,
+        "does_not_define_registry_logic": true,
+        "routing_and_priority_are_external": true,
+        "activation_record_minimum_fields": [
+          "activation_reason",
+          "project_context",
+          "governed_target_context",
+          "applicable_evaluation_axes",
+          "declared_context_policy_status",
+          "specialized_domain_boundary_status"
+        ],
+        "local_activation_scope_policy": {
+          "domain_activation_is_context_local": true,
+          "external_orchestration_may_select_or_prioritize_domain": true,
+          "domain_definition_does_not_store_registry_or_routing_logic": true,
+          "pmogd_activation_does_not_grant_authority_to_decide_specialized_content": true
+        },
+        "reactivation_policy": {
+          "domain_activation_is_not_one_shot": true,
+          "domain_may_be_reactivated_when_relevant_conditions_recur": true,
+          "reactivation_triggers": [
+            "governed_target_change",
+            "premise_change",
+            "constraint_change",
+            "state_change",
+            "purpose_change",
+            "risk_change",
+            "output_requirement_change",
+            "authority_or_context_change",
+            "new_blocker_detected",
+            "dependency_state_changed",
+            "handoff_state_changed",
+            "delivery_readiness_state_changed",
+            "cross_domain_state_changed"
+          ],
+          "deactivation_does_not_imply_future_non_applicability": true
+        }
+      },
+      "self_audit": {
+        "enabled": true,
+        "audit_frequency": {
+          "before_project_status_output": true,
+          "after_project_status_output": true,
+          "before_delivery_readiness_claim": true,
+          "after_repair": true,
+          "on_handoff": true,
+          "on_cross_domain_sync": true,
+          "on_user_reported_coordination_failure": true
+        },
+        "audit_axes": [
+          "work_item_clarity",
+          "state_truthfulness",
+          "owner_deadline_clarity",
+          "dependency_blocker_visibility",
+          "handoff_integrity",
+          "agreement_open_item_separation",
+          "action_item_executability",
+          "delivery_readiness_basis",
+          "cross_domain_sync",
+          "specialized_domain_boundary"
+        ],
+        "output_policy": {
+          "compact_by_default": true,
+          "emit_detail_on_anomaly": true,
+          "emit_detail_on_user_request": true,
+          "emit_detail_on_critical_failure": true
+        },
+        "required_basis_checks": [
+          "work_items_have_state_or_uncertainty_marker",
+          "owners_are_confirmed_or_marked_unconfirmed",
+          "deadlines_are_sourced_or_marked_uncertain",
+          "dependencies_are_recorded_or_marked_unknown",
+          "blockers_are_recorded_or_explicitly_absent",
+          "agreements_are_separated_from_open_items",
+          "action_items_have_next_action",
+          "delivery_readiness_has_basis_or_is_marked_unconfirmed",
+          "cross_domain_status_preserves_domain_boundaries",
+          "pmogd_did_not_replace_expert_judgment"
+        ],
+        "domain_specific_self_state_audit_policy": {
+          "optional_domain_local_policy": true,
+          "allowed_when_domain_requires_stronger_self_state_control": true,
+          "must_remain_domain_local": true,
+          "must_not_replace_parent_audit_or_repair_governance": true,
+          "must_not_be_treated_as_self_approval": true,
+          "must_define_overreach_detection_when_authority_sensitive": true,
+          "must_define_repair_or_escalation_when_self_state_is_unreliable": true,
+          "overreach_detection_targets": [
+            "specialized_judgment_substitution",
+            "strategy_decision_substitution",
+            "unsupported_completion_claim",
+            "unsupported_delivery_readiness_claim",
+            "formal_approval_substitution"
+          ]
+        }
+      },
+      "audit_to_action": {
+        "enabled": true,
+        "decision_inputs": [
+          "work_item_clarity_status",
+          "task_state_status",
+          "issue_status",
+          "backlog_status",
+          "milestone_status",
+          "owner_status",
+          "deadline_status",
+          "progress_basis_status",
+          "dependency_status",
+          "blocker_status",
+          "handoff_status",
+          "agreement_status",
+          "open_item_status",
+          "action_item_status",
+          "delivery_readiness_status",
+          "escalation_status",
+          "cross_domain_sync_status",
+          "uncertainty_status",
+          "specialized_domain_boundary_status",
+          "severity",
+          "critical_invalidation_status"
+        ],
+        "action_outputs": [
+          "no_action",
+          "emit_compact_status",
+          "emit_extended_status",
+          "clarify_work_items",
+          "clarify_owner",
+          "clarify_deadline",
+          "update_status",
+          "surface_blocker",
+          "recheck_dependency",
+          "separate_agreement_and_open_item",
+          "define_action_item",
+          "define_next_action",
+          "reconfirm_delivery_readiness",
+          "escalate_blocker",
+          "resynchronize_cross_domain_state",
+          "handoff_to_specialized_domain",
+          "retract_unsupported_progress_claim",
+          "retract_unsupported_completion_claim",
+          "retract_unsupported_delivery_readiness_claim",
+          "repair_record_schema_gap",
+          "require_human_review"
+        ],
+        "audit_decision_rules": {
+          "missing_work_item_clarity": {
+            "if": {
+              "work_item_clarity_status": {
+                "in": [
+                  "missing",
+                  "ambiguous"
+                ]
+              }
+            },
+            "then": {
+              "action_outputs": [
+                "clarify_work_items",
+                "emit_compact_status"
+              ]
+            }
+          },
+          "owner_or_deadline_ambiguity": {
+            "if": {
+              "owner_status": {
+                "in": [
+                  "missing",
+                  "unconfirmed",
+                  "ambiguous"
+                ]
+              },
+              "deadline_status": {
+                "in": [
+                  "missing",
+                  "unconfirmed",
+                  "unsupported"
+                ]
+              }
+            },
+            "then": {
+              "action_outputs": [
+                "clarify_owner",
+                "clarify_deadline",
+                "emit_compact_status"
+              ]
+            }
+          },
+          "dependency_or_blocker_gap": {
+            "if": {
+              "dependency_status": {
+                "in": [
+                  "unknown_when_material",
+                  "missing",
+                  "unresolved"
+                ]
+              },
+              "blocker_status": {
+                "in": [
+                  "hidden",
+                  "missing",
+                  "unresolved"
+                ]
+              }
+            },
+            "then": {
+              "action_outputs": [
+                "recheck_dependency",
+                "surface_blocker",
+                "emit_compact_status"
+              ]
+            }
+          },
+          "agreement_open_item_mixed": {
+            "if": {
+              "agreement_status": {
+                "equals": "mixed_with_open_items"
+              }
+            },
+            "then": {
+              "action_outputs": [
+                "separate_agreement_and_open_item",
+                "emit_compact_status"
+              ]
+            }
+          },
+          "action_or_next_action_gap": {
+            "if": {
+              "action_item_status": {
+                "in": [
+                  "missing",
+                  "not_executable",
+                  "owner_missing"
+                ]
+              }
+            },
+            "then": {
+              "action_outputs": [
+                "define_action_item",
+                "define_next_action"
+              ]
+            }
+          },
+          "unsupported_readiness": {
+            "if": {
+              "delivery_readiness_status": {
+                "in": [
+                  "claimed_without_basis",
+                  "blocked",
+                  "unconfirmed"
+                ]
+              }
+            },
+            "then": {
+              "action_outputs": [
+                "reconfirm_delivery_readiness",
+                "retract_unsupported_delivery_readiness_claim",
+                "emit_extended_status"
+              ]
+            }
+          },
+          "cross_domain_desync": {
+            "if": {
+              "cross_domain_sync_status": {
+                "in": [
+                  "desynchronized",
+                  "conflicting",
+                  "unknown_when_material"
+                ]
+              }
+            },
+            "then": {
+              "action_outputs": [
+                "resynchronize_cross_domain_state",
+                "emit_extended_status"
+              ]
+            }
+          },
+          "specialized_boundary_violation": {
+            "if": {
+              "specialized_domain_boundary_status": {
+                "equals": "violated"
+              }
+            },
+            "then": {
+              "action_outputs": [
+                "handoff_to_specialized_domain",
+                "retract_unsupported_completion_claim",
+                "emit_extended_status"
+              ]
+            }
+          },
+          "critical_invalidation": {
+            "if": {
+              "critical_invalidation_status": {
+                "equals": true
+              }
+            },
+            "then": {
+              "action_outputs": [
+                "emit_extended_status",
+                "require_human_review"
+              ]
+            }
+          }
+        },
+        "audit_to_action_consistency_policy": {
+          "decision_inputs_must_be_declared_when_used": true,
+          "action_outputs_must_be_declared_when_used": true,
+          "audit_decision_rules_must_emit_registered_action_outputs_only": true,
+          "unregistered_action_output_is_schema_hygiene_failure": true,
+          "action_precedence_must_not_override_higher_authority": true
+        },
+        "action_precedence": {
+          "critical_failure_blocks_ready_claim_when_material": true,
+          "deduplicate_actions_after_mapping": true,
+          "specialized_boundary_repair_precedes_coordination_ready_claim": true,
+          "blocker_and_dependency_repair_precedes_delivery_readiness_claim": true
+        }
+      },
+      "status_reporting": {
+        "enabled": true,
+        "status_reporting_should_define_domain_delta_only": true,
+        "modes": [
+          "silent_by_default",
+          "emit_on_anomaly",
+          "emit_on_user_request",
+          "emit_on_blocking_failure",
+          "emit_after_material_repair",
+          "emit_before_delivery_readiness_claim"
+        ],
+        "compact_fields": [
+          "project_state",
+          "work_items",
+          "owners",
+          "deadlines",
+          "current_status",
+          "dependencies",
+          "blockers",
+          "agreements",
+          "open_items",
+          "next_actions",
+          "delivery_readiness",
+          "escalation_points",
+          "cross_domain_sync_status"
+        ],
+        "extended_fields": [
+          "coordination_scope",
+          "work_item_records",
+          "issue_records",
+          "backlog_state",
+          "milestone_records",
+          "dependency_records",
+          "blocker_records",
+          "handoff_records",
+          "meeting_to_action_trace",
+          "decision_log_references",
+          "action_item_records",
+          "delivery_readiness_record",
+          "cross_domain_sync_record",
+          "uncertainty_summary",
+          "authority_boundary_status",
+          "detected_deviations",
+          "repair_applied",
+          "remaining_limitations"
+        ],
+        "blocking_failure_fields": [
+          "missing_owner",
+          "missing_deadline_when_material",
+          "unresolved_blocker",
+          "unconfirmed_delivery_readiness",
+          "dependency_unknown",
+          "agreement_open_item_mixed",
+          "expert_judgment_boundary_violation"
+        ],
+        "visibility_rules": {
+          "show_critical_failure": true,
+          "show_blocking_failure": true,
+          "show_material_repair": true,
+          "show_delivery_readiness_uncertainty": true,
+          "show_specialized_boundary_violation": true,
+          "suppress_verbose_status_when_no_anomaly_and_no_user_request": true
+        }
+      },
+      "record_schemas": {
+        "record_policy": {
+          "record_schemas_are_optional_unless_domain_requires_records": false,
+          "if_records_exist_required_fields_must_map_to_field_groups": true,
+          "records_must_not_redefine_parent_audit_or_repair_cycle": true,
+          "records_must_remain_domain_delta": true,
+          "prior_records_are_immutable": true,
+          "material_repair_requires_new_revision_or_revision_record": true
+        },
+        "domain_record_templates": {
+          "project_coordination_record": {
+            "schema_name": "PMOGD Project Coordination Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record the project-local coordination frame governed by PMOGD.",
+            "required_fields": [
+              "project_coordination_id",
+              "coordination_scope",
+              "work_item_references",
+              "owner_summary",
+              "deadline_summary",
+              "dependency_summary",
+              "blocker_summary",
+              "agreement_summary",
+              "open_item_summary",
+              "delivery_readiness_summary",
+              "cross_domain_state_summary",
+              "coordination_state",
+              "created_timestamp",
+              "updated_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "project_coordination_id",
+                "created_timestamp",
+                "updated_timestamp"
+              ],
+              "scope": [
+                "coordination_scope",
+                "coordination_state"
+              ],
+              "work_state": [
+                "work_item_references",
+                "owner_summary",
+                "deadline_summary"
+              ],
+              "dependency_and_blocker_state": [
+                "dependency_summary",
+                "blocker_summary"
+              ],
+              "agreement_and_delivery_state": [
+                "agreement_summary",
+                "open_item_summary",
+                "delivery_readiness_summary"
+              ],
+              "cross_domain_state": [
+                "cross_domain_state_summary"
+              ]
+            },
+            "validation_rules": [
+              "project_coordination_id_required",
+              "coordination_scope_required",
+              "coordination_state_required",
+              "material_work_items_must_be_referenced"
+            ]
+          },
+          "work_item_record": {
+            "schema_name": "PMOGD Work Item Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record a task, issue-linked task, deliverable item, confirmation item, handoff item, or cross-domain work item.",
+            "required_fields": [
+              "work_item_id",
+              "project_coordination_id",
+              "work_item_type",
+              "title",
+              "description",
+              "state",
+              "owner",
+              "owner_confirmation_status",
+              "deadline",
+              "deadline_basis",
+              "dependencies",
+              "blockers",
+              "next_action",
+              "status_basis",
+              "uncertainty",
+              "updated_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "work_item_id",
+                "project_coordination_id",
+                "updated_timestamp"
+              ],
+              "definition": [
+                "work_item_type",
+                "title",
+                "description"
+              ],
+              "state": [
+                "state",
+                "status_basis",
+                "uncertainty"
+              ],
+              "ownership_and_timing": [
+                "owner",
+                "owner_confirmation_status",
+                "deadline",
+                "deadline_basis"
+              ],
+              "execution_conditions": [
+                "dependencies",
+                "blockers",
+                "next_action"
+              ]
+            },
+            "validation_rules": [
+              "work_item_id_required",
+              "state_required_or_uncertainty_marked",
+              "owner_required_or_owner_uncertainty_marked",
+              "next_action_or_blocker_required_for_material_work_item",
+              "deadline_basis_required_when_deadline_is_fixed"
+            ]
+          },
+          "issue_record": {
+            "schema_name": "PMOGD Issue Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record issue coordination state without replacing specialized issue resolution judgment.",
+            "required_fields": [
+              "issue_id",
+              "work_item_id",
+              "issue_summary",
+              "issue_state",
+              "priority_source",
+              "owner",
+              "blockers",
+              "dependencies",
+              "next_action",
+              "resolution_basis",
+              "open_questions",
+              "updated_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "issue_id",
+                "work_item_id",
+                "updated_timestamp"
+              ],
+              "issue_definition": [
+                "issue_summary",
+                "issue_state"
+              ],
+              "priority_and_owner": [
+                "priority_source",
+                "owner"
+              ],
+              "execution_conditions": [
+                "blockers",
+                "dependencies",
+                "next_action"
+              ],
+              "resolution_state": [
+                "resolution_basis",
+                "open_questions"
+              ]
+            },
+            "validation_rules": [
+              "issue_id_required",
+              "issue_state_required",
+              "priority_source_required_when_priority_affects_execution_order",
+              "resolution_basis_required_when_issue_is_marked_resolved"
+            ]
+          },
+          "milestone_record": {
+            "schema_name": "PMOGD Milestone Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record milestone coordination state and its relation to work items, dependencies, blockers, and readiness criteria.",
+            "required_fields": [
+              "milestone_id",
+              "project_coordination_id",
+              "target_outcome",
+              "target_timing",
+              "milestone_state",
+              "dependent_work_items",
+              "owner",
+              "readiness_criteria",
+              "state_basis",
+              "risks_or_blockers",
+              "updated_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "milestone_id",
+                "project_coordination_id",
+                "updated_timestamp"
+              ],
+              "target": [
+                "target_outcome",
+                "target_timing"
+              ],
+              "state": [
+                "milestone_state",
+                "state_basis"
+              ],
+              "responsibility_and_dependencies": [
+                "dependent_work_items",
+                "owner"
+              ],
+              "readiness_and_risk": [
+                "readiness_criteria",
+                "risks_or_blockers"
+              ]
+            },
+            "validation_rules": [
+              "milestone_id_required",
+              "target_outcome_required",
+              "dependent_work_items_required_when_milestone_tracks_execution",
+              "state_basis_required_when_milestone_is_marked_met"
+            ]
+          },
+          "dependency_record": {
+            "schema_name": "PMOGD Dependency Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record dependencies between work items, owners, domains, confirmations, or external conditions.",
+            "required_fields": [
+              "dependency_id",
+              "source_work_item_id",
+              "target_work_item_id",
+              "dependency_type",
+              "dependency_state",
+              "owner",
+              "blocking_status",
+              "resolution_condition",
+              "uncertainty",
+              "updated_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "dependency_id",
+                "updated_timestamp"
+              ],
+              "relationship": [
+                "source_work_item_id",
+                "target_work_item_id",
+                "dependency_type"
+              ],
+              "state": [
+                "dependency_state",
+                "blocking_status",
+                "uncertainty"
+              ],
+              "resolution": [
+                "owner",
+                "resolution_condition"
+              ]
+            },
+            "validation_rules": [
+              "dependency_id_required",
+              "source_and_target_required_or_marked_unresolved",
+              "blocking_dependency_must_link_or_create_blocker",
+              "resolution_condition_required_when_dependency_blocks_execution"
+            ]
+          },
+          "blocker_record": {
+            "schema_name": "PMOGD Blocker Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record blockers that prevent or materially constrain project execution, handoff, milestone, or delivery readiness.",
+            "required_fields": [
+              "blocker_id",
+              "blocker_type",
+              "blocker_state",
+              "affected_work_items",
+              "owner",
+              "escalation_point",
+              "impact",
+              "resolution_condition",
+              "resolution_basis",
+              "updated_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "blocker_id",
+                "updated_timestamp"
+              ],
+              "definition": [
+                "blocker_type",
+                "blocker_state",
+                "impact"
+              ],
+              "affected_scope": [
+                "affected_work_items"
+              ],
+              "responsibility_and_escalation": [
+                "owner",
+                "escalation_point"
+              ],
+              "resolution": [
+                "resolution_condition",
+                "resolution_basis"
+              ]
+            },
+            "validation_rules": [
+              "blocker_id_required",
+              "affected_work_items_required",
+              "owner_or_escalation_point_required_when_blocker_is_material",
+              "resolved_blocker_requires_resolution_basis"
+            ]
+          },
+          "handoff_record": {
+            "schema_name": "PMOGD Handoff Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record handoff of coordination responsibility, work state, constraints, blockers, open items, and next actions.",
+            "required_fields": [
+              "handoff_id",
+              "work_item_id",
+              "source_owner_or_domain",
+              "target_owner_or_domain",
+              "handoff_reason",
+              "current_state",
+              "constraints",
+              "dependencies",
+              "blockers",
+              "agreements",
+              "open_items",
+              "next_actions",
+              "completion_condition",
+              "acceptance_status",
+              "uncertainty",
+              "handoff_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "handoff_id",
+                "work_item_id",
+                "handoff_timestamp"
+              ],
+              "participants": [
+                "source_owner_or_domain",
+                "target_owner_or_domain"
+              ],
+              "reason_and_state": [
+                "handoff_reason",
+                "current_state",
+                "uncertainty"
+              ],
+              "preserved_context": [
+                "constraints",
+                "dependencies",
+                "blockers",
+                "agreements",
+                "open_items"
+              ],
+              "completion": [
+                "next_actions",
+                "completion_condition",
+                "acceptance_status"
+              ]
+            },
+            "validation_rules": [
+              "handoff_id_required",
+              "source_and_target_required",
+              "constraints_dependencies_blockers_open_items_must_transfer_when_material",
+              "handoff_completion_requires_acceptance_or_completion_basis"
+            ]
+          },
+          "action_item_record": {
+            "schema_name": "PMOGD Action Item Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record executable action items and next actions derived from project coordination.",
+            "required_fields": [
+              "action_item_id",
+              "source_work_item_id",
+              "action_description",
+              "owner",
+              "owner_confirmation_status",
+              "due_timing",
+              "due_timing_basis",
+              "dependencies",
+              "blockers",
+              "completion_condition",
+              "state",
+              "updated_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "action_item_id",
+                "source_work_item_id",
+                "updated_timestamp"
+              ],
+              "action": [
+                "action_description",
+                "completion_condition",
+                "state"
+              ],
+              "ownership_and_timing": [
+                "owner",
+                "owner_confirmation_status",
+                "due_timing",
+                "due_timing_basis"
+              ],
+              "execution_conditions": [
+                "dependencies",
+                "blockers"
+              ]
+            },
+            "validation_rules": [
+              "action_item_id_required",
+              "action_description_required",
+              "owner_required_or_owner_uncertainty_marked",
+              "completion_condition_required_for_material_action",
+              "due_timing_basis_required_when_due_timing_is_fixed"
+            ]
+          },
+          "delivery_readiness_record": {
+            "schema_name": "PMOGD Delivery Readiness Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record delivery readiness status without replacing specialized artifact quality, technical, legal, or approval judgment.",
+            "required_fields": [
+              "readiness_id",
+              "project_coordination_id",
+              "work_item_references",
+              "readiness_state",
+              "completion_basis",
+              "open_blockers",
+              "open_dependencies",
+              "required_confirmations",
+              "agreement_state",
+              "specialized_review_state",
+              "handoff_state",
+              "delivery_timing",
+              "known_risks",
+              "scope_exclusions",
+              "readiness_basis",
+              "updated_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "readiness_id",
+                "project_coordination_id",
+                "updated_timestamp"
+              ],
+              "scope": [
+                "work_item_references",
+                "scope_exclusions"
+              ],
+              "state_and_basis": [
+                "readiness_state",
+                "completion_basis",
+                "readiness_basis"
+              ],
+              "blocking_conditions": [
+                "open_blockers",
+                "open_dependencies",
+                "required_confirmations"
+              ],
+              "review_and_handoff": [
+                "agreement_state",
+                "specialized_review_state",
+                "handoff_state"
+              ],
+              "delivery_context": [
+                "delivery_timing",
+                "known_risks"
+              ]
+            },
+            "validation_rules": [
+              "readiness_id_required",
+              "work_item_references_required",
+              "delivery_ready_requires_readiness_basis",
+              "open_material_blockers_block_delivery_ready",
+              "specialized_review_required_but_missing_blocks_delivery_ready_when_material"
+            ]
+          },
+          "cross_domain_sync_record": {
+            "schema_name": "PMOGD Cross-Domain Synchronization Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record project-local synchronization across multiple domains without replacing CDOGD routing or specialized domain status.",
+            "required_fields": [
+              "sync_id",
+              "project_coordination_id",
+              "participating_domains",
+              "related_work_items",
+              "domain_work_state_summary",
+              "cross_domain_dependencies",
+              "handoff_points",
+              "state_conflicts",
+              "blocking_domain_state",
+              "next_sync_action",
+              "recheck_timing",
+              "uncertainty",
+              "updated_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "sync_id",
+                "project_coordination_id",
+                "updated_timestamp"
+              ],
+              "scope": [
+                "participating_domains",
+                "related_work_items"
+              ],
+              "domain_states": [
+                "domain_work_state_summary",
+                "state_conflicts",
+                "blocking_domain_state"
+              ],
+              "relationships": [
+                "cross_domain_dependencies",
+                "handoff_points"
+              ],
+              "next_steps": [
+                "next_sync_action",
+                "recheck_timing",
+                "uncertainty"
+              ]
+            },
+            "validation_rules": [
+              "sync_id_required",
+              "participating_domains_required",
+              "domain_status_must_not_be_overwritten_by_pmogd",
+              "state_conflicts_must_be_reported_when_material"
+            ]
+          },
+          "pmogd_audit_record": {
+            "schema_name": "PMOGD Audit Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record PMOGD audit of coordination clarity, state truthfulness, dependency/blocker visibility, readiness basis, and authority boundaries.",
+            "required_fields": [
+              "audit_id",
+              "audit_timestamp",
+              "audit_mode",
+              "audit_targets",
+              "audited_records",
+              "dimension_scores",
+              "score_sources",
+              "detected_deviations",
+              "severity",
+              "critical_invalidation_status",
+              "coordination_state_status",
+              "delivery_readiness_status",
+              "cross_domain_sync_status",
+              "authority_boundary_status",
+              "repair_applied",
+              "recommended_next_action"
+            ],
+            "field_groups": {
+              "identity": [
+                "audit_id",
+                "audit_timestamp",
+                "audit_mode"
+              ],
+              "scope": [
+                "audit_targets",
+                "audited_records"
+              ],
+              "scores": [
+                "dimension_scores",
+                "score_sources"
+              ],
+              "deviations": [
+                "detected_deviations",
+                "severity",
+                "critical_invalidation_status"
+              ],
+              "component_status": [
+                "coordination_state_status",
+                "delivery_readiness_status",
+                "cross_domain_sync_status",
+                "authority_boundary_status"
+              ],
+              "actions": [
+                "repair_applied",
+                "recommended_next_action"
+              ]
+            },
+            "validation_rules": [
+              "audit_id_required",
+              "audit_targets_required",
+              "score_source_required_for_each_reported_score",
+              "critical_invalidation_cannot_be_cancelled_by_aggregate_score",
+              "repair_applied_required_when_deviation_repaired"
+            ]
+          }
+        },
+        "record_relationship_contract": {
+          "schema_name": "PMOGD Record Relationship Contract",
+          "schema_version": "0.1.0",
+          "purpose": "Define key relationships among project coordination, work item, issue, milestone, dependency, blocker, handoff, action, readiness, synchronization, and audit records.",
+          "primary_keys": {
+            "project_coordination_record": [
+              "project_coordination_id"
+            ],
+            "work_item_record": [
+              "work_item_id"
+            ],
+            "issue_record": [
+              "issue_id"
+            ],
+            "milestone_record": [
+              "milestone_id"
+            ],
+            "dependency_record": [
+              "dependency_id"
+            ],
+            "blocker_record": [
+              "blocker_id"
+            ],
+            "handoff_record": [
+              "handoff_id"
+            ],
+            "action_item_record": [
+              "action_item_id"
+            ],
+            "delivery_readiness_record": [
+              "readiness_id"
+            ],
+            "cross_domain_sync_record": [
+              "sync_id"
+            ],
+            "pmogd_audit_record": [
+              "audit_id"
+            ]
+          },
+          "foreign_key_expectations": {
+            "work_item_record.project_coordination_id": "project_coordination_record.project_coordination_id",
+            "issue_record.work_item_id": "work_item_record.work_item_id",
+            "milestone_record.dependent_work_items": "one_or_more_work_item_record.work_item_id",
+            "dependency_record.source_work_item_id": "work_item_record.work_item_id",
+            "dependency_record.target_work_item_id": "work_item_record.work_item_id",
+            "blocker_record.affected_work_items": "one_or_more_work_item_record.work_item_id",
+            "handoff_record.work_item_id": "work_item_record.work_item_id",
+            "action_item_record.source_work_item_id": "work_item_record.work_item_id",
+            "delivery_readiness_record.work_item_references": "one_or_more_work_item_record.work_item_id",
+            "cross_domain_sync_record.related_work_items": "one_or_more_work_item_record.work_item_id",
+            "pmogd_audit_record.audited_records": "one_or_more_pmogd_record_primary_keys"
+          },
+          "orphan_record_rules": {
+            "work_item_without_project_coordination_requires_standalone_scope_reason": true,
+            "issue_without_work_item_reference_requires_explicit_external_issue_reference": true,
+            "dependency_without_source_or_target_requires_degraded_status": true,
+            "blocker_without_affected_work_item_requires_scope_repair": true,
+            "handoff_without_work_item_reference_prohibited_when_responsibility_changes": true,
+            "delivery_readiness_without_work_item_references_prohibited": true,
+            "audit_without_targets_prohibited": true
+          },
+          "validation_rules": [
+            "primary_keys_must_be_unique",
+            "foreign_key_references_must_resolve_or_be_marked_unresolved",
+            "material_unresolved_reference_requires_degraded_status",
+            "record_relationship_break_requires_repair_before_ready_or_delivery_claim"
+          ]
+        },
+        "record_schema_consistency_policy": {
+          "record_required_fields_must_be_mapped_to_field_groups": true,
+          "field_group_items_inherit_group_requirement_level_unless_overridden": true,
+          "field_group_items_must_have_known_requirement_level_after_inheritance": true,
+          "record_relationships_must_not_create_orphan_records": true
+        }
+      },
+      "meta_data": {
+        "version": "0.1.0"
+      }
+    }
+  }
+}

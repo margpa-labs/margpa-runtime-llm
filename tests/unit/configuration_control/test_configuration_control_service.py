@@ -79,6 +79,18 @@ def service() -> ConfigurationControlService:
                 ConfigurationSource.BUILT_IN_DEFAULT,
                 ApplyDisposition.RUNTIME_APPLICABLE,
             ),
+            (
+                "conversation_storage_kind",
+                "sqlite",
+                ConfigurationSource.COMPOSED_RUNTIME,
+                ApplyDisposition.READ_ONLY,
+            ),
+            (
+                "conversation_storage_version",
+                "3.45.1",
+                ConfigurationSource.COMPOSED_RUNTIME,
+                ApplyDisposition.READ_ONLY,
+            ),
         )
     )
     return ConfigurationControlService(
@@ -367,5 +379,7 @@ def test_research_mode_does_not_create_authority_or_protected_capabilities() -> 
         "profile_key",
         "research_developer_mode",
         "selected_model",
+        "conversation_storage_kind",
+        "conversation_storage_version",
     }
     assert not keys & {"authority", "permission", "agent", "tool", "protected_capture"}

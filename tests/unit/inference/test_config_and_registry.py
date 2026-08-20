@@ -522,7 +522,7 @@ def test_migration_preserves_previous_effective_macos_values() -> None:
     assert (
         effective.load.model_dump()
         == ModelLoadConfig(
-            context_size=4096,
+            context_size=8192,
             batch_size=256,
             micro_batch_size=256,
             threads=6,

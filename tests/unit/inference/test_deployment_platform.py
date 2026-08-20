@@ -388,6 +388,18 @@ def test_context_limit_is_rejected_before_native_adapter_construction(
         ),
         encoding="utf-8",
     )
+    # The deployment profile's own [load_overrides] context_size takes precedence
+    # over the application default, so it must also be pushed past the native
+    # context limit for this scenario to exercise the oversized-context path.
+    profile_path = tmp_path / "oversized-context-profile.toml"
+    profile_path.write_text(
+        PROFILE_PATH.read_text(encoding="utf-8").replace(
+            "context_size = 8192",
+            "context_size = 40000",
+            1,
+        ),
+        encoding="utf-8",
+    )
 
     class RecordingAdapter:
         def __init__(self, *, model_root: Path) -> None:
@@ -402,7 +414,7 @@ def test_context_limit_is_rejected_before_native_adapter_construction(
         phase1_application_module.build_phase1_application(
             project_root=PROJECT_ROOT,
             application_config_path=application_path,
-            profile_path=PROFILE_PATH,
+            profile_path=profile_path,
             registry_path=REGISTRY_PATH,
             environment={},
         )

@@ -55,16 +55,20 @@ from margpa_runtime_llm.orchestration.response_language import (
 from margpa_runtime_llm.orchestration.summarization import compose_summary_messages
 
 from ..contracts import (
+    ContextUsagePromptInjectionMode,
     ConversationDeltaChannel,
     ConversationEvent,
     ConversationEventType,
     ConversationGenerationInput,
+    ExpressiveMode,
 )
 
 TOKEN_LIMIT_WARNING = "最終回答を生成する前にToken上限へ到達しました。"
 SUMMARY_FALLBACK_WARNING = (
     "The summary could not be completed safely. The original answer is shown."
 )
+CONTEXT_USAGE_NOTICE_MESSAGE_NAME = "context_usage_notice"
+EXPRESSIVE_STYLE_NOTICE_MESSAGE_NAME = "expressive_style_notice"
 
 
 class ConversationInference(Protocol):
@@ -72,6 +76,8 @@ class ConversationInference(Protocol):
 
 
 ChatPromptTokenCounter = Callable[[tuple[ChatMessage, ...], ThinkingMode], int]
+TextTokenCounter = Callable[[str], int]
+DOCUMENTATION_REFERENCE_MESSAGE_NAME = "documentation_reference"
 
 
 @dataclass(frozen=True, slots=True)
@@ -104,6 +110,8 @@ class ConversationGenerationSession:
         documentation_request_factory: (
             Callable[[DocumentationAugmentation], GenerationRequest] | None
         ),
+        text_token_counter: TextTokenCounter | None,
+        effective_context_size: int,
         release: Callable[[], None],
     ) -> None:
         self._request_id = request_id
@@ -119,6 +127,8 @@ class ConversationGenerationSession:
         self._documentation_query = documentation_query
         self._documentation_request_context = documentation_request_context
         self._documentation_request_factory = documentation_request_factory
+        self._text_token_counter = text_token_counter
+        self._effective_context_size = effective_context_size
         self._release = release
         self._cancel_requested = threading.Event()
         self._finished = threading.Event()
@@ -133,6 +143,12 @@ class ConversationGenerationSession:
     @property
     def finished(self) -> bool:
         return self._finished.is_set()
+
+    @property
+    def documentation_augmentation(self) -> DocumentationAugmentation | None:
+        """The RAG result for this generation, if any, once `events()` has run it."""
+
+        return self._documentation_augmentation
 
     def request_cancel(self) -> None:
         self._cancel_requested.set()
@@ -469,6 +485,7 @@ class ConversationGenerationSession:
             "usage": (
                 presented.usage.model_dump(mode="json") if presented.usage is not None else None
             ),
+            "context_usage": self._context_usage(original),
         }
         if include_summary_metadata:
             data.update(
@@ -501,6 +518,53 @@ class ConversationGenerationSession:
                 "warnings": [warning.model_dump(mode="json") for warning in augmentation.warnings],
             }
         return ConversationEvent(event=ConversationEventType.COMPLETED, data=data)
+
+    def _context_usage(self, original: _StageResult) -> dict[str, object] | None:
+        """Low-cost, approximate context-window occupancy for the turn just answered.
+
+        Uses `original` (the real conversation request/response), not `presented`
+        (which, under summary mode, reflects a much smaller summarization
+        sub-request and would misrepresent context occupancy).
+        """
+
+        if original.usage is None:
+            return None
+        prompt_tokens = original.usage.prompt_tokens
+        completion_tokens = original.usage.completion_tokens
+        total_tokens = original.usage.total_tokens
+        system_prompt_tokens = 0
+        rag_context_tokens = 0
+        if self._text_token_counter is not None and self._request is not None:
+            for message in self._request.messages:
+                if message.role is not MessageRole.SYSTEM:
+                    continue
+                tokens = self._text_token_counter(message.content)
+                if message.name == DOCUMENTATION_REFERENCE_MESSAGE_NAME:
+                    rag_context_tokens += tokens
+                else:
+                    system_prompt_tokens += tokens
+        conversation_history_tokens = max(
+            0, prompt_tokens - system_prompt_tokens - rag_context_tokens
+        )
+        free_tokens = max(0, self._effective_context_size - total_tokens)
+        usage_ratio = (
+            min(1.0, total_tokens / self._effective_context_size)
+            if self._effective_context_size > 0
+            else 0.0
+        )
+        return {
+            "prompt_tokens": prompt_tokens,
+            "completion_tokens": completion_tokens,
+            "total_tokens": total_tokens,
+            "loaded_context_size": self._effective_context_size,
+            "usage_ratio": usage_ratio,
+            "breakdown": {
+                "conversation_history_tokens": conversation_history_tokens,
+                "system_prompt_tokens": system_prompt_tokens,
+                "rag_context_tokens": rag_context_tokens,
+                "free_tokens": free_tokens,
+            },
+        }
 
     def _retrieval_event(
         self,
@@ -557,6 +621,7 @@ class ConversationGenerationService:
             DocumentationRagAvailability.UNAVAILABLE
         ),
         chat_prompt_token_counter: ChatPromptTokenCounter | None = None,
+        text_token_counter: TextTokenCounter | None = None,
         effective_context_size: int = 4096,
     ) -> None:
         self._inference = inference
@@ -570,6 +635,7 @@ class ConversationGenerationService:
         self._documentation_rag = documentation_rag
         self._documentation_rag_availability = documentation_rag_availability
         self._chat_prompt_token_counter = chat_prompt_token_counter
+        self._text_token_counter = text_token_counter
         if isinstance(effective_context_size, bool) or effective_context_size <= 0:
             raise ValueError("effective context size must be a positive integer")
         self._effective_context_size = effective_context_size
@@ -658,6 +724,8 @@ class ConversationGenerationService:
                     if documentation_enabled
                     else None
                 ),
+                text_token_counter=self._text_token_counter,
+                effective_context_size=self._effective_context_size,
                 release=lambda: self._release(request_id),
             )
             with self._active_lock:
@@ -702,6 +770,24 @@ class ConversationGenerationService:
             composed_messages,
             augmentation.reference_message if augmentation is not None else None,
         )
+        if value.settings.expressive_mode is ExpressiveMode.ENABLED:
+            messages = self._inject_expressive_style_notice(messages)
+        if (
+            value.settings.context_usage_prompt_injection_mode
+            is ContextUsagePromptInjectionMode.ENABLED
+            and self._chat_prompt_token_counter is not None
+        ):
+            try:
+                prompt_tokens = self._chat_prompt_token_counter(
+                    messages, value.settings.thinking_mode
+                )
+            except Exception:
+                prompt_tokens = None
+            if prompt_tokens is not None:
+                messages = self._inject_context_usage_notice(
+                    messages,
+                    prompt_tokens=prompt_tokens,
+                )
         parameters = self._generation_defaults.model_copy(
             update={
                 "max_new_tokens": value.settings.max_new_tokens,
@@ -756,11 +842,59 @@ class ConversationGenerationService:
         reference = ChatMessage(
             role=MessageRole.SYSTEM,
             content=reference_message,
-            name="documentation_reference",
+            name=DOCUMENTATION_REFERENCE_MESSAGE_NAME,
         )
         if messages and messages[0].role is MessageRole.SYSTEM:
             return (messages[0], reference, *messages[1:])
         return (reference, *messages)
+
+    @staticmethod
+    def _inject_expressive_style_notice(
+        messages: tuple[ChatMessage, ...],
+    ) -> tuple[ChatMessage, ...]:
+        notice = ChatMessage(
+            role=MessageRole.SYSTEM,
+            content=(
+                "[表現Style指示] 以下は回答の言葉遣い・雰囲気にのみ適用される指示です。"
+                "推論の正確性・結論・事実内容は、この指示が無い場合と全く同じ水準を保ってください。\n"
+                "- ノリよく、テンション高めの口調にする。\n"
+                "- 「www」「笑」等の砕けた笑いの表現を適度に使う。\n"
+                "- 顔文字（例：(^ω^)、(´・ω・`)）を適宜使う。\n"  # noqa: RUF001
+                "- 絵文字（😄、🎉、👍等）を積極的に使う。\n"  # noqa: RUF001
+                "- ★や✨等の記号・アイコン的な装飾を適宜使う。\n"
+                "- 全体として、親しみやすくCasualな雰囲気にする。"
+            ),
+            name=EXPRESSIVE_STYLE_NOTICE_MESSAGE_NAME,
+        )
+        if messages and messages[0].role is MessageRole.SYSTEM:
+            return (messages[0], notice, *messages[1:])
+        return (notice, *messages)
+
+    def _inject_context_usage_notice(
+        self,
+        messages: tuple[ChatMessage, ...],
+        *,
+        prompt_tokens: int,
+    ) -> tuple[ChatMessage, ...]:
+        ratio = (
+            min(1.0, prompt_tokens / self._effective_context_size)
+            if self._effective_context_size > 0
+            else 0.0
+        )
+        notice = ChatMessage(
+            role=MessageRole.SYSTEM,
+            content=(
+                f"[Context使用状況] 現在のPrompt Token使用率は約{ratio:.0%}"
+                f"({prompt_tokens}/{self._effective_context_size} tokens)です。"
+                "ユーザーからContext使用率・残量について明示的に尋ねられた場合にのみ、"
+                "この情報を用いて簡潔に回答してください。尋ねられていない場合は、"
+                "この情報について自発的に言及しないでください。"
+            ),
+            name=CONTEXT_USAGE_NOTICE_MESSAGE_NAME,
+        )
+        if messages and messages[0].role is MessageRole.SYSTEM:
+            return (messages[0], notice, *messages[1:])
+        return (notice, *messages)
 
     def _release(self, request_id: str) -> None:
         with self._active_lock:

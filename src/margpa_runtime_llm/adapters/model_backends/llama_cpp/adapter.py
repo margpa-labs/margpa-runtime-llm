@@ -260,7 +260,7 @@ class LlamaCppModelAdapter:
     def stream(self, request: GenerationRequest) -> GenerationStream:
         _, chat_template, runtime_info = self._begin_generation(request)
         try:
-            self._validate_context(request, chat_template, runtime_info)
+            prompt_tokens = self._validate_context(request, chat_template, runtime_info)
             raw_stream = chat_template.create_chat_completion(
                 request.messages,
                 request.parameters,
@@ -273,6 +273,8 @@ class LlamaCppModelAdapter:
                 model_key=request.model_key,
                 native_stream=native_stream,
                 on_terminal=self._end_generation,
+                fallback_prompt_tokens=prompt_tokens,
+                completion_text_token_counter=chat_template.count_text_tokens,
             )
         except InferenceError:
             self._end_generation()
@@ -386,7 +388,11 @@ class LlamaCppModelAdapter:
         request: GenerationRequest,
         chat_template: LlamaCppChatTemplate,
         runtime_info: ModelRuntimeInfo,
-    ) -> None:
+    ) -> int:
+        """Fail-closed context check; returns the formatted prompt's token count
+        so callers needing it (e.g. streaming's usage fallback) avoid a second
+        tokenization pass."""
+
         prompt = chat_template.format_prompt(request.messages, request.parameters.thinking_mode)
         required_tokens = prompt.token_count + request.parameters.max_new_tokens
         available_tokens = runtime_info.loaded_context_size
@@ -403,6 +409,7 @@ class LlamaCppModelAdapter:
                     "available_tokens": available_tokens,
                 },
             )
+        return prompt.token_count
 
     @staticmethod
     def _validate_definition(definition: ModelDefinition, config: ModelLoadConfig) -> None:

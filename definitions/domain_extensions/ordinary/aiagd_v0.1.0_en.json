@@ -1,0 +1,2129 @@
+{
+  "aiagd": {
+    "ai_architecture_governance_definition": {
+      "description": {
+        "purpose": "AIAGD defines the AI architecture domain delta for governing AI system architecture structure, architecture claims, component responsibilities, interfaces, data flows, trust and authority boundaries as architecture objects, AI component placement, failure propagation design, fallback and containment design, deployment topology as architecture structure, migration and replacement planning, runtime conformance claims, and architecture lineage.",
+        "domain_identity": "ai_architecture_governance",
+        "definition_type": "additive_domain_governance_definition",
+        "core_principle": "govern only AI system architecture structure and architecture claims; do not absorb agentic execution, authority decision, AI security risk judgment, operations execution, implementation quality, development consultation, artifact composition, or domain routing",
+        "practical_use": [
+          "structure_ai_system_architecture_governance_records",
+          "review_architecture_claim_readiness",
+          "identify_architecture_boundary_and_responsibility_gaps",
+          "map_ai_component_placement_and_interfaces",
+          "evaluate_runtime_conformance_claims",
+          "recommend_architecture_repair_origin_and_revalidation_scope",
+          "prepare_architecture_handoff_conditions_to_relevant_domains"
+        ],
+        "not_a_profession_definition": true,
+        "not_an_execution_runtime": true,
+        "not_a_final_authority_or_approval_layer": true
+      },
+      "inheritance": {
+        "inheritance_mode": "additive_domain_extension",
+        "parent_definitions": [
+          {
+            "syntax_id": "argd",
+            "role": "general_reasoning_procedure_governance",
+            "required": true
+          },
+          {
+            "syntax_id": "dagd",
+            "role": "general_behavior_audit_repair_activation_and_status_governance",
+            "required": true
+          }
+        ],
+        "dependency_version_policy": {
+          "specific_parent_versions_are_not_hardcoded_in_domain_compatibility_labels": true,
+          "parent_version_binding_is_external_to_this_domain_definition": true,
+          "version_binding_owner": "runtime_bundle_or_release_manifest"
+        },
+        "standalone_reference_use": {
+          "allowed": true,
+          "condition": "standalone_readers_must_treat_parent_mechanisms_as_external_prerequisites_or_reference_context",
+          "does_not_grant_parent_functionality": true,
+          "runtime_conformance_requires_parent_definitions": true
+        },
+        "replaces_parent_definitions": false,
+        "duplicates_parent_rules": false,
+        "parent_rules_remain_authoritative": true,
+        "domain_delta_only": true,
+        "preserved_parent_mechanism_policy": {
+          "inherited_governance_must_be_referenced_not_reexpanded": true,
+          "silent_parent_rule_override_prohibited": true,
+          "parent_mechanism_lists_must_not_be_recreated_unless_required_by_explicit_context": true
+        },
+        "conflict_policy": {
+          "general_reasoning_conflicts": "resolve_under_parent_reasoning_governance",
+          "general_behavior_and_governance_conflicts": "resolve_under_parent_behavior_governance",
+          "domain_specific_conflicts": "resolve_under_domain_governance_when_not_in_conflict_with_parent_governance_or_higher_authority",
+          "higher_level_system_policies_remain_authoritative": true
+        }
+      },
+      "orchestration_reference": {
+        "orchestration_definition": "cdogd",
+        "relationship": "external_orchestration_reference",
+        "cdogd_is_not_reimplemented_here": true,
+        "registry_and_activation_logic_are_external": true,
+        "routing_priority_and_domain_selection_are_external": true,
+        "registered_domain_extension_storage_is_external": true
+      },
+      "domain_scope": {
+        "domain": "ai_system_architecture",
+        "scope_statement": "governs AI system architecture structure and architecture-readiness claims across objectives, requirements, quality attributes, component placement, responsibility, interfaces, data flows, trust boundaries, authority-boundary placement, AI component placement, failure propagation design, fallback design, deployment topology, migration planning, and runtime conformance claims",
+        "governed_target_categories": [
+          "ai_system_objective_and_scope",
+          "stakeholder_and_affected_subject_context",
+          "architecture_requirement",
+          "quality_attribute",
+          "architecture_candidate",
+          "architecture_decision",
+          "component_responsibility_record",
+          "interface_contract_record",
+          "data_flow_record",
+          "trust_boundary_record",
+          "authority_boundary_structure_record",
+          "model_component_placement",
+          "retrieval_component_placement",
+          "memory_component_placement",
+          "tool_component_placement",
+          "agent_component_placement",
+          "policy_layer_placement",
+          "evaluation_layer_placement",
+          "observability_layer_placement",
+          "human_review_point_placement",
+          "failure_propagation_design",
+          "fallback_containment_and_recovery_design",
+          "deployment_topology_as_architecture_structure",
+          "migration_and_replacement_plan",
+          "runtime_conformance_claim",
+          "architecture_lineage"
+        ],
+        "lifecycle_coverage": [
+          "architecture_intent_and_scope_definition",
+          "requirement_and_quality_attribute_definition",
+          "candidate_architecture_generation",
+          "component_responsibility_definition",
+          "interface_and_data_flow_definition",
+          "boundary_structure_definition",
+          "ai_component_placement_definition",
+          "policy_evaluation_observability_and_review_point_placement",
+          "failure_propagation_and_containment_design",
+          "deployment_topology_structure_definition",
+          "architecture_tradeoff_and_decision_recording",
+          "architecture_falsification_and_readiness_review",
+          "migration_and_replacement_planning",
+          "runtime_conformance_claim_review",
+          "architecture_repair_origin_identification",
+          "architecture_lineage_preservation"
+        ],
+        "non_targets": [
+          "replacement_of_parent_governance",
+          "replacement_of_external_orchestration",
+          "absorption_of_sibling_domain_definitions",
+          "agentic_execution_governance",
+          "tool_call_runtime_governance",
+          "checkpoint_retry_or_side_effect_execution_governance",
+          "authority_assignment_decision",
+          "approval_decision",
+          "accountability_decision",
+          "ai_security_risk_judgment",
+          "prompt_injection_or_tool_abuse_risk_adjudication",
+          "operational_health_management",
+          "incident_response_execution",
+          "recovery_execution",
+          "software_implementation_quality",
+          "code_test_build_or_deployment_execution_quality",
+          "development_consultation_or_technology_choice_advice",
+          "artifact_composition_or_publication_readiness",
+          "domain_routing_or_activation_priority",
+          "model_weight_modification",
+          "training_data_modification",
+          "replacement_of_built_in_system_policies"
+        ]
+      },
+      "responsibility_boundaries": {
+        "primary_responsibility_boundary": [
+          "ai_system_architecture_structure",
+          "architecture_objective_and_scope_as_architecture_context",
+          "architecture_requirement_traceability",
+          "quality_attribute_traceability",
+          "architecture_candidate_and_decision_traceability",
+          "component_responsibility_and_non_responsibility_as_architecture_record",
+          "interface_contract_as_architecture_record",
+          "data_flow_as_architecture_record",
+          "trust_boundary_as_architecture_structure",
+          "authority_boundary_as_architecture_structure",
+          "model_retrieval_memory_tool_and_agent_component_placement",
+          "policy_evaluation_observability_and_human_review_point_placement",
+          "failure_propagation_and_blast_radius_design",
+          "fallback_containment_and_recovery_design",
+          "deployment_topology_as_architecture_structure",
+          "migration_and_replacement_planning",
+          "runtime_conformance_claim_review",
+          "architecture_lineage"
+        ],
+        "non_responsibility_boundary": [
+          "agentic_execution_state_governance",
+          "tool_call_log_or_runtime_result_governance",
+          "checkpoint_retry_handoff_or_side_effect_execution_governance",
+          "approval_or_final_authority_decision",
+          "authority_assignment_or_accountability_decision",
+          "ai_security_risk_adjudication",
+          "operational_health_or_incident_execution",
+          "implementation_code_test_build_quality",
+          "development_consultation_or_technology_selection_advice",
+          "artifact_format_quality_or_publication_readiness",
+          "domain_routing_registry_or_activation_priority"
+        ],
+        "claim_type_boundary": {
+          "architecture_claim": "owned_by_aiagd",
+          "agent_execution_claim": "handoff_to_aagd",
+          "authority_or_approval_claim": "handoff_to_daagd",
+          "ai_security_risk_claim": "handoff_to_aisgd",
+          "operational_health_or_recovery_execution_claim": "handoff_to_omrgd",
+          "implementation_quality_claim": "handoff_to_segd",
+          "development_consultation_claim": "handoff_to_dcagd",
+          "artifact_quality_or_publication_claim": "handoff_to_acrgd",
+          "domain_routing_claim": "external_to_cdogd",
+          "data_analysis_claim": "handoff_to_dsgd",
+          "research_claim": "handoff_to_airgd_when_material"
+        },
+        "absorption_guardrails": [
+          "domain_may_reference_sibling_targets_without_absorbing_sibling_authority",
+          "placement_review_does_not_imply_execution_governance",
+          "boundary_structure_review_does_not_imply_authority_assignment",
+          "security_control_placement_review_does_not_imply_ai_security_risk_adjudication",
+          "observability_placement_review_does_not_imply_operational_health_claim",
+          "deployment_topology_structure_review_does_not_imply_deployment_execution_quality",
+          "architecture_record_quality_does_not_imply_artifact_composition_quality",
+          "runtime_conformance_claim_review_does_not_replace_operations_governance"
+        ]
+      },
+      "sibling_domain_boundaries": {
+        "aagd": {
+          "aiagd_scope": [
+            "agent_as_architecture_component",
+            "agent_component_responsibility_record",
+            "agent_handoff_point_as_architecture_connection",
+            "tool_component_placement",
+            "tool_boundary_as_architecture_structure"
+          ],
+          "sibling_scope": [
+            "agentic_execution_state",
+            "tool_call_runtime_trace",
+            "checkpoint",
+            "handoff_execution",
+            "retry_execution",
+            "side_effect_state",
+            "runtime_agent_orchestration"
+          ],
+          "handoff_when": [
+            "agent_execution_state_or_tool_call_trace_is_material",
+            "retry_or_checkpoint_behavior_is_material",
+            "side_effect_governance_is_material",
+            "handoff_execution_correctness_is_material"
+          ]
+        },
+        "daagd": {
+          "aiagd_scope": [
+            "authority_boundary_structure",
+            "approval_point_placement",
+            "delegation_path_as_architecture_structure",
+            "authority_ambiguity_condition"
+          ],
+          "sibling_scope": [
+            "authority_assignment_decision",
+            "approval_decision",
+            "accountability_decision",
+            "delegation_decision",
+            "decision_rights_governance"
+          ],
+          "handoff_when": [
+            "who_can_approve_or_authorize_is_material",
+            "accountability_or_delegation_decision_is_material",
+            "authority_assignment_is_ambiguous_or_contested"
+          ]
+        },
+        "aisgd": {
+          "aiagd_scope": [
+            "security_or_privacy_control_placement",
+            "trust_boundary_structure",
+            "data_flow_structure",
+            "isolation_structure",
+            "authentication_or_authorization_placement"
+          ],
+          "sibling_scope": [
+            "prompt_injection_risk",
+            "tool_abuse_risk",
+            "ai_mediated_leakage_risk",
+            "authorization_confusion_risk",
+            "agentic_abuse_risk",
+            "ai_specific_attack_surface_judgment"
+          ],
+          "handoff_when": [
+            "ai_specific_security_risk_judgment_is_material",
+            "prompt_or_tool_abuse_risk_is_material",
+            "leakage_or_authorization_confusion_requires_security_adjudication"
+          ]
+        },
+        "omrgd": {
+          "aiagd_scope": [
+            "observability_placement",
+            "recovery_path_design",
+            "deployment_topology_as_architecture_structure",
+            "fallback_and_containment_design",
+            "runtime_conformance_claim"
+          ],
+          "sibling_scope": [
+            "operational_health",
+            "monitoring_execution",
+            "incident_response",
+            "recovery_execution",
+            "reliability_improvement",
+            "live_slo_or_sla_operation"
+          ],
+          "handoff_when": [
+            "live_operational_status_is_material",
+            "incident_or_recovery_execution_is_material",
+            "reliability_improvement_plan_is_material",
+            "monitoring_execution_or_alerting_state_is_material"
+          ]
+        },
+        "segd": {
+          "aiagd_scope": [
+            "architecture_structure",
+            "architecture_record",
+            "architecture_handoff_context"
+          ],
+          "sibling_scope": [
+            "implementation",
+            "code",
+            "test",
+            "build",
+            "software_artifact_quality",
+            "deployment_execution"
+          ],
+          "handoff_when": [
+            "code_or_test_quality_is_material",
+            "build_or_deployment_execution_is_material",
+            "software_artifact_lineage_is_material"
+          ]
+        },
+        "dcagd": {
+          "aiagd_scope": [
+            "architecture_governance_structure",
+            "architecture_decision_record",
+            "architecture_tradeoff_record"
+          ],
+          "sibling_scope": [
+            "development_consultation",
+            "technology_choice_advice",
+            "implementation_approach_comparison",
+            "developer_decision_support"
+          ],
+          "handoff_when": [
+            "the_user_requests_development_consultation",
+            "technology_choice_advice_is_the_primary_claim",
+            "implementation_approach_comparison_is_material"
+          ]
+        },
+        "acrgd": {
+          "aiagd_scope": [
+            "architecture_record_content",
+            "architecture_claim_content",
+            "architecture_lineage_content"
+          ],
+          "sibling_scope": [
+            "architecture_document_composition",
+            "diagram_composition",
+            "slide_or_spec_artifact_structure",
+            "readability",
+            "publication_readiness"
+          ],
+          "handoff_when": [
+            "document_or_diagram_quality_is_material",
+            "publication_artifact_readiness_is_material",
+            "presentation_or_spec_composition_is_material"
+          ]
+        },
+        "cdogd": {
+          "aiagd_scope": [
+            "local_domain_applicability_signals"
+          ],
+          "sibling_scope": [
+            "domain_routing",
+            "registry_logic",
+            "activation_priority",
+            "domain_selection",
+            "orchestration"
+          ],
+          "handoff_when": [
+            "routing_or_priority_between_domains_is_material",
+            "domain_selection_or_registry_behavior_is_material"
+          ]
+        }
+      },
+      "abstraction_and_context_policy": {
+        "purpose": "keep AI architecture rules at architecture-governance abstraction level and prevent case-specific systems, vendors, tools, or operational practices from becoming universal rules",
+        "rule_bodies_must_use_highest_safe_abstraction_level": true,
+        "rule_hardcoding_prohibited_by_default": true,
+        "rules_must_be_abstract_by_default": true,
+        "case_specific_constraints_must_be_contextual": true,
+        "domain_instances_must_not_be_encoded_as_general_rules": true,
+        "implementation_details_must_not_become_domain_rules": true,
+        "rule_bodies_must_not_hardcode": [
+          "specific_tool",
+          "specific_platform",
+          "specific_model_provider",
+          "specific_cloud_provider",
+          "specific_repository",
+          "specific_external_system",
+          "specific_local_workflow",
+          "specific_organization_policy",
+          "specific_private_system",
+          "specific_user_workflow",
+          "specific_identifier_policy"
+        ],
+        "contextual_specificity_conditions": [
+          "explicit_user_instruction",
+          "identity_or_verification_requires_specific_name",
+          "hallucination_prevention_requires_specific_name",
+          "system_integrity_requires_specific_constraint",
+          "architecture_context_or_governed_target_context_would_break_without_specificity"
+        ],
+        "specificity_handling": {
+          "specificity_scope": "domain_local_context_or_governed_target_context",
+          "specificity_must_not_be_promoted_to_general_rule_without_basis": true,
+          "specificity_must_be_traceable_to_context_or_instruction": true,
+          "specificity_must_not_override_higher_authority": true
+        },
+        "example_policy": {
+          "examples_are_non_normative": true,
+          "examples_may_illustrate_failures_but_do_not_define_the_rule": true,
+          "test_cases_must_remain_separate_from_general_domain_rules": true,
+          "examples_must_not_narrow_domain_scope": true
+        }
+      },
+      "role_complete_separation": {
+        "required": true,
+        "principle": "AIAGD must keep source material, inherited governance, sibling references, governed architecture targets, evaluation, repair, activation, status, records, external orchestration, and metadata responsibilities separated",
+        "separation_targets": {
+          "source_material": "inputs, diagrams, notes, architecture descriptions, logs, or prior materials used as evidence or context but not absorbed as rules by default",
+          "domain_definition": "AI architecture specific rules, checks, failures, repair origins, records, and responsibility boundaries",
+          "inherited_governance": "ARGD and DAGD mechanisms referenced as authoritative external governance rather than reexpanded here",
+          "sibling_reference": "nearby domain definitions referenced only for boundary and handoff conditions",
+          "governed_target": "AI system architecture object, architecture claim, architecture decision, architecture record, or architecture conformance condition being governed",
+          "domain_evaluation": "architecture-specific evaluation axes and readiness claim checks",
+          "domain_repair": "architecture-specific repair origins and affected revalidation scopes",
+          "activation": "local applicability signals only; routing and priority remain external",
+          "status_reporting": "architecture-domain delta reporting only",
+          "records": "minimal architecture records that remain structurally separate from evaluation, repair, and metadata",
+          "external_orchestration": "routing, registry, priority, and domain selection remain external",
+          "metadata": "identity, authorship, license, repository, and compatibility information"
+        },
+        "non_absorption_rules": [
+          "inherited_governance_must_be_referenced_not_reexpanded",
+          "sibling_domain_content_must_remain_referenced_not_absorbed",
+          "external_orchestration_must_not_be_reimplemented_in_domain_definition",
+          "metadata_must_not_be_promoted_to_domain_rule_without_basis",
+          "source_material_must_not_be_absorbed_without_domain_reason"
+        ],
+        "review_implications": [
+          "role_separation_check_required_when_source_parent_sibling_or_orchestration_context_is_material",
+          "role_mixing_failure_is_material_when_it_changes_aiagd_responsibility_or_architecture_claim_scope"
+        ]
+      },
+      "cross_domain_interference_policy": {
+        "purpose": "prevent AIAGD from absorbing sibling domain authority when AI systems contain overlapping agent, security, authority, operation, implementation, consultation, or artifact concerns",
+        "rules": [
+          "sibling_domain_references_must_be_explicit_when_material",
+          "sibling_domain_rules_must_not_be_copied_by_default",
+          "domain_overlap_must_be_declared_when_material",
+          "cross_domain_activation_priority_is_external_to_this_definition",
+          "domain_specific_rule_conflicts_must_not_be_silently_merged",
+          "shared_terms_must_not_imply_shared_authority_without_boundary_statement",
+          "placement_review_must_not_be_reclassified_as_execution_governance",
+          "structure_review_must_not_be_reclassified_as_final_authority_decision"
+        ],
+        "overlap_handling": {
+          "overlap_is_allowed": true,
+          "overlap_must_preserve_domain_responsibility_boundaries": true,
+          "overlap_resolution_owner": "external_orchestration_or_explicit_runtime_context",
+          "preferred_handoff_action": "handoff_to_relevant_domain"
+        }
+      },
+      "architecture_governance_model": {
+        "architecture_object": {
+          "purpose": "represent the governed AI system architecture identity, scope, state, and lineage",
+          "required_fields": [
+            "architecture_id",
+            "architecture_name",
+            "architecture_version",
+            "architecture_state",
+            "system_objective",
+            "stakeholders",
+            "affected_subjects",
+            "architecture_scope",
+            "non_scope",
+            "architecture_requirements",
+            "quality_attributes",
+            "component_references",
+            "interface_references",
+            "data_flow_references",
+            "trust_boundary_references",
+            "authority_boundary_structure_references",
+            "architecture_decision_references",
+            "deployment_topology_reference",
+            "runtime_conformance_claim_reference",
+            "lineage_reference"
+          ]
+        },
+        "architecture_requirement": {
+          "purpose": "represent a requirement as an architecture input rather than as implementation work or final approval",
+          "required_fields": [
+            "architecture_requirement_id",
+            "requirement_statement",
+            "requirement_type",
+            "priority",
+            "source_reference",
+            "acceptance_criteria",
+            "affected_quality_attributes",
+            "affected_components",
+            "constraint_references",
+            "status"
+          ],
+          "requirement_types": [
+            "functional",
+            "latency",
+            "availability",
+            "scalability",
+            "cost",
+            "security_architecture",
+            "privacy_architecture",
+            "safety_architecture",
+            "observability_architecture",
+            "auditability",
+            "human_review_point",
+            "portability",
+            "replaceability",
+            "runtime_conformance"
+          ]
+        },
+        "quality_attribute": {
+          "purpose": "represent measurable or reviewable architecture quality expectations and tradeoffs",
+          "required_fields": [
+            "quality_attribute_id",
+            "definition",
+            "target",
+            "minimum_acceptable_state",
+            "measurement_or_review_method",
+            "evidence_source",
+            "priority",
+            "tradeoff_relations",
+            "failure_threshold"
+          ],
+          "quality_attributes": [
+            "response_quality_architecture_support",
+            "latency_architecture_support",
+            "availability_architecture_support",
+            "reliability_architecture_support",
+            "resilience_architecture_support",
+            "scalability_architecture_support",
+            "cost_transparency",
+            "security_control_placement",
+            "privacy_control_placement",
+            "safety_layer_placement",
+            "observability_placement",
+            "auditability",
+            "traceability",
+            "maintainability",
+            "portability",
+            "replaceability",
+            "recoverability",
+            "human_controllability_placement"
+          ]
+        },
+        "component": {
+          "purpose": "represent an architecture component and its responsibility boundary",
+          "required_fields": [
+            "component_id",
+            "component_name",
+            "component_type",
+            "responsibility",
+            "non_responsibility",
+            "owner_or_owner_reference_when_known",
+            "authority_boundary_structure_reference",
+            "input_interfaces",
+            "output_interfaces",
+            "data_handled",
+            "dependencies",
+            "failure_modes",
+            "fallback_or_containment_design",
+            "observability_placement",
+            "replacement_contract",
+            "version_or_version_policy"
+          ],
+          "component_types": [
+            "user_interface",
+            "api_gateway",
+            "request_router",
+            "model_gateway",
+            "model_inference_component",
+            "model_selection_component",
+            "prompt_assembly_component",
+            "context_management_component",
+            "retrieval_component",
+            "embedding_component",
+            "vector_store",
+            "memory_component",
+            "tool_registry",
+            "tool_execution_boundary",
+            "agent_planner_component",
+            "agent_orchestrator_component",
+            "state_manager",
+            "policy_evaluator",
+            "safety_classifier",
+            "response_transformer",
+            "human_review_point",
+            "evaluation_component",
+            "monitoring_observability_component",
+            "audit_store",
+            "data_store",
+            "event_bus",
+            "cache",
+            "queue",
+            "deployment_topology_node",
+            "fallback_component"
+          ]
+        },
+        "interface_contract": {
+          "purpose": "represent architecture-level connection contract and failure behavior between components",
+          "required_fields": [
+            "interface_id",
+            "source_component",
+            "destination_component",
+            "purpose",
+            "input_contract",
+            "output_contract",
+            "authentication_placement",
+            "authorization_placement",
+            "timeout_policy",
+            "retry_compatibility",
+            "idempotency_relevance",
+            "error_contract",
+            "data_classification",
+            "trace_context_requirement",
+            "version_or_compatibility_policy",
+            "fallback_behavior"
+          ]
+        },
+        "data_flow": {
+          "purpose": "represent architecture-level data movement, transformation, sensitivity, and lineage",
+          "required_fields": [
+            "data_flow_id",
+            "source",
+            "destination",
+            "data_category",
+            "purpose",
+            "sensitivity",
+            "retention_or_retention_reference",
+            "transformation",
+            "access_control_placement",
+            "lineage",
+            "logging_or_audit_reference",
+            "cross_boundary_transfer",
+            "failure_behavior"
+          ],
+          "data_categories": [
+            "user_input",
+            "system_instruction",
+            "model_prompt",
+            "model_output",
+            "retrieved_content",
+            "tool_input",
+            "tool_output",
+            "memory_state",
+            "evaluation_record",
+            "audit_log",
+            "personal_data",
+            "sensitive_data",
+            "confidential_data",
+            "public_data",
+            "synthetic_data"
+          ]
+        },
+        "trust_boundary": {
+          "purpose": "represent trust transition and validation structure without assigning final authority",
+          "required_fields": [
+            "boundary_id",
+            "boundary_type",
+            "source_zone",
+            "destination_zone",
+            "trust_assumption",
+            "authentication_placement",
+            "authorization_placement",
+            "data_validation",
+            "content_validation",
+            "logging_or_audit_reference",
+            "isolation_structure",
+            "failure_handling",
+            "review_or_handoff_condition"
+          ],
+          "boundary_types": [
+            "user_to_system_boundary",
+            "public_to_private_boundary",
+            "model_provider_boundary",
+            "cloud_provider_boundary",
+            "internal_to_external_tool_boundary",
+            "organization_boundary",
+            "tenant_boundary",
+            "region_boundary",
+            "production_boundary",
+            "human_review_boundary",
+            "agent_to_agent_boundary",
+            "trusted_to_untrusted_data_boundary"
+          ]
+        },
+        "authority_boundary_structure": {
+          "purpose": "represent authority-sensitive architecture structure without making authority, approval, delegation, or accountability decisions",
+          "required_fields": [
+            "authority_boundary_id",
+            "actor_or_component",
+            "action_category",
+            "resource_category",
+            "read_write_execute_or_delegate_relevance",
+            "approval_point_placement",
+            "revocation_or_recheck_condition",
+            "audit_reference",
+            "authority_clarification_condition"
+          ],
+          "authority_safe_policy": {
+            "authority_decision_is_not_owned_by_aiagd": true,
+            "approval_decision_is_not_owned_by_aiagd": true,
+            "accountability_decision_is_not_owned_by_aiagd": true,
+            "authority_ambiguity_must_be_reported_or_handed_off": true,
+            "preferred_handoff_target": "daagd"
+          }
+        },
+        "ai_component_placement": {
+          "purpose": "represent AI-specific component placement and separation without governing runtime execution",
+          "required_component_roles": [
+            "model",
+            "retrieval",
+            "memory",
+            "tool",
+            "agent",
+            "policy",
+            "safety",
+            "evaluation",
+            "observability",
+            "human_review_point"
+          ],
+          "required_fields_per_role": [
+            "role",
+            "non_role",
+            "placement",
+            "input_contract_reference",
+            "output_contract_reference",
+            "state_ownership_or_state_reference",
+            "authority_boundary_structure_reference",
+            "failure_modes",
+            "fallback_or_containment_design",
+            "observability_placement",
+            "replacement_contract",
+            "handoff_condition_when_runtime_governance_is_material"
+          ]
+        },
+        "deployment_topology_structure": {
+          "purpose": "represent deployment topology as architecture structure without claiming live operational health",
+          "required_fields": [
+            "deployment_topology_id",
+            "environment_scope",
+            "topology_nodes",
+            "component_mapping",
+            "boundary_mapping",
+            "data_flow_mapping",
+            "observability_placement",
+            "fallback_path",
+            "runtime_conformance_claim_reference",
+            "handoff_condition_when_operations_state_is_material"
+          ]
+        }
+      },
+      "architecture_process": {
+        "purpose": "define a compact AI architecture governance process focused on architecture structure and readiness claims",
+        "stage_skip_policy": {
+          "skip_allowed_only_when_not_applicable_and_explicitly_marked": true,
+          "skip_reason_required": true,
+          "silent_skip_prohibited": true
+        },
+        "stage_reentry_policy": {
+          "reentry_allowed": true,
+          "reentry_reason_required": true,
+          "affected_downstream_artifacts_must_be_identified": true
+        },
+        "branch_preservation_policy": {
+          "multiple_architecture_candidates_preserved_until_selection_basis_recorded": true,
+          "alternative_interpretations_preserved_when_material": true,
+          "silent_branch_collapse_prohibited": true
+        },
+        "required_stage_sequence": [
+          "architecture_intent_and_scope_definition",
+          "architecture_requirement_and_quality_attribute_definition",
+          "candidate_architecture_generation",
+          "component_responsibility_definition",
+          "interface_and_data_flow_definition",
+          "trust_and_authority_boundary_structure_definition",
+          "ai_component_placement_definition",
+          "policy_evaluation_observability_and_review_point_placement",
+          "failure_propagation_and_containment_design",
+          "deployment_topology_structure_definition",
+          "architecture_tradeoff_and_decision_recording",
+          "architecture_falsification_and_conformance_claim_review",
+          "migration_and_replacement_planning",
+          "architecture_repair_origin_and_lineage_review"
+        ],
+        "stage_definitions": {
+          "architecture_intent_and_scope_definition": {
+            "purpose": "define architecture objective, scope, non-scope, stakeholders, affected subjects, and primary architecture claim type",
+            "required_inputs": [
+              "originating_request_or_architecture_context"
+            ],
+            "required_outputs": [
+              "architecture_objective",
+              "architecture_scope",
+              "architecture_non_scope",
+              "stakeholders",
+              "affected_subjects",
+              "architecture_claim_type"
+            ],
+            "stop_conditions": [
+              "architecture_objective_unknown",
+              "architecture_scope_materially_ambiguous",
+              "architecture_claim_type_not_architecture_domain"
+            ]
+          },
+          "architecture_requirement_and_quality_attribute_definition": {
+            "purpose": "define architecture requirements, quality attributes, priorities, acceptance criteria, and tradeoffs",
+            "required_inputs": [
+              "architecture_objective",
+              "architecture_scope"
+            ],
+            "required_outputs": [
+              "architecture_requirements",
+              "quality_attributes",
+              "acceptance_criteria",
+              "tradeoff_relations"
+            ],
+            "stop_conditions": [
+              "critical_requirement_unknown",
+              "quality_attribute_materially_unbounded",
+              "acceptance_criteria_missing_for_material_requirement"
+            ]
+          },
+          "candidate_architecture_generation": {
+            "purpose": "generate and preserve viable architecture candidates before selecting a structure",
+            "required_inputs": [
+              "architecture_requirements",
+              "quality_attributes",
+              "constraints"
+            ],
+            "required_outputs": [
+              "architecture_candidates",
+              "candidate_assumptions",
+              "candidate_tradeoffs",
+              "candidate_failure_conditions"
+            ],
+            "stop_conditions": [
+              "single_candidate_selected_without_basis",
+              "candidate_assumptions_unrecorded",
+              "candidate_failure_conditions_missing"
+            ]
+          },
+          "component_responsibility_definition": {
+            "purpose": "define components and their responsibility and non-responsibility boundaries",
+            "required_inputs": [
+              "selected_or_candidate_architecture"
+            ],
+            "required_outputs": [
+              "component_inventory",
+              "responsibility_map",
+              "non_responsibility_map",
+              "component_dependency_map"
+            ],
+            "stop_conditions": [
+              "critical_component_responsibility_gap",
+              "critical_component_responsibility_conflict",
+              "component_dependency_materially_unknown"
+            ]
+          },
+          "interface_and_data_flow_definition": {
+            "purpose": "define component interfaces, data flows, data categories, lineage, and failure behavior",
+            "required_inputs": [
+              "component_inventory",
+              "responsibility_map"
+            ],
+            "required_outputs": [
+              "interface_contracts",
+              "data_flow_records",
+              "data_lineage_references",
+              "interface_failure_behaviors"
+            ],
+            "stop_conditions": [
+              "material_interface_contract_missing",
+              "material_sensitive_data_flow_unrecorded",
+              "data_lineage_break_for_material_flow"
+            ]
+          },
+          "trust_and_authority_boundary_structure_definition": {
+            "purpose": "define trust boundaries and authority-sensitive boundary structures without making authority decisions",
+            "required_inputs": [
+              "interface_contracts",
+              "data_flow_records",
+              "component_inventory"
+            ],
+            "required_outputs": [
+              "trust_boundary_records",
+              "authority_boundary_structure_records",
+              "authority_clarification_conditions"
+            ],
+            "stop_conditions": [
+              "critical_trust_boundary_undefined",
+              "authority_boundary_structure_materially_ambiguous",
+              "authority_decision_needed_but_not_handed_off"
+            ]
+          },
+          "ai_component_placement_definition": {
+            "purpose": "define model, retrieval, memory, tool, agent, policy, safety, evaluation, observability, and human review point placement",
+            "required_inputs": [
+              "component_inventory",
+              "interface_contracts",
+              "boundary_records"
+            ],
+            "required_outputs": [
+              "ai_component_placement_records",
+              "ai_component_non_role_records",
+              "runtime_governance_handoff_conditions"
+            ],
+            "stop_conditions": [
+              "ai_component_role_conflation",
+              "agentic_execution_governance_absorbed",
+              "tool_result_treated_as_validated_result"
+            ]
+          },
+          "policy_evaluation_observability_and_review_point_placement": {
+            "purpose": "define placement of policy, evaluation, observability, and review points without claiming final approval or operational health",
+            "required_inputs": [
+              "ai_component_placement_records",
+              "quality_attributes",
+              "boundary_records"
+            ],
+            "required_outputs": [
+              "policy_layer_placement",
+              "evaluation_layer_placement",
+              "observability_placement",
+              "human_or_authority_review_condition_findings"
+            ],
+            "stop_conditions": [
+              "high_impact_action_without_policy_or_evaluation_placement",
+              "human_review_point_claimed_as_final_approval",
+              "observability_placement_missing_for_material_conformance_claim"
+            ]
+          },
+          "failure_propagation_and_containment_design": {
+            "purpose": "define architecture-level failure propagation, blast radius, containment, fallback, and recovery path design",
+            "required_inputs": [
+              "component_inventory",
+              "interface_contracts",
+              "data_flow_records",
+              "deployment_topology_context"
+            ],
+            "required_outputs": [
+              "failure_scenarios",
+              "propagation_paths",
+              "blast_radius_estimates",
+              "containment_design",
+              "fallback_design",
+              "recovery_path_design"
+            ],
+            "stop_conditions": [
+              "critical_function_without_fallback_or_explicit_stop_strategy",
+              "unsafe_fail_open_design",
+              "hidden_single_point_of_failure"
+            ]
+          },
+          "deployment_topology_structure_definition": {
+            "purpose": "define deployment topology as architecture structure and connect it to runtime conformance claim conditions",
+            "required_inputs": [
+              "component_inventory",
+              "boundary_records",
+              "failure_containment_design"
+            ],
+            "required_outputs": [
+              "deployment_topology_structure",
+              "component_to_topology_mapping",
+              "runtime_conformance_claim_conditions",
+              "operations_handoff_conditions"
+            ],
+            "stop_conditions": [
+              "deployment_topology_materially_unknown",
+              "runtime_conformance_claim_without_observable_basis",
+              "operational_health_claim_made_by_aiagd"
+            ]
+          },
+          "architecture_tradeoff_and_decision_recording": {
+            "purpose": "record selected architecture decisions, alternatives, rejected options, tradeoffs, assumptions, and overturn conditions",
+            "required_inputs": [
+              "architecture_candidates",
+              "quality_attributes",
+              "failure_scenarios",
+              "boundary_records"
+            ],
+            "required_outputs": [
+              "architecture_decision_records",
+              "selected_options",
+              "rejected_options",
+              "rejection_reasons",
+              "assumptions",
+              "overturn_conditions"
+            ],
+            "stop_conditions": [
+              "selected_option_without_alternatives",
+              "architecture_decision_without_overturn_conditions",
+              "decision_basis_materially_missing"
+            ]
+          },
+          "architecture_falsification_and_conformance_claim_review": {
+            "purpose": "apply architecture-specific falsification and review runtime conformance claims",
+            "required_inputs": [
+              "architecture_decision_records",
+              "deployment_topology_structure",
+              "runtime_conformance_claim_conditions"
+            ],
+            "required_outputs": [
+              "falsification_record",
+              "contradicting_basis",
+              "untested_assumptions",
+              "residual_uncertainty",
+              "runtime_conformance_claim_status"
+            ],
+            "stop_conditions": [
+              "architecture_validated_without_falsification",
+              "runtime_conformance_claim_without_runtime_basis",
+              "critical_invalidation_condition_detected"
+            ]
+          },
+          "migration_and_replacement_planning": {
+            "purpose": "define architecture-level migration and replacement plan without executing migration",
+            "required_inputs": [
+              "current_architecture_record",
+              "target_architecture_record",
+              "affected_components"
+            ],
+            "required_outputs": [
+              "migration_plan",
+              "replacement_plan",
+              "affected_interfaces",
+              "affected_data_flows",
+              "affected_boundaries",
+              "rollback_or_no_rollback_condition",
+              "migration_handoff_conditions"
+            ],
+            "stop_conditions": [
+              "material_migration_without_rollback_or_explicit_no_rollback_risk_record",
+              "affected_scope_unknown",
+              "migration_execution_claim_made_by_aiagd"
+            ]
+          },
+          "architecture_repair_origin_and_lineage_review": {
+            "purpose": "identify repair origin, affected architecture scope, revalidation scope, and lineage requirements",
+            "required_inputs": [
+              "detected_architecture_deviations",
+              "architecture_record",
+              "evaluation_record"
+            ],
+            "required_outputs": [
+              "repair_origin",
+              "affected_architecture_scope",
+              "recommended_revalidation_scope",
+              "lineage_update_requirement",
+              "handoff_actions"
+            ],
+            "stop_conditions": [
+              "critical_failure_without_repair_origin",
+              "lineage_break_unresolved",
+              "repair_claim_without_affected_scope"
+            ]
+          }
+        }
+      },
+      "architecture_falsification": {
+        "purpose": "apply parent reasoning falsification to architecture-specific assumptions and claims without reimplementing parent FALS",
+        "canonical_parent_mechanism": "argd_fals",
+        "falsification_required_for_material_architecture_decision": true,
+        "falsification_targets": [
+          "system_objective_interpretation",
+          "stakeholder_and_affected_subject_identification",
+          "architecture_requirement_completeness",
+          "quality_attribute_priority",
+          "architecture_candidate_set",
+          "selected_architecture",
+          "component_responsibility",
+          "interface_assumption",
+          "data_flow_assumption",
+          "trust_boundary_assumption",
+          "authority_boundary_structure_assumption",
+          "model_component_placement",
+          "retrieval_component_placement",
+          "memory_component_placement",
+          "tool_component_placement",
+          "agent_component_placement",
+          "policy_evaluation_observability_placement",
+          "human_review_point_placement",
+          "failure_containment_design",
+          "fallback_design",
+          "deployment_topology_structure",
+          "runtime_conformance_claim",
+          "migration_plan"
+        ],
+        "required_record_fields": [
+          "selected_interpretation",
+          "alternative_architectures",
+          "supporting_basis",
+          "contradicting_basis",
+          "rejected_alternatives",
+          "rejection_reasons",
+          "failure_conditions",
+          "overturn_conditions",
+          "untested_assumptions",
+          "residual_uncertainty"
+        ],
+        "prohibited_shortcuts": [
+          "architecture_validated_flag_without_falsification_record",
+          "aggregate_score_only_validation",
+          "diagram_complete_therefore_architecture_valid",
+          "approval_point_exists_therefore_authority_decision_valid",
+          "observability_placement_exists_therefore_operational_health_valid",
+          "tool_success_therefore_task_success",
+          "agent_completion_therefore_workflow_success"
+        ]
+      },
+      "policy_goal": [
+        "architecture_objective_traceability",
+        "requirement_to_architecture_structure_integrity",
+        "quality_attribute_traceability",
+        "architecture_candidate_preservation_until_decision_basis_recorded",
+        "component_responsibility_clarity",
+        "component_non_responsibility_clarity",
+        "interface_contract_traceability",
+        "data_flow_traceability",
+        "trust_boundary_structure_integrity",
+        "authority_boundary_structure_integrity",
+        "ai_component_placement_clarity",
+        "policy_evaluation_observability_and_review_point_placement_integrity",
+        "failure_propagation_visibility",
+        "fallback_and_containment_design_integrity",
+        "deployment_topology_structure_traceability",
+        "architecture_decision_traceability",
+        "architecture_falsifiability",
+        "migration_and_replacement_plan_traceability",
+        "runtime_conformance_claim_integrity",
+        "architecture_lineage_integrity",
+        "sibling_domain_absorption_prevention"
+      ],
+      "constraints": {
+        "prohibited_failure_modes": [
+          "architecture_objective_unknown",
+          "architecture_requirement_materially_unmapped",
+          "quality_attribute_materially_unmapped",
+          "architecture_candidate_silently_collapsed",
+          "architecture_decision_without_alternatives_or_overturn_conditions",
+          "component_responsibility_gap",
+          "component_responsibility_conflict",
+          "component_non_responsibility_missing_when_material",
+          "interface_contract_missing_for_material_connection",
+          "material_data_flow_unrecorded",
+          "data_lineage_break_for_material_flow",
+          "trust_boundary_undefined_when_material",
+          "authority_boundary_structure_undefined_when_material",
+          "authority_decision_absorbed_by_aiagd",
+          "approval_decision_absorbed_by_aiagd",
+          "agentic_execution_governance_absorbed_by_aiagd",
+          "tool_call_runtime_governance_absorbed_by_aiagd",
+          "ai_security_risk_judgment_absorbed_by_aiagd",
+          "operational_health_claim_absorbed_by_aiagd",
+          "implementation_quality_claim_absorbed_by_aiagd",
+          "artifact_composition_claim_absorbed_by_aiagd",
+          "policy_evaluation_or_observability_placement_missing_when_material",
+          "high_impact_action_without_policy_or_evaluation_placement",
+          "critical_function_without_fallback_or_explicit_stop_strategy",
+          "hidden_single_point_of_failure",
+          "unsafe_fail_open_architecture_design",
+          "deployment_topology_materially_unknown_for_conformance_claim",
+          "runtime_conformance_claim_without_runtime_basis",
+          "material_migration_plan_without_affected_scope",
+          "material_migration_without_rollback_or_explicit_no_rollback_risk_record",
+          "architecture_lineage_break",
+          "private_architecture_or_security_information_disclosed"
+        ],
+        "required_controls": [
+          "preserve_parent_governance_boundary",
+          "preserve_external_orchestration_boundary",
+          "preserve_sibling_domain_boundaries",
+          "record_architecture_objective_scope_and_non_scope",
+          "record_architecture_requirements_and_quality_attributes",
+          "preserve_architecture_candidates_until_decision_basis_recorded",
+          "record_component_responsibility_and_non_responsibility",
+          "record_material_interface_contracts",
+          "record_material_data_flows_and_lineage",
+          "record_trust_boundaries_as_architecture_structure",
+          "record_authority_boundaries_as_architecture_structure",
+          "report_authority_clarification_conditions_without_making_authority_decision",
+          "record_ai_component_placement",
+          "record_policy_evaluation_observability_and_review_point_placement",
+          "record_failure_propagation_and_containment_design",
+          "record_deployment_topology_as_architecture_structure",
+          "record_architecture_decision_basis_alternatives_and_overturn_conditions",
+          "record_runtime_conformance_claim_basis",
+          "record_migration_plan_affected_scope_and_rollback_condition",
+          "identify_architecture_repair_origin_when_failure_is_material",
+          "preserve_architecture_lineage"
+        ],
+        "runtime_constraints": {
+          "domain_only": true,
+          "does_not_redefine_parent_governance": true,
+          "does_not_reimplement_external_orchestration": true,
+          "does_not_define_registry_logic": true,
+          "does_not_execute_migration": true,
+          "does_not_claim_final_approval_or_authority": true,
+          "does_not_manage_live_operations": true,
+          "does_not_govern_agentic_runtime_execution": true,
+          "does_not_judge_ai_security_risk": true,
+          "does_not_define_global_domain_priority": true
+        },
+        "schema_hygiene_constraints": {
+          "taxonomy_group_membership_must_match_requirement_level": true,
+          "record_required_fields_must_be_mapped_to_field_groups_when_records_exist": true,
+          "field_group_items_may_inherit_group_requirement_level_when_not_overridden": true,
+          "evaluation_dimensions_must_align_with_thresholds_and_audit_targets_when_scoring_exists": true,
+          "critical_invalidation_conditions_must_be_represented_in_critical_severity_rules_when_severity_model_exists": true,
+          "collection_shape_must_be_declared_when_using_grouped_objects": true,
+          "action_outputs_must_be_used_or_marked_reserved_or_payload_target": true
+        },
+        "failure_aliases": {
+          "architecture_runtime_mismatch": "runtime_conformance_claim_without_runtime_basis",
+          "agentic_overreach": "agentic_execution_governance_absorbed_by_aiagd",
+          "authority_overreach": "authority_decision_absorbed_by_aiagd",
+          "ops_overreach": "operational_health_claim_absorbed_by_aiagd"
+        },
+        "collection_shape_policy": {
+          "flat_array_or_grouped_object_may_be_used_when_declared": true,
+          "same_collection_should_not_mix_shapes_within_one_domain_definition": true,
+          "collection_shape_declarations": {
+            "constraints.prohibited_failure_modes": "flat_array",
+            "constraints.required_controls": "flat_array",
+            "policy_goal": "flat_array"
+          }
+        }
+      },
+      "capabilities": {
+        "required_capabilities": [
+          "architecture_objective_and_scope_modeling",
+          "stakeholder_and_affected_subject_context_capture",
+          "architecture_requirement_traceability",
+          "quality_attribute_traceability",
+          "architecture_candidate_generation_and_preservation",
+          "architecture_decision_recording",
+          "component_responsibility_modeling",
+          "component_non_responsibility_modeling",
+          "interface_contract_modeling",
+          "data_flow_and_lineage_modeling",
+          "trust_boundary_structure_modeling",
+          "authority_boundary_structure_modeling",
+          "ai_component_placement_modeling",
+          "policy_evaluation_observability_and_review_point_placement_modeling",
+          "failure_propagation_analysis_as_architecture_design",
+          "fallback_containment_and_recovery_design_modeling",
+          "deployment_topology_structure_modeling",
+          "runtime_conformance_claim_review",
+          "migration_and_replacement_planning",
+          "architecture_falsification_recording",
+          "architecture_repair_origin_identification",
+          "architecture_lineage_preservation",
+          "sibling_domain_handoff_condition_detection"
+        ],
+        "capability_groups": {
+          "architecture_context_definition": [
+            "architecture_objective_and_scope_modeling",
+            "stakeholder_and_affected_subject_context_capture",
+            "architecture_requirement_traceability",
+            "quality_attribute_traceability"
+          ],
+          "architecture_structure_modeling": [
+            "architecture_candidate_generation_and_preservation",
+            "architecture_decision_recording",
+            "component_responsibility_modeling",
+            "component_non_responsibility_modeling",
+            "interface_contract_modeling",
+            "data_flow_and_lineage_modeling"
+          ],
+          "boundary_and_ai_component_modeling": [
+            "trust_boundary_structure_modeling",
+            "authority_boundary_structure_modeling",
+            "ai_component_placement_modeling",
+            "policy_evaluation_observability_and_review_point_placement_modeling"
+          ],
+          "failure_topology_and_change_modeling": [
+            "failure_propagation_analysis_as_architecture_design",
+            "fallback_containment_and_recovery_design_modeling",
+            "deployment_topology_structure_modeling",
+            "runtime_conformance_claim_review",
+            "migration_and_replacement_planning"
+          ],
+          "governance_record_and_handoff": [
+            "architecture_falsification_recording",
+            "architecture_repair_origin_identification",
+            "architecture_lineage_preservation",
+            "sibling_domain_handoff_condition_detection"
+          ]
+        },
+        "mapping_policy": {
+          "required_capabilities_must_appear_in_capability_groups_when_groups_are_used": true,
+          "capability_groups_are_structural_not_exhaustive": true,
+          "future_extensions_should_attach_to_groups_before_adding_flat_items": true,
+          "capability_taxonomy_must_not_conflict_with_flat_required_list": true
+        }
+      },
+      "evaluation": {
+        "evaluation_policy": {
+          "domain_evaluation_required_when_architecture_claim_is_made": true,
+          "scored_evaluation_is_enabled_for_ai_architecture_readiness": true,
+          "severity_model_is_enabled_for_architecture_readiness_failures": true,
+          "non_applicable_dimensions_must_be_excluded_with_reason_when_reporting": true,
+          "critical_invalidation_overrides_aggregate_score": true,
+          "llm_self_assessment_must_not_be_presented_as_external_validation": true
+        },
+        "audit_targets": [
+          "architecture_objective_and_scope",
+          "architecture_requirements",
+          "quality_attributes",
+          "architecture_candidates",
+          "architecture_decision_records",
+          "component_responsibilities",
+          "interface_contracts",
+          "data_flows",
+          "trust_boundary_structures",
+          "authority_boundary_structures",
+          "ai_component_placement",
+          "policy_evaluation_observability_and_review_point_placement",
+          "failure_propagation_and_containment_design",
+          "deployment_topology_structure",
+          "runtime_conformance_claim",
+          "migration_and_replacement_plan",
+          "architecture_lineage",
+          "sibling_domain_absorption_guardrails"
+        ],
+        "minimum_pass_conditions": [
+          "architecture_objective_and_scope_are_defined",
+          "material_requirements_and_quality_attributes_are_traceable",
+          "material_components_have_responsibility_and_non_responsibility",
+          "material_interfaces_and_data_flows_are_recorded",
+          "material_trust_and_authority_boundary_structures_are_recorded",
+          "ai_component_placement_is_distinguishable_from_runtime_execution_governance",
+          "authority_decision_is_not_claimed_by_aiagd",
+          "runtime_conformance_claim_has_recorded_basis_or_is_reported_as_unverified",
+          "critical_invalidation_conditions_are_absent_or_reported",
+          "architecture_lineage_is_preserved"
+        ],
+        "drift_signals": [
+          "architecture_scope_expands_into_agentic_execution",
+          "architecture_scope_expands_into_authority_decision",
+          "architecture_scope_expands_into_ai_security_risk_judgment",
+          "architecture_scope_expands_into_operational_health",
+          "architecture_scope_expands_into_implementation_quality",
+          "architecture_candidate_alternatives_disappear",
+          "component_non_responsibility_disappears",
+          "interface_error_contract_disappears",
+          "data_lineage_reference_disappears",
+          "authority_clarification_condition_becomes_approval_decision",
+          "observability_placement_becomes_operational_health_claim",
+          "runtime_conformance_claim_loses_basis",
+          "migration_plan_loses_rollback_or_affected_scope",
+          "architecture_lineage_break_detected"
+        ],
+        "critical_invalidation_conditions": [
+          "architecture_objective_unknown",
+          "architecture_version_unknown",
+          "critical_architecture_requirement_unknown",
+          "critical_component_responsibility_gap",
+          "critical_component_responsibility_conflict",
+          "material_interface_contract_missing",
+          "material_sensitive_data_flow_unrecorded",
+          "critical_trust_boundary_undefined",
+          "critical_authority_boundary_structure_undefined",
+          "high_impact_action_without_policy_or_evaluation_placement",
+          "critical_function_without_fallback_or_explicit_stop_strategy",
+          "unsafe_fail_open_architecture_design",
+          "hidden_single_point_of_failure",
+          "deployment_topology_unknown_for_material_runtime_conformance_claim",
+          "runtime_conformance_claim_without_runtime_basis",
+          "architecture_decision_fabricated_or_untraceable",
+          "architecture_candidate_selection_without_basis",
+          "material_migration_plan_without_affected_scope",
+          "material_migration_without_rollback_or_explicit_no_rollback_risk_record",
+          "persistent_architecture_lineage_break",
+          "private_architecture_or_security_information_disclosed"
+        ],
+        "scoring_model": {
+          "enabled_when_domain_defines_scored_evaluation": true,
+          "score_range": [
+            0,
+            100
+          ],
+          "domain_dimension_scores": [
+            "architecture_objective_and_scope_score",
+            "requirement_traceability_score",
+            "quality_attribute_traceability_score",
+            "candidate_and_decision_traceability_score",
+            "component_responsibility_score",
+            "interface_contract_score",
+            "data_flow_traceability_score",
+            "trust_boundary_structure_score",
+            "authority_boundary_structure_score",
+            "ai_component_placement_score",
+            "policy_evaluation_observability_placement_score",
+            "failure_propagation_design_score",
+            "fallback_and_containment_design_score",
+            "deployment_topology_structure_score",
+            "runtime_conformance_claim_score",
+            "migration_and_replacement_plan_score",
+            "architecture_lineage_score",
+            "sibling_domain_boundary_score"
+          ],
+          "minimum_expected_scores": {
+            "architecture_objective_and_scope_score": 85,
+            "requirement_traceability_score": 85,
+            "quality_attribute_traceability_score": 85,
+            "candidate_and_decision_traceability_score": 85,
+            "component_responsibility_score": 90,
+            "interface_contract_score": 85,
+            "data_flow_traceability_score": 85,
+            "trust_boundary_structure_score": 90,
+            "authority_boundary_structure_score": 85,
+            "ai_component_placement_score": 85,
+            "policy_evaluation_observability_placement_score": 80,
+            "failure_propagation_design_score": 85,
+            "fallback_and_containment_design_score": 85,
+            "deployment_topology_structure_score": 80,
+            "runtime_conformance_claim_score": 85,
+            "migration_and_replacement_plan_score": 80,
+            "architecture_lineage_score": 90,
+            "sibling_domain_boundary_score": 90
+          },
+          "score_source_taxonomy": [
+            "architecture_record_review",
+            "rule_based_audit",
+            "human_architecture_review",
+            "expert_review",
+            "runtime_observation_reference",
+            "architecture_test_or_simulation",
+            "failure_injection_result",
+            "llm_as_a_judge",
+            "llm_self_assessment"
+          ],
+          "aggregation_policy": {
+            "equal_weight_across_applicable_dimensions": true,
+            "non_applicable_dimensions_excluded_with_reason": true,
+            "critical_invalidation_overrides_aggregate_score": true,
+            "score_source_required_per_dimension": true,
+            "llm_self_assessment_must_not_be_presented_as_external_validation": true
+          },
+          "alignment_policy": {
+            "domain_dimension_scores_must_have_minimum_expected_scores_when_scoring_is_enabled": true,
+            "audit_targets_must_have_corresponding_dimension_or_explicit_non_scored_reason": true,
+            "critical_invalidation_conditions_must_appear_in_severity_model_when_material_and_severity_model_exists": true
+          }
+        },
+        "severity_model": {
+          "enabled_when_domain_uses_severity": true,
+          "levels": [
+            "low",
+            "moderate",
+            "high",
+            "critical"
+          ],
+          "severity_rules": {
+            "low": [
+              "minor_architecture_record_metadata_omission",
+              "non_material_naming_or_format_drift"
+            ],
+            "moderate": [
+              "non_critical_requirement_mapping_gap",
+              "non_critical_interface_contract_gap",
+              "non_critical_component_non_responsibility_omission",
+              "minor_sibling_domain_boundary_ambiguity"
+            ],
+            "high": [
+              "material_requirement_mapping_gap",
+              "material_interface_or_data_flow_gap",
+              "material_boundary_ambiguity",
+              "material_runtime_conformance_basis_gap",
+              "material_migration_affected_scope_gap",
+              "architecture_scope_drift_into_sibling_domain"
+            ],
+            "critical": [
+              "architecture_objective_unknown",
+              "architecture_version_unknown",
+              "critical_architecture_requirement_unknown",
+              "critical_component_responsibility_gap",
+              "critical_component_responsibility_conflict",
+              "material_interface_contract_missing",
+              "material_sensitive_data_flow_unrecorded",
+              "critical_trust_boundary_undefined",
+              "critical_authority_boundary_structure_undefined",
+              "high_impact_action_without_policy_or_evaluation_placement",
+              "critical_function_without_fallback_or_explicit_stop_strategy",
+              "unsafe_fail_open_architecture_design",
+              "hidden_single_point_of_failure",
+              "deployment_topology_unknown_for_material_runtime_conformance_claim",
+              "runtime_conformance_claim_without_runtime_basis",
+              "architecture_decision_fabricated_or_untraceable",
+              "architecture_candidate_selection_without_basis",
+              "material_migration_plan_without_affected_scope",
+              "material_migration_without_rollback_or_explicit_no_rollback_risk_record",
+              "persistent_architecture_lineage_break",
+              "private_architecture_or_security_information_disclosed"
+            ]
+          }
+        }
+      },
+      "repair": {
+        "purpose": "define AI architecture specific repair origins and affected revalidation scope without replacing parent repair governance",
+        "core_rule": "repair_model_should_define_repair_origin_not_parent_repair_cycle",
+        "repair_origins": [
+          {
+            "failure_mode": "architecture_objective_unknown",
+            "repair_origin": "architecture_intent_and_scope_definition",
+            "revalidate_axes": [
+              "architecture_scope",
+              "requirements",
+              "quality_attributes",
+              "candidate_architectures"
+            ]
+          },
+          {
+            "failure_mode": "architecture_requirement_materially_unmapped",
+            "repair_origin": "architecture_requirement_and_quality_attribute_definition",
+            "revalidate_axes": [
+              "component_mapping",
+              "interface_mapping",
+              "decision_records"
+            ]
+          },
+          {
+            "failure_mode": "component_responsibility_gap",
+            "repair_origin": "component_responsibility_definition",
+            "revalidate_axes": [
+              "interfaces",
+              "data_flows",
+              "failure_propagation"
+            ]
+          },
+          {
+            "failure_mode": "material_interface_contract_missing",
+            "repair_origin": "interface_and_data_flow_definition",
+            "revalidate_axes": [
+              "data_flows",
+              "boundaries",
+              "failure_behavior"
+            ]
+          },
+          {
+            "failure_mode": "critical_trust_boundary_undefined",
+            "repair_origin": "trust_and_authority_boundary_structure_definition",
+            "revalidate_axes": [
+              "interfaces",
+              "data_flows",
+              "ai_component_placement",
+              "conformance_claims"
+            ]
+          },
+          {
+            "failure_mode": "critical_authority_boundary_structure_undefined",
+            "repair_origin": "trust_and_authority_boundary_structure_definition",
+            "revalidate_axes": [
+              "authority_clarification_conditions",
+              "review_point_placement",
+              "sibling_handoff_conditions"
+            ]
+          },
+          {
+            "failure_mode": "ai_component_role_conflation",
+            "repair_origin": "ai_component_placement_definition",
+            "revalidate_axes": [
+              "model_retrieval_memory_tool_agent_roles",
+              "interfaces",
+              "runtime_governance_handoff"
+            ]
+          },
+          {
+            "failure_mode": "failure_containment_gap",
+            "repair_origin": "failure_propagation_and_containment_design",
+            "revalidate_axes": [
+              "fallback",
+              "blast_radius",
+              "deployment_topology"
+            ]
+          },
+          {
+            "failure_mode": "runtime_conformance_claim_without_runtime_basis",
+            "repair_origin": "architecture_falsification_and_conformance_claim_review",
+            "revalidate_axes": [
+              "deployment_topology",
+              "runtime_basis",
+              "status_reporting"
+            ]
+          },
+          {
+            "failure_mode": "material_migration_plan_without_affected_scope",
+            "repair_origin": "migration_and_replacement_planning",
+            "revalidate_axes": [
+              "affected_components",
+              "interfaces",
+              "data_flows",
+              "boundaries",
+              "rollback"
+            ]
+          },
+          {
+            "failure_mode": "architecture_lineage_break",
+            "repair_origin": "architecture_repair_origin_and_lineage_review",
+            "revalidate_axes": [
+              "architecture_record",
+              "decision_record",
+              "migration_record",
+              "repair_record"
+            ]
+          }
+        ],
+        "repair_policy": {
+          "identify_repair_origin": true,
+          "repair_affected_scope": true,
+          "revalidate_affected_axes": true,
+          "preserve_revision_lineage_when_material": true,
+          "do_not_skip_repair_and_claim_ready_without_basis": true,
+          "partial_revalidation_requires_reason": true,
+          "post_repair_review_must_cover_affected_axes": true
+        },
+        "human_or_runtime_review_condition_findings": [
+          "authority_assignment_or_approval_decision_needed",
+          "runtime_conformance_basis_requires_operational_evidence",
+          "ai_security_risk_judgment_required",
+          "implementation_quality_evidence_required",
+          "artifact_publication_readiness_required"
+        ],
+        "review_condition_wording_policy": {
+          "review_required_wording_requires_authority_basis": true,
+          "non_authority_domains_should_emit_review_condition_findings": true,
+          "human_or_runtime_review_conditions_do_not_themselves_create_external_review_obligations": true,
+          "authority_sensitive_review_findings_should_request_or_recommend_clarification_not_claim_final_requirement": true
+        }
+      },
+      "activation": {
+        "enabled": true,
+        "activation_mode": "local_domain_applicability",
+        "applies_when": [
+          "ai_system_architecture_claim_is_made",
+          "ai_component_placement_is_material",
+          "component_responsibility_or_interface_contract_is_material",
+          "data_flow_or_boundary_structure_is_material",
+          "architecture_runtime_conformance_claim_is_made",
+          "architecture_migration_or_replacement_plan_is_material",
+          "architecture_repair_origin_is_needed"
+        ],
+        "does_not_replace_argd": true,
+        "does_not_replace_dagd": true,
+        "does_not_reimplement_cdogd": true,
+        "does_not_define_registry_logic": true,
+        "routing_and_priority_are_external": true,
+        "activation_record_minimum_fields": [
+          "activation_reason",
+          "domain_context",
+          "governed_target_context",
+          "applicable_evaluation_axes",
+          "declared_context_policy_status"
+        ],
+        "local_activation_scope_policy": {
+          "domain_activation_is_context_local": true,
+          "external_orchestration_may_select_or_prioritize_domain": true,
+          "domain_definition_does_not_store_registry_or_routing_logic": true
+        },
+        "reactivation_policy": {
+          "domain_activation_is_not_one_shot": true,
+          "domain_may_be_reactivated_when_relevant_conditions_recur": true,
+          "reactivation_triggers": [
+            "architecture_objective_changed",
+            "architecture_requirement_changed",
+            "quality_attribute_changed",
+            "component_inventory_changed",
+            "interface_contract_changed",
+            "data_flow_changed",
+            "trust_boundary_changed",
+            "authority_boundary_changed",
+            "ai_component_placement_changed",
+            "deployment_topology_changed",
+            "runtime_topology_mismatch_detected",
+            "migration_started_or_completed",
+            "architecture_repair_completed",
+            "sibling_domain_boundary_conflict_detected"
+          ],
+          "deactivation_does_not_imply_future_non_applicability": true
+        }
+      },
+      "self_audit": {
+        "enabled": true,
+        "audit_frequency": {
+          "before_architecture_ready_claim": true,
+          "after_material_architecture_change": true,
+          "after_material_boundary_change": true,
+          "after_migration_plan_change": true,
+          "after_runtime_conformance_claim_change": true,
+          "on_sibling_domain_boundary_conflict": true,
+          "on_user_reported_architecture_governance_failure": true
+        },
+        "audit_axes": [
+          "architecture_objective_scope_and_requirement_integrity",
+          "component_responsibility_integrity",
+          "interface_and_data_flow_integrity",
+          "trust_and_authority_boundary_structure_integrity",
+          "ai_component_placement_integrity",
+          "failure_containment_and_fallback_integrity",
+          "deployment_topology_structure_integrity",
+          "runtime_conformance_claim_integrity",
+          "migration_plan_integrity",
+          "architecture_lineage_integrity",
+          "sibling_domain_non_absorption_integrity"
+        ],
+        "output_policy": {
+          "compact_by_default": true,
+          "emit_detail_on_anomaly": true,
+          "emit_detail_on_user_request": true,
+          "emit_detail_on_critical_failure": true
+        },
+        "required_basis_checks": [
+          "ready_claim_has_architecture_basis",
+          "critical_invalidation_checked",
+          "score_source_labeled_when_score_reported",
+          "handoff_conditions_checked",
+          "authority_safe_wording_checked",
+          "runtime_conformance_basis_checked"
+        ],
+        "self_audit_result_connection_policy": {
+          "self_audit_result_values_must_be_mapped_or_marked_internal_only_when_defined": true,
+          "mapping_target_should_be_audit_to_action_when_actionable": true,
+          "internal_state_only_results_must_not_be_presented_as_action_outputs": true,
+          "result_names_and_action_names_must_remain_distinct": true,
+          "unmapped_actionable_self_audit_results_are_schema_hygiene_failure": true
+        }
+      },
+      "audit_to_action": {
+        "enabled": true,
+        "decision_inputs": [
+          "detected_deviation",
+          "severity",
+          "critical_invalidation_status",
+          "architecture_ready_claim_status",
+          "runtime_conformance_claim_status",
+          "sibling_domain_boundary_conflict",
+          "authority_clarification_condition",
+          "repair_origin",
+          "recommended_revalidation_scope"
+        ],
+        "action_outputs": [
+          {
+            "action": "report_architecture_condition",
+            "status": "used"
+          },
+          {
+            "action": "report_boundary_condition",
+            "status": "used"
+          },
+          {
+            "action": "report_runtime_conformance_condition",
+            "status": "used"
+          },
+          {
+            "action": "report_migration_condition",
+            "status": "used"
+          },
+          {
+            "action": "block_architecture_ready_claim",
+            "status": "used"
+          },
+          {
+            "action": "recommend_repair_origin",
+            "status": "used"
+          },
+          {
+            "action": "recommend_revalidation_scope",
+            "status": "used"
+          },
+          {
+            "action": "handoff_to_relevant_domain",
+            "status": "used",
+            "payload_target_required": true
+          },
+          {
+            "action": "emit_compact_status",
+            "status": "used"
+          },
+          {
+            "action": "emit_invalidated_status",
+            "status": "used"
+          }
+        ],
+        "decision_rules": {
+          "critical_invalidation": {
+            "when": {
+              "critical_invalidation_status": true
+            },
+            "emit": [
+              "block_architecture_ready_claim",
+              "emit_invalidated_status",
+              "recommend_repair_origin"
+            ]
+          },
+          "boundary_condition": {
+            "when": {
+              "detected_deviation_any": [
+                "critical_trust_boundary_undefined",
+                "critical_authority_boundary_structure_undefined",
+                "authority_boundary_structure_materially_ambiguous"
+              ]
+            },
+            "emit": [
+              "report_boundary_condition",
+              "recommend_repair_origin"
+            ]
+          },
+          "authority_decision_needed": {
+            "when": {
+              "authority_clarification_condition": true
+            },
+            "emit": [
+              "report_boundary_condition",
+              "handoff_to_relevant_domain"
+            ],
+            "payload": {
+              "target_domain": "daagd",
+              "retained_aiagd_scope": "authority_boundary_structure_only"
+            }
+          },
+          "agentic_execution_material": {
+            "when": {
+              "sibling_domain_boundary_conflict": "agentic_execution_governance"
+            },
+            "emit": [
+              "handoff_to_relevant_domain"
+            ],
+            "payload": {
+              "target_domain": "aagd",
+              "retained_aiagd_scope": "agent_component_placement_only"
+            }
+          },
+          "ai_security_risk_material": {
+            "when": {
+              "sibling_domain_boundary_conflict": "ai_security_risk_judgment"
+            },
+            "emit": [
+              "handoff_to_relevant_domain"
+            ],
+            "payload": {
+              "target_domain": "aisgd",
+              "retained_aiagd_scope": "security_control_placement_only"
+            }
+          },
+          "operations_state_material": {
+            "when": {
+              "sibling_domain_boundary_conflict": "operational_health_or_recovery_execution"
+            },
+            "emit": [
+              "handoff_to_relevant_domain"
+            ],
+            "payload": {
+              "target_domain": "omrgd",
+              "retained_aiagd_scope": "deployment_topology_and_recovery_path_design_only"
+            }
+          },
+          "runtime_conformance_gap": {
+            "when": {
+              "runtime_conformance_claim_status": "unverified_or_mismatched"
+            },
+            "emit": [
+              "report_runtime_conformance_condition",
+              "recommend_revalidation_scope",
+              "emit_compact_status"
+            ]
+          },
+          "migration_plan_gap": {
+            "when": {
+              "detected_deviation_any": [
+                "material_migration_plan_without_affected_scope",
+                "material_migration_without_rollback_or_explicit_no_rollback_risk_record"
+              ]
+            },
+            "emit": [
+              "report_migration_condition",
+              "recommend_repair_origin",
+              "emit_compact_status"
+            ]
+          },
+          "architecture_repairable_gap": {
+            "when": {
+              "repair_origin": "known",
+              "critical_invalidation_status": false
+            },
+            "emit": [
+              "report_architecture_condition",
+              "recommend_repair_origin",
+              "recommend_revalidation_scope"
+            ]
+          }
+        },
+        "audit_to_action_consistency_policy": {
+          "decision_inputs_must_be_declared_when_used": true,
+          "action_outputs_must_be_declared_when_used": true,
+          "audit_decision_rules_must_emit_registered_action_outputs_only": true,
+          "unregistered_action_output_is_schema_hygiene_failure": true,
+          "action_precedence_must_not_override_higher_authority": true,
+          "unused_action_outputs_must_be_removed_or_marked_reserved": true,
+          "decision_rules_must_not_emit_unregistered_result_values_as_actions": true
+        },
+        "action_precedence": {
+          "critical_failure_blocks_ready_claim_when_material": true,
+          "deduplicate_actions_after_mapping": true,
+          "handoff_to_relevant_domain_does_not_transfer_aiagd_owned_architecture_scope": true
+        }
+      },
+      "status_reporting": {
+        "enabled": true,
+        "status_reporting_should_define_domain_delta_only": true,
+        "modes": [
+          "silent_by_default",
+          "emit_on_anomaly",
+          "emit_on_user_request",
+          "emit_on_blocking_failure",
+          "emit_after_material_repair"
+        ],
+        "compact_fields": [
+          "architecture_id",
+          "architecture_version",
+          "architecture_ready_claim_status",
+          "critical_invalidation_status",
+          "detected_architecture_condition",
+          "boundary_condition_status",
+          "runtime_conformance_claim_status",
+          "repair_origin",
+          "recommended_revalidation_scope",
+          "handoff_target_when_material"
+        ],
+        "extended_fields": [
+          "architecture_objective",
+          "architecture_scope",
+          "affected_requirements",
+          "affected_quality_attributes",
+          "affected_components",
+          "affected_interfaces",
+          "affected_data_flows",
+          "affected_boundaries",
+          "ai_component_placement_status",
+          "failure_containment_status",
+          "deployment_topology_structure_status",
+          "migration_plan_status",
+          "architecture_lineage_status",
+          "score_by_dimension",
+          "score_source_by_dimension",
+          "sibling_domain_boundary_findings",
+          "residual_uncertainty"
+        ],
+        "visibility_rules": {
+          "show_critical_failure": true,
+          "show_blocking_failure": true,
+          "show_material_repair": true,
+          "show_handoff_target_when_material": true,
+          "show_runtime_conformance_gap_when_material": true,
+          "suppress_verbose_status_when_no_anomaly_and_no_user_request": true
+        }
+      },
+      "record_schemas": {
+        "record_policy": {
+          "record_schemas_are_required_for_material_architecture_governance": true,
+          "if_records_exist_required_fields_must_map_to_field_groups": true,
+          "records_must_not_redefine_parent_audit_or_repair_cycle": true,
+          "records_must_remain_domain_delta": true,
+          "records_should_be_minimal_and_material_conditioned": true,
+          "record_fields_should_not_be_expanded_for_documentation_exhaustiveness": true
+        },
+        "domain_record_templates": {
+          "architecture_process_record": {
+            "purpose": "record the architecture structure, decisions, boundaries, placement, conformance claim, and lineage relevant to AIAGD",
+            "required_fields": [
+              "architecture_id",
+              "architecture_version",
+              "architecture_objective",
+              "architecture_scope",
+              "architecture_non_scope",
+              "architecture_requirements",
+              "quality_attributes",
+              "architecture_candidates",
+              "architecture_decision_records",
+              "component_responsibility_records",
+              "interface_contract_records",
+              "data_flow_records",
+              "trust_boundary_records",
+              "authority_boundary_structure_records",
+              "ai_component_placement_records",
+              "failure_propagation_records",
+              "fallback_and_containment_records",
+              "deployment_topology_structure",
+              "runtime_conformance_claim",
+              "migration_and_replacement_plan_references",
+              "architecture_lineage"
+            ],
+            "field_groups": {
+              "identity": [
+                "architecture_id",
+                "architecture_version"
+              ],
+              "scope_and_requirements": [
+                "architecture_objective",
+                "architecture_scope",
+                "architecture_non_scope",
+                "architecture_requirements",
+                "quality_attributes"
+              ],
+              "candidates_and_decisions": [
+                "architecture_candidates",
+                "architecture_decision_records"
+              ],
+              "structure": [
+                "component_responsibility_records",
+                "interface_contract_records",
+                "data_flow_records",
+                "trust_boundary_records",
+                "authority_boundary_structure_records",
+                "ai_component_placement_records"
+              ],
+              "failure_topology_and_runtime_claim": [
+                "failure_propagation_records",
+                "fallback_and_containment_records",
+                "deployment_topology_structure",
+                "runtime_conformance_claim"
+              ],
+              "change_and_lineage": [
+                "migration_and_replacement_plan_references",
+                "architecture_lineage"
+              ]
+            }
+          },
+          "architecture_evaluation_and_conformance_record": {
+            "purpose": "record architecture readiness, conformance-claim status, critical invalidation, repair origin, revalidation scope, and sibling handoff conditions",
+            "required_fields": [
+              "evaluation_id",
+              "architecture_id",
+              "architecture_version",
+              "audit_targets",
+              "dimension_scores",
+              "score_sources",
+              "detected_deviations",
+              "severity",
+              "critical_invalidation_status",
+              "architecture_ready_claim_status",
+              "runtime_conformance_claim_status",
+              "repair_origin",
+              "recommended_revalidation_scope",
+              "handoff_conditions",
+              "lineage_status"
+            ],
+            "field_groups": {
+              "identity": [
+                "evaluation_id",
+                "architecture_id",
+                "architecture_version"
+              ],
+              "criteria_and_scores": [
+                "audit_targets",
+                "dimension_scores",
+                "score_sources"
+              ],
+              "findings": [
+                "detected_deviations",
+                "severity",
+                "critical_invalidation_status",
+                "architecture_ready_claim_status",
+                "runtime_conformance_claim_status"
+              ],
+              "repair_and_handoff": [
+                "repair_origin",
+                "recommended_revalidation_scope",
+                "handoff_conditions"
+              ],
+              "lineage": [
+                "lineage_status"
+              ]
+            }
+          }
+        },
+        "record_relationship_contract": {
+          "architecture_process_record_primary_keys": [
+            "architecture_id",
+            "architecture_version"
+          ],
+          "evaluation_record_foreign_keys": [
+            "architecture_id",
+            "architecture_version"
+          ],
+          "architecture_structure_keys": [
+            "architecture_requirement_id",
+            "quality_attribute_id",
+            "component_id",
+            "interface_id",
+            "data_flow_id",
+            "boundary_id",
+            "authority_boundary_id",
+            "architecture_decision_id"
+          ],
+          "change_and_lineage_keys": [
+            "migration_id",
+            "repair_id",
+            "revision_id",
+            "parent_architecture_version",
+            "source_architecture_version",
+            "target_architecture_version"
+          ],
+          "orphan_record_policy": {
+            "orphan_component_record_prohibited": true,
+            "orphan_interface_record_prohibited": true,
+            "orphan_data_flow_record_prohibited": true,
+            "orphan_boundary_record_prohibited": true,
+            "orphan_decision_record_prohibited": true,
+            "orphan_evaluation_record_prohibited": true,
+            "orphan_migration_record_prohibited": true,
+            "orphan_repair_record_prohibited": true,
+            "runtime_conformance_claim_without_architecture_reference_prohibited": true
+          }
+        },
+        "record_schema_consistency_policy": {
+          "record_required_fields_must_be_mapped_to_field_groups": true,
+          "field_group_items_inherit_group_requirement_level_unless_overridden": true,
+          "field_group_items_must_have_known_requirement_level_after_inheritance": true,
+          "record_relationships_must_not_create_orphan_records": true
+        }
+      },
+      "meta_data": {
+        "version": "0.1.0"
+      }
+    }
+  }
+}

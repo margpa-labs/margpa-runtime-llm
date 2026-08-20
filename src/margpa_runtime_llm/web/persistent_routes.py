@@ -29,6 +29,7 @@ from margpa_runtime_llm.modules.conversation.domain import (
     ConversationTurnId,
     ConversationTurnOrigin,
 )
+from margpa_runtime_llm.modules.conversation.ports import StoredConversation
 
 from .contracts import WebRuntime
 from .persistent_contracts import (
@@ -39,6 +40,7 @@ from .persistent_contracts import (
     PersistentDerivedStreamRequest,
     PersistentMutationRequest,
     PersistentMutationResponse,
+    PersistentRenameRequest,
     PersistentRuntimeResponse,
     PersistentStopRequest,
     PersistentStopResponse,
@@ -49,7 +51,8 @@ from .persistent_contracts import (
 from .persistent_streaming import PersistentSseBridge
 
 PERSISTENT_API_PREFIX = "/api/v2/conversations"
-PERSISTENT_FEATURES = ("list", "resume", "retry", "regenerate", "branch")
+PERSISTENT_FEATURES = ("list", "resume", "retry", "regenerate", "branch", "rename", "delete")
+_DEFAULT_LIST_STATES = frozenset(ConversationState) - {ConversationState.DELETED}
 _WEB_ID_DOMAIN = b"margpa-persistent-web-v2\0"
 
 
@@ -82,7 +85,7 @@ def create_persistent_router() -> APIRouter:
         service = _service(request)
         page = await asyncio.to_thread(
             service.list_conversations,
-            states=frozenset() if state is None else frozenset({state}),
+            states=_DEFAULT_LIST_STATES if state is None else frozenset({state}),
             limit=limit,
             cursor=cursor,
         )
@@ -102,18 +105,19 @@ def create_persistent_router() -> APIRouter:
             session_id=_session_id("session", body.operation_id),
             operation_id=operation_id,
         )
-        return PersistentMutationResponse(detail=project_persistent_detail(stored))
+        return PersistentMutationResponse(detail=await _project_detail(service, stored))
 
     @router.get("/{conversation_id}", response_model=PersistentConversationDetailResponse)
     async def detail(
         request: Request,
         conversation_id: str = _path_id(),
     ) -> PersistentConversationDetailResponse:
+        service = _service(request)
         stored = await asyncio.to_thread(
-            _service(request).get_conversation,
+            service.get_conversation,
             ConversationId(value=conversation_id),
         )
-        return project_persistent_detail(stored)
+        return await _project_detail(service, stored)
 
     @router.post("/{conversation_id}/resume", response_model=PersistentMutationResponse)
     async def resume(
@@ -131,7 +135,7 @@ def create_persistent_router() -> APIRouter:
             operation_id=operation_id,
             expected_revision=body.expected_revision,
         )
-        return PersistentMutationResponse(detail=project_persistent_detail(stored))
+        return PersistentMutationResponse(detail=await _project_detail(service, stored))
 
     @router.post("/{conversation_id}/archive", response_model=PersistentMutationResponse)
     async def archive(
@@ -148,6 +152,41 @@ def create_persistent_router() -> APIRouter:
         conversation_id: str = _path_id(),
     ) -> PersistentMutationResponse:
         return await _archive_mutation(request, conversation_id, body, archived=False)
+
+    @router.post("/{conversation_id}/rename", response_model=PersistentMutationResponse)
+    async def rename(
+        request: Request,
+        body: PersistentRenameRequest,
+        conversation_id: str = _path_id(),
+    ) -> PersistentMutationResponse:
+        service = _service(request)
+        operation_id = _operation("rename", body.operation_id)
+        await _reject_applied(service, operation_id)
+        stored = await asyncio.to_thread(
+            service.rename_conversation,
+            conversation_id=ConversationId(value=conversation_id),
+            operation_id=operation_id,
+            expected_revision=body.expected_revision,
+            title=body.title or None,
+        )
+        return PersistentMutationResponse(detail=await _project_detail(service, stored))
+
+    @router.post("/{conversation_id}/delete", response_model=PersistentMutationResponse)
+    async def delete(
+        request: Request,
+        body: PersistentMutationRequest,
+        conversation_id: str = _path_id(),
+    ) -> PersistentMutationResponse:
+        service = _service(request)
+        operation_id = _operation("delete", body.operation_id)
+        await _reject_applied(service, operation_id)
+        stored = await asyncio.to_thread(
+            service.set_deleted,
+            conversation_id=ConversationId(value=conversation_id),
+            operation_id=operation_id,
+            expected_revision=body.expected_revision,
+        )
+        return PersistentMutationResponse(detail=await _project_detail(service, stored))
 
     @router.post("/{conversation_id}/turns/stream")
     async def normal_stream(
@@ -223,7 +262,7 @@ def create_persistent_router() -> APIRouter:
             operation_id=operation_id,
             expected_revision=body.expected_revision,
         )
-        return PersistentMutationResponse(detail=project_persistent_detail(stored))
+        return PersistentMutationResponse(detail=await _project_detail(service, stored))
 
     @router.post(
         "/{conversation_id}/generations/{request_id}/stop",
@@ -265,7 +304,7 @@ async def _archive_mutation(
         expected_revision=body.expected_revision,
         archived=archived,
     )
-    return PersistentMutationResponse(detail=project_persistent_detail(stored))
+    return PersistentMutationResponse(detail=await _project_detail(service, stored))
 
 
 async def _derived_stream_response(
@@ -344,6 +383,19 @@ def _service(request: Request) -> PersistentConversationService:
             "Persistent conversations are unavailable.",
         )
     return service
+
+
+async def _project_detail(
+    service: PersistentConversationService,
+    stored: StoredConversation,
+) -> PersistentConversationDetailResponse:
+    """Project a `StoredConversation` including its persisted citation evidence."""
+
+    citations = await asyncio.to_thread(
+        service.get_conversation_citations,
+        stored.conversation.conversation_id,
+    )
+    return project_persistent_detail(stored, citations_by_turn=citations)
 
 
 def persistent_error_response(error: BaseException) -> JSONResponse:

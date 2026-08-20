@@ -7,6 +7,7 @@ from margpa_runtime_llm.modules.conversation.domain import (
     ConversationId,
     ConversationOperationId,
     ConversationScopeId,
+    ConversationSessionState,
     ConversationSnapshot,
     ConversationState,
     ConversationStorageError,
@@ -122,6 +123,10 @@ class MemoryConversationRepository:
                 head_turn_id=record.conversation.head_turn_id,
                 created_at=record.conversation.created_at,
                 updated_at=record.conversation.updated_at,
+                has_active_session=any(
+                    item.state is ConversationSessionState.ACTIVE
+                    for item in record.conversation.sessions
+                ),
             )
             for (scope_value, _), record in self.records.items()
             if scope_value == query.scope_id.value
@@ -317,6 +322,7 @@ def test_page_rejects_cross_scope_items() -> None:
         state=ConversationState.ACTIVE,
         created_at=NOW,
         updated_at=NOW,
+        has_active_session=False,
     )
     with pytest.raises(ValidationError, match="another scope"):
         ConversationPage(scope_id=scope("scope-a"), items=(summary,))

@@ -1,0 +1,1453 @@
+{
+  "sdagd": {
+    "strategic_decision_audit_governance_definition": {
+      "description": "SDAGD (Strategic Decision Audit Governance Definition) is an additive domain governance definition for pre-final audit of strategic decision structures and DAAGD decision-authority assessments. SDAGD checks whether SPPGD output and DAAGD output are clear, bounded, accountable, auditable, and rule-compliant enough to be handed to the authorized decision flow. SDAGD does not create strategy, decide authority, authorize AI decisions, block AI decisions by independent judgment, assign accountability, make final decisions, issue execution instructions, or replace human, DAAGD, CDOGD, runtime, or SDMRGD responsibilities.",
+      "inheritance": {
+        "inheritance_mode": "additive_domain_extension",
+        "parent_definitions": [
+          {
+            "syntax_id": "argd",
+            "role": "general_reasoning_procedure_governance",
+            "required": true
+          },
+          {
+            "syntax_id": "dagd",
+            "role": "general_behavior_audit_repair_activation_and_status_governance",
+            "required": true
+          }
+        ],
+        "dependency_version_policy": {
+          "specific_parent_versions_are_not_hardcoded_in_domain_compatibility_labels": true,
+          "parent_version_binding_is_external_to_this_domain_definition": true,
+          "version_binding_owner": "runtime_bundle_or_release_manifest"
+        },
+        "standalone_reference_use": {
+          "allowed": true,
+          "condition": "standalone readers must treat ARGD, DAGD, CDOGD, SPPGD, DAAGD, and optional SDMRGD mechanisms as external prerequisites or reference context",
+          "does_not_grant_parent_or_sibling_functionality": true,
+          "runtime_conformance_requires_parent_definitions": true
+        },
+        "replaces_parent_definitions": false,
+        "duplicates_parent_rules": false,
+        "parent_rules_remain_authoritative": true,
+        "domain_delta_only": true,
+        "preserved_parent_mechanism_policy": {
+          "inherited_governance_must_be_referenced_not_reexpanded": true,
+          "silent_parent_rule_override_prohibited": true,
+          "parent_mechanism_lists_must_not_be_recreated_unless_required_by_explicit_context": true
+        },
+        "conflict_policy": {
+          "general_reasoning_conflicts": "resolve_under_parent_reasoning_governance",
+          "general_behavior_and_governance_conflicts": "resolve_under_parent_behavior_governance",
+          "strategic_decision_audit_domain_conflicts": "resolve_under_sdagd_only_for_sdagd_audit_scope_and_only_when_not_in_conflict_with_parent_governance_or_higher_authority",
+          "strategic_planning_structure_conflicts": "return_to_sppgd_or_cdogd_when_strategy_structure_boundary_is_unclear",
+          "decision_authority_and_accountability_conflicts": "return_to_daagd_or_cdogd_when_authority_boundary_is_unclear",
+          "sdmrgd_meta_review_conflicts": "do_not_resolve_under_sdagd_return_to_sdmrgd_dagd_runtime_or_human_as_applicable",
+          "higher_level_system_policies_remain_authoritative": true,
+          "silent_parent_rule_override_prohibited": true
+        }
+      },
+      "orchestration_reference": {
+        "orchestration_definition": "cdogd",
+        "relationship": "external_orchestration_reference",
+        "cdogd_is_not_reimplemented_here": true,
+        "registry_and_activation_logic_are_external": true,
+        "routing_priority_and_domain_selection_are_external": true,
+        "registered_domain_extension_storage_is_external": true,
+        "boundary_resolution_returns_to_cdogd_when_domain_authority_conflict_is_material": true
+      },
+      "domain_relationships": {
+        "primary_input_domains": {
+          "sppgd": {
+            "syntax_name": "SPPGD (Strategic Planning and Prioritization Governance Definition)",
+            "role": "creates_or_structures_strategic_decision_structure",
+            "sdagd_relationship": "audit_input",
+            "sdagd_must_not_substitute": true
+          },
+          "daagd": {
+            "syntax_name": "DAAGD (Decision Authority and Accountability Governance Definition)",
+            "role": "determines_decision_authority_accountability_human_approval_ai_delegation_and_escalation_conditions",
+            "sdagd_relationship": "audit_input",
+            "sdagd_must_not_substitute": true
+          }
+        },
+        "optional_meta_review_domain": {
+          "sdmrgd": {
+            "syntax_name": "SDMRGD (Strategic Decision Meta-Review Governance Definition)",
+            "role": "meta_reviews_sdagd_audit_state_only",
+            "relationship": "asymmetric_meta_review_safety_valve",
+            "sdagd_may_request_activation": true,
+            "sdagd_does_not_audit_sdmrgd": true,
+            "sdagd_does_not_approve_sdmrgd": true
+          }
+        },
+        "fixed_role_boundary": {
+          "sppgd": "strategic_decision_structure",
+          "daagd": "decision_authority_and_accountability",
+          "sdagd": "strategic_decision_audit",
+          "sdmrgd": "sdagd_meta_review"
+        }
+      },
+      "domain_scope": {
+        "domain": "strategic_decision_audit",
+        "scope_statement": "Audit whether a strategic decision structure and the corresponding DAAGD decision-authority assessment comply with declared strategic-structure, authority, accountability, approval, delegation, uncertainty, and boundary requirements before the authorized decision flow proceeds.",
+        "governed_target_categories": [
+          "strategic_decision_structure",
+          "strategic_decision_purpose",
+          "strategic_assumptions",
+          "strategic_constraints",
+          "decision_options",
+          "selected_option",
+          "rejected_options",
+          "selection_basis",
+          "rejection_basis",
+          "priority_structure",
+          "resource_or_attention_allocation_policy",
+          "continuation_conditions",
+          "stop_conditions",
+          "withdrawal_conditions",
+          "hold_conditions",
+          "re_evaluation_conditions",
+          "uncertainty_handling",
+          "daagd_decision_authority_assessment",
+          "daagd_accountable_entity_assignment",
+          "daagd_accountable_owner_assignment",
+          "daagd_decision_owner_assignment",
+          "daagd_execution_owner_assignment",
+          "daagd_human_approval_requirement",
+          "daagd_ai_decision_classification",
+          "daagd_ai_delegation_scope",
+          "daagd_autonomous_decision_conditions",
+          "daagd_escalation_conditions",
+          "daagd_approval_conditions",
+          "daagd_decision_responsibility_execution_responsibility_separation",
+          "domain_boundary_alignment",
+          "authority_boundary_alignment",
+          "pre_final_decision_audit_state"
+        ],
+        "lifecycle_coverage": [
+          "domain_proposals_constraints_risks_and_options_available",
+          "cross_domain_responsibility_or_conflict_may_be_orchestrated_externally",
+          "strategic_decision_structure_prepared_by_sppgd",
+          "decision_authority_accountability_and_approval_assessment_prepared_by_daagd",
+          "pre_final_sdagd_audit",
+          "pass_or_conditional_pass_reports_audit_readiness_under_daagd_authority_assessment",
+          "return_for_repair_routes_to_sppgd_daagd_or_source_domain",
+          "invalidate_reports_material_audit_failure_for_current_decision_candidate",
+          "escalate_to_human_reports_that_ai_or_delegated_handling_is_not_appropriate_under_current_audit_basis",
+          "re_audit_after_material_repair_or_context_change"
+        ],
+        "non_targets": [
+          "replacement_of_parent_governance",
+          "replacement_of_external_orchestration",
+          "absorption_of_sibling_domain_definitions",
+          "creation_of_strategic_decision_structure",
+          "creation_of_priority_structure",
+          "generation_of_selected_option",
+          "generation_of_rejected_option_reasoning",
+          "generation_of_withdrawal_decision",
+          "finalization_of_decision_authority",
+          "creation_of_accountable_entity",
+          "creation_of_accountable_owner",
+          "creation_of_decision_owner",
+          "creation_of_execution_owner",
+          "creation_of_human_approval_requirement",
+          "creation_of_ai_delegation_scope",
+          "authorization_or_rejection_of_ai_decisions_by_independent_sdagd_judgment",
+          "final_decision_making",
+          "execution_instruction",
+          "direct_modification_of_audited_target",
+          "substitution_for_sppgd",
+          "substitution_for_daagd",
+          "substitution_for_sdmrgd",
+          "substitution_for_human_accountable_owner",
+          "substitution_for_specialized_domain_judgment",
+          "self_clearance_of_returned_items",
+          "model_weight_modification",
+          "training_data_modification",
+          "replacement_of_built_in_system_policies"
+        ]
+      },
+      "abstraction_and_context_policy": {
+        "rule_bodies_must_use_highest_safe_abstraction_level": true,
+        "rule_hardcoding_prohibited_by_default": true,
+        "rules_must_be_abstract_by_default": true,
+        "case_specific_constraints_must_be_contextual": true,
+        "domain_instances_must_not_be_encoded_as_general_rules": true,
+        "implementation_details_must_not_become_domain_rules": true,
+        "contextual_specificity_conditions": [
+          "explicit_user_instruction",
+          "identity_or_verification_requires_specific_name",
+          "hallucination_prevention_requires_specific_name",
+          "system_integrity_requires_specific_constraint",
+          "strategic_decision_context_would_break_without_specificity",
+          "authority_boundary_or_accountability_context_requires_specific_entity"
+        ],
+        "specificity_handling": {
+          "specificity_scope": "strategic_decision_context_or_audited_target_context",
+          "specificity_must_not_be_promoted_to_general_rule_without_basis": true,
+          "specificity_must_be_traceable_to_context_or_instruction": true,
+          "specificity_must_not_override_higher_authority": true
+        }
+      },
+      "role_complete_separation": {
+        "required": true,
+        "principle": "SDAGD must keep strategic planning, DAAGD authority determination, SDAGD audit, SDAGD self-state audit, SDMRGD meta-review, external orchestration, final decision, execution, records, and metadata responsibilities separated.",
+        "separation_targets": {
+          "source_material": "inputs, prior materials, domain proposals, constraints, risks, candidate options, and authority records used as audit evidence but not absorbed by default",
+          "sppgd_output": "strategic decision structure prepared outside SDAGD",
+          "daagd_output": "decision authority, accountability, AI classification, delegation, escalation, and approval assessment prepared outside SDAGD",
+          "sdagd_audit": "pre-final audit of SPPGD strategic structure and DAAGD authority assessment",
+          "sdagd_self_state_audit": "domain-local audit of SDAGD's own audit state and boundary compliance",
+          "sdmrgd_meta_review": "external meta-review of SDAGD's audit state only when requested or triggered",
+          "final_decision": "decision made by the authorized human, runtime, delegated authority, or accountable entity under DAAGD and runtime policy",
+          "execution": "post-decision implementation or action outside SDAGD",
+          "external_orchestration": "routing, registry, priority, activation, and boundary resolution under CDOGD or runtime context",
+          "metadata": "identity, authorship, license, repository, status, and compatibility information, not domain rules"
+        },
+        "non_absorption_rules": [
+          "sppgd_content_must_be_audited_not_recreated",
+          "daagd_content_must_be_audited_not_finalized",
+          "daagd_ai_delegation_and_human_approval_assessment_must_be_audited_not_redecided",
+          "sdagd_audit_result_must_not_be_treated_as_final_decision",
+          "sdmrgd_output_must_not_be_treated_as_final_decision",
+          "sdmrgd_must_not_be_audited_or_approved_by_sdagd",
+          "external_orchestration_must_not_be_reimplemented_in_sdagd",
+          "metadata_must_not_be_promoted_to_domain_rule_without_basis",
+          "source_domain_content_must_not_be_absorbed_without_domain_reason"
+        ],
+        "review_implications": [
+          "boundary_check_required_when_sppgd_daagd_sdmrgd_or_source_domain_context_is_material",
+          "role_mixing_failure_is_material_when_it_changes_decision_authority_final_decision_or_audit_status"
+        ]
+      },
+      "cross_domain_interference_policy": {
+        "purpose": "Prevent SDAGD from absorbing SPPGD, DAAGD, SDMRGD, CDOGD, or source-domain responsibilities while still allowing explicit audit findings and return routing.",
+        "rules": [
+          "sibling_domain_references_must_be_explicit_when_material",
+          "sibling_domain_rules_must_not_be_copied_by_default",
+          "domain_overlap_must_be_declared_when_material",
+          "cross_domain_activation_priority_is_external_to_sdagd",
+          "domain_specific_rule_conflicts_must_not_be_silently_merged",
+          "shared_terms_must_not_imply_shared_authority_without_boundary_statement",
+          "sdagd_must_return_to_cdogd_when_domain_authority_conflict_is_material"
+        ],
+        "overlap_handling": {
+          "overlap_is_allowed": true,
+          "overlap_must_preserve_domain_responsibility_boundaries": true,
+          "overlap_resolution_owner": "external_orchestration_or_explicit_runtime_context"
+        }
+      },
+      "policy_goal": [
+        "pre_final_decision_audit_integrity",
+        "strategic_decision_structure_auditability",
+        "decision_purpose_clarity_audit",
+        "premise_and_constraint_audit_integrity",
+        "selection_and_rejection_basis_auditability",
+        "priority_structure_auditability",
+        "continuation_stop_withdrawal_hold_re_evaluation_condition_integrity",
+        "uncertainty_visibility_audit",
+        "daagd_decision_authority_assessment_auditability",
+        "daagd_accountability_assignment_auditability",
+        "daagd_human_approval_requirement_auditability",
+        "daagd_ai_delegation_scope_auditability",
+        "daagd_autonomous_decision_condition_auditability",
+        "authority_boundary_audit_integrity",
+        "domain_boundary_audit_integrity",
+        "audit_result_classification_clarity",
+        "return_for_repair_traceability",
+        "invalidation_basis_clarity",
+        "human_escalation_condition_auditability",
+        "self_state_audit_integrity",
+        "anti_rubber_stamp_integrity",
+        "anti_overreach_integrity",
+        "anti_decision_substitution_integrity",
+        "meta_review_request_integrity"
+      ],
+      "constraints": {
+        "prohibited_failure_modes": {
+          "authority_overreach_failures": [
+            "audit_result_treated_as_final_decision",
+            "strategic_decision_created_by_sdagd",
+            "strategic_decision_structure_rewritten_by_sdagd",
+            "priority_structure_created_by_sdagd",
+            "selection_or_rejection_reason_created_by_sdagd_as_final_structure",
+            "decision_authority_finalized_by_sdagd",
+            "accountable_entity_created_by_sdagd",
+            "human_approval_requirement_created_by_sdagd",
+            "ai_delegation_scope_created_by_sdagd",
+            "ai_decision_authorized_or_rejected_by_independent_sdagd_judgment",
+            "final_decision_substituted_by_sdagd",
+            "execution_instruction_issued_by_sdagd",
+            "returned_item_self_cleared_by_sdagd"
+          ],
+          "audit_quality_failures": [
+            "rubber_stamp_pass",
+            "insufficient_information_pass",
+            "unauditable_target_treated_as_audited",
+            "weak_pass_basis",
+            "ambiguous_conditional_pass_condition",
+            "ambiguous_return_for_repair_reason",
+            "invalidation_without_sufficient_basis",
+            "excessive_blocking_of_repairable_issue",
+            "uncertainty_suppressed",
+            "audit_scope_unclear",
+            "audit_criteria_unclear",
+            "audit_basis_missing",
+            "audit_target_misidentified",
+            "audit_result_classification_ambiguous"
+          ],
+          "domain_boundary_failures": [
+            "sppgd_role_absorbed",
+            "daagd_role_absorbed",
+            "sdmrgd_role_absorbed",
+            "final_decision_owner_role_absorbed",
+            "specialized_domain_judgment_substituted",
+            "domain_specific_output_audited_as_strategic_structure_without_boundary",
+            "cdogd_orchestration_reimplemented",
+            "sdagd_audits_sdmrgd",
+            "sdagd_approves_sdmrgd"
+          ],
+          "self_state_failures": [
+            "self_audit_used_as_self_approval",
+            "self_justifying_audit",
+            "criteria_drift",
+            "scope_confusion",
+            "self_overreach_hidden",
+            "self_audit_insufficient_information_hidden",
+            "sdmrgd_request_used_as_self_justification",
+            "sdmrgd_meta_review_pass_treated_as_strategic_decision_pass"
+          ],
+          "human_and_agentic_failures": [
+            "daagd_human_approval_required_but_bypassed",
+            "daagd_ai_delegation_scope_exceeded",
+            "agentic_loop_treats_sdagd_audit_as_execution_authority",
+            "accountable_entity_missing_in_ai_to_ai_decision_flow",
+            "irreversible_or_external_impact_decision_passed_without_required_daagd_or_human_review",
+            "human_decision_materials_hide_uncertainty_or_missing_information"
+          ],
+          "schema_hygiene_failures": [
+            "record_required_field_group_mapping_failure",
+            "evaluation_dimension_alignment_failure",
+            "audit_to_action_outputs_unregistered",
+            "record_relationship_orphan_created"
+          ]
+        },
+        "required_controls": [
+          "identify_audit_target",
+          "define_audit_scope",
+          "define_audit_criteria",
+          "record_audit_basis",
+          "distinguish_sppgd_output_from_daagd_output",
+          "distinguish_domain_specific_output_from_strategic_decision_structure",
+          "distinguish_audit_result_from_final_decision",
+          "preserve_sppgd_boundary",
+          "preserve_daagd_boundary",
+          "preserve_sdmrgd_boundary",
+          "preserve_human_accountable_owner_boundary",
+          "preserve_cdogd_orchestration_boundary",
+          "classify_audit_result_explicitly",
+          "disclose_insufficient_information",
+          "disclose_unauditable_segments",
+          "disclose_uncertainty",
+          "require_return_destination_when_returning_for_repair",
+          "require_specific_return_reason",
+          "require_escalation_reason_when_escalating",
+          "require_invalidation_reason_when_invalidating",
+          "require_self_state_audit_when_material",
+          "request_sdmrgd_when_self_audit_detects_unresolved_instability"
+        ],
+        "runtime_constraints": {
+          "domain_only": true,
+          "does_not_redefine_parent_governance": true,
+          "does_not_reimplement_external_orchestration": true,
+          "does_not_define_registry_logic": true,
+          "does_not_create_strategy": true,
+          "does_not_finalize_authority": true,
+          "does_not_authorize_or_reject_ai_decisions_by_independent_judgment": true,
+          "does_not_make_final_decision": true,
+          "does_not_execute": true,
+          "does_not_create_global_domain_priority": true
+        },
+        "schema_hygiene_constraints": {
+          "taxonomy_group_membership_must_match_requirement_level": true,
+          "record_required_fields_must_be_mapped_to_field_groups_when_records_exist": true,
+          "field_group_items_may_inherit_group_requirement_level_when_not_overridden": true,
+          "evaluation_dimensions_must_align_with_thresholds_and_audit_targets_when_scoring_exists": true,
+          "audit_to_action_rules_must_emit_registered_action_outputs_only": true
+        },
+        "common_rule_index": {
+          "abstraction_rules": [
+            "rule_bodies_must_use_highest_safe_abstraction_level",
+            "rule_hardcoding_prohibited_by_default",
+            "rules_must_be_abstract_by_default",
+            "case_specific_constraints_must_be_contextual",
+            "domain_instances_must_not_be_encoded_as_general_rules"
+          ],
+          "role_and_boundary_rules": [
+            "sdagd_audits_not_decides",
+            "sdagd_must_not_create_sppgd_content",
+            "sdagd_must_not_finalize_daagd_content",
+            "sdagd_must_not_redecide_daagd_ai_or_human_approval_assessment",
+            "sdagd_must_not_audit_or_approve_sdmrgd",
+            "external_orchestration_must_not_be_reimplemented"
+          ],
+          "audit_quality_rules": [
+            "audit_target_scope_criteria_and_basis_required",
+            "insufficient_information_must_not_pass",
+            "unauditable_segments_must_be_disclosed",
+            "audit_result_classification_required",
+            "return_reasons_must_be_specific"
+          ],
+          "self_state_rules": [
+            "self_audit_is_not_self_approval",
+            "self_overreach_requires_repair_or_meta_review",
+            "self_audit_escalate_blocks_audit_pass_claim",
+            "sdmrgd_request_is_not_audit_justification"
+          ]
+        }
+      },
+      "capabilities": {
+        "required_capabilities": [
+          "strategic_decision_structure_audit",
+          "decision_purpose_audit",
+          "premise_audit",
+          "constraint_reflection_audit",
+          "selection_basis_audit",
+          "rejection_basis_audit",
+          "priority_structure_audit",
+          "continuation_condition_audit",
+          "stop_condition_audit",
+          "withdrawal_condition_audit",
+          "hold_condition_audit",
+          "re_evaluation_condition_audit",
+          "uncertainty_handling_audit",
+          "daagd_decision_authority_assessment_audit",
+          "daagd_accountability_assignment_audit",
+          "daagd_human_approval_requirement_audit",
+          "daagd_ai_delegation_scope_audit",
+          "daagd_autonomous_decision_condition_audit",
+          "daagd_escalation_condition_audit",
+          "domain_boundary_audit",
+          "authority_overreach_detection",
+          "audit_result_classification",
+          "return_for_repair_routing",
+          "invalidation_basis_assessment",
+          "self_state_audit",
+          "sdmrgd_activation_request_generation"
+        ],
+        "capability_groups": {
+          "strategic_structure_audit": [
+            "strategic_decision_structure_audit",
+            "decision_purpose_audit",
+            "premise_audit",
+            "constraint_reflection_audit",
+            "selection_basis_audit",
+            "rejection_basis_audit",
+            "priority_structure_audit"
+          ],
+          "condition_and_uncertainty_audit": [
+            "continuation_condition_audit",
+            "stop_condition_audit",
+            "withdrawal_condition_audit",
+            "hold_condition_audit",
+            "re_evaluation_condition_audit",
+            "uncertainty_handling_audit"
+          ],
+          "authority_and_accountability_audit": [
+            "daagd_decision_authority_assessment_audit",
+            "daagd_accountability_assignment_audit",
+            "daagd_human_approval_requirement_audit",
+            "daagd_ai_delegation_scope_audit",
+            "daagd_autonomous_decision_condition_audit",
+            "daagd_escalation_condition_audit"
+          ],
+          "boundary_and_overreach_control": [
+            "domain_boundary_audit",
+            "authority_overreach_detection"
+          ],
+          "audit_result_and_repair_routing": [
+            "audit_result_classification",
+            "return_for_repair_routing",
+            "invalidation_basis_assessment"
+          ],
+          "self_state_and_meta_review_control": [
+            "self_state_audit",
+            "sdmrgd_activation_request_generation"
+          ]
+        },
+        "mapping_policy": {
+          "required_capabilities_must_appear_in_capability_groups_when_groups_are_used": true,
+          "capability_groups_are_structural_not_exhaustive": true,
+          "future_extensions_should_attach_to_groups_before_adding_flat_items": true,
+          "capability_taxonomy_must_not_conflict_with_flat_required_list": true
+        }
+      },
+      "input_contract": {
+        "sppgd_expected_inputs": [
+          "decision_target",
+          "decision_purpose",
+          "premises",
+          "constraints",
+          "options",
+          "recommended_option",
+          "rejected_options",
+          "selection_basis",
+          "rejection_basis",
+          "priority_structure",
+          "allocation_policy",
+          "continuation_conditions",
+          "stop_conditions",
+          "withdrawal_conditions",
+          "hold_conditions",
+          "re_evaluation_conditions",
+          "uncertainty",
+          "additional_confirmation_items",
+          "deferred_judgment_points"
+        ],
+        "daagd_expected_inputs": [
+          "decision_authority_basis",
+          "accountable_entity",
+          "accountable_owner",
+          "decision_owner",
+          "execution_owner",
+          "human_approval_requirement",
+          "ai_decision_classification",
+          "delegation_scope",
+          "autonomous_decision_conditions",
+          "escalation_conditions",
+          "approval_conditions",
+          "decision_responsibility_execution_responsibility_separation",
+          "authority_gap_points",
+          "deferred_authority_points",
+          "record_requirements"
+        ],
+        "source_domain_expected_inputs_when_material": [
+          "domain_specific_proposals",
+          "domain_specific_constraints",
+          "domain_specific_risks",
+          "domain_specific_options",
+          "domain_specific_evidence",
+          "domain_specific_limitations",
+          "domain_specific_uncertainty"
+        ],
+        "input_handling_policy": {
+          "missing_sppgd_inputs_must_be_reported_as_strategic_structure_gap": true,
+          "missing_daagd_inputs_must_be_reported_as_authority_or_accountability_gap": true,
+          "missing_source_domain_inputs_must_be_reported_as_domain_specific_input_gap": true,
+          "sdagd_must_not_invent_missing_inputs": true,
+          "sdagd_must_not_repair_missing_inputs_by_rewriting_audited_target": true
+        }
+      },
+      "audit_result_model": {
+        "result_values": [
+          "pass",
+          "conditional_pass",
+          "return_for_repair",
+          "escalate_to_human",
+          "invalidate"
+        ],
+        "result_definitions": {
+          "pass": "The SPPGD strategic decision structure and DAAGD decision-authority assessment have no material unresolved audit issue, and the audit result may be reported to the DAAGD-governed decision flow.",
+          "conditional_pass": "Minor conditions or confirmation items remain, and the audit result may be reported as conditional only if the listed conditions do not require SDAGD to change strategy, authority, approval, or delegation assumptions.",
+          "return_for_repair": "The strategic decision structure, DAAGD authority assessment, or source-domain input is insufficient, inconsistent, over-asserted, or unclear and must be returned to the appropriate domain or owner before proceeding.",
+          "escalate_to_human": "The audit identifies uncertainty, impact, irreversibility, accountability, authority, or delegation concerns that require human accountable owner, runtime, DAAGD, or higher-authority handling rather than SDAGD determination.",
+          "invalidate": "The current decision candidate or its audit basis is materially broken under SDAGD audit and must not be treated as ready for final decision without reconstruction and re-audit."
+        },
+        "classification_rules": {
+          "result_must_be_explicit": true,
+          "pass_requires_sufficient_audit_basis": true,
+          "conditional_pass_requires_explicit_conditions": true,
+          "return_for_repair_requires_destination_and_reason": true,
+          "escalate_to_human_requires_escalation_reason": true,
+          "invalidate_requires_material_failure_basis": true,
+          "ambiguous_result_labels_are_prohibited": true,
+          "audit_result_is_not_final_decision": true,
+          "audit_result_does_not_authorize_or_reject_ai_decisions_by_independent_sdagd_judgment": true
+        },
+        "output_contract": [
+          "audit_target",
+          "audit_scope",
+          "audit_result",
+          "pass_status",
+          "conditional_pass_conditions",
+          "return_for_repair_reasons",
+          "invalidation_reasons",
+          "escalation_reasons",
+          "issues_to_return_to_sppgd",
+          "issues_to_return_to_daagd",
+          "issues_to_return_to_source_domain",
+          "issues_requiring_human_review",
+          "unauditable_segments",
+          "uncertainty",
+          "re_audit_conditions"
+        ]
+      },
+      "evaluation": {
+        "evaluation_policy": {
+          "domain_evaluation_required_when_domain_claim_is_made": true,
+          "scored_evaluation_is_optional": true,
+          "severity_model_is_optional_default_structure": true,
+          "boolean_state_or_threshold_based_evaluation_allowed": true,
+          "non_applicable_dimensions_must_be_excluded_with_reason_when_reporting": true
+        },
+        "audit_targets": [
+          "audit_target_clarity",
+          "audit_scope_clarity",
+          "audit_criteria_clarity",
+          "audit_basis_sufficiency",
+          "strategic_decision_purpose_clarity",
+          "premise_fixity",
+          "constraint_reflection",
+          "selection_basis_presence",
+          "rejection_basis_presence",
+          "priority_basis_integrity",
+          "continuation_condition_presence",
+          "stop_condition_presence",
+          "withdrawal_condition_presence",
+          "hold_condition_presence",
+          "re_evaluation_condition_presence",
+          "uncertainty_visibility",
+          "daagd_decision_authority_assessment_compliance",
+          "daagd_accountability_clarity",
+          "daagd_human_approval_requirement_compliance",
+          "daagd_ai_delegation_scope_compliance",
+          "daagd_autonomous_decision_condition_compliance",
+          "daagd_escalation_condition_presence",
+          "domain_boundary_integrity",
+          "authority_overreach_absence",
+          "audit_result_classification_clarity",
+          "return_reason_clarity",
+          "invalidation_basis_clarity",
+          "human_escalation_basis_clarity",
+          "self_state_audit_integrity",
+          "sdmrgd_request_integrity"
+        ],
+        "minimum_pass_conditions": [
+          "audit_target_scope_criteria_and_basis_are_explicit",
+          "sppgd_strategic_structure_is_sufficient_for_pre_final_audit",
+          "daagd_authority_assessment_is_sufficient_for_pre_final_audit",
+          "material_uncertainty_is_visible",
+          "accountability_and_human_approval_requirements_are_not_hidden",
+          "daagd_ai_delegation_scope_is_not_exceeded",
+          "sdagd_has_not_modified_audited_target_directly",
+          "sdagd_has_not_redecided_daagd_authority_or_delegation_assessment",
+          "audit_result_is_classified_explicitly",
+          "self_state_audit_passes_when_required"
+        ],
+        "drift_signals": [
+          "audit_basis_becomes_vague",
+          "audit_scope_expands_without_notice",
+          "sdagd_begins_rewriting_sppgd_output",
+          "sdagd_begins_finalizing_daagd_output",
+          "sdagd_begins_redeciding_ai_delegation_or_human_approval_requirement",
+          "pass_result_becomes_default_without_evidence",
+          "return_reasons_become_generic",
+          "uncertainty_disappears_from_audit_output",
+          "human_approval_need_is_redecided_by_sdagd",
+          "ai_delegation_boundary_is_redecided_by_sdagd",
+          "self_audit_is_used_as_self_approval",
+          "sdmrgd_request_is_used_to_justify_pass"
+        ],
+        "critical_invalidation_conditions": [
+          "final_decision_treated_as_completed_before_sdagd_audit",
+          "audit_result_treated_as_final_decision",
+          "strategic_decision_structure_materially_missing",
+          "decision_authority_assessment_materially_missing",
+          "accountable_entity_missing_for_material_decision",
+          "human_approval_required_but_bypassed",
+          "ai_delegation_scope_exceeded",
+          "irreversible_or_external_impact_decision_without_required_human_approval_review",
+          "insufficient_information_hidden_and_passed",
+          "unauditable_target_passed_as_audited",
+          "sdagd_overreach_materially_altered_audited_target",
+          "unresolved_domain_authority_conflict"
+        ],
+        "scoring_model": {
+          "enabled_when_domain_defines_scored_evaluation": false,
+          "score_range": [
+            0,
+            100
+          ],
+          "domain_dimension_scores": [],
+          "minimum_expected_scores": {},
+          "aggregation_policy": {
+            "equal_weight_across_applicable_dimensions": true,
+            "non_applicable_dimensions_excluded_with_reason": true,
+            "critical_invalidation_overrides_aggregate_score": true,
+            "llm_self_assessment_must_not_be_presented_as_external_validation": true
+          },
+          "alignment_policy": {
+            "domain_dimension_scores_must_have_minimum_expected_scores_when_scoring_is_enabled": true,
+            "audit_targets_must_have_corresponding_dimension_or_explicit_non_scored_reason": true,
+            "critical_invalidation_conditions_must_appear_in_severity_model_when_material_and_severity_model_exists": true
+          }
+        },
+        "severity_model": {
+          "enabled_when_domain_uses_severity": false,
+          "levels": [],
+          "severity_rules": {}
+        }
+      },
+      "repair": {
+        "purpose": "Define SDAGD-specific repair origins, routing, and re-audit requirements without allowing SDAGD to repair, rewrite, authorize, reject, or redecide the audited strategic decision structure or DAAGD authority assessment directly.",
+        "core_rule": "repair_model_should_define_repair_origin_not_parent_repair_cycle",
+        "repair_origins": [
+          "unclear_decision_purpose",
+          "unfixed_premise",
+          "missing_constraint_reflection",
+          "missing_decision_criteria",
+          "weak_selection_basis",
+          "missing_rejection_basis",
+          "priority_basis_gap",
+          "missing_continuation_condition",
+          "missing_stop_condition",
+          "missing_withdrawal_condition",
+          "missing_hold_condition",
+          "missing_re_evaluation_condition",
+          "hidden_uncertainty",
+          "unclear_accountable_entity",
+          "unclear_human_approval_requirement",
+          "unclear_ai_delegation_scope",
+          "authority_gap",
+          "authority_overreach",
+          "domain_boundary_confusion",
+          "insufficient_domain_specific_input",
+          "audit_scope_unclear",
+          "audit_basis_insufficient"
+        ],
+        "repair_policy": {
+          "identify_repair_origin": true,
+          "repair_affected_scope": true,
+          "revalidate_affected_axes": true,
+          "preserve_revision_lineage_when_material": true,
+          "do_not_skip_repair_and_claim_ready_without_basis": true,
+          "partial_revalidation_requires_reason": true,
+          "post_repair_review_must_cover_affected_axes": true,
+          "route_repair_to_sppgd_when_strategic_structure_gap": true,
+          "route_repair_to_daagd_when_authority_or_accountability_gap": true,
+          "route_repair_to_source_domain_when_domain_specific_input_gap": true,
+          "route_to_human_when_ai_or_delegated_decision_is_inappropriate": true,
+          "route_to_cdogd_when_domain_boundary_or_authority_conflict_is_unresolved": true,
+          "do_not_repair_audited_target_directly": true,
+          "do_not_redecide_daagd_authority_or_ai_delegation_assessment": true,
+          "require_reaudit_after_material_repair": true
+        },
+        "repair_directions": {
+          "sppgd_return_requests": [
+            "clarify_decision_purpose",
+            "fix_premises",
+            "reflect_constraints",
+            "state_decision_criteria",
+            "strengthen_selection_basis",
+            "add_rejection_basis",
+            "reassess_priority_structure",
+            "add_continuation_condition",
+            "add_stop_condition",
+            "add_withdrawal_condition",
+            "add_hold_condition",
+            "add_re_evaluation_condition",
+            "disclose_uncertainty"
+          ],
+          "daagd_return_requests": [
+            "clarify_accountable_entity",
+            "clarify_accountable_owner",
+            "clarify_decision_owner",
+            "clarify_execution_owner",
+            "reassess_human_approval_requirement",
+            "clarify_ai_decision_classification",
+            "clarify_delegation_scope",
+            "clarify_autonomous_decision_conditions",
+            "clarify_escalation_conditions",
+            "separate_decision_responsibility_from_execution_responsibility",
+            "state_authority_gap_points"
+          ],
+          "source_domain_return_requests": [
+            "supply_domain_specific_proposal_evidence",
+            "supply_domain_specific_constraints",
+            "supply_domain_specific_risks",
+            "supply_domain_specific_uncertainty",
+            "supply_domain_specific_limitations"
+          ],
+          "self_repair_requests": [
+            "redefine_audit_target",
+            "redefine_audit_scope",
+            "clarify_audit_criteria",
+            "supplement_audit_basis",
+            "clarify_audit_result_classification",
+            "clarify_return_destination",
+            "disclose_unauditable_segments",
+            "remove_overreach_content",
+            "request_sdmrgd_meta_review_when_self_state_remains_unstable"
+          ]
+        },
+        "human_review_required_when": [
+          "escalate_to_human_result",
+          "human_approval_required_but_unclear",
+          "irreversible_or_external_impact_decision_is_material",
+          "accountable_entity_missing_for_material_decision",
+          "ai_delegation_scope_exceeded_or_unclear",
+          "self_audit_escalate",
+          "sdmrgd_meta_review_escalate"
+        ]
+      },
+      "activation": {
+        "enabled": true,
+        "activation_mode": "local_domain_applicability",
+        "applies_when": [
+          "strategic_decision_audit_required",
+          "pre_final_decision_audit_required",
+          "decision_authority_assessment_audit_required",
+          "ai_delegation_audit_required",
+          "human_approval_requirement_audit_required",
+          "strategic_decision_structure_and_authority_assessment_are_ready_for_review",
+          "agentic_or_ai_to_ai_decision_flow_involves_material_decision",
+          "irreversible_or_external_impact_decision_is_being_considered",
+          "audit_before_final_decision_is_requested"
+        ],
+        "does_not_replace_argd": true,
+        "does_not_replace_dagd": true,
+        "does_not_reimplement_cdogd": true,
+        "does_not_define_registry_logic": true,
+        "routing_and_priority_are_external": true,
+        "activation_record_minimum_fields": [
+          "activation_reason",
+          "domain_context",
+          "governed_target_context",
+          "applicable_evaluation_axes",
+          "declared_context_policy_status"
+        ],
+        "local_activation_scope_policy": {
+          "domain_activation_is_context_local": true,
+          "external_orchestration_may_select_or_prioritize_domain": true,
+          "domain_definition_does_not_store_registry_or_routing_logic": true,
+          "activation_does_not_grant_final_decision_authority": true
+        },
+        "reactivation_policy": {
+          "domain_activation_is_not_one_shot": true,
+          "domain_may_be_reactivated_when_relevant_conditions_recur": true,
+          "reactivation_triggers": [
+            "governed_target_change",
+            "premise_change",
+            "constraint_change",
+            "risk_change",
+            "purpose_change",
+            "output_requirement_change",
+            "authority_or_context_change",
+            "delegation_scope_change",
+            "accountable_entity_change",
+            "human_approval_requirement_change",
+            "strategic_decision_structure_repaired",
+            "decision_authority_assessment_repaired",
+            "sdmrgd_repair_instruction_received"
+          ],
+          "deactivation_does_not_imply_future_non_applicability": true
+        }
+      },
+      "self_audit": {
+        "enabled": true,
+        "audit_frequency": {
+          "before_audit_result_output": true,
+          "before_pass_or_conditional_pass": true,
+          "before_invalidate": true,
+          "before_escalate_to_human": true,
+          "when_multiple_domains_are_involved": true,
+          "when_sppgd_daagd_boundary_is_unclear": true,
+          "when_decision_impact_is_material": true,
+          "when_ai_delegation_or_agentic_loop_is_involved": true,
+          "when_audit_basis_may_be_insufficient": true,
+          "when_sdagd_overreach_is_suspected": true
+        },
+        "audit_axes": [
+          "audit_scope",
+          "audit_basis",
+          "audit_criteria",
+          "audit_evidence",
+          "audit_target_identification",
+          "audit_result_classification",
+          "return_reason_clarity",
+          "authority_boundary_compliance",
+          "self_overreach_risk",
+          "rubber_stamp_risk",
+          "excessive_blocking_risk",
+          "insufficient_information_handling",
+          "uncertainty_handling",
+          "escalation_necessity",
+          "repairability_of_findings"
+        ],
+        "output_policy": {
+          "compact_by_default": true,
+          "emit_detail_on_anomaly": true,
+          "emit_detail_on_user_request": true,
+          "emit_detail_on_critical_failure": true
+        },
+        "required_basis_checks": [
+          "what_is_being_audited_is_explicit",
+          "audit_scope_is_explicit",
+          "audit_criteria_are_explicit",
+          "audit_basis_is_sufficient_for_result",
+          "pass_reason_is_explicit",
+          "conditional_pass_conditions_are_explicit",
+          "return_for_repair_destination_is_explicit",
+          "invalidate_reason_is_sufficient",
+          "human_escalation_need_is_checked_as_audit_finding_not_redecided_by_sdagd",
+          "sppgd_boundary_is_not_infringed",
+          "daagd_boundary_is_not_infringed",
+          "final_decision_owner_boundary_is_not_infringed",
+          "unauditable_segments_are_disclosed",
+          "uncertainty_is_not_hidden",
+          "criteria_are_not_backfilled_to_justify_result"
+        ],
+        "domain_specific_self_state_audit_policy": {
+          "optional_domain_local_policy": false,
+          "allowed_when_domain_requires_stronger_self_state_control": true,
+          "must_remain_domain_local": true,
+          "must_not_replace_parent_audit_or_repair_governance": true,
+          "must_not_be_treated_as_self_approval": true,
+          "must_define_overreach_detection_when_authority_sensitive": true,
+          "must_define_repair_or_escalation_when_self_state_is_unreliable": true,
+          "self_audit_result_values": [
+            "self_audit_pass",
+            "self_audit_conditional_pass",
+            "self_repair_required",
+            "self_overreach_detected",
+            "self_audit_insufficient_information",
+            "self_audit_escalate"
+          ],
+          "self_collapse_patterns": {
+            "rubber_stamp": "SDAGD passes the audited material without sufficient inspection or basis.",
+            "overreach": "SDAGD rewrites strategy, authority, approval, delegation, or final decision content instead of auditing it.",
+            "decision_substitution": "SDAGD treats its audit result as the final decision.",
+            "criteria_drift": "SDAGD changes audit criteria during or after audit without disclosure.",
+            "scope_confusion": "SDAGD mixes SPPGD output, DAAGD output, source-domain output, and final decision responsibility.",
+            "insufficient_information_pass": "SDAGD passes despite missing information that affects the audit result.",
+            "excessive_blocking": "SDAGD invalidates or blocks repairable issues without sufficient basis.",
+            "self_justifying_audit": "SDAGD backfills criteria to defend its own audit result."
+          },
+          "self_repair_directions": [
+            "redefine_audit_target",
+            "redefine_audit_scope",
+            "clarify_audit_criteria",
+            "supplement_audit_basis",
+            "strengthen_pass_reason",
+            "clarify_conditional_pass_conditions",
+            "clarify_return_for_repair_reason",
+            "clarify_return_destination",
+            "strengthen_invalidation_reason",
+            "reassess_escalation_condition_as_audit_finding",
+            "move_sppgd_content_back_to_sppgd",
+            "move_daagd_content_back_to_daagd",
+            "remove_final_decision_substitution",
+            "disclose_unauditable_segments",
+            "disclose_uncertainty"
+          ],
+          "self_repair_prohibited_actions": [
+            "self_audit_as_self_approval",
+            "completing_sppgd_structure_by_self_repair",
+            "finalizing_daagd_authority_by_self_repair",
+            "redeciding_daagd_human_approval_or_ai_delegation_by_self_repair",
+            "making_final_decision_by_self_repair",
+            "repairing_return_target_and_passing_it",
+            "hiding_unauditable_state"
+          ]
+        }
+      },
+      "sdmrgd_meta_review_request": {
+        "enabled": true,
+        "relationship_model": "asymmetric_meta_review",
+        "purpose": "Allow SDAGD to request SDMRGD review when SDAGD's own audit state is unstable, insufficient, overreaching, rubber-stamping, or otherwise unreliable.",
+        "sdagd_may_request_sdmrgd_when": [
+          "self_repair_required",
+          "self_overreach_detected",
+          "self_audit_insufficient_information",
+          "self_audit_escalate",
+          "weak_pass_basis_suspected",
+          "ambiguous_conditional_pass_condition",
+          "ambiguous_return_for_repair_reason",
+          "excessive_invalidation_suspected",
+          "unauditable_state_hidden_suspected",
+          "sdagd_overreach_suspected",
+          "audit_target_rewrite_suspected",
+          "audit_result_treated_as_final_decision_suspected",
+          "human_or_runtime_challenges_sdagd_audit"
+        ],
+        "information_to_pass_to_sdmrgd": [
+          "sdagd_audit_target",
+          "sdagd_audit_scope",
+          "sdagd_audit_criteria",
+          "sdagd_audit_basis",
+          "sdagd_audit_result_classification",
+          "sdagd_self_audit_result",
+          "sdmrgd_activation_request_reason",
+          "suspected_unstable_segments",
+          "unrecoverable_or_undeterminable_segments",
+          "relation_to_sppgd_output",
+          "relation_to_daagd_output",
+          "relation_to_domain_specific_outputs",
+          "possible_human_approval_or_runtime_review_relevance"
+        ],
+        "expected_sdmrgd_outputs": [
+          "meta_review_pass",
+          "meta_review_repair_instruction",
+          "meta_review_escalate"
+        ],
+        "handling_policy": {
+          "sdmrgd_output_is_not_final_decision": true,
+          "sdmrgd_output_is_meta_review_of_sdagd_audit_state_only": true,
+          "meta_review_repair_instruction_triggers_sdagd_self_repair": true,
+          "meta_review_escalate_blocks_sdagd_from_claiming_audit_passed": true,
+          "sdmrgd_must_not_create_strategy_or_authority_assessment_for_sdagd": true
+        },
+        "prohibited_actions": [
+          "sdagd_audits_sdmrgd",
+          "sdagd_approves_sdmrgd",
+          "sdmrgd_output_treated_as_final_decision",
+          "sdmrgd_repair_instruction_used_to_directly_modify_audited_target",
+          "sdmrgd_request_used_as_self_justification",
+          "sdmrgd_request_used_as_self_approval",
+          "meta_review_pass_treated_as_strategic_decision_pass",
+          "sdagd_claims_audit_passed_after_sdmrgd_escalate"
+        ]
+      },
+      "human_ai_and_agentic_handling": {
+        "human_ai_flow": {
+          "principle": "Human or accountable owner remains final decision authority when required; SDAGD only audits whether AI-generated or AI-assisted materials and DAAGD authority assessment are ready to be handed to that authority.",
+          "checks": [
+            "ai_output_is_treated_as_advice_recommendation_or_provisional_judgment_when_appropriate",
+            "human_approval_required_decision_is_not_treated_as_already_decided_by_ai",
+            "decision_basis_and_uncertainty_are_visible_to_human_reviewer",
+            "missing_information_for_human_final_decision_is_explicit",
+            "sdagd_audit_result_is_separated_from_final_decision"
+          ]
+        },
+        "ai_to_ai_or_agentic_flow": {
+          "principle": "In AI-to-AI, agentic, or self-loop execution, SDAGD checks for DAAGD and boundary compliance; it does not create or revoke AI authority by itself.",
+          "checks": [
+            "ai_decision_is_within_daagd_delegation_scope",
+            "daagd_autonomous_decision_conditions_are_satisfied_or_gap_is_reported",
+            "accountable_entity_exists",
+            "human_escalation_conditions_exist",
+            "irreversible_or_external_impact_decision_has_required_human_approval_review",
+            "sppgd_does_not_hold_decision_authority",
+            "daagd_does_not_self_audit_authority_as_final",
+            "decision_is_not_treated_as_final_before_sdagd_audit",
+            "sdagd_self_audit_is_not_formalized_rubber_stamp"
+          ],
+          "accountability_policy": {
+            "sdagd_is_not_accountable_entity": true,
+            "responsibility_remains_with_runtime_policy_system_owner_delegated_authority_or_defined_accountable_entity": true
+          }
+        }
+      },
+      "audit_to_action": {
+        "enabled": true,
+        "decision_inputs": [
+          "audit_result",
+          "self_audit_result",
+          "detected_failures",
+          "audit_basis_sufficiency",
+          "audit_scope_clarity",
+          "authority_boundary_status",
+          "human_approval_requirement_status",
+          "ai_delegation_boundary_status",
+          "domain_boundary_status",
+          "uncertainty_status",
+          "sdmrgd_activation_requirement"
+        ],
+        "action_outputs": [
+          "report_pass_to_daagd_governed_decision_flow",
+          "report_conditional_pass_to_daagd_governed_decision_flow",
+          "return_to_sppgd",
+          "return_to_daagd",
+          "return_to_source_domain",
+          "escalate_to_human",
+          "report_invalidation_of_current_decision_candidate",
+          "request_cdogd_boundary_resolution",
+          "perform_sdagd_self_repair",
+          "request_sdmrgd_meta_review",
+          "escalate_to_dagd_or_runtime"
+        ],
+        "decision_rules": {
+          "pass": {
+            "if": {
+              "audit_result": "pass",
+              "critical_invalidation_present": false,
+              "self_audit_blocks_result": false
+            },
+            "then": [
+              "report_pass_to_daagd_governed_decision_flow"
+            ]
+          },
+          "conditional_pass": {
+            "if": {
+              "audit_result": "conditional_pass",
+              "conditions_explicit": true,
+              "critical_invalidation_present": false
+            },
+            "then": [
+              "report_conditional_pass_to_daagd_governed_decision_flow"
+            ]
+          },
+          "return_for_repair_sppgd": {
+            "if": {
+              "audit_result": "return_for_repair",
+              "repair_origin_type": "strategic_structure_gap"
+            },
+            "then": [
+              "return_to_sppgd"
+            ]
+          },
+          "return_for_repair_daagd": {
+            "if": {
+              "audit_result": "return_for_repair",
+              "repair_origin_type": "authority_or_accountability_gap"
+            },
+            "then": [
+              "return_to_daagd"
+            ]
+          },
+          "return_for_repair_source_domain": {
+            "if": {
+              "audit_result": "return_for_repair",
+              "repair_origin_type": "domain_specific_input_gap"
+            },
+            "then": [
+              "return_to_source_domain"
+            ]
+          },
+          "escalate_to_human": {
+            "if": {
+              "audit_result": "escalate_to_human"
+            },
+            "then": [
+              "escalate_to_human"
+            ]
+          },
+          "invalidate": {
+            "if": {
+              "audit_result": "invalidate"
+            },
+            "then": [
+              "report_invalidation_of_current_decision_candidate"
+            ]
+          },
+          "self_repair_required": {
+            "if": {
+              "self_audit_result": "self_repair_required"
+            },
+            "then": [
+              "perform_sdagd_self_repair"
+            ]
+          },
+          "self_overreach_detected": {
+            "if": {
+              "self_audit_result": "self_overreach_detected"
+            },
+            "then": [
+              "perform_sdagd_self_repair",
+              "request_sdmrgd_meta_review"
+            ]
+          },
+          "self_audit_escalate": {
+            "if": {
+              "self_audit_result": "self_audit_escalate"
+            },
+            "then": [
+              "request_sdmrgd_meta_review",
+              "escalate_to_dagd_or_runtime"
+            ]
+          },
+          "domain_boundary_conflict": {
+            "if": {
+              "domain_boundary_status": "unresolved_conflict"
+            },
+            "then": [
+              "request_cdogd_boundary_resolution"
+            ]
+          }
+        },
+        "audit_to_action_consistency_policy": {
+          "decision_inputs_must_be_declared_when_used": true,
+          "action_outputs_must_be_declared_when_used": true,
+          "audit_decision_rules_must_emit_registered_action_outputs_only": true,
+          "unregistered_action_output_is_schema_hygiene_failure": true,
+          "action_precedence_must_not_override_higher_authority": true
+        },
+        "action_precedence": {
+          "critical_failure_blocks_ready_claim_when_material": true,
+          "deduplicate_actions_after_mapping": true,
+          "human_or_runtime_escalation_overrides_report_pass": true,
+          "domain_boundary_resolution_precedes_self_assigned_return_destination_when_boundary_conflict_is_material": true,
+          "sdmrgd_meta_review_escalate_blocks_sdagd_pass_claim": true
+        }
+      },
+      "status_reporting": {
+        "enabled": true,
+        "status_reporting_should_define_domain_delta_only": true,
+        "modes": [
+          "silent_by_default",
+          "emit_on_anomaly",
+          "emit_on_user_request",
+          "emit_on_blocking_failure",
+          "emit_after_material_repair"
+        ],
+        "compact_fields": [
+          "audit_result",
+          "pass_status",
+          "blocking_failures",
+          "return_destination",
+          "return_reason",
+          "human_review_required",
+          "unauditable_segments",
+          "uncertainty",
+          "self_audit_result",
+          "sdmrgd_requested"
+        ],
+        "visibility_rules": {
+          "show_critical_failure": true,
+          "show_blocking_failure": true,
+          "show_material_repair": true,
+          "show_invalidate": true,
+          "show_escalate_to_human": true,
+          "show_return_for_repair": true,
+          "show_self_overreach_detected": true,
+          "show_self_audit_insufficient_information": true,
+          "show_sdmrgd_activation_request": true,
+          "show_unauditable_segments": true,
+          "suppress_verbose_status_when_no_anomaly_and_no_user_request": true
+        }
+      },
+      "record_schemas": {
+        "record_policy": {
+          "record_schemas_are_optional_unless_domain_requires_records": true,
+          "if_records_exist_required_fields_must_map_to_field_groups": true,
+          "records_must_not_redefine_parent_audit_or_repair_cycle": true,
+          "records_must_remain_domain_delta": true
+        },
+        "domain_record_templates": {
+          "strategic_decision_audit_record": {
+            "schema_name": "SDAGD Strategic Decision Audit Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record SDAGD's pre-final audit of strategic decision structure and DAAGD decision-authority assessment.",
+            "required_fields": [
+              "strategic_decision_audit_id",
+              "audit_target",
+              "audit_scope",
+              "audit_criteria",
+              "audit_basis",
+              "sppgd_input_reference",
+              "daagd_input_reference",
+              "domain_input_references",
+              "strategic_structure_findings",
+              "authority_assessment_findings",
+              "uncertainty_findings",
+              "boundary_findings",
+              "audit_result",
+              "conditional_pass_conditions",
+              "return_destinations",
+              "return_reasons",
+              "invalidation_reasons",
+              "escalation_reasons",
+              "unauditable_segments",
+              "re_audit_conditions",
+              "audit_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "strategic_decision_audit_id",
+                "audit_timestamp"
+              ],
+              "audit_frame": [
+                "audit_target",
+                "audit_scope",
+                "audit_criteria",
+                "audit_basis"
+              ],
+              "input_references": [
+                "sppgd_input_reference",
+                "daagd_input_reference",
+                "domain_input_references"
+              ],
+              "findings": [
+                "strategic_structure_findings",
+                "authority_assessment_findings",
+                "uncertainty_findings",
+                "boundary_findings"
+              ],
+              "result_and_routing": [
+                "audit_result",
+                "conditional_pass_conditions",
+                "return_destinations",
+                "return_reasons",
+                "invalidation_reasons",
+                "escalation_reasons"
+              ],
+              "limitations_and_lifecycle": [
+                "unauditable_segments",
+                "re_audit_conditions"
+              ]
+            },
+            "validation_rules": [
+              "strategic_decision_audit_id_required",
+              "audit_target_required",
+              "audit_scope_required",
+              "audit_criteria_required",
+              "audit_basis_required",
+              "audit_result_must_be_one_of_registered_result_values",
+              "return_for_repair_requires_return_destination_and_reason",
+              "conditional_pass_requires_conditions",
+              "invalidate_requires_invalidation_reason",
+              "escalate_to_human_requires_escalation_reason",
+              "audit_result_must_not_be_final_decision"
+            ]
+          },
+          "sdagd_self_state_audit_record": {
+            "schema_name": "SDAGD Self-State Audit Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record SDAGD's domain-local self-state audit of its own audit scope, basis, criteria, boundary compliance, and reliability.",
+            "required_fields": [
+              "self_state_audit_id",
+              "related_strategic_decision_audit_id",
+              "audit_scope_status",
+              "audit_basis_status",
+              "audit_criteria_status",
+              "audit_target_identification_status",
+              "audit_result_classification_status",
+              "authority_boundary_compliance_status",
+              "rubber_stamp_risk",
+              "overreach_risk",
+              "decision_substitution_risk",
+              "insufficient_information_handling_status",
+              "uncertainty_handling_status",
+              "self_audit_result",
+              "self_repair_actions_required",
+              "sdmrgd_activation_required",
+              "self_audit_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "self_state_audit_id",
+                "related_strategic_decision_audit_id",
+                "self_audit_timestamp"
+              ],
+              "audit_state_status": [
+                "audit_scope_status",
+                "audit_basis_status",
+                "audit_criteria_status",
+                "audit_target_identification_status",
+                "audit_result_classification_status"
+              ],
+              "boundary_and_risk_status": [
+                "authority_boundary_compliance_status",
+                "rubber_stamp_risk",
+                "overreach_risk",
+                "decision_substitution_risk"
+              ],
+              "information_and_uncertainty": [
+                "insufficient_information_handling_status",
+                "uncertainty_handling_status"
+              ],
+              "result_and_followup": [
+                "self_audit_result",
+                "self_repair_actions_required",
+                "sdmrgd_activation_required"
+              ]
+            },
+            "validation_rules": [
+              "self_state_audit_id_required",
+              "related_strategic_decision_audit_id_required",
+              "self_audit_result_must_be_one_of_registered_self_audit_values",
+              "self_repair_required_requires_action_list",
+              "self_overreach_detected_requires_overreach_scope",
+              "self_audit_escalate_blocks_audit_pass_claim",
+              "self_audit_must_not_be_treated_as_self_approval"
+            ]
+          },
+          "sdmrgd_activation_request_record": {
+            "schema_name": "SDAGD SDMRGD Activation Request Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record SDAGD's request for SDMRGD meta-review when SDAGD's own audit state is unstable, insufficient, or suspected of overreach.",
+            "required_fields": [
+              "sdmrgd_activation_request_id",
+              "related_sdagd_self_state_audit_id",
+              "related_strategic_decision_audit_id",
+              "activation_request_reason",
+              "suspected_unstable_segments",
+              "repair_or_review_needed",
+              "information_passed_to_sdmrgd",
+              "human_or_runtime_review_relevance",
+              "request_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "sdmrgd_activation_request_id",
+                "related_sdagd_self_state_audit_id",
+                "related_strategic_decision_audit_id",
+                "request_timestamp"
+              ],
+              "request_basis": [
+                "activation_request_reason",
+                "suspected_unstable_segments",
+                "repair_or_review_needed"
+              ],
+              "handoff_payload": [
+                "information_passed_to_sdmrgd",
+                "human_or_runtime_review_relevance"
+              ]
+            },
+            "validation_rules": [
+              "sdmrgd_activation_request_id_required",
+              "related_sdagd_self_state_audit_id_required",
+              "activation_request_reason_required",
+              "information_passed_to_sdmrgd_must_concern_sdagd_audit_state_only",
+              "request_must_not_ask_sdmrgd_to_create_strategy_or_authority_assessment",
+              "request_must_not_be_treated_as_self_approval"
+            ]
+          }
+        },
+        "record_relationship_contract": {
+          "schema_name": "SDAGD Record Relationship Contract",
+          "schema_version": "0.1.0",
+          "purpose": "Define relationships among SDAGD audit, self-state audit, and SDMRGD activation request records.",
+          "primary_keys": {
+            "strategic_decision_audit_record": [
+              "strategic_decision_audit_id"
+            ],
+            "sdagd_self_state_audit_record": [
+              "self_state_audit_id"
+            ],
+            "sdmrgd_activation_request_record": [
+              "sdmrgd_activation_request_id"
+            ]
+          },
+          "foreign_key_expectations": {
+            "sdagd_self_state_audit_record.related_strategic_decision_audit_id": "strategic_decision_audit_record.strategic_decision_audit_id",
+            "sdmrgd_activation_request_record.related_sdagd_self_state_audit_id": "sdagd_self_state_audit_record.self_state_audit_id",
+            "sdmrgd_activation_request_record.related_strategic_decision_audit_id": "strategic_decision_audit_record.strategic_decision_audit_id"
+          },
+          "orphan_record_rules": {
+            "self_state_audit_without_strategic_decision_audit_reference_requires_explicit_reason": true,
+            "sdmrgd_activation_request_without_self_state_audit_reference_prohibited": true,
+            "sdmrgd_activation_request_without_reason_prohibited": true,
+            "audit_record_without_result_prohibited": true
+          },
+          "validation_rules": [
+            "primary_keys_must_be_unique",
+            "foreign_key_references_must_resolve_or_be_marked_unresolved",
+            "material_unresolved_reference_requires_degraded_or_escalation_status",
+            "record_relationship_break_requires_repair_before_ready_claim"
+          ]
+        },
+        "record_schema_consistency_policy": {
+          "record_required_fields_must_be_mapped_to_field_groups": true,
+          "field_group_items_inherit_group_requirement_level_unless_overridden": true,
+          "field_group_items_must_have_known_requirement_level_after_inheritance": true,
+          "record_relationships_must_not_create_orphan_records": true
+        }
+      },
+      "meta_data": {
+        "version": "0.1.0"
+      }
+    }
+  }
+}

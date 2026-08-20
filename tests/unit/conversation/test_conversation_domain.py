@@ -411,6 +411,33 @@ def test_archived_conversation_rejects_active_children() -> None:
         snapshot(state=ConversationState.ARCHIVED)
 
 
+def test_deleted_conversation_rejects_active_children() -> None:
+    with pytest.raises(ValidationError, match="active session"):
+        snapshot(state=ConversationState.DELETED)
+
+
+@pytest.mark.parametrize(
+    "value",
+    ["", "   ", " leading space", "trailing space ", "x" * 201, "bad\ttab", "bad\nnewline"],
+)
+def test_conversation_title_rejects_invalid_shapes(value: str) -> None:
+    with pytest.raises(ValidationError):
+        ConversationSnapshot.model_validate(
+            snapshot(sessions=(session(state=ConversationSessionState.CLOSED),))
+            .model_copy(update={"title": value})
+            .model_dump()
+        )
+
+
+def test_conversation_title_accepts_none_and_trimmed_value() -> None:
+    base = snapshot(sessions=(session(state=ConversationSessionState.CLOSED),))
+    assert base.title is None
+    titled = ConversationSnapshot.model_validate(
+        base.model_copy(update={"title": "My renamed chat"}).model_dump()
+    )
+    assert titled.title == "My renamed chat"
+
+
 def test_transitions_validate_terminal_state_and_times() -> None:
     active_session = session()
     closed = transition_session(
@@ -456,6 +483,23 @@ def test_conversation_archive_transition_revalidates_invariants() -> None:
         transition_conversation_state(
             snapshot(),
             target=ConversationState.ARCHIVED,
+            updated_at=NOW + timedelta(minutes=2),
+        )
+
+
+def test_conversation_delete_transition_revalidates_invariants() -> None:
+    current = snapshot(sessions=(session(state=ConversationSessionState.CLOSED),))
+    deleted = transition_conversation_state(
+        current,
+        target=ConversationState.DELETED,
+        updated_at=NOW + timedelta(minutes=2),
+    )
+    assert deleted.state is ConversationState.DELETED
+
+    with pytest.raises(ValidationError, match="active session"):
+        transition_conversation_state(
+            snapshot(),
+            target=ConversationState.DELETED,
             updated_at=NOW + timedelta(minutes=2),
         )
 

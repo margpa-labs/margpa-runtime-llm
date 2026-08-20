@@ -3,9 +3,17 @@
 from __future__ import annotations
 
 import hashlib
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterator, Mapping
 from datetime import UTC, datetime
 from functools import partial
+
+from margpa_runtime_llm.modules.documentation_rag.contracts import (
+    CitationUnavailable,
+    DocumentationAugmentation,
+    PersistedTurnCitationEvidence,
+    build_turn_citation_evidence,
+)
+from margpa_runtime_llm.modules.documentation_rag.ports import CitationEvidenceStorePort
 
 from ..contracts import ConversationEvent, ConversationEventType, ConversationSettings
 from ..domain import (
@@ -90,6 +98,21 @@ class PersistentConversationService:
         """Return the bound-scope canonical aggregate without mutating it."""
 
         return self._require(conversation_id)
+
+    def get_conversation_citations(
+        self,
+        conversation_id: ConversationId,
+    ) -> Mapping[str, PersistedTurnCitationEvidence | CitationUnavailable]:
+        """Persisted per-turn citation evidence, if the repository stores it.
+
+        Returns an empty mapping (not an error) when the bound repository does
+        not implement `CitationEvidenceStorePort` — e.g. a Public/Basic Preview
+        or test double that never constructs citation storage at all.
+        """
+
+        if not isinstance(self._repository, CitationEvidenceStorePort):
+            return {}
+        return self._repository.get_conversation_citations(conversation_id.value)
 
     def list_conversations(
         self,
@@ -332,6 +355,7 @@ class PersistentConversationService:
         content: str,
         operation_id: ConversationOperationId,
         expected_revision: int,
+        documentation_augmentation: DocumentationAugmentation | None = None,
     ) -> StoredConversation:
         stored = self._require_revision(conversation_id, expected_revision)
         snapshot = stored.conversation
@@ -359,7 +383,21 @@ class PersistentConversationService:
             head_turn_id=turn_id,
             updated_at=now,
         )
-        self._commit(candidate, operation_id=operation_id, expected_revision=expected_revision)
+        citation_evidence = (
+            None
+            if documentation_augmentation is None
+            else build_turn_citation_evidence(
+                documentation_augmentation,
+                conversation_id=conversation_id.value,
+                turn_id=turn_id.value,
+            )
+        )
+        self._commit(
+            candidate,
+            operation_id=operation_id,
+            expected_revision=expected_revision,
+            citation_evidence=citation_evidence,
+        )
         return self._require(conversation_id)
 
     def cancel_generation(
@@ -483,6 +521,69 @@ class PersistentConversationService:
             candidate = transition_conversation_state(
                 snapshot,
                 target=target,
+                updated_at=now,
+            )
+        except Exception:
+            raise self._invalid_lifecycle() from None
+        self._commit(candidate, operation_id=operation_id, expected_revision=expected_revision)
+        return self._require(conversation_id)
+
+    def rename_conversation(
+        self,
+        *,
+        conversation_id: ConversationId,
+        operation_id: ConversationOperationId,
+        expected_revision: int,
+        title: str | None,
+    ) -> StoredConversation:
+        stored = self._require_revision(conversation_id, expected_revision)
+        snapshot = stored.conversation
+        if snapshot.state is ConversationState.DELETED:
+            raise self._invalid_lifecycle()
+        now = self._clock()
+        try:
+            candidate = ConversationSnapshot.model_validate(
+                snapshot.model_copy(update={"title": title, "updated_at": now}).model_dump()
+            )
+        except Exception:
+            raise self._invalid_lifecycle() from None
+        self._commit(candidate, operation_id=operation_id, expected_revision=expected_revision)
+        return self._require(conversation_id)
+
+    def set_deleted(
+        self,
+        *,
+        conversation_id: ConversationId,
+        operation_id: ConversationOperationId,
+        expected_revision: int,
+    ) -> StoredConversation:
+        """One-directional soft delete: no API-level restore (2-E-H design, Q2/[A])."""
+
+        stored = self._require_revision(conversation_id, expected_revision)
+        try:
+            snapshot = stored.conversation
+            now = self._clock()
+            if any(
+                turn.state in {ConversationTurnState.PENDING, ConversationTurnState.GENERATING}
+                for turn in snapshot.turns
+            ):
+                raise ValueError("non-terminal turn")
+            sessions = tuple(
+                transition_session(
+                    session,
+                    target=ConversationSessionState.CLOSED,
+                    finished_at=now,
+                )
+                if session.state is ConversationSessionState.ACTIVE
+                else session
+                for session in snapshot.sessions
+            )
+            snapshot = ConversationSnapshot.model_validate(
+                snapshot.model_copy(update={"sessions": sessions}).model_dump()
+            )
+            candidate = transition_conversation_state(
+                snapshot,
+                target=ConversationState.DELETED,
                 updated_at=now,
             )
         except Exception:
@@ -697,6 +798,7 @@ class PersistentConversationService:
                             content=content_value,
                             operation_id=identities.terminal_operation_id,
                             expected_revision=generating.storage_revision,
+                            documentation_augmentation=session.documentation_augmentation,
                         )
                     )
                     terminal_persisted = True
@@ -904,12 +1006,14 @@ class PersistentConversationService:
         *,
         operation_id: ConversationOperationId,
         expected_revision: int | None,
+        citation_evidence: PersistedTurnCitationEvidence | None = None,
     ) -> ConversationCommitReceipt:
         command = CommitConversation(
             scope_id=self._scope_id,
             operation_id=operation_id,
             expected_revision=expected_revision,
             conversation=snapshot,
+            citation_evidence=citation_evidence,
         )
         try:
             return self._repository.commit(command)

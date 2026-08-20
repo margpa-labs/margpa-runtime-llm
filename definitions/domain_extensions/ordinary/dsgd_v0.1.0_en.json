@@ -1,0 +1,2349 @@
+{
+  "dsgd": {
+    "data_science_governance_definition": {
+      "description": "The role and scope of DSGD (Data Science Governance Definition) is to provide the Data Science-specific domain governance delta used with parent reasoning and behavior governance. It governs analytical objectives, decision targets, population/unit/time scope, dataset and schema identity, data provenance, data quality, hypotheses, method and metric selection, leakage, bias, statistical validity, predictive/causal distinction, analytical claim integrity, run lineage, repair, rerun, analytical status reporting, and Data Science-specific records. DSGD does not replace parent reasoning governance, parent behavior/audit/repair/activation governance, external orchestration, general agentic execution governance, authority governance, software engineering governance, research-governance framing, report-artifact governance, or project coordination governance.",
+      "inheritance": {
+        "inheritance_mode": "additive_domain_extension",
+        "parent_definitions": [
+          {
+            "syntax_id": "argd",
+            "role": "general_reasoning_procedure_governance",
+            "required": true
+          },
+          {
+            "syntax_id": "dagd",
+            "role": "general_behavior_audit_repair_activation_and_status_governance",
+            "required": true
+          }
+        ],
+        "dependency_version_policy": {
+          "specific_parent_versions_are_not_hardcoded_in_domain_compatibility_labels": true,
+          "parent_version_binding_is_external_to_this_domain_definition": true,
+          "version_binding_owner": "runtime_bundle_or_release_manifest",
+          "reference_runtime_bundle_for_this_candidate": [
+            "argd",
+            "dagd",
+            "dsgd"
+          ]
+        },
+        "standalone_reference_use": {
+          "allowed": true,
+          "condition": "standalone_readers_must_treat_parent_mechanisms_as_external_prerequisites_or_reference_context",
+          "does_not_grant_parent_functionality": true,
+          "runtime_conformance_requires_parent_definitions": true
+        },
+        "replaces_parent_definitions": false,
+        "duplicates_parent_rules": false,
+        "parent_rules_remain_authoritative": true,
+        "domain_delta_only": true,
+        "preserved_parent_mechanism_policy": {
+          "inherited_governance_must_be_referenced_not_reexpanded": true,
+          "silent_parent_rule_override_prohibited": true,
+          "parent_mechanism_lists_must_not_be_recreated_unless_required_by_explicit_context": true
+        },
+        "conflict_policy": {
+          "general_reasoning_conflicts": "resolve_under_parent_reasoning_governance",
+          "general_behavior_and_governance_conflicts": "resolve_under_parent_behavior_governance",
+          "domain_specific_conflicts": "resolve_under_domain_governance_when_not_in_conflict_with_parent_governance_or_higher_authority",
+          "higher_level_system_policies_remain_authoritative": true
+        }
+      },
+      "orchestration_reference": {
+        "orchestration_definition": "cdogd",
+        "relationship": "external_orchestration_reference",
+        "cdogd_is_not_reimplemented_here": true,
+        "registry_and_activation_logic_are_external": true,
+        "routing_priority_and_domain_selection_are_external": true,
+        "registered_domain_extension_storage_is_external": true
+      },
+      "domain_scope": {
+        "domain": "data_science",
+        "scope_statement": "governance of data-science-specific analytical targets, data state, methods, metrics, claim validity, evaluation failure modes, repair origins, reruns, and analytical records for LLMs, analytical agents, agentic AI workflows, and human analytical processes",
+        "governed_target_categories": [
+          "analytical_objective",
+          "decision_target",
+          "population_unit_time_scope",
+          "dataset_and_schema_identity",
+          "data_provenance",
+          "data_quality_state",
+          "hypothesis_and_counter_hypothesis",
+          "method_baseline_metric",
+          "leakage_bias_validity_condition",
+          "statistical_uncertainty",
+          "predictive_or_causal_claim",
+          "analytical_claim_inventory",
+          "analysis_run",
+          "repair_and_rerun_lineage",
+          "analytical_record"
+        ],
+        "target_systems": [
+          "large_language_models",
+          "tool_using_large_language_models",
+          "single_analytical_agents",
+          "workflow_based_agentic_ai",
+          "multi_agent_analytical_systems",
+          "human_in_the_loop_analytical_systems",
+          "human_analysts_using_structured_governance_records"
+        ],
+        "target_roles": [
+          "data_analyst",
+          "data_scientist",
+          "machine_learning_engineer",
+          "analytical_ai_agent",
+          "data_validation_agent",
+          "evaluation_agent",
+          "critic_agent",
+          "reporting_agent",
+          "human_reviewer"
+        ],
+        "supported_analysis_classes": [
+          "problem_definition",
+          "descriptive_analysis",
+          "exploratory_data_analysis",
+          "diagnostic_analysis",
+          "segmentation",
+          "target_design",
+          "feature_engineering",
+          "predictive_analysis",
+          "time_series_analysis",
+          "causal_analysis",
+          "anomaly_detection",
+          "reporting",
+          "decision_support"
+        ],
+        "lifecycle_coverage": [
+          "requirement_interpretation",
+          "problem_and_decision_definition",
+          "scope_population_and_unit_definition",
+          "data_intake_and_provenance",
+          "data_quality_assessment",
+          "hypothesis_and_analysis_planning",
+          "preprocessing_and_feature_design",
+          "method_selection",
+          "analysis_or_model_execution",
+          "evaluation_and_validation",
+          "interpretation_and_claim_control",
+          "reporting_and_decision_support",
+          "audit",
+          "repair",
+          "re_evaluation",
+          "rerun",
+          "status_reporting"
+        ],
+        "initial_required_coverage": [
+          "analysis_objective_definition",
+          "scope_population_unit_and_time_definition",
+          "data_identity_and_provenance",
+          "data_quality_state",
+          "assumptions_and_hypotheses",
+          "analytical_procedure",
+          "decision_criteria",
+          "evidence_and_results",
+          "uncertainty_and_limitations",
+          "evaluation_and_failure_analysis",
+          "repair_and_rerun",
+          "run_state_and_status_reporting"
+        ],
+        "conditional_modules": {
+          "predictive_analysis_controls": "required_when_predictive_models_are_used",
+          "causal_analysis_controls": "required_when_causal_claims_or_intervention_effects_are_evaluated",
+          "time_series_controls": "required_when_temporal_ordering_or_forecasting_is_material",
+          "agentic_execution_controls": "required_when_tools_agents_or_external_side_effects_are_used",
+          "multi_agent_controls": "required_when_more_than_one_agent_or_role_handoff_is_used"
+        },
+        "non_targets": [
+          "replacement_of_parent_governance",
+          "replacement_of_external_orchestration",
+          "absorption_of_sibling_domain_definitions",
+          "complete_definition_of_all_statistical_methods",
+          "complete_definition_of_all_machine_learning_models",
+          "framework_specific_implementation_requirements",
+          "company_specific_product_architecture",
+          "customer_specific_data_structures",
+          "private_evaluation_sets",
+          "nonpublic_operational_rules",
+          "automatic_guarantee_of_analytical_correctness",
+          "model_weight_modification",
+          "training_data_modification",
+          "replacement_of_built_in_system_policies",
+          "final_authority_or_approval_decision",
+          "general_agentic_execution_governance",
+          "software_engineering_artifact_quality_governance",
+          "project_delivery_coordination"
+        ],
+        "independence_boundary": {
+          "generic_public_research": true,
+          "company_specific_requirements_excluded": true,
+          "customer_data_excluded": true,
+          "private_product_code_excluded": true,
+          "synthetic_and_public_examples_preferred": true
+        }
+      },
+      "abstraction_and_context_policy": {
+        "purpose": "prevent data-science domain rules from becoming case-specific implementation, company, tool, or platform rules while allowing local specificity when needed to preserve analytical meaning",
+        "rule_bodies_must_use_highest_safe_abstraction_level": true,
+        "rule_hardcoding_prohibited_by_default": true,
+        "rules_must_be_abstract_by_default": true,
+        "case_specific_constraints_must_be_contextual": true,
+        "domain_instances_must_not_be_encoded_as_general_rules": true,
+        "implementation_details_must_not_become_domain_rules": true,
+        "rule_bodies_must_not_hardcode": [
+          "specific_tool",
+          "specific_platform",
+          "specific_repository",
+          "specific_external_system",
+          "specific_local_workflow",
+          "specific_organization_policy",
+          "specific_private_system",
+          "specific_customer_dataset",
+          "specific_identifier_policy",
+          "specific_model_family_or_library_unless_material_to_context"
+        ],
+        "contextual_specificity_conditions": [
+          "explicit_user_instruction",
+          "identity_or_verification_requires_specific_name",
+          "hallucination_prevention_requires_specific_name",
+          "system_integrity_requires_specific_constraint",
+          "data_science_context_or_governed_target_context_would_break_without_specificity"
+        ],
+        "specificity_handling": {
+          "specificity_scope": "domain_local_context_or_governed_target_context",
+          "specificity_must_not_be_promoted_to_general_rule_without_basis": true,
+          "specificity_must_be_traceable_to_context_or_instruction": true,
+          "specificity_must_not_override_higher_authority": true
+        },
+        "example_policy": {
+          "examples_are_non_normative": true,
+          "examples_may_illustrate_failures_but_do_not_define_the_rule": true,
+          "test_cases_must_remain_separate_from_general_domain_rules": true,
+          "examples_must_not_narrow_domain_scope": true
+        },
+        "declared_context_policy_principles": [
+          "declared_policy_must_be_fixed_when_material",
+          "declared_policy_must_not_be_mixed",
+          "declared_policy_must_not_be_silently_changed",
+          "declared_policy_must_be_applied_consistently",
+          "declared_policy_conflict_must_be_reported_or_repaired"
+        ],
+        "declared_context_policy_types": [
+          "analysis_type_policy",
+          "dataset_scope_policy",
+          "metric_policy",
+          "causal_claim_policy",
+          "authority_uncertainty_policy"
+        ]
+      },
+      "role_complete_separation": {
+        "required": true,
+        "principle": "DSGD must govern data-science-specific analytical validity, data state, method validity, claim integrity, run lineage, and repair/rerun conditions without absorbing parent governance, sibling domain responsibilities, or external orchestration.",
+        "separation_targets": {
+          "source_material": "datasets, schemas, logs, reports, prior records, observations, or references used for analysis; source content is not absorbed by default",
+          "domain_definition": "data-science-specific rules, checks, failures, repair origins, records, and responsibility boundaries",
+          "inherited_governance": "ARGD and DAGD remain authoritative for general reasoning and general behavior/audit/repair/activation governance",
+          "sibling_reference": "AAGD, DAAGD, SEGD, AIRGD, ACRGD, PMOGD, and other domains are referenced only when boundary conditions are material",
+          "governed_target": "analytical objective, data, method, metric, claim, run, repair, rerun, or analytical record",
+          "domain_evaluation": "Data Science-specific checks and evaluation dimensions defined as domain delta only",
+          "domain_repair": "Data Science-specific repair origins and revalidation scopes, not the parent repair cycle itself",
+          "activation": "local applicability signals only; routing and priority remain external",
+          "status_reporting": "Data Science status delta only, not broad runtime status replacement",
+          "records": "Analysis Process Record and Evaluation/Audit Record remain separate from metadata and orchestration",
+          "external_orchestration": "routing, registry, priority, and activation orchestration remain external",
+          "metadata": "identity, authorship, license, repository, and compatibility information remain metadata, not domain rules"
+        },
+        "non_absorption_rules": [
+          "inherited_governance_must_be_referenced_not_reexpanded",
+          "sibling_domain_content_must_remain_referenced_not_absorbed",
+          "external_orchestration_must_not_be_reimplemented_in_domain_definition",
+          "metadata_must_not_be_promoted_to_domain_rule_without_basis",
+          "source_material_must_not_be_absorbed_without_domain_reason"
+        ],
+        "domain_boundary_map": {
+          "dsgd_retains": [
+            "analytical_objective",
+            "decision_target",
+            "population_unit_time_scope",
+            "dataset_and_schema_identity",
+            "provenance",
+            "data_quality",
+            "hypotheses_and_counter_hypotheses",
+            "method_baseline_metric",
+            "leakage_bias_distribution_shift",
+            "statistical_validity",
+            "predictive_causal_distinction",
+            "claim_classification",
+            "uncertainty_and_limitations",
+            "run_lineage",
+            "repair_and_rerun"
+          ],
+          "aagd_reference": [
+            "general_agentic_execution",
+            "general_tool_call_control",
+            "general_checkpoint_retry_handoff_control",
+            "general_side_effect_control"
+          ],
+          "daagd_reference": [
+            "data_use_authority_decision",
+            "human_approval_or_final_authority",
+            "high_impact_decision_authority"
+          ],
+          "segd_reference": [
+            "analysis_code_implementation_quality",
+            "tests_build_repository_artifact_quality",
+            "software_delivery_correctness"
+          ],
+          "airgd_reference": [
+            "research_question",
+            "novelty_claim",
+            "publication_claim",
+            "research_framing"
+          ],
+          "acrgd_reference": [
+            "report_artifact_composition",
+            "readability",
+            "publication_readiness"
+          ],
+          "pmogd_reference": [
+            "project_owner_deadline_milestone_blocker_delivery_coordination"
+          ]
+        },
+        "review_implications": [
+          "role_separation_check_required_when_source_parent_sibling_or_orchestration_context_is_material",
+          "role_mixing_failure_is_material_when_it_changes_domain_responsibility_or_governed_target_purpose"
+        ]
+      },
+      "cross_domain_interference_policy": {
+        "purpose": "prevent DSGD from absorbing neighboring domains while preserving explicit handoff conditions for overlapping data-science workflows",
+        "rules": [
+          "sibling_domain_references_must_be_explicit_when_material",
+          "sibling_domain_rules_must_not_be_copied_by_default",
+          "domain_overlap_must_be_declared_when_material",
+          "cross_domain_activation_priority_is_external_to_this_definition",
+          "domain_specific_rule_conflicts_must_not_be_silently_merged",
+          "shared_terms_must_not_imply_shared_authority_without_boundary_statement"
+        ],
+        "overlap_handling": {
+          "overlap_is_allowed": true,
+          "overlap_must_preserve_domain_responsibility_boundaries": true,
+          "overlap_resolution_owner": "external_orchestration_or_explicit_runtime_context"
+        },
+        "declared_overlap_boundaries": {
+          "aagd": "DSGD reports analytical agentic conditions that affect data, method, metric, claim, run, or evidence lineage; general agentic execution remains AAGD.",
+          "daagd": "DSGD reports authority uncertainty conditions; authority, approval, and responsibility decisions remain DAAGD.",
+          "segd": "DSGD governs analytical run validity and traceability; implementation, code, build, test, and repository artifact quality remain SEGD.",
+          "airgd": "DSGD governs data, statistics, predictive/causal validity, and analytical claim controls; research novelty, prior work, and publication claim framing remain AIRGD.",
+          "acrgd": "DSGD governs analytical claim integrity; artifact composition, readability, and publication readiness remain ACRGD.",
+          "pmogd": "DSGD governs analytical run repair/rerun lineage; owners, deadlines, milestones, blockers, and delivery coordination remain PMOGD."
+        }
+      },
+      "policy_goal": [
+        "analytical_validity",
+        "data_integrity",
+        "statistical_integrity",
+        "methodological_fit",
+        "reproducibility",
+        "provenance_traceability",
+        "leakage_prevention",
+        "bias_visibility",
+        "uncertainty_transparency",
+        "causal_claim_integrity",
+        "operational_reexecutability",
+        "agent_execution_reliability"
+      ],
+      "constraints": {
+        "prohibited_failure_modes": {
+          "data_integrity_failures": [
+            "unknown_dataset_identity_treated_as_known",
+            "dataset_version_not_fixed_for_a_material_result",
+            "schema_version_not_fixed_for_a_material_result",
+            "undisclosed_row_column_or_record_exclusion",
+            "undisclosed_missing_value_treatment",
+            "undisclosed_duplicate_treatment",
+            "undisclosed_outlier_treatment",
+            "unit_mismatch_ignored",
+            "granularity_mismatch_ignored",
+            "time_alignment_mismatch_ignored",
+            "data_provenance_fabrication",
+            "data_provenance_omission_for_load_bearing_analysis"
+          ],
+          "leakage_failures": [
+            "target_leakage",
+            "temporal_leakage",
+            "train_validation_test_contamination",
+            "preprocessing_information_leakage",
+            "feature_selection_on_held_out_test_data",
+            "evaluation_set_reuse_without_disclosure",
+            "iterative_optimization_against_test_results_without_disclosure"
+          ],
+          "statistical_failures": [
+            "sample_size_ignored_in_material_claim",
+            "statistical_assumptions_not_checked_when_required",
+            "uncertainty_suppressed",
+            "effect_size_omitted_when_material",
+            "multiple_testing_risk_ignored",
+            "selection_bias_ignored",
+            "measurement_bias_ignored",
+            "sampling_bias_ignored",
+            "distribution_shift_ignored",
+            "metric_cherry_picking",
+            "unsupported_quantification",
+            "p_value_only_reasoning_without_context"
+          ],
+          "methodological_failures": [
+            "analysis_objective_and_method_mismatch",
+            "baseline_omission_without_basis",
+            "excluded_method_reason_omission",
+            "model_comparison_under_inconsistent_conditions",
+            "method_assumptions_hidden",
+            "overfitting_ignored",
+            "underfitting_ignored",
+            "validation_strategy_not_matched_to_data_structure",
+            "predictive_performance_treated_as_explanatory_validity",
+            "descriptive_result_treated_as_predictive_validation"
+          ],
+          "causal_failures": [
+            "correlation_presented_as_causation",
+            "predictive_feature_importance_presented_as_causal_effect",
+            "confounding_ignored",
+            "selection_into_treatment_ignored",
+            "post_treatment_variable_misuse",
+            "identification_assumptions_hidden",
+            "causal_claim_under_unidentified_design",
+            "intervention_scope_not_defined",
+            "external_validity_overgeneralization"
+          ],
+          "reporting_failures": [
+            "denominator_omission",
+            "unit_omission",
+            "time_window_omission",
+            "population_omission",
+            "evaluation_dataset_omission",
+            "baseline_omission_in_comparative_claim",
+            "intermediate_result_presented_as_final_conclusion",
+            "failed_run_hidden",
+            "invalidated_run_presented_as_valid",
+            "observed_value_estimate_prediction_and_recommendation_confusion",
+            "scope_exceeding_generalization",
+            "limitation_suppression"
+          ],
+          "reproducibility_failures": [
+            "run_id_omission",
+            "dataset_reference_omission",
+            "transformation_lineage_omission",
+            "feature_lineage_omission",
+            "model_or_method_version_omission_when_material",
+            "random_seed_omission_when_material",
+            "environment_or_dependency_state_omission_when_material",
+            "silent_overwrite_of_prior_run",
+            "repair_without_parent_run_reference",
+            "rerun_without_change_record"
+          ],
+          "agentic_execution_failures": [
+            "tool_execution_outside_authority_scope",
+            "unapproved_external_write",
+            "shared_state_change_without_trace",
+            "agent_role_boundary_blur",
+            "tool_error_treated_as_success",
+            "retry_without_side_effect_check",
+            "non_idempotent_action_repeated_without_guard",
+            "checkpoint_ignored_on_resume",
+            "handoff_without_input_output_contract",
+            "evidence_reference_lost_between_agents",
+            "human_approval_bypassed_when_required"
+          ]
+        },
+        "required_controls": {
+          "problem_and_scope_control": [
+            "separate_business_request_from_analytical_question",
+            "define_analysis_objective",
+            "define_decision_target",
+            "define_target_population",
+            "define_unit_of_analysis",
+            "define_time_scope",
+            "define_target_or_outcome_when_applicable",
+            "distinguish_descriptive_predictive_causal_and_optimization_goals",
+            "define_success_conditions_and_metrics",
+            "preserve_multiple_valid_problem_formulations_until_selection_basis_is_stated"
+          ],
+          "data_identity_and_quality_control": [
+            "fix_dataset_identity_and_version",
+            "fix_schema_identity_and_version",
+            "record_data_provenance",
+            "record_observation_period",
+            "record_sampling_or_collection_method_when_available",
+            "profile_missingness_duplicates_outliers_units_and_granularity",
+            "distinguish_available_data_from_required_but_missing_data",
+            "state_data_limitations_before_material_claims",
+            "stop_or_limit_analysis_when_data_state_invalidates_the_intended_method"
+          ],
+          "hypothesis_and_method_control": [
+            "state_hypotheses_and_alternative_hypotheses",
+            "state_falsification_targets_and_failure_conditions",
+            "state_method_selection_basis",
+            "state_excluded_methods_and_exclusion_reasons_when_material",
+            "define_baseline_when_comparison_is_material",
+            "check_method_assumptions_when_applicable",
+            "distinguish_model_selection_from_model_evaluation",
+            "preserve_branch_specific_results_until_justified_convergence"
+          ],
+          "leakage_bias_and_validity_control": [
+            "check_target_leakage",
+            "check_temporal_leakage",
+            "check_split_contamination",
+            "check_preprocessing_leakage",
+            "check_sampling_selection_and_measurement_bias",
+            "check_distribution_shift_when_deployment_or_temporal_transfer_is_material",
+            "check_confounding_for_causal_interpretation",
+            "check_multiple_testing_risk_when_applicable",
+            "state_residual_untested_risks"
+          ],
+          "result_and_claim_control": [
+            "classify_each_material_claim_by_claim_type",
+            "distinguish_observation_estimate_prediction_causal_claim_interpretation_and_recommendation",
+            "attach_evidence_basis_to_each_load_bearing_analytical_claim",
+            "state_uncertainty_and_limitation",
+            "state_evaluation_dataset_and_metric_basis",
+            "state_applicability_scope",
+            "requalify_claims_when_evidence_supports_a_weaker_claim_type",
+            "do_not_allow_aggregate_score_to_override_critical_invalidation"
+          ],
+          "reproducibility_and_lineage_control": [
+            "assign_analysis_id_and_run_id",
+            "record_parent_run_id_for_repair_or_rerun",
+            "record_transformation_and_feature_lineage",
+            "record_method_model_metric_and_environment_versions_when_material",
+            "record_random_seed_when_material",
+            "preserve_immutable_prior_run_history",
+            "record_before_after_differences_for_repaired_runs",
+            "verify_reproducibility_to_the_degree_supported_by_the_execution_environment"
+          ],
+          "agentic_execution_control": [
+            "define_agent_role_and_authority_scope",
+            "log_tool_calls_and_tool_results",
+            "reference_input_and_output_artifacts",
+            "use_checkpoints_for_resumable_workflows",
+            "apply_retry_limits_and_side_effect_checks",
+            "preserve_handoff_contracts",
+            "route_required_approvals_to_humans",
+            "separate_reasoning_failure_tool_failure_state_failure_permission_failure_and_handoff_failure"
+          ]
+        },
+        "runtime_constraints": {
+          "domain_only": true,
+          "does_not_redefine_parent_governance": true,
+          "does_not_reimplement_external_orchestration": true,
+          "does_not_define_registry_logic": true,
+          "does_not_create_case_specific_general_bans": true,
+          "does_not_create_identifier_system_specific_general_bans": true,
+          "does_not_define_global_domain_priority": true,
+          "analysis_type_resolution": {
+            "do_not_silently_convert_business_goal_to_predictive_modeling": true,
+            "preserve_multiple_plausible_analysis_types_until_selection_basis_is_explicit": true,
+            "causal_and_predictive_goals_must_remain_distinct": true
+          },
+          "critical_invalidation_policy": {
+            "critical_invalidation_overrides_aggregate_score": true,
+            "invalidated_run_must_not_be_reported_as_valid": true,
+            "critical_failure_requires_explicit_status": true,
+            "critical_failure_requires_repair_or_authority_condition_reporting_before_reuse": true
+          },
+          "artifact_immutability": {
+            "prior_runs_are_immutable": true,
+            "repair_creates_new_run_or_explicit_record_revision": true,
+            "silent_overwrite_prohibited": true
+          },
+          "persistence": {
+            "apply_immediately_when_loaded_with_required_parent_definitions": true,
+            "persist_within_session": true,
+            "treat_as_high_priority_data_science_domain_spec": true
+          }
+        },
+        "failure_aliases": {
+          "temporal_leakage_that_invalidates_evaluation": "evaluation_invalidating_temporal_leakage",
+          "fabricated_data_provenance": "data_provenance_fabrication",
+          "invalidated_run_reported_as_valid": "invalidated_run_presented_as_valid",
+          "causal_claim_without_identification_basis_when_presented_as_established_causation": "established_causal_claim_without_identification_basis",
+          "unauthorized_external_write_or_side_effect": "unauthorized_external_side_effect"
+        },
+        "schema_hygiene_constraints": {
+          "taxonomy_group_membership_must_match_requirement_level": true,
+          "record_required_fields_must_be_mapped_to_field_groups_when_records_exist": true,
+          "field_group_items_may_inherit_group_requirement_level_when_not_overridden": true,
+          "evaluation_dimensions_must_align_with_thresholds_and_audit_targets_when_scoring_exists": true,
+          "critical_invalidation_conditions_must_be_represented_in_critical_severity_rules_when_severity_model_exists": true,
+          "collection_shape_must_be_declared_when_using_grouped_objects": true
+        },
+        "common_rule_index": {
+          "abstraction_rules": [
+            "rule_bodies_must_use_highest_safe_abstraction_level",
+            "rule_hardcoding_prohibited_by_default",
+            "rules_must_be_abstract_by_default",
+            "case_specific_constraints_must_be_contextual",
+            "domain_instances_must_not_be_encoded_as_general_rules",
+            "contextual_specificity_conditions_must_remain_local"
+          ],
+          "role_and_boundary_rules": [
+            "role_complete_separation",
+            "inherited_governance_must_be_referenced_not_reexpanded",
+            "sibling_domain_content_must_remain_referenced_not_absorbed",
+            "external_orchestration_must_not_be_reimplemented_in_domain_definition",
+            "metadata_must_not_be_promoted_to_domain_rule_without_basis"
+          ],
+          "cross_domain_rules": [
+            "sibling_domain_references_must_be_explicit_when_material",
+            "domain_overlap_must_be_declared_when_material",
+            "cross_domain_activation_priority_is_external_to_this_definition"
+          ],
+          "schema_hygiene_rules": [
+            "taxonomy_group_membership_must_match_requirement_level",
+            "record_required_fields_must_be_mapped_to_field_groups",
+            "evaluation_dimensions_must_align_with_thresholds_and_audit_targets",
+            "critical_invalidation_conditions_must_align_with_critical_severity_rules",
+            "collection_shape_must_be_declared_when_using_grouped_objects"
+          ],
+          "repair_and_status_rules": [
+            "repair_model_should_define_repair_origin_not_parent_repair_cycle",
+            "status_reporting_should_define_domain_delta_only"
+          ]
+        },
+        "collection_shape_policy": {
+          "flat_array_or_grouped_object_may_be_used_when_declared": true,
+          "prohibited_failure_modes_may_be_flat_array_or_grouped_object": true,
+          "required_controls_may_be_flat_array_or_grouped_object": true,
+          "same_collection_should_not_mix_shapes_within_one_domain_definition": true,
+          "grouped_object_shape_must_preserve_machine_checkable_membership": true,
+          "validation_tools_should_read_declared_collection_shape_before_assuming_flat_arrays": true,
+          "collection_shape_declarations": {
+            "constraints.prohibited_failure_modes": "grouped_object",
+            "constraints.required_controls": "grouped_object"
+          }
+        }
+      },
+      "capabilities": {
+        "required_capabilities": [
+          "analytical_problem_formulation",
+          "population_and_unit_definition",
+          "data_schema_inspection",
+          "data_profiling",
+          "data_provenance_tracking",
+          "data_quality_assessment",
+          "missingness_assessment",
+          "leakage_detection",
+          "bias_assessment",
+          "hypothesis_management",
+          "method_selection",
+          "assumption_checking",
+          "baseline_comparison",
+          "predictive_causal_distinction",
+          "statistical_uncertainty_reporting",
+          "experiment_tracking",
+          "run_lineage_tracking",
+          "claim_classification",
+          "repair_origin_identification",
+          "rerun_management",
+          "analytical_status_reporting"
+        ],
+        "preferred_capabilities": [
+          "distribution_shift_detection",
+          "automated_regression_evaluation",
+          "feature_lineage_tracking",
+          "model_lineage_tracking",
+          "causal_identification_assessment",
+          "counter_hypothesis_generation",
+          "dependency_graph_based_rerun_scoping",
+          "checkpointed_agent_execution",
+          "tool_side_effect_detection",
+          "human_approval_routing",
+          "comparative_run_audit",
+          "failure_localization",
+          "partial_rerun_validation",
+          "artifact_hashing"
+        ],
+        "capability_groups": {
+          "problem_scope_and_decision_definition": [
+            "analytical_problem_formulation",
+            "population_and_unit_definition"
+          ],
+          "data_understanding_and_validation": [
+            "data_schema_inspection",
+            "data_profiling",
+            "data_quality_assessment",
+            "missingness_assessment"
+          ],
+          "provenance_and_lineage": [
+            "data_provenance_tracking",
+            "experiment_tracking",
+            "run_lineage_tracking"
+          ],
+          "analytical_reasoning_and_method_control": [
+            "hypothesis_management",
+            "method_selection",
+            "assumption_checking",
+            "baseline_comparison",
+            "predictive_causal_distinction"
+          ],
+          "risk_and_validity_control": [
+            "leakage_detection",
+            "bias_assessment",
+            "statistical_uncertainty_reporting"
+          ],
+          "claim_repair_and_rerun_control": [
+            "claim_classification",
+            "repair_origin_identification",
+            "rerun_management",
+            "analytical_status_reporting"
+          ]
+        },
+        "preferred_capability_groups": {
+          "advanced_data_and_model_monitoring": [
+            "distribution_shift_detection",
+            "automated_regression_evaluation",
+            "feature_lineage_tracking",
+            "model_lineage_tracking"
+          ],
+          "advanced_falsification_and_causal_assessment": [
+            "causal_identification_assessment",
+            "counter_hypothesis_generation"
+          ],
+          "advanced_execution_and_recovery": [
+            "dependency_graph_based_rerun_scoping",
+            "checkpointed_agent_execution",
+            "tool_side_effect_detection",
+            "human_approval_routing",
+            "partial_rerun_validation"
+          ],
+          "comparative_audit_and_artifact_integrity": [
+            "comparative_run_audit",
+            "failure_localization",
+            "artifact_hashing"
+          ]
+        },
+        "group_descriptions": {
+          "problem_scope_and_decision_definition": "Capabilities for converting an analytical request into an explicit objective, decision target, population, unit, and time scope without silently collapsing alternative formulations.",
+          "data_understanding_and_validation": "Capabilities for inspecting schema, profiling data state, and identifying quality conditions that affect method choice or claim validity.",
+          "provenance_and_lineage": "Capabilities for tracing datasets, transformations, experiments, and reruns across the analytical lifecycle.",
+          "analytical_reasoning_and_method_control": "Capabilities for preserving hypotheses, selecting methods with stated basis, checking assumptions, and distinguishing predictive from causal reasoning.",
+          "risk_and_validity_control": "Capabilities for detecting leakage, bias, uncertainty, and validity threats that can invalidate a result.",
+          "claim_repair_and_rerun_control": "Capabilities for classifying analytical claims, locating repair origins, managing reruns, and reporting analytical state.",
+          "advanced_data_and_model_monitoring": "Capabilities for automated monitoring of distribution, regression, feature lineage, and model lineage.",
+          "advanced_falsification_and_causal_assessment": "Capabilities for generating counter-hypotheses and assessing causal identification requirements.",
+          "advanced_execution_and_recovery": "Capabilities for scoped reruns, checkpoint recovery, side-effect-safe retries, and human escalation.",
+          "comparative_audit_and_artifact_integrity": "Capabilities for comparing runs, localizing failures, and verifying artifact identity."
+        },
+        "mapping_policy": {
+          "required_capabilities_must_appear_in_capability_groups_when_groups_are_used": true,
+          "preferred_capabilities_must_appear_in_preferred_capability_groups_when_groups_are_used": true,
+          "capability_groups_are_structural_not_exhaustive": true,
+          "future_extensions_should_attach_to_groups_before_adding_flat_items": true,
+          "capability_taxonomy_must_not_conflict_with_flat_required_list": true
+        }
+      },
+      "analytical_process": {
+        "process_model": {
+          "required_stage_sequence": [
+            "problem_and_decision_definition",
+            "scope_population_and_unit_definition",
+            "data_intake_and_provenance",
+            "data_quality_and_schema_assessment",
+            "hypothesis_and_analysis_plan",
+            "preprocessing_and_feature_design",
+            "method_selection_and_baseline",
+            "execution_and_experiment_tracking",
+            "evaluation_and_validation",
+            "interpretation_and_claim_control",
+            "reporting_and_decision_support",
+            "audit_repair_and_rerun"
+          ],
+          "stage_skip_policy": {
+            "skip_allowed_only_when_not_applicable_and_explicitly_marked": true,
+            "skip_reason_required": true,
+            "silent_skip_prohibited": true
+          },
+          "stage_reentry_policy": {
+            "reentry_allowed": true,
+            "reentry_reason_required": true,
+            "affected_downstream_artifacts_must_be_identified": true
+          },
+          "branch_preservation": {
+            "multiple_problem_formulations_preserved": true,
+            "multiple_hypotheses_preserved": true,
+            "multiple_methods_preserved_until_selection_basis_is_stated": true,
+            "silent_branch_collapse_prohibited": true
+          }
+        },
+        "stage_definitions": {
+          "problem_and_decision_definition": {
+            "purpose": "Separate the originating request from the analytical question and define the decision or action the analysis is intended to support.",
+            "required_inputs": [
+              "originating_request"
+            ],
+            "required_outputs": [
+              "analysis_objective",
+              "decision_target",
+              "analysis_type_candidates",
+              "success_condition_candidates"
+            ],
+            "stop_conditions": [
+              "material_goal_contradiction_unresolved",
+              "decision_target_undefined_when_required"
+            ]
+          },
+          "scope_population_and_unit_definition": {
+            "purpose": "Define the analytical subject, population, unit, time scope, comparison basis, and target or outcome when_applicable.",
+            "required_inputs": [
+              "analysis_objective",
+              "decision_target"
+            ],
+            "required_outputs": [
+              "target_population",
+              "unit_of_analysis",
+              "time_scope",
+              "comparison_basis",
+              "target_or_outcome_definition",
+              "scope_exclusions"
+            ],
+            "stop_conditions": [
+              "population_materially_undefined",
+              "unit_of_analysis_materially_undefined",
+              "scope_conflict_unresolved"
+            ]
+          },
+          "data_intake_and_provenance": {
+            "purpose": "Identify datasets and establish data identity, version, source, collection context, access constraints, and provenance limits.",
+            "required_inputs": [
+              "analysis_objective",
+              "scope_definition",
+              "available_data_references"
+            ],
+            "required_outputs": [
+              "dataset_id",
+              "dataset_version",
+              "schema_version",
+              "data_source",
+              "provenance_status",
+              "observation_period",
+              "access_and_usage_constraints"
+            ],
+            "stop_conditions": [
+              "dataset_identity_unknown_for_material_analysis",
+              "provenance_unavailable_for_load_bearing_claim",
+              "data_use_not_authorized"
+            ]
+          },
+          "data_quality_and_schema_assessment": {
+            "purpose": "Assess schema compatibility, missingness, duplication, outliers, units, granularity, temporal alignment, label state, and known collection bias.",
+            "required_inputs": [
+              "dataset_reference",
+              "schema_reference"
+            ],
+            "required_outputs": [
+              "schema_assessment",
+              "missingness_assessment",
+              "duplicate_assessment",
+              "outlier_assessment",
+              "unit_and_granularity_assessment",
+              "temporal_alignment_assessment",
+              "data_quality_limitations",
+              "analysis_feasibility_state"
+            ],
+            "stop_conditions": [
+              "quality_failure_invalidates_intended_method",
+              "schema_mismatch_unresolved",
+              "required_label_or_time_order_missing"
+            ]
+          },
+          "hypothesis_and_analysis_plan": {
+            "purpose": "Define hypotheses, counter-hypotheses, falsification targets, assumptions, candidate methods, decision criteria, and branch conditions.",
+            "required_inputs": [
+              "analysis_objective",
+              "scope_definition",
+              "data_quality_state"
+            ],
+            "required_outputs": [
+              "hypotheses",
+              "counter_hypotheses",
+              "falsification_targets",
+              "assumptions",
+              "candidate_methods",
+              "decision_criteria",
+              "branch_conditions",
+              "planned_evaluation"
+            ],
+            "stop_conditions": [
+              "hypothesis_not_testable_under_available_data_when_testability_is_required",
+              "analysis_plan_and_objective_mismatch"
+            ]
+          },
+          "preprocessing_and_feature_design": {
+            "purpose": "Define and execute transformations and feature design while preserving lineage and preventing leakage.",
+            "required_inputs": [
+              "analysis_plan",
+              "dataset_reference",
+              "data_quality_state"
+            ],
+            "required_outputs": [
+              "transformation_plan",
+              "transformation_lineage",
+              "feature_set_id",
+              "feature_lineage",
+              "leakage_checks",
+              "preprocessing_artifacts"
+            ],
+            "stop_conditions": [
+              "target_leakage_detected",
+              "temporal_leakage_detected",
+              "preprocessing_leakage_detected",
+              "untraceable_material_transformation"
+            ]
+          },
+          "method_selection_and_baseline": {
+            "purpose": "Select methods and baselines under explicit criteria, assumptions, constraints, and comparable evaluation conditions.",
+            "required_inputs": [
+              "candidate_methods",
+              "decision_criteria",
+              "preprocessed_data_reference"
+            ],
+            "required_outputs": [
+              "selected_method",
+              "selection_basis",
+              "excluded_methods_and_reasons",
+              "baseline_definition",
+              "assumption_check_plan",
+              "validation_strategy"
+            ],
+            "stop_conditions": [
+              "selected_method_incompatible_with_objective",
+              "validation_strategy_invalid_for_data_structure",
+              "comparison_conditions_inconsistent"
+            ]
+          },
+          "execution_and_experiment_tracking": {
+            "purpose": "Execute the analysis or model while tracking run identity, data references, code or configuration, versions, seeds, tool calls, checkpoints, and outputs.",
+            "required_inputs": [
+              "selected_method",
+              "preprocessed_data_reference",
+              "execution_configuration"
+            ],
+            "required_outputs": [
+              "analysis_id",
+              "run_id",
+              "execution_trace",
+              "method_or_model_version",
+              "environment_reference",
+              "random_seed_when_material",
+              "intermediate_results",
+              "output_artifact_references"
+            ],
+            "stop_conditions": [
+              "tool_failure_unresolved",
+              "execution_state_inconsistent",
+              "run_identity_missing",
+              "unauthorized_side_effect_detected"
+            ]
+          },
+          "evaluation_and_validation": {
+            "purpose": "Evaluate analytical results against predefined metrics, baselines, assumptions, robustness conditions, leakage controls, bias controls, and regression criteria.",
+            "required_inputs": [
+              "execution_outputs",
+              "planned_evaluation",
+              "baseline_definition"
+            ],
+            "required_outputs": [
+              "evaluation_results",
+              "baseline_comparison",
+              "assumption_check_results",
+              "leakage_status",
+              "bias_status",
+              "uncertainty_status",
+              "robustness_status",
+              "regression_evaluation",
+              "validation_state"
+            ],
+            "stop_conditions": [
+              "critical_invalidation_detected",
+              "evaluation_dataset_identity_unknown",
+              "metric_definition_missing_for_material_claim"
+            ]
+          },
+          "interpretation_and_claim_control": {
+            "purpose": "Convert results into explicitly classified claims without exceeding the evidence type, scope, uncertainty, or causal identification supported by the analysis.",
+            "required_inputs": [
+              "validated_results",
+              "evaluation_results",
+              "scope_definition"
+            ],
+            "required_outputs": [
+              "claim_inventory",
+              "claim_types",
+              "evidence_links",
+              "uncertainty_statements",
+              "limitations",
+              "rejected_or_requalified_claims",
+              "applicability_scope"
+            ],
+            "stop_conditions": [
+              "causal_claim_without_identification_basis",
+              "load_bearing_claim_without_evidence_link",
+              "claim_scope_exceeds_validated_scope"
+            ]
+          },
+          "reporting_and_decision_support": {
+            "purpose": "Report objectives, data, methods, results, uncertainty, limitations, failures, and decision implications with sufficient traceability for review and reuse.",
+            "required_inputs": [
+              "claim_inventory",
+              "evaluation_results",
+              "run_lineage"
+            ],
+            "required_outputs": [
+              "analytical_report",
+              "decision_support_output",
+              "status_report",
+              "traceability_references",
+              "unresolved_limitations"
+            ],
+            "stop_conditions": [
+              "invalidated_run_not_disclosed",
+              "material_limitation_omitted",
+              "decision_recommendation_without_stated_basis"
+            ]
+          },
+          "audit_repair_and_rerun": {
+            "purpose": "Audit the full run, localize failures, select repair origin, preserve prior history, rerun the affected scope, compare before and after states, and re-fix governance.",
+            "required_inputs": [
+              "analysis_process_record",
+              "evaluation_audit_record",
+              "detected_failures"
+            ],
+            "required_outputs": [
+              "failure_localization",
+              "affected_artifacts",
+              "repair_origin",
+              "repair_action",
+              "parent_run_id",
+              "repaired_run_id",
+              "before_after_comparison",
+              "post_repair_audit",
+              "final_governance_state"
+            ],
+            "stop_conditions": [
+              "critical_failure_unresolved",
+              "repair_origin_unknown_for_material_failure",
+              "rerun_lineage_missing"
+            ]
+          }
+        },
+        "branching_and_decision_policy": {
+          "preserve_distinct_analysis_types": true,
+          "preserve_counter_hypotheses": true,
+          "preserve_method_alternatives_until_selection_basis_is_explicit": true,
+          "best_branch_selection_requires": [
+            "selection_basis",
+            "supporting_evidence",
+            "rejected_branch_reasons",
+            "remaining_uncertainty"
+          ],
+          "branch_merge_prohibited_when": [
+            "claims_have_different_evidence_types",
+            "analysis_types_have_different_identification_requirements",
+            "data_scopes_differ",
+            "evaluation_conditions_differ"
+          ]
+        },
+        "claim_classification": {
+          "claim_types": [
+            "direct_observation",
+            "descriptive_summary",
+            "statistical_estimate",
+            "predictive_result",
+            "associational_interpretation",
+            "causal_claim",
+            "business_interpretation",
+            "decision_recommendation"
+          ],
+          "rules": {
+            "material_claim_type_must_be_explicit": true,
+            "claim_must_not_exceed_evidence_type": true,
+            "causal_claim_requires_identification_basis": true,
+            "recommendation_requires_stated_objective_tradeoffs_and_scope": true,
+            "uncertainty_and_limitations_required_when_material": true
+          }
+        }
+      },
+      "evaluation": {
+        "evaluation_policy": {
+          "domain_evaluation_required_when_domain_claim_is_made": true,
+          "scored_evaluation_is_enabled_for_analytical_runs": true,
+          "severity_model_is_enabled_for_material_failure_classification": true,
+          "boolean_state_or_threshold_based_evaluation_allowed": true,
+          "non_applicable_dimensions_must_be_excluded_with_reason_when_reporting": true,
+          "scoring_requires_domain_specific_reason": true,
+          "severity_requires_domain_specific_reason": true,
+          "do_not_enable_scoring_or_severity_for_apparent_completeness": true,
+          "critical_invalidation_overrides_aggregate_score": true
+        },
+        "audit_targets": [
+          "analysis_objective_definition",
+          "decision_target_definition",
+          "population_definition",
+          "unit_of_analysis_definition",
+          "time_scope_definition",
+          "dataset_identity",
+          "dataset_version_fixity",
+          "schema_version_fixity",
+          "data_provenance",
+          "data_quality_assessment",
+          "missingness_handling",
+          "outlier_handling",
+          "unit_and_granularity_consistency",
+          "hypothesis_preservation",
+          "counter_hypothesis_preservation",
+          "method_selection_basis",
+          "baseline_definition",
+          "assumption_checking",
+          "target_leakage_control",
+          "temporal_leakage_control",
+          "split_contamination_control",
+          "sampling_selection_measurement_bias_control",
+          "statistical_validity",
+          "predictive_causal_distinction",
+          "causal_identification_basis",
+          "metric_validity",
+          "uncertainty_reporting",
+          "claim_classification",
+          "claim_evidence_linkage",
+          "reproducibility",
+          "run_lineage",
+          "agent_execution_reliability",
+          "repair_and_rerun_traceability"
+        ],
+        "minimum_pass_conditions": [
+          "explicit_analysis_objective_and_decision_target",
+          "explicit_population_unit_and_time_scope",
+          "fixed_dataset_and_schema_versions",
+          "traceable_data_provenance",
+          "visible_data_quality_state",
+          "explicit_hypotheses_counter_hypotheses_and_falsification_targets",
+          "method_selection_with_baseline_and_basis",
+          "leakage_checks_completed",
+          "bias_and_distribution_risks_disclosed",
+          "evaluation_dataset_and_metric_basis_disclosed",
+          "claim_types_explicit",
+          "causal_and_predictive_claims_separated",
+          "uncertainty_and_limitations_explicit",
+          "immutable_run_lineage_preserved",
+          "repair_origin_and_rerun_scope_traceable",
+          "before_after_comparison_available_after_repair",
+          "agent_tool_calls_and_handoffs_traceable_when_applicable"
+        ],
+        "drift_signals": [
+          "business_request_silently_collapsed_to_single_analysis_type",
+          "population_or_unit_scope_erasure",
+          "dataset_or_schema_version_blur",
+          "provenance_reference_loss",
+          "data_quality_state_omitted",
+          "counter_hypothesis_disappearance",
+          "method_selection_basis_disappearance",
+          "baseline_disappearance",
+          "leakage_check_omission",
+          "predictive_result_drifted_into_causal_claim",
+          "uncertainty_suppression",
+          "metric_definition_drift",
+          "failed_or_invalidated_run_hidden",
+          "run_lineage_break",
+          "repair_without_parent_run_reference",
+          "agent_role_or_authority_blur",
+          "tool_failure_reclassified_as_success"
+        ],
+        "critical_invalidation_conditions": [
+          "target_leakage",
+          "evaluation_invalidating_temporal_leakage",
+          "train_validation_test_contamination",
+          "data_provenance_fabrication",
+          "unknown_dataset_identity_for_load_bearing_result",
+          "invalidated_run_presented_as_valid",
+          "established_causal_claim_without_identification_basis",
+          "material_tool_execution_failure_hidden",
+          "unauthorized_external_side_effect",
+          "persistent_run_lineage_break_without_repair"
+        ],
+        "self_check_questions": [
+          "Did I separate the originating request from the analytical question?",
+          "Did I define the decision target, population, unit of analysis, and time scope?",
+          "Did I fix dataset and schema identity and version?",
+          "Did I disclose provenance limits and data quality conditions?",
+          "Did I preserve hypotheses, counter-hypotheses, and falsification targets?",
+          "Did I state the method selection basis, baseline, and excluded alternatives?",
+          "Did I check target, temporal, split, and preprocessing leakage where applicable?",
+          "Did I assess sampling, selection, measurement, and distribution risks where applicable?",
+          "Did I distinguish observation, estimate, prediction, association, causation, interpretation, and recommendation?",
+          "Did I disclose the evaluation dataset, metrics, uncertainty, and limitations?",
+          "Did I avoid allowing an aggregate score to override a critical invalidation?",
+          "Did I preserve run lineage and prior run immutability?",
+          "Did I identify the repair origin and affected downstream artifacts?",
+          "Did I record rerun scope and before-after differences?",
+          "Did I preserve agent role, tool, checkpoint, handoff, and approval traces when_applicable?"
+        ],
+        "scoring_model": {
+          "enabled_when_domain_defines_scored_evaluation": true,
+          "score_range": [
+            0,
+            100
+          ],
+          "score_bands": {
+            "90_100": "stable",
+            "75_89": "acceptable_with_minor_drift",
+            "50_74": "degraded",
+            "0_49": "unstable"
+          },
+          "inherit_parent_dimension_scores": true,
+          "domain_dimension_scores": [
+            "analysis_scope_definition_score",
+            "data_quality_integrity_score",
+            "provenance_traceability_score",
+            "hypothesis_and_falsification_score",
+            "assumption_and_method_validity_score",
+            "leakage_and_bias_control_score",
+            "statistical_validity_score",
+            "claim_integrity_score",
+            "reproducibility_score",
+            "agent_execution_reliability_score",
+            "repair_and_rerun_score"
+          ],
+          "minimum_expected_scores": {
+            "analysis_scope_definition_score": 85,
+            "data_quality_integrity_score": 85,
+            "provenance_traceability_score": 85,
+            "hypothesis_and_falsification_score": 85,
+            "assumption_and_method_validity_score": 85,
+            "leakage_and_bias_control_score": 90,
+            "statistical_validity_score": 85,
+            "claim_integrity_score": 90,
+            "reproducibility_score": 80,
+            "agent_execution_reliability_score": 80,
+            "repair_and_rerun_score": 80
+          },
+          "aggregation_policy": {
+            "equal_weight_across_applicable_dimensions": true,
+            "non_applicable_dimensions_excluded_with_reason": true,
+            "missing_required_dimension_cannot_silently_pass": true,
+            "critical_invalidation_overrides_aggregate_score": true,
+            "score_source_must_be_disclosed": true,
+            "llm_self_assessment_must_not_be_presented_as_external_validation": true
+          },
+          "alignment_policy": {
+            "domain_dimension_scores_must_have_minimum_expected_scores_when_scoring_is_enabled": true,
+            "audit_targets_must_have_corresponding_dimension_or_explicit_non_scored_reason": true,
+            "critical_invalidation_conditions_must_appear_in_severity_model_when_material_and_severity_model_exists": true
+          }
+        },
+        "severity_model": {
+          "enabled_when_domain_uses_severity": true,
+          "levels": [
+            "low",
+            "moderate",
+            "high",
+            "critical"
+          ],
+          "severity_rules": {
+            "low": [
+              "minor_non_material_metadata_omission",
+              "single_noncritical_reporting_ambiguity"
+            ],
+            "moderate": [
+              "partial_scope_omission",
+              "noncritical_provenance_detail_omission",
+              "single_method_basis_omission",
+              "single_reproducibility_field_omission",
+              "single_agent_trace_detail_omission_without_side_effect_risk"
+            ],
+            "high": [
+              "metric_mismatch",
+              "baseline_omission_in_material_comparison",
+              "assumption_failure_ignored",
+              "selection_or_measurement_bias_ignored",
+              "predictive_result_presented_as_causal_implication",
+              "material_uncertainty_suppressed",
+              "run_lineage_break",
+              "tool_failure_not_propagated"
+            ],
+            "critical": [
+              "target_leakage",
+              "evaluation_invalidating_temporal_leakage",
+              "train_validation_test_contamination",
+              "data_provenance_fabrication",
+              "unknown_dataset_identity_for_load_bearing_result",
+              "invalidated_run_presented_as_valid",
+              "established_causal_claim_without_identification_basis",
+              "material_tool_execution_failure_hidden",
+              "unauthorized_external_side_effect",
+              "persistent_run_lineage_break_without_repair"
+            ]
+          }
+        },
+        "audit_log_schema": {
+          "enabled": true,
+          "fields": [
+            "analysis_id",
+            "run_id",
+            "parent_run_id",
+            "audit_id",
+            "audit_timestamp",
+            "audit_mode",
+            "governance_state",
+            "analysis_run_state",
+            "audit_score_band",
+            "domain_dimension_scores",
+            "score_sources",
+            "detected_deviations",
+            "severity",
+            "critical_invalidation_status",
+            "affected_stages",
+            "affected_artifacts",
+            "affected_claims",
+            "data_provenance_status",
+            "leakage_status",
+            "bias_status",
+            "statistical_validity_status",
+            "claim_integrity_status",
+            "reproducibility_status",
+            "agent_execution_status",
+            "repair_applied",
+            "rerun_required",
+            "repaired_run_id",
+            "re_fix_applied",
+            "human_or_authority_review_condition_status"
+          ]
+        }
+      },
+      "repair": {
+        "purpose": "define data-science-specific repair origins, affected analytical scopes, revalidation targets, rerun lineage, and review condition findings without replacing the parent repair cycle",
+        "core_rule": "repair_model_should_define_repair_origin_not_parent_repair_cycle",
+        "trigger_conditions": [
+          "detected_data_integrity_failure",
+          "detected_leakage",
+          "detected_bias_or_distribution_failure",
+          "detected_method_objective_mismatch",
+          "detected_assumption_failure",
+          "detected_metric_mismatch",
+          "detected_claim_overreach",
+          "detected_reproducibility_failure",
+          "detected_run_lineage_break",
+          "detected_agent_execution_failure",
+          "detected_critical_invalidation",
+          "user_reported_analytical_governance_failure",
+          "audit_score_below_threshold"
+        ],
+        "repair_origins": [
+          "record_repair",
+          "data_repair",
+          "analytical_repair",
+          "claim_repair",
+          "agent_execution_repair",
+          "critical_governance_escalation"
+        ],
+        "repair_actions": {
+          "record_repair": [
+            "identify_missing_or_incorrect_record_fields",
+            "correct_metadata_without_altering_analytical_result_when_valid",
+            "record_revision_reason",
+            "preserve_prior_record_revision",
+            "re_audit_traceability"
+          ],
+          "data_repair": [
+            "identify_affected_dataset_schema_units_granularity_or_time_alignment",
+            "identify_affected_downstream_transformations_features_models_results_and_claims",
+            "correct_or_replace_data_source_when_authorized",
+            "assign_new_dataset_or_schema_version_when_material",
+            "rerun_from_earliest_affected_stage",
+            "preserve_original_invalidated_artifacts"
+          ],
+          "analytical_repair": [
+            "identify_failed_assumption_hypothesis_method_metric_split_feature_or_preprocessing_step",
+            "restate_analytical_plan",
+            "record_changed_and_unchanged_components",
+            "assign_parent_run_id_and_repair_id",
+            "rerun_affected_scope",
+            "compare_repaired_run_with_prior_run",
+            "revalidate_claims"
+          ],
+          "claim_repair": [
+            "identify_unsupported_claim_type_or_scope",
+            "retract_requalify_or_narrow_claim",
+            "restore_observation_estimate_prediction_association_causation_interpretation_and_recommendation_separation",
+            "update_evidence_links_uncertainty_and_limitations",
+            "reissue_report_with_visible_correction"
+          ],
+          "agent_execution_repair": [
+            "classify_reasoning_tool_state_permission_handoff_or_side_effect_failure",
+            "restore_valid_checkpoint_when_available",
+            "verify_idempotency_and_side_effects_before_retry",
+            "rebind_agent_role_authority_and_artifact_references",
+            "rerun_only_authorized_scope",
+            "record_retry_count_and_outcome"
+          ],
+          "critical_governance_escalation": [
+            "mark_run_invalid",
+            "emit_degraded_or_invalidated_status",
+            "stop_downstream_reuse",
+            "require_rebind_reinitialize_data_reacquisition_or_human_review_as_applicable",
+            "preserve_all_affected_artifacts_and_audit_evidence"
+          ]
+        },
+        "repair_policy": {
+          "identify_repair_origin": true,
+          "repair_affected_scope": true,
+          "revalidate_affected_axes": true,
+          "preserve_revision_lineage_when_material": true,
+          "do_not_skip_repair_and_claim_ready_without_basis": true,
+          "partial_revalidation_requires_reason": true,
+          "post_repair_review_must_cover_affected_axes": true
+        },
+        "rerun_policy": {
+          "prior_run_history_immutable": true,
+          "new_run_id_required": true,
+          "parent_run_id_required": true,
+          "repair_id_required": true,
+          "changed_components_required": true,
+          "unchanged_components_required": true,
+          "affected_artifacts_required": true,
+          "partial_rerun_allowed_only_with_dependency_basis": true,
+          "full_rerun_required_when_dependency_scope_is_uncertain": true,
+          "before_after_comparison_required": true,
+          "post_rerun_audit_required": true
+        },
+        "reproducibility_requirements": {
+          "record_dataset_and_schema_versions": true,
+          "record_code_configuration_and_environment_references_when_material": true,
+          "record_method_model_metric_and_seed_when_material": true,
+          "record_non_determinism_sources": true,
+          "do_not_claim_exact_reproducibility_when_environment_does_not_support_it": true
+        },
+        "human_or_runtime_review_condition_findings": [
+          "critical_failure_cannot_be_automatically_resolved",
+          "data_use_authority_is_unclear",
+          "external_side_effect_is_material",
+          "causal_or_high_impact_decision_claim_remains_uncertain",
+          "repeated_repair_fails",
+          "run_lineage_cannot_be_restored"
+        ],
+        "review_condition_wording_policy": {
+          "review_required_wording_requires_authority_basis": true,
+          "non_authority_domains_should_emit_review_condition_findings": true,
+          "human_or_runtime_review_conditions_do_not_themselves_create_external_review_obligations": true,
+          "authority_sensitive_review_findings_should_request_or_recommend_clarification_not_claim_final_requirement": true,
+          "authority_clarification_owner_when_material": "daagd"
+        },
+        "review_condition_fields": [
+          "review_condition_reason",
+          "affected_scope",
+          "available_evidence",
+          "unresolved_risk",
+          "recommended_next_action"
+        ]
+      },
+      "activation": {
+        "enabled": true,
+        "activation_mode": "local_domain_applicability",
+        "applies_when": [
+          "data_science_or_analytical_ai_context_is_present",
+          "analysis_objective_or_decision_target_is_defined_or_requested",
+          "dataset_schema_method_metric_claim_or_run_lineage_is_material",
+          "predictive_causal_statistical_or_data_quality_claim_is_made",
+          "analytical_repair_rerun_or_status_reporting_is_requested_or_required",
+          "analytical_agentic_execution_affects_data_method_metric_claim_or_run_lineage"
+        ],
+        "does_not_replace_argd": true,
+        "does_not_replace_dagd": true,
+        "does_not_reimplement_cdogd": true,
+        "does_not_define_registry_logic": true,
+        "routing_and_priority_are_external": true,
+        "activation_record_minimum_fields": [
+          "activation_reason",
+          "domain_context",
+          "governed_target_context",
+          "applicable_evaluation_axes",
+          "declared_context_policy_status",
+          "analysis_id_when_available",
+          "run_id_when_available"
+        ],
+        "local_activation_scope_policy": {
+          "domain_activation_is_context_local": true,
+          "external_orchestration_may_select_or_prioritize_domain": true,
+          "domain_definition_does_not_store_registry_or_routing_logic": true,
+          "activation_does_not_grant_authority_beyond_data_science_domain_evaluation_and_status_reporting": true
+        },
+        "reactivation_policy": {
+          "domain_activation_is_not_one_shot": true,
+          "domain_may_be_reactivated_when_relevant_conditions_recur": true,
+          "reactivation_triggers": [
+            "analysis_objective_changed",
+            "decision_target_changed",
+            "population_or_unit_changed",
+            "time_scope_changed",
+            "dataset_or_schema_version_changed",
+            "data_quality_state_changed",
+            "hypothesis_or_counter_hypothesis_changed",
+            "method_or_metric_changed",
+            "leakage_or_bias_detected",
+            "evaluation_result_changed",
+            "claim_scope_changed",
+            "critical_invalidation_detected",
+            "repair_or_rerun_completed",
+            "run_lineage_changed_or_broken",
+            "analytical_agent_handoff_or_tool_failure_detected"
+          ],
+          "deactivation_does_not_imply_future_non_applicability": true
+        },
+        "run_state_reference": {
+          "analysis_run_states": [
+            "draft",
+            "scoped",
+            "data_bound",
+            "data_validated",
+            "planned",
+            "executing",
+            "evaluated",
+            "audited",
+            "repairing",
+            "rerunning",
+            "awaiting_human_approval",
+            "completed",
+            "failed",
+            "invalidated"
+          ],
+          "terminal_states": [
+            "completed",
+            "failed",
+            "invalidated"
+          ],
+          "critical_failure_target_state": "invalidated",
+          "repair_target_state": "repairing",
+          "rerun_target_state": "rerunning"
+        },
+        "rebind_targets": [
+          "analysis_objective",
+          "decision_target",
+          "target_population",
+          "unit_of_analysis",
+          "time_scope",
+          "dataset_id",
+          "dataset_version",
+          "schema_version",
+          "hypothesis_set",
+          "selected_method",
+          "metric_definition",
+          "feature_set_id",
+          "agent_roles",
+          "run_id",
+          "checkpoint_id"
+        ],
+        "safeguards": {
+          "does_not_discard_confirmed_parent_context": true,
+          "does_not_replace_argd_or_dagd": true,
+          "does_not_silently_change_dataset_or_run_bindings": true,
+          "does_not_reactivate_invalidated_run_as_valid_without_repair": true,
+          "does_not_claim_final_approval_authority": true
+        }
+      },
+      "self_audit": {
+        "enabled": true,
+        "audit_frequency": {
+          "pre_analysis": true,
+          "per_stage": true,
+          "pre_result": true,
+          "post_result": true,
+          "pre_report": true,
+          "post_repair": true,
+          "extra_on_agent_handoff_or_tool_failure": true
+        },
+        "audit_axes": [
+          "objective_scope_population_unit_time",
+          "data_identity_and_provenance",
+          "analysis_type_resolution",
+          "stage_inputs_outputs_stop_conditions",
+          "lineage_and_branch_preservation",
+          "leakage_bias_assumption_metric_and_validity",
+          "critical_invalidation_check",
+          "claim_classification_evidence_uncertainty_and_scope",
+          "failed_run_visibility",
+          "traceability_and_limitations",
+          "repair_origin_rerun_lineage_before_after_and_re_fix"
+        ],
+        "audit_modes": [
+          "lightweight",
+          "full"
+        ],
+        "mode_selection": {
+          "default": "lightweight",
+          "full_when": [
+            "high_complexity_analysis",
+            "multiple_analysis_types",
+            "causal_analysis",
+            "high_impact_decision_support",
+            "critical_invalidation_risk",
+            "detected_drift",
+            "user_reported_analytical_governance_failure",
+            "agent_handoff_failure",
+            "long_running_or_multi_stage_workflow"
+          ]
+        },
+        "required_audit_bundles": {
+          "pre_analysis": [
+            "objective_scope_population_unit_time",
+            "data_identity_and_provenance",
+            "analysis_type_resolution"
+          ],
+          "per_stage": [
+            "stage_inputs_outputs_stop_conditions",
+            "lineage_and_branch_preservation"
+          ],
+          "pre_result": [
+            "leakage_bias_assumption_metric_and_validity",
+            "critical_invalidation_check"
+          ],
+          "post_result": [
+            "claim_classification_evidence_uncertainty_and_scope"
+          ],
+          "pre_report": [
+            "failed_run_visibility",
+            "traceability_and_limitations"
+          ],
+          "post_repair": [
+            "repair_origin_rerun_lineage_before_after_and_re_fix"
+          ]
+        },
+        "output_policy": {
+          "compact_by_default": true,
+          "emit_detail_on_anomaly": true,
+          "emit_detail_on_user_request": true,
+          "emit_detail_on_critical_failure": true
+        },
+        "required_basis_checks": [
+          "analysis_objective_basis",
+          "scope_population_unit_time_basis",
+          "dataset_schema_version_basis",
+          "method_metric_basis",
+          "evidence_claim_basis",
+          "uncertainty_limitation_basis",
+          "repair_origin_basis"
+        ],
+        "deviation_response_policy": {
+          "low": "repair_record_inline_if_needed",
+          "moderate": "repair_and_re_fix_domain_state",
+          "high": "explicit_repair_notice_rebind_and_rerun_if_affected",
+          "critical": "invalidate_run_emit_status_stop_reuse_and_escalate"
+        },
+        "domain_specific_self_state_audit_policy": {
+          "optional_domain_local_policy": true,
+          "allowed_when_domain_requires_stronger_self_state_control": true,
+          "must_remain_domain_local": true,
+          "must_not_replace_parent_audit_or_repair_governance": true,
+          "must_not_be_treated_as_self_approval": true,
+          "must_define_overreach_detection_when_authority_sensitive": true,
+          "must_define_repair_or_escalation_when_self_state_is_unreliable": true
+        },
+        "self_audit_result_connection_policy": {
+          "self_audit_result_values_must_be_mapped_or_marked_internal_only_when_defined": true,
+          "mapping_target_should_be_audit_to_action_when_actionable": true,
+          "internal_state_only_results_must_not_be_presented_as_action_outputs": true,
+          "result_names_and_action_names_must_remain_distinct": true,
+          "unmapped_actionable_self_audit_results_are_schema_hygiene_failure": true
+        }
+      },
+      "audit_to_action": {
+        "enabled": true,
+        "decision_inputs": [
+          "detected_deviations",
+          "critical_invalidation_status",
+          "regression_evaluation",
+          "authority_or_review_condition_findings",
+          "audit_score_band",
+          "domain_dimension_score_drop",
+          "severity",
+          "analysis_run_state",
+          "drift_signal_count",
+          "lineage_integrity",
+          "agent_execution_state",
+          "user_reported_analytical_governance_failure"
+        ],
+        "diagnostic_or_reserved_decision_inputs": [
+          "audit_score_band",
+          "domain_dimension_score_drop",
+          "severity",
+          "analysis_run_state",
+          "drift_signal_count",
+          "lineage_integrity",
+          "agent_execution_state",
+          "user_reported_analytical_governance_failure"
+        ],
+        "action_outputs": [
+          "block_valid_result_claim",
+          "emit_invalidated_status",
+          "recommend_reacquire_or_revalidate_data",
+          "report_human_or_authority_review_condition",
+          "recommend_redesign_split",
+          "recommend_redesign_features",
+          "recommend_rerun_affected_scope",
+          "requalify_claim",
+          "emit_compact_status",
+          "recommend_reselect_method",
+          "recommend_redefine_metric",
+          "emit_extended_status",
+          "recommend_rerun_full_analysis",
+          "data_science_rebind",
+          "emit_traceability_note",
+          "repair_record_inline",
+          "data_science_enforce"
+        ],
+        "extension_reserved_action_outputs": [
+          "data_science_enforce"
+        ],
+        "decision_rules": {
+          "unknown_data_provenance": {
+            "if": {
+              "detected_deviations": {
+                "contains_any": [
+                  "data_provenance_fabrication",
+                  "data_provenance_omission_for_load_bearing_analysis",
+                  "unknown_dataset_identity_for_load_bearing_result"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "block_valid_result_claim",
+                "emit_invalidated_status"
+              ],
+              "recommended_actions": [
+                "recommend_reacquire_or_revalidate_data",
+                "report_human_or_authority_review_condition"
+              ]
+            }
+          },
+          "leakage_detected": {
+            "if": {
+              "detected_deviations": {
+                "contains_any": [
+                  "target_leakage",
+                  "temporal_leakage",
+                  "evaluation_invalidating_temporal_leakage",
+                  "train_validation_test_contamination",
+                  "preprocessing_information_leakage"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "block_valid_result_claim",
+                "data_science_rebind",
+                "emit_invalidated_status"
+              ],
+              "recommended_actions": [
+                "recommend_redesign_split",
+                "recommend_redesign_features",
+                "recommend_rerun_affected_scope"
+              ]
+            }
+          },
+          "causal_overclaim": {
+            "if": {
+              "detected_deviations": {
+                "contains_any": [
+                  "correlation_presented_as_causation",
+                  "predictive_feature_importance_presented_as_causal_effect",
+                  "causal_claim_under_unidentified_design",
+                  "established_causal_claim_without_identification_basis"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "requalify_claim",
+                "emit_compact_status"
+              ],
+              "recommended_actions": [
+                "recommend_reselect_method",
+                "report_human_or_authority_review_condition"
+              ]
+            }
+          },
+          "metric_or_method_mismatch": {
+            "if": {
+              "detected_deviations": {
+                "contains_any": [
+                  "analysis_objective_and_method_mismatch",
+                  "metric_cherry_picking",
+                  "model_comparison_under_inconsistent_conditions",
+                  "metric_mismatch"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "data_science_rebind",
+                "emit_compact_status"
+              ],
+              "recommended_actions": [
+                "recommend_reselect_method",
+                "recommend_redefine_metric",
+                "recommend_rerun_affected_scope"
+              ]
+            }
+          },
+          "regression_degradation": {
+            "if": {
+              "regression_evaluation": {
+                "equals": "degraded_beyond_threshold"
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "emit_extended_status"
+              ],
+              "recommended_actions": [
+                "recommend_rerun_affected_scope",
+                "recommend_rerun_full_analysis"
+              ]
+            }
+          },
+          "tool_or_state_failure_affecting_analysis": {
+            "if": {
+              "detected_deviations": {
+                "contains_any": [
+                  "tool_error_treated_as_success",
+                  "checkpoint_ignored_on_resume",
+                  "shared_state_change_without_trace",
+                  "retry_without_side_effect_check",
+                  "material_tool_execution_failure_hidden"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "data_science_rebind",
+                "emit_compact_status"
+              ],
+              "recommended_actions": [
+                "recommend_rerun_affected_scope",
+                "report_human_or_authority_review_condition"
+              ]
+            }
+          },
+          "record_traceability_gap": {
+            "if": {
+              "detected_deviations": {
+                "contains_any": [
+                  "run_id_omission",
+                  "dataset_reference_omission",
+                  "transformation_lineage_omission",
+                  "feature_lineage_omission",
+                  "repair_without_parent_run_reference",
+                  "rerun_without_change_record"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "repair_record_inline",
+                "emit_traceability_note"
+              ],
+              "recommended_actions": [
+                "recommend_rerun_affected_scope"
+              ]
+            }
+          },
+          "authority_uncertainty_condition": {
+            "if": {
+              "authority_or_review_condition_findings": {
+                "contains_any": [
+                  "data_use_authority_is_unclear",
+                  "external_side_effect_is_material",
+                  "high_impact_decision_claim_remains_uncertain"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "emit_compact_status",
+                "report_human_or_authority_review_condition"
+              ],
+              "recommended_actions": []
+            }
+          },
+          "critical_invalidation": {
+            "if": {
+              "critical_invalidation_status": {
+                "equals": true
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "block_valid_result_claim",
+                "emit_invalidated_status",
+                "data_science_rebind"
+              ],
+              "recommended_actions": [
+                "report_human_or_authority_review_condition",
+                "recommend_rerun_full_analysis"
+              ]
+            }
+          }
+        },
+        "audit_to_action_consistency_policy": {
+          "decision_inputs_must_be_declared_when_used": true,
+          "action_outputs_must_be_declared_when_used": true,
+          "audit_decision_rules_must_emit_registered_action_outputs_only": true,
+          "unregistered_action_output_is_schema_hygiene_failure": true,
+          "action_precedence_must_not_override_higher_authority": true,
+          "unused_action_outputs_must_be_removed_or_marked_reserved": true,
+          "decision_rules_must_not_emit_unregistered_result_values_as_actions": true
+        },
+        "action_precedence": {
+          "critical_failure_blocks_ready_claim_when_material": true,
+          "critical_invalidation_overrides_score_based_minor_repair": true,
+          "block_valid_result_claim_overrides_completion_claim": true,
+          "deduplicate_actions_after_mapping": true,
+          "prefer_earliest_valid_repair_origin": true,
+          "do_not_skip_repair_and_go_directly_to_rerun_without_basis": true
+        },
+        "action_output_registration_policy": {
+          "action_outputs_must_be_used_by_decision_rules_or_marked_reserved_or_payload_target": true,
+          "unused_unreserved_action_outputs_should_be_removed": true,
+          "reserved_action_outputs_must_be_marked_extension_reserved_or_future_reserved": true,
+          "decision_inputs_must_be_used_or_marked_reserved": true,
+          "action_names_must_not_be_confused_with_result_values": true,
+          "payload_targets_should_be_used_when_many_specific_actions_share_one_action_pattern": true
+        },
+        "safeguards": {
+          "single_minor_record_issue_does_not_trigger_full_rerun": true,
+          "aggregate_score_does_not_cancel_critical_invalidation": true,
+          "automatic_retry_requires_side_effect_safety_under_aagd_or_runtime_policy": true,
+          "human_or_authority_review_condition_is_not_automatic_approval": true
+        }
+      },
+      "status_reporting": {
+        "enabled": true,
+        "status_reporting_should_define_domain_delta_only": true,
+        "modes": [
+          "silent_by_default",
+          "emit_on_anomaly",
+          "emit_on_user_request",
+          "emit_on_blocking_failure",
+          "emit_after_material_repair",
+          "emit_on_critical_invalidation",
+          "emit_after_repair_or_rerun"
+        ],
+        "score_source_taxonomy": [
+          "measured_metric",
+          "automated_test",
+          "rule_based_audit",
+          "llm_as_a_judge",
+          "llm_self_assessment",
+          "human_evaluation"
+        ],
+        "score_source_rules": {
+          "score_source_required": true,
+          "llm_self_assessment_must_not_be_presented_as_measured_metric": true,
+          "mixed_source_scores_must_be_labeled_per_dimension": true,
+          "uncalibrated_scores_must_be_disclosed": true
+        },
+        "compact_fields": [
+          "analysis_id",
+          "run_id",
+          "analysis_run_state",
+          "governance_state",
+          "detected_deviations",
+          "severity",
+          "critical_invalidation_status",
+          "score_sources",
+          "repair_applied",
+          "rerun_required",
+          "human_or_authority_review_condition_status"
+        ],
+        "extended_fields": [
+          "analysis_id",
+          "run_id",
+          "parent_run_id",
+          "dataset_id",
+          "dataset_version",
+          "schema_version",
+          "analysis_run_state",
+          "governance_state",
+          "domain_dimension_scores",
+          "score_sources",
+          "detected_deviations",
+          "severity",
+          "critical_invalidation_status",
+          "affected_stages",
+          "affected_artifacts",
+          "affected_claims",
+          "data_provenance_status",
+          "leakage_status",
+          "bias_status",
+          "statistical_validity_status",
+          "claim_integrity_status",
+          "reproducibility_status",
+          "agent_execution_status",
+          "repair_applied",
+          "repair_origin",
+          "rerun_scope",
+          "repaired_run_id",
+          "before_after_comparison",
+          "re_fix_applied",
+          "unresolved_limitations",
+          "human_or_authority_review_condition_status"
+        ],
+        "before_after_fields": [
+          "comparison_basis",
+          "before_run_id",
+          "after_run_id",
+          "changed_components",
+          "unchanged_components",
+          "before_scores",
+          "after_scores",
+          "score_sources",
+          "failure_resolution_status",
+          "remaining_limitations"
+        ],
+        "visualization_policy": {
+          "allow_before_after_score_chart": true,
+          "allow_stage_failure_map": true,
+          "allow_run_lineage_diagram": true,
+          "visualization_must_not_hide_invalidated_state": true,
+          "visualization_must_label_score_source": true
+        },
+        "visibility_rules": {
+          "show_critical_failure": true,
+          "show_blocking_failure": true,
+          "show_material_repair": true,
+          "always_show_critical_invalidation": true,
+          "always_show_invalidated_run_state": true,
+          "always_show_material_repair_and_rerun_lineage": true,
+          "suppress_verbose_status_when_no_anomaly_and_no_user_request": true
+        }
+      },
+      "agentic_execution": {
+        "enabled_when_applicable": true,
+        "relationship_to_aagd": {
+          "general_agentic_execution_governance_owner": "aagd",
+          "dsgd_does_not_replace_aagd": true,
+          "dsgd_does_not_define_general_tool_call_checkpoint_retry_handoff_or_side_effect_governance": true,
+          "dsgd_defines_data_science_specific_agentic_execution_conditions_only": true
+        },
+        "supported_execution_contexts": [
+          "single_agent",
+          "tool_using_agent",
+          "workflow_agent",
+          "multi_agent",
+          "human_in_the_loop"
+        ],
+        "analytical_role_contexts": [
+          "analysis_planner",
+          "data_validator",
+          "hypothesis_generator",
+          "method_selector",
+          "analysis_executor",
+          "evaluation_agent",
+          "critic_agent",
+          "reporting_agent",
+          "human_approver"
+        ],
+        "data_science_specific_controls": [
+          "preserve_dataset_schema_run_and_claim_references_across_agent_steps",
+          "preserve_evidence_reference_and_uncertainty_state_across_handoffs",
+          "propagate_invalidated_run_state_across_agent_workflow",
+          "do_not_treat_tool_output_as_valid_analytical_evidence_before_domain_validation",
+          "report_tool_or_state_failures_that_affect_data_method_metric_claim_or_run_lineage",
+          "record_agent_contribution_to_analysis_process_record_when_material",
+          "record_agent_contribution_to_evaluation_audit_record_when_material",
+          "separate_analytical_reasoning_failure_from_tool_state_permission_handoff_or_side_effect_failure",
+          "emit_authority_uncertainty_condition_when_data_use_or_external_side_effect_authority_is_unclear"
+        ],
+        "handoff_delta_fields": [
+          "analysis_id",
+          "run_id",
+          "dataset_references",
+          "schema_versions",
+          "claim_inventory",
+          "evidence_links",
+          "uncertainty_state",
+          "limitations",
+          "invalidation_status",
+          "open_analytical_questions"
+        ],
+        "analytical_agentic_failure_condition_findings": [
+          "evidence_reference_lost_between_agents",
+          "uncertainty_state_lost_between_agents",
+          "dataset_or_run_binding_changed_without_trace",
+          "invalidated_run_state_not_propagated",
+          "tool_failure_affecting_material_analysis_not_reported",
+          "permission_or_authority_uncertainty_affecting_data_use_or_external_side_effect_detected"
+        ],
+        "handoff_to_other_domains": {
+          "agentic_execution_general_control": "aagd",
+          "decision_authority_or_approval_clarification": "daagd",
+          "implementation_artifact_or_code_quality": "segd",
+          "project_coordination": "pmogd"
+        },
+        "non_targets": [
+          "general_agentic_execution_policy",
+          "general_tool_permission_model",
+          "general_retry_or_checkpoint_orchestration",
+          "general_multi_agent_role_assignment",
+          "final_authority_or_approval_decision"
+        ]
+      },
+      "record_schemas": {
+        "record_policy": {
+          "record_schemas_are_optional_unless_domain_requires_records": false,
+          "records_required_for_material_analytical_runs": true,
+          "if_records_exist_required_fields_must_map_to_field_groups": true,
+          "records_must_not_redefine_parent_audit_or_repair_cycle": true,
+          "records_must_remain_domain_delta": true,
+          "records_should_be_minimal_and_material_conditioned": true,
+          "record_schemas_must_not_be_treated_as_always_required_for_non_material_informal_analysis": true,
+          "record_fields_should_not_be_expanded_for_documentation_exhaustiveness": true
+        },
+        "domain_record_templates": {
+          "analysis_process_record": {
+            "schema_name": "DSGD Analysis Process Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record what was analyzed, why, under which data and assumptions, by which process, with which branches, results, evidence, uncertainty, and rerun conditions.",
+            "required_fields": [
+              "analysis_id",
+              "run_id",
+              "analysis_objective",
+              "decision_target",
+              "target_population",
+              "unit_of_analysis",
+              "time_scope",
+              "dataset_references",
+              "provenance_status",
+              "assumptions",
+              "hypotheses",
+              "analysis_plan",
+              "execution_trace",
+              "intermediate_results",
+              "final_results",
+              "claim_inventory",
+              "uncertainty",
+              "limitations",
+              "run_state"
+            ],
+            "field_groups": {
+              "identity": [
+                "analysis_id",
+                "run_id",
+                "parent_run_id",
+                "record_version",
+                "created_timestamp",
+                "created_by"
+              ],
+              "objective_and_scope": [
+                "originating_request",
+                "analysis_objective",
+                "decision_target",
+                "analysis_type",
+                "target_population",
+                "unit_of_analysis",
+                "time_scope",
+                "scope_exclusions",
+                "success_conditions"
+              ],
+              "data_and_provenance": [
+                "dataset_references",
+                "dataset_versions",
+                "schema_versions",
+                "data_sources",
+                "provenance_status",
+                "observation_period",
+                "sampling_or_collection_notes",
+                "data_quality_state"
+              ],
+              "reasoning_and_plan": [
+                "analysis_plan",
+                "assumptions",
+                "hypotheses",
+                "counter_hypotheses",
+                "falsification_targets",
+                "constraints",
+                "candidate_methods",
+                "selected_method",
+                "excluded_methods_and_reasons",
+                "baseline_definition",
+                "decision_criteria",
+                "branch_conditions"
+              ],
+              "execution": [
+                "transformation_lineage",
+                "feature_set_id",
+                "feature_lineage",
+                "method_or_model_version",
+                "metric_definitions",
+                "environment_reference",
+                "random_seed",
+                "tool_call_references",
+                "agent_references",
+                "checkpoint_references",
+                "execution_trace"
+              ],
+              "results_and_claims": [
+                "intermediate_results",
+                "final_results",
+                "claim_inventory",
+                "evidence_links",
+                "uncertainty",
+                "limitations",
+                "applicability_scope",
+                "next_analysis_candidates"
+              ],
+              "rerun_and_state": [
+                "run_state",
+                "invalidation_status",
+                "repair_id",
+                "rerun_conditions",
+                "affected_artifacts",
+                "status_report_reference"
+              ]
+            },
+            "validation_rules": [
+              "run_id_must_be_unique_within_analysis_id",
+              "parent_run_id_required_for_repaired_or_rerun_records",
+              "dataset_and_schema_versions_required_for_material_results",
+              "material_claims_require_claim_type_and_evidence_link",
+              "invalidated_run_must_be_explicit",
+              "unresolved_limitations_must_not_be_omitted"
+            ]
+          },
+          "evaluation_audit_record": {
+            "schema_name": "DSGD Evaluation and Audit Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record how an analytical run was evaluated, where and why it failed, what was invalidated, how it was repaired, and what rerun state resulted.",
+            "required_fields": [
+              "audit_id",
+              "analysis_id",
+              "run_id",
+              "audit_mode",
+              "audit_targets",
+              "domain_dimension_scores",
+              "score_sources",
+              "detected_deviations",
+              "severity",
+              "critical_invalidation_status",
+              "repair_applied",
+              "rerun_required",
+              "governance_state"
+            ],
+            "field_groups": {
+              "identity": [
+                "audit_id",
+                "analysis_id",
+                "run_id",
+                "parent_run_id",
+                "audit_timestamp",
+                "auditor_type",
+                "auditor_id",
+                "audit_mode"
+              ],
+              "criteria_and_scores": [
+                "audit_targets",
+                "evaluation_criteria",
+                "success_conditions",
+                "failure_conditions",
+                "domain_dimension_scores",
+                "parent_dimension_scores",
+                "score_sources",
+                "audit_score_band"
+              ],
+              "data_and_validity": [
+                "data_quality_status",
+                "provenance_status",
+                "leakage_status",
+                "bias_status",
+                "assumption_validity",
+                "method_validity",
+                "statistical_validity",
+                "causal_validity",
+                "metric_validity",
+                "reproducibility_status"
+              ],
+              "failure_and_impact": [
+                "detected_deviations",
+                "severity",
+                "critical_invalidation_status",
+                "affected_stages",
+                "affected_artifacts",
+                "affected_claims",
+                "failure_localization",
+                "unresolved_risks"
+              ],
+              "repair_and_rerun": [
+                "repair_id",
+                "repair_origin",
+                "repair_action",
+                "repair_applied",
+                "changed_components",
+                "unchanged_components",
+                "rerun_required",
+                "rerun_scope",
+                "repaired_run_id",
+                "before_after_comparison",
+                "post_repair_audit",
+                "re_fix_applied"
+              ],
+              "status": [
+                "analysis_run_state",
+                "governance_state",
+                "agent_execution_status",
+                "human_or_authority_review_condition_status",
+                "recommended_next_action",
+                "status_report_reference"
+              ]
+            },
+            "validation_rules": [
+              "score_source_required_for_each_reported_score",
+              "critical_invalidation_cannot_be_cancelled_by_aggregate_score",
+              "affected_scope_required_for_high_or_critical_failure",
+              "repair_origin_required_when_repair_applied",
+              "repaired_run_id_required_when_rerun_completed",
+              "before_after_comparison_required_after_repair_or_rerun"
+            ]
+          }
+        },
+        "record_relationship_contract": {
+          "analysis_process_record_primary_keys": [
+            "analysis_id",
+            "run_id"
+          ],
+          "evaluation_audit_record_foreign_keys": [
+            "analysis_id",
+            "run_id"
+          ],
+          "repair_lineage_keys": [
+            "parent_run_id",
+            "repair_id",
+            "repaired_run_id"
+          ],
+          "agentic_trace_keys": [
+            "agent_id",
+            "tool_call_id",
+            "handoff_id",
+            "checkpoint_id"
+          ],
+          "orphan_audit_record_prohibited": true,
+          "orphan_repaired_run_prohibited": true
+        },
+        "record_schema_consistency_policy": {
+          "record_required_fields_must_be_mapped_to_field_groups": true,
+          "field_group_items_inherit_group_requirement_level_unless_overridden": true,
+          "field_group_items_must_have_known_requirement_level_after_inheritance": true,
+          "record_relationships_must_not_create_orphan_records": true,
+          "analysis_process_record_required_fields_all_mapped_to_field_groups": true,
+          "evaluation_audit_record_required_fields_all_mapped_to_field_groups": true
+        }
+      },
+      "meta_data": {
+        "version": "0.1.0"
+      }
+    }
+  }
+}

@@ -16,6 +16,7 @@ from .identity import (
     ConversationTurnId,
 )
 from .models import (
+    MAX_CONVERSATION_TITLE_CHARACTERS,
     MAX_PERSISTED_MESSAGE_CHARACTERS,
     ConversationSessionRecord,
     ConversationSessionState,
@@ -34,6 +35,7 @@ from .models import (
 )
 
 __all__ = [
+    "MAX_CONVERSATION_TITLE_CHARACTERS",
     "MAX_PERSISTED_MESSAGE_CHARACTERS",
     "ConversationDomainError",
     "ConversationDomainErrorCode",

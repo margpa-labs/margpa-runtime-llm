@@ -36,7 +36,15 @@ from margpa_runtime_llm.modules.conversation.ports import (
     CommitConversation,
     ConversationCommitReceipt,
 )
-from margpa_runtime_llm.modules.documentation_rag.contracts import DocumentationRagMode
+from margpa_runtime_llm.modules.documentation_rag.contracts import (
+    DocumentationAugmentation,
+    DocumentationCitation,
+    DocumentationEvidence,
+    DocumentationGroundingState,
+    DocumentationMeasurementUnit,
+    DocumentationRagMode,
+    DocumentationRetrievalState,
+)
 from margpa_runtime_llm.modules.inference.contracts.generation import ThinkingMode
 from margpa_runtime_llm.modules.inference.contracts.response import ResponseLanguage
 from margpa_runtime_llm.modules.presentation.contracts.thinking import ThinkingVisibility
@@ -61,12 +69,20 @@ SCOPE = ConversationScopeId(value="server-private-scope")
 
 
 class Session:
-    def __init__(self, request_id: str, answer: str) -> None:
+    def __init__(
+        self,
+        request_id: str,
+        answer: str,
+        *,
+        context_usage: dict[str, object] | None = None,
+    ) -> None:
         self.request_id = request_id
         self.answer = answer
+        self.context_usage = context_usage
         self.finished = False
         self.cancelled = False
         self.event_thread_ids: list[int] = []
+        self.documentation_augmentation: DocumentationAugmentation | None = None
 
     def request_cancel(self) -> None:
         self.cancelled = True
@@ -97,6 +113,7 @@ class Session:
                         "request_id": self.request_id,
                         "finish_reason": "stop",
                         "assistant_message": {"role": "assistant", "content": self.answer},
+                        "context_usage": self.context_usage,
                     },
                 )
         finally:
@@ -105,15 +122,20 @@ class Session:
 
 
 class Generation:
-    def __init__(self) -> None:
+    def __init__(self, *, context_usage: dict[str, object] | None = None) -> None:
         self.calls: list[ConversationGenerationInput] = []
         self.active: Session | None = None
         self.start_thread_ids: list[int] = []
+        self.context_usage = context_usage
 
     def start(self, value: ConversationGenerationInput) -> Session:
         self.start_thread_ids.append(threading.get_ident())
         self.calls.append(value)
-        self.active = Session(f"request-{len(self.calls)}", f"canonical-{len(self.calls)}")
+        self.active = Session(
+            f"request-{len(self.calls)}",
+            f"canonical-{len(self.calls)}",
+            context_usage=self.context_usage,
+        )
         return self.active
 
     def cancel(self, request_id: str) -> bool:
@@ -267,13 +289,17 @@ def runtime_snapshot() -> SafeRuntimeSnapshot:
     )
 
 
-def persistent_runtime(tmp_path: Path) -> tuple[WebRuntime, SQLiteConversationStore, Generation]:
+def persistent_runtime(
+    tmp_path: Path,
+    *,
+    context_usage: dict[str, object] | None = None,
+) -> tuple[WebRuntime, SQLiteConversationStore, Generation]:
     store = SQLiteConversationStore(
         runtime_data_root=tmp_path / "runtime-data",
         bound_scope_id=SCOPE,
     )
     store.initialize_new_store()
-    generation = Generation()
+    generation = Generation(context_usage=context_usage)
     service = PersistentConversationService(
         repository=store,
         bound_scope_id=SCOPE,
@@ -485,10 +511,12 @@ async def test_archive_unarchive_resume_and_pagination_are_server_canonical(
             f"/api/v2/conversations/{first['conversation_id']}/unarchive",
             json={"operation_id": "unarchive-lifecycle", "expected_revision": 2},
         )
+        after_archive_list = await client.get("/api/v2/conversations?limit=20")
         resumed = await client.post(
             f"/api/v2/conversations/{first['conversation_id']}/resume",
             json={"operation_id": "resume-lifecycle", "expected_revision": 3},
         )
+        after_resume_list = await client.get("/api/v2/conversations?limit=20")
     assert len(page_one["items"]) == len(page_two["items"]) == 1
     assert page_one["items"][0]["conversation_id"] != page_two["items"][0]["conversation_id"]
     assert page_two["next_cursor"] is None
@@ -499,6 +527,63 @@ async def test_archive_unarchive_resume_and_pagination_are_server_canonical(
     resumed_detail = resumed.json()["detail"]
     assert resumed.status_code == 200 and resumed_detail["storage_revision"] == 4
     assert [item["state"] for item in resumed_detail["sessions"]] == ["closed", "active"]
+
+    def item_for(payload: dict, conversation_id: str) -> dict:
+        return next(
+            item for item in payload.json()["items"] if item["conversation_id"] == conversation_id
+        )
+
+    assert item_for(after_archive_list, first["conversation_id"])["has_active_session"] is False
+    assert item_for(after_resume_list, first["conversation_id"])["has_active_session"] is True
+
+
+@pytest.mark.asyncio
+async def test_rename_and_delete_are_server_canonical_and_list_excludes_deleted(
+    tmp_path: Path,
+) -> None:
+    runtime, _, _ = persistent_runtime(tmp_path)
+    app = create_web_app(
+        runtime_factory=lambda: runtime,
+        access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+    )
+    async with client_for(app) as client:
+        first = await create(client, "rename-delete-1")
+        second = await create(client, "rename-delete-2")
+        renamed = await client.post(
+            f"/api/v2/conversations/{first['conversation_id']}/rename",
+            json={
+                "operation_id": "rename-1",
+                "expected_revision": 1,
+                "title": "  My renamed chat  ",
+            },
+        )
+        cleared = await client.post(
+            f"/api/v2/conversations/{first['conversation_id']}/rename",
+            json={"operation_id": "rename-2", "expected_revision": 2, "title": ""},
+        )
+        renamed_again = await client.post(
+            f"/api/v2/conversations/{first['conversation_id']}/rename",
+            json={"operation_id": "rename-3", "expected_revision": 3, "title": "Final title"},
+        )
+        deleted = await client.post(
+            f"/api/v2/conversations/{second['conversation_id']}/delete",
+            json={"operation_id": "delete-1", "expected_revision": 1},
+        )
+        default_list = await client.get("/api/v2/conversations?limit=20")
+        deleted_list = await client.get("/api/v2/conversations?limit=20&state=deleted")
+    assert renamed.status_code == 200
+    assert renamed.json()["detail"]["title"] == "My renamed chat"
+    assert cleared.status_code == 200
+    assert cleared.json()["detail"]["title"] is None
+    assert renamed_again.status_code == 200
+    assert renamed_again.json()["detail"]["title"] == "Final title"
+    assert deleted.status_code == 200
+    assert deleted.json()["detail"]["state"] == "deleted"
+    ids_in_default = {item["conversation_id"] for item in default_list.json()["items"]}
+    assert first["conversation_id"] in ids_in_default
+    assert second["conversation_id"] not in ids_in_default
+    ids_in_deleted = {item["conversation_id"] for item in deleted_list.json()["items"]}
+    assert ids_in_deleted == {second["conversation_id"]}
 
 
 @pytest.mark.asyncio
@@ -543,6 +628,71 @@ async def test_normal_stream_is_durable_before_terminal_and_replay_mutates_zero(
     assert generation.active is not None
     assert generation.start_thread_ids == generation.active.event_thread_ids[:1]
     assert len(set(generation.active.event_thread_ids)) == 1
+
+
+@pytest.mark.asyncio
+async def test_completed_stream_carries_context_usage_through_to_the_wire(
+    tmp_path: Path,
+) -> None:
+    context_usage = {
+        "prompt_tokens": 100,
+        "completion_tokens": 20,
+        "total_tokens": 120,
+        "loaded_context_size": 4096,
+        "usage_ratio": 0.029296875,
+        "breakdown": {
+            "conversation_history_tokens": 43,
+            "system_prompt_tokens": 57,
+            "rag_context_tokens": 0,
+            "free_tokens": 3976,
+        },
+    }
+    runtime, _, _ = persistent_runtime(tmp_path, context_usage=context_usage)
+    app = create_web_app(
+        runtime_factory=lambda: runtime,
+        access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+    )
+    async with client_for(app) as client:
+        detail = await create(client)
+        conversation_id = detail["conversation_id"]
+        streamed = await client.post(
+            f"/api/v2/conversations/{conversation_id}/turns/stream",
+            json={
+                "content": "canonical user",
+                "settings": settings_payload(),
+                "operation_id": "turn-action-1",
+                "expected_revision": detail["storage_revision"],
+            },
+        )
+    assert streamed.status_code == 200
+    assert '"context_usage":{"prompt_tokens":100' in streamed.text
+    assert '"loaded_context_size":4096' in streamed.text
+    assert '"free_tokens":3976' in streamed.text
+
+
+@pytest.mark.asyncio
+async def test_completed_stream_context_usage_defaults_to_null_when_backend_omits_it(
+    tmp_path: Path,
+) -> None:
+    runtime, _, _ = persistent_runtime(tmp_path)
+    app = create_web_app(
+        runtime_factory=lambda: runtime,
+        access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+    )
+    async with client_for(app) as client:
+        detail = await create(client)
+        conversation_id = detail["conversation_id"]
+        streamed = await client.post(
+            f"/api/v2/conversations/{conversation_id}/turns/stream",
+            json={
+                "content": "canonical user",
+                "settings": settings_payload(),
+                "operation_id": "turn-action-1",
+                "expected_revision": detail["storage_revision"],
+            },
+        )
+    assert streamed.status_code == 200
+    assert '"context_usage":null' in streamed.text
 
 
 @pytest.mark.asyncio
@@ -865,3 +1015,112 @@ async def test_disconnect_closes_on_producer_and_persists_interrupted(tmp_path: 
     assert generation.active is not None
     assert generation.start_thread_ids == generation.active.event_thread_ids[:1]
     assert len(set(generation.active.event_thread_ids)) == 1
+
+
+def _citation_augmentation() -> DocumentationAugmentation:
+    sha = "d" * 128
+    return DocumentationAugmentation(
+        state=DocumentationRetrievalState.ENABLED,
+        should_generate=True,
+        reference_message="see references",
+        citations=(
+            DocumentationCitation(
+                citation_id="citation-1",
+                project_relative_path="docs/public/overview_ja.md",
+                heading_breadcrumb="Overview",
+                chunk_id=sha,
+                document_sha512=sha,
+                retrieval_score=1.0,
+                selected_order=1,
+            ),
+        ),
+        evidence=DocumentationEvidence(
+            query_digest=sha,
+            corpus_manifest_digest=sha,
+            retriever_key="bm25",
+            retriever_version="1",
+            selected_chunk_ids=(sha,),
+            selected_document_digests=(sha,),
+            selected_scores=(1.0,),
+            base_prompt_unit=DocumentationMeasurementUnit.TOKENS,
+            context_budget=100,
+            context_budget_unit=DocumentationMeasurementUnit.TOKENS,
+            context_used=10,
+            context_measurement_unit=DocumentationMeasurementUnit.TOKENS,
+            context_measurement_limit=100,
+            context_token_budget_used=True,
+            retrieved_chunk_count=1,
+            assembled_block_count=1,
+            identifier_subject_count=0,
+            retrieval_covered_subject_count=0,
+            retrieval_uncovered_subject_count=0,
+            covered_subject_count=0,
+            uncovered_subject_count=0,
+            grounding_state=DocumentationGroundingState.GROUNDED_READY,
+            generation_allowed=True,
+            retrieval_duration_ms=1.0,
+        ),
+        document_count=1,
+        selected_chunk_count=1,
+        duration_ms=1.0,
+    )
+
+
+class CitingSession(Session):
+    def __init__(self, request_id: str, answer: str) -> None:
+        super().__init__(request_id, answer)
+        self.documentation_augmentation = _citation_augmentation()
+
+
+class CitingGeneration(Generation):
+    def start(self, value: ConversationGenerationInput) -> CitingSession:
+        self.start_thread_ids.append(threading.get_ident())
+        self.calls.append(value)
+        self.active = CitingSession(f"request-{len(self.calls)}", f"cited-{len(self.calls)}")
+        return self.active
+
+
+@pytest.mark.asyncio
+async def test_citations_survive_reload_fetch(tmp_path: Path) -> None:
+    """Phase 2-E: the Detail response restores citations without live SSE Page Memory."""
+    store = SQLiteConversationStore(
+        runtime_data_root=tmp_path / "runtime-data",
+        bound_scope_id=SCOPE,
+    )
+    store.initialize_new_store()
+    generation = CitingGeneration()
+    service = PersistentConversationService(
+        repository=store,
+        bound_scope_id=SCOPE,
+        generation_service=generation,  # type: ignore[arg-type]
+    )
+    service.recover_incomplete_conversations()
+    runtime = WebRuntime(
+        conversation=cast(object, generation),  # type: ignore[arg-type]
+        snapshot=runtime_snapshot(),
+        close_callback=lambda: None,
+        persistent_conversation=service,
+    )
+    app = create_web_app(
+        runtime_factory=lambda: runtime,
+        access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+    )
+    async with client_for(app) as client:
+        detail = await create(client, "citing-create")
+        conversation_id = detail["conversation_id"]
+        await client.post(
+            f"/api/v2/conversations/{conversation_id}/turns/stream",
+            json={
+                "content": "question needing a citation",
+                "settings": settings_payload(),
+                "operation_id": "citing-turn",
+                "expected_revision": detail["storage_revision"],
+            },
+        )
+        # A brand-new GET, as if the browser had reloaded with no live SSE Page Memory.
+        reloaded = await client.get(f"/api/v2/conversations/{conversation_id}")
+    body = reloaded.json()
+    assert body["turns"][0]["citations"]["available"] is True
+    assert body["turns"][0]["citations"]["citations"][0]["project_relative_path"] == (
+        "docs/public/overview_ja.md"
+    )

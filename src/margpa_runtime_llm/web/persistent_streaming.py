@@ -149,6 +149,7 @@ def project_persistent_event(
                         if stored.conversation.head_turn_id is not None
                         else None
                     ),
+                    "context_usage": data.get("context_usage"),
                 }
             )
         elif event.event is ConversationEventType.ERROR:

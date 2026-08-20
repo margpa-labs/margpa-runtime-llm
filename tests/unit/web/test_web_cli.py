@@ -64,7 +64,9 @@ def test_web_help_documents_safe_defaults_and_placeholders() -> None:
     assert "--conversation-persistence" in help_text
     assert "--conversation-runtime-data-root" in help_text
     assert "--conversation-scope-id" in help_text
+    assert "--conversation-persistence-migrate" in help_text
     assert "--configuration-control" in help_text
+    assert "--runtime-composition-inspection" in help_text
 
 
 def test_conversation_persistence_requires_explicit_local_loopback_inputs(
@@ -75,6 +77,7 @@ def test_conversation_persistence_requires_explicit_local_loopback_inputs(
         enabled=True,
         runtime_data_root=root,
         scope_id="server-scope",
+        allow_migration=False,
         host="127.0.0.1",
         access_mode=WebExposureMode.LOCAL,
         authentication_required=False,
@@ -92,6 +95,7 @@ def test_conversation_persistence_requires_explicit_local_loopback_inputs(
                 enabled=True,
                 runtime_data_root=root,
                 scope_id="server-scope",
+                allow_migration=False,
                 host=host,
                 access_mode=mode,
                 authentication_required=auth,
@@ -107,6 +111,7 @@ def test_conversation_persistence_inputs_without_opt_in_are_rejected(tmp_path: P
             enabled=False,
             runtime_data_root=root,
             scope_id="server-scope",
+            allow_migration=False,
             host="127.0.0.1",
             access_mode=WebExposureMode.LOCAL,
             authentication_required=False,

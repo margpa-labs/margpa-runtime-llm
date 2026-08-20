@@ -303,6 +303,8 @@ def test_stream_maps_sequence_terminal_usage_and_timing() -> None:
         model_key=DEFINITION.model_key,
         native_stream=native,
         on_terminal=on_terminal,
+        fallback_prompt_tokens=0,
+        completion_text_token_counter=len,
     )
 
     chunks = list(stream)
@@ -315,6 +317,67 @@ def test_stream_maps_sequence_terminal_usage_and_timing() -> None:
     assert stream.timing is not None
     assert stream.timing.first_content_latency_seconds is not None
     assert terminal_calls == 1
+
+
+def test_stream_falls_back_to_tokenized_usage_when_backend_omits_it() -> None:
+    """llama.cpp's streaming chat format never reports `usage` per-chunk
+    (unlike its non-streaming response) — the stream must compute its own
+    approximation from the prompt token count and the accumulated completion
+    text rather than silently leaving `usage` as `None`."""
+
+    native = ClosableNativeIterator(
+        [
+            {"choices": [{"delta": {"content": "he"}, "finish_reason": None}]},
+            {"choices": [{"delta": {"content": "llo"}, "finish_reason": None}]},
+            {"choices": [{"delta": {}, "finish_reason": "stop"}]},
+        ]
+    )
+    stream = LlamaCppGenerationStream(
+        generation_id="generation-fallback",
+        request_id="request-1",
+        model_key=DEFINITION.model_key,
+        native_stream=native,
+        on_terminal=lambda: None,
+        fallback_prompt_tokens=15,
+        completion_text_token_counter=len,
+    )
+
+    chunks = list(stream)
+
+    usage = chunks[-1].usage
+    assert usage is not None
+    assert usage.prompt_tokens == 15
+    assert usage.completion_tokens == len("hello")
+    assert usage.total_tokens == 15 + len("hello")
+
+
+def test_stream_trusts_native_usage_over_the_fallback_when_present() -> None:
+    native = ClosableNativeIterator(
+        [
+            {"choices": [{"delta": {"content": "hi"}, "finish_reason": None}]},
+            {
+                "choices": [{"delta": {}, "finish_reason": "stop"}],
+                "usage": {"prompt_tokens": 2, "completion_tokens": 2, "total_tokens": 4},
+            },
+        ]
+    )
+    stream = LlamaCppGenerationStream(
+        generation_id="generation-native-usage",
+        request_id="request-1",
+        model_key=DEFINITION.model_key,
+        native_stream=native,
+        on_terminal=lambda: None,
+        fallback_prompt_tokens=9999,
+        completion_text_token_counter=len,
+    )
+
+    chunks = list(stream)
+
+    usage = chunks[-1].usage
+    assert usage is not None
+    assert usage.prompt_tokens == 2
+    assert usage.completion_tokens == 2
+    assert usage.total_tokens == 4
 
 
 def test_stream_cancel_and_close_are_idempotent_and_distinct() -> None:
@@ -331,6 +394,8 @@ def test_stream_cancel_and_close_are_idempotent_and_distinct() -> None:
         model_key=DEFINITION.model_key,
         native_stream=native,
         on_terminal=terminal,
+        fallback_prompt_tokens=0,
+        completion_text_token_counter=len,
     )
     stream.cancel()
     stream.cancel()
@@ -344,6 +409,8 @@ def test_stream_cancel_and_close_are_idempotent_and_distinct() -> None:
         model_key=DEFINITION.model_key,
         native_stream=ClosableNativeIterator([]),
         on_terminal=lambda: None,
+        fallback_prompt_tokens=0,
+        completion_text_token_counter=len,
     )
     other.close()
     assert other.terminal_state is GenerationTerminalState.CLOSED_BY_CONSUMER
@@ -356,6 +423,8 @@ def test_stream_without_terminal_chunk_is_protocol_error() -> None:
         model_key=DEFINITION.model_key,
         native_stream=ClosableNativeIterator([]),
         on_terminal=lambda: None,
+        fallback_prompt_tokens=0,
+        completion_text_token_counter=len,
     )
 
     with pytest.raises(InferenceError) as captured:
@@ -382,6 +451,8 @@ def test_stream_does_not_map_process_control_exceptions(
         model_key=DEFINITION.model_key,
         native_stream=native,
         on_terminal=on_terminal,
+        fallback_prompt_tokens=0,
+        completion_text_token_counter=len,
     )
 
     with pytest.raises(exception_type):

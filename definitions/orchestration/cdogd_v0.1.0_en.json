@@ -1,0 +1,2999 @@
+{
+  "cdogd": {
+    "cross_domain_orchestration_governance_definition": {
+      "description": "CDOGD (Cross-Domain Orchestration Governance Definition) is a core-bound, project-agnostic, manifest-driven, evidence-based, runtime-adaptive cross-domain orchestration governance definition. It resolves registered domain candidates, activation scope, function roles, overlap, attenuation, suppression, handoff, and repair propagation through structured task evidence, declared manifests, capability kinds, role kinds, governed object matches, function claims, non-target handling, confidence, and runtime context. CDOGD does not route by domain name, does not hardcode domain identities or pairwise rules, does not assign final decision authority, approval authority, accountability, or human or organizational delegation, and does not own or redefine domain-internal substantive schemas.",
+      "inheritance": {
+        "inheritance_mode": "core_bound_orchestration_layer",
+        "parent_definitions": [
+          {
+            "syntax_id": "argd",
+            "role": "general_reasoning_procedure_governance",
+            "required": true,
+            "authority_preserved": true
+          },
+          {
+            "syntax_id": "dagd",
+            "role": "general_behavior_audit_repair_activation_and_status_governance",
+            "required": true,
+            "authority_preserved": true
+          }
+        ],
+        "dependency_version_policy": {
+          "specific_parent_versions_are_not_hardcoded_in_cdogd_compatibility_labels": true,
+          "parent_version_binding_is_external_to_this_definition": true,
+          "version_binding_owner": "runtime_bundle_or_release_manifest"
+        },
+        "standalone_reference_use": {
+          "allowed": true,
+          "condition": "standalone_readers_must_treat_parent_mechanisms_domain_manifests_and_runtime_bundle_bindings_as_external_prerequisites_or_reference_context",
+          "does_not_grant_parent_functionality": true,
+          "runtime_conformance_requires_parent_definitions_and_registered_manifest_context": true
+        },
+        "replaces_parent_definitions": false,
+        "duplicates_parent_rules": false,
+        "reinterprets_parent_definitions": false,
+        "parent_rules_remain_authoritative": true,
+        "core_authority_preservation": {
+          "argd_and_dagd_remain_core": true,
+          "cdogd_does_not_replace_argd": true,
+          "cdogd_does_not_replace_dagd": true,
+          "cdogd_does_not_reinterpret_parent_governance": true,
+          "orchestration_controls_routing_and_activation_not_parent_authority": true,
+          "general_reasoning_conflicts_resolve_under_parent_reasoning_governance": true,
+          "general_behavior_audit_repair_activation_and_status_conflicts_resolve_under_parent_behavior_governance": true,
+          "higher_level_system_policies_remain_authoritative": true,
+          "silent_parent_rule_override_prohibited": true
+        },
+        "layer_model": {
+          "layer_order_is_descriptive_not_domain_priority": true,
+          "layers": [
+            {
+              "layer": 0,
+              "role_kind": "non_overridable_external_policy_or_platform_authority"
+            },
+            {
+              "layer": 1,
+              "role_kind": "common_governance_core"
+            },
+            {
+              "layer": 2,
+              "role_kind": "cross_domain_orchestration_layer"
+            },
+            {
+              "layer": 3,
+              "role_kind": "registered_domain_extension_candidates"
+            },
+            {
+              "layer": 4,
+              "role_kind": "task_local_and_function_local_governance_roles"
+            }
+          ]
+        },
+        "conflict_policy": {
+          "core_conflicts_resolve_under_parent_definitions": true,
+          "domain_extension_conflicts_require_orchestration_decision": true,
+          "fixed_pairwise_domain_precedence_prohibited": true,
+          "task_local_resolution_required_when_overlap_is_material": true,
+          "function_local_resolution_required_when_function_overlap_is_material": true,
+          "silent_domain_rule_override_prohibited": true,
+          "silent_orchestration_override_of_core_prohibited": true
+        }
+      },
+      "orchestration_identity_and_scope": {
+        "domain": "cross_domain_orchestration_governance",
+        "scope_statement": "Govern cross-domain registration interpretation, manifest interpretation, applicability inference, activation state separation, function role assignment, overlap resolution, attenuation, suppression, handoff, repair propagation, orchestration decision falsification, orchestration self-audit, and orchestration status deduplication across registered domain extensions.",
+        "governed_target_categories": [
+          "domain_registration_state",
+          "domain_manifest_state",
+          "structured_task_evidence",
+          "domain_applicability_assessment",
+          "activation_scope_decision",
+          "domain_state_assignment",
+          "function_role_assignment",
+          "domain_overlap_resolution",
+          "attenuation_and_suppression_decision",
+          "cross_domain_handoff",
+          "cross_domain_repair_propagation",
+          "orchestration_decision_record",
+          "orchestration_status_report"
+        ],
+        "lifecycle_coverage": [
+          "domain_payload_loaded",
+          "domain_registration_evaluated",
+          "domain_manifest_interpreted",
+          "task_frame_extracted",
+          "structured_evidence_recorded",
+          "applicability_assessed",
+          "overlap_detected",
+          "function_role_assigned",
+          "activation_scope_selected",
+          "attenuation_or_suppression_selected",
+          "handoff_scope_defined",
+          "repair_propagation_scope_defined",
+          "orchestration_decision_falsified",
+          "runtime_re_evaluation_triggered",
+          "status_report_deduplicated"
+        ],
+        "scope_boundaries": {
+          "not_a_domain_extension": true,
+          "not_a_common_governance_core": true,
+          "not_a_replacement_for_parent_definitions": true,
+          "does_not_define_domain_internal_object_schemas": true,
+          "does_not_duplicate_registered_domain_internal_models": true,
+          "does_not_replace_domain_extension_internal_governance": true,
+          "may_orchestrate_any_registered_domain_extension_when_manifest_and_evidence_support_it": true,
+          "non_target_declarations_must_not_exclude_registered_domain_extensions_from_orchestration": true
+        },
+        "non_targets": [
+          "ownership_of_domain_internal_object_schemas",
+          "duplication_of_registered_domain_internal_models",
+          "redefinition_of_domain_specific_runtime_objects",
+          "replacement_of_domain_extension_internal_governance",
+          "fixed_list_of_all_possible_domain_extensions",
+          "fixed_pairwise_domain_priority_table",
+          "fixed_function_owner_matrix_by_domain_name",
+          "fixed_decision_owner_domain",
+          "fixed_audit_owner_domain",
+          "project_specific_public_name_allowlist",
+          "company_specific_domain_registry",
+          "customer_specific_domain_manifest",
+          "private_internal_governance_bundle",
+          "final_decision_authority",
+          "approval_authority",
+          "accountability_assignment",
+          "human_or_organizational_delegation",
+          "complete_guarantee_of_governance_correctness",
+          "complete_guarantee_of_task_success",
+          "replacement_of_built_in_system_or_platform_policies"
+        ]
+      },
+      "no_hardcoding_and_abstraction_policy": {
+        "purpose": "Prevent CDOGD from becoming a fixed router for known domains, fixed counts, fixed owners, fixed pairs, fixed examples, or project-specific names.",
+        "rule_bodies_must_use_highest_safe_abstraction_level": true,
+        "domain_name_routing_prohibited": true,
+        "keyword_routing_alone_insufficient": true,
+        "fixed_owner_domains_prohibited": true,
+        "fixed_pairwise_domain_rules_prohibited": true,
+        "current_domain_set_must_not_be_treated_as_complete_future_domain_set": true,
+        "must_not_hardcode": [
+          "domain_extension_identity",
+          "domain_extension_count",
+          "pairwise_domain_relationship",
+          "function_role_owner_by_domain_name",
+          "decision_authority_owner_by_domain_name",
+          "audit_owner_by_domain_name",
+          "meta_review_owner_by_domain_name",
+          "project_specific_public_name_allowlist",
+          "specific_repository",
+          "specific_external_system",
+          "specific_private_system",
+          "specific_user_workflow",
+          "specific_runtime_bundle_instance"
+        ],
+        "must_resolve_by": [
+          "registered_manifest",
+          "capability_kind",
+          "role_kind",
+          "governed_object_type",
+          "function_claim",
+          "scope_limit",
+          "activation_pattern",
+          "activation_evidence_type",
+          "non_activation_evidence",
+          "non_target_penalty",
+          "evidence_quality",
+          "confidence",
+          "overlap_behavior",
+          "runtime_context"
+        ],
+        "taxonomy_policy": {
+          "capability_kinds_are_manifest_declared_not_closed_global_enum": true,
+          "extension_archetypes_are_recognized_examples_not_complete_future_set": true,
+          "role_kinds_define_routing_roles_not_specific_domain_owners": true,
+          "future_capability_kinds_allowed_when_manifest_declares_scope_and_limits": true,
+          "representative_examples_must_remain_non_normative": true
+        },
+        "contextual_specificity_policy": {
+          "specificity_allowed_when_explicit_runtime_context_requires_it": true,
+          "specificity_scope_must_remain_runtime_or_governed_target_local": true,
+          "specificity_must_not_be_promoted_to_general_cdogd_rule_without_basis": true,
+          "specificity_must_not_override_higher_authority": true
+        }
+      },
+      "role_complete_separation": {
+        "required": true,
+        "principle": "CDOGD must keep source material, parent governance, registered domain manifests, domain-internal governance, orchestration evidence, routing decisions, function roles, handoff, repair propagation, records, status reporting, and metadata responsibilities separate.",
+        "separation_targets": {
+          "source_material": "Inputs, observations, or prior artifacts used as evidence; source material is not absorbed as orchestration policy by default.",
+          "parent_governance": "Parent governance remains authoritative and is referenced rather than re-expanded.",
+          "registered_domain_manifest": "Manifest capability and boundary declarations are inputs, not authority grants.",
+          "domain_internal_governance": "Domain-specific substantive rules and schemas remain owned by the registered domain.",
+          "orchestration_evidence": "Structured task evidence used for routing, activation, role assignment, attenuation, suppression, handoff, and repair propagation.",
+          "orchestration_decision": "CDOGD-local routing, activation scope, and role assignment decision records.",
+          "function_role": "Task-local and function-local role assignment, not final authority or accountability.",
+          "handoff": "Transfer of scoped context between roles or domains without silent context loss.",
+          "repair_propagation": "Minimal sufficient propagation of repair impact across records, roles, and domains.",
+          "records": "CDOGD-local records that do not redefine parent or domain-internal record cycles.",
+          "status_reporting": "Orchestration delta reporting and deduplication, not global runtime truth replacement.",
+          "metadata": "Identity, authorship, license, repository, compatibility, and build sequence metadata only."
+        },
+        "non_absorption_rules": [
+          "parent_governance_must_be_referenced_not_reexpanded",
+          "domain_internal_content_must_remain_referenced_not_absorbed",
+          "registered_manifest_content_must_not_become_fixed_cdogd_domain_logic",
+          "external_release_or_packaging_information_must_not_be_inserted_into_cdogd_metadata",
+          "metadata_must_not_be_promoted_to_orchestration_rule_without_basis",
+          "source_material_must_not_become_orchestration_rule_without_evidence_and_scope"
+        ],
+        "review_implications": [
+          "role_separation_check_required_when_parent_domain_manifest_or_orchestration_context_is_material",
+          "role_mixing_failure_is_material_when_it_changes_routing_authority_or_domain_boundary",
+          "orchestration_quality_disclosure_boundary_and_domain_output_quality_must_not_be_collapsed_into_one_claim"
+        ]
+      },
+      "authority_and_audit_boundary_policy": {
+        "purpose": "Limit CDOGD authority to orchestration-local routing, activation scope, function role assignment, handoff routing, attenuation, suppression, and repair propagation while preventing absorption of final decision authority, approval, accountability, decision audit, or audit meta-review.",
+        "cdogd_may_assign": [
+          "orchestration_local_role_assignment",
+          "routing_local_candidate_selection",
+          "activation_scope_assignment",
+          "function_role_assignment",
+          "bounded_validation_role",
+          "bounded_veto_role",
+          "reference_role",
+          "handoff_routing",
+          "repair_propagation_scope",
+          "attenuation_selection",
+          "suppression_selection"
+        ],
+        "cdogd_must_not_assign": [
+          "final_decision_authority",
+          "approval_authority",
+          "accountability",
+          "human_or_organizational_delegation",
+          "domain_internal_substantive_judgment",
+          "domain_output_acceptance",
+          "external_review_obligation"
+        ],
+        "allowed_authority_scope_terms": [
+          "orchestration_local",
+          "routing_local",
+          "activation_scope_local",
+          "function_role_local"
+        ],
+        "authority_or_permission_requirements_are_routing_evidence_only": true,
+        "approval_or_accountability_claim_requires_external_authority_or_manifest_resolved_capability_reference": true,
+        "human_or_authority_review_condition_status_is_condition_reporting_not_obligation_creation": true,
+        "cdogd_audit_is_limited_to_orchestration_decisions": true,
+        "cdogd_does_not_perform_decision_authority_audit": true,
+        "cdogd_does_not_perform_strategic_decision_audit": true,
+        "cdogd_does_not_perform_audit_meta_review": true,
+        "cdogd_self_audit_must_not_become_external_approval": true
+      },
+      "manifest_based_capability_resolution_policy": {
+        "purpose": "Resolve candidate roles from registered manifests without hardcoded domain names, fixed owners, or fixed pairs.",
+        "fixed_owner_domains": false,
+        "domain_name_routing_prohibited": true,
+        "owner_resolution_must_be_task_local": true,
+        "owner_resolution_must_be_function_local_when_function_claims_are_material": true,
+        "resolve_from_registered_manifest_by": [
+          "capability_kind",
+          "role_kind",
+          "governed_object_type",
+          "function_claim",
+          "scope_limit",
+          "activation_evidence_type",
+          "non_activation_evidence",
+          "non_target_penalty",
+          "confidence",
+          "overlap_behavior"
+        ],
+        "registered_manifest_claim_is_candidate_input_not_authority_grant": true,
+        "candidate_set_may_contain_multiple_domains": true,
+        "candidate_resolution_requires_structured_evidence": true,
+        "capability_kind_examples_are_non_exhaustive": true,
+        "capability_kind_examples": [
+          "decision_structure_governance",
+          "decision_authority_governance",
+          "accountability_governance",
+          "approval_boundary_governance",
+          "decision_audit_governance",
+          "audit_meta_review_governance",
+          "domain_output_validation_governance",
+          "orchestration_decision_audit",
+          "orchestration_self_audit",
+          "project_orchestration_governance",
+          "operations_reliability_governance",
+          "security_risk_governance",
+          "artifact_composition_review_governance",
+          "runtime_execution_governance",
+          "architecture_governance",
+          "research_claim_governance",
+          "policy_governance"
+        ],
+        "role_kind_examples_are_non_exhaustive": true,
+        "role_kind_examples": [
+          "primary_when_evidence_matches",
+          "supporting_when_evidence_matches",
+          "validation_when_independent_check_required",
+          "bounded_veto_when_stop_condition_matches",
+          "reference_only_when_informative",
+          "attenuated_when_overlap_or_uncertainty_requires_limit",
+          "suppressed_when_duplicate_or_conflicting"
+        ]
+      },
+      "domain_registration_contract": {
+        "purpose": "Define how governance definitions become orchestratable inputs without activation or fixed priority by registration alone.",
+        "required_fields": [
+          "domain_id",
+          "domain_name",
+          "domain_class",
+          "domain_version",
+          "parent_definitions",
+          "default_activation_state",
+          "activation_conditions",
+          "deactivation_conditions",
+          "governed_object_types",
+          "capability_kinds",
+          "function_claims",
+          "non_targets",
+          "disclosure_boundary"
+        ],
+        "recommended_fields": [
+          "domain_manifest_id",
+          "extension_archetype",
+          "activation_patterns",
+          "function_scope_limits",
+          "overlap_behavior",
+          "activation_evidence_types",
+          "non_activation_evidence",
+          "record_contract",
+          "status_reporting_contract",
+          "repair_contract",
+          "handoff_contract",
+          "compatibility_status",
+          "publication_metadata"
+        ],
+        "domain_class_values": [
+          "core_governance",
+          "orchestration_layer",
+          "domain_extension",
+          "external_reference"
+        ],
+        "default_state_policy": {
+          "core_governance_default_state": "active_when_declared_core_by_runtime_bundle_or_external_manifest",
+          "orchestration_layer_default_state": "active_when_parent_core_available_and_explicitly_loaded",
+          "domain_extension_default_state": "dormant_or_reference_only_until_orchestrated",
+          "external_reference_default_state": "reference_only"
+        },
+        "rules": {
+          "new_domain_must_register_itself": true,
+          "cdogd_must_not_hardcode_domain_extension_names": true,
+          "unregistered_domain_cannot_become_active": true,
+          "loaded_unregistered_domain_defaults_to_reference_only": true,
+          "registration_is_not_activation": true,
+          "registration_claim_must_be_validated_against_manifest": true,
+          "domain_class_must_not_be_inferred_from_name_only": true,
+          "domain_name_must_not_drive_activation": true
+        },
+        "validation_rules": [
+          "domain_id_required",
+          "domain_class_required",
+          "parent_definitions_required",
+          "default_activation_state_required",
+          "activation_conditions_required",
+          "deactivation_conditions_required",
+          "governed_object_types_required",
+          "capability_kinds_required",
+          "function_claims_required",
+          "non_targets_required",
+          "disclosure_boundary_required",
+          "domain_extension_must_not_claim_core_authority",
+          "orchestration_layer_must_not_claim_domain_extension_substance",
+          "external_reference_must_not_become_authoritative_without_registration_manifest_and_evidence"
+        ]
+      },
+      "domain_manifest_model": {
+        "purpose": "Provide structured capability and boundary declarations that CDOGD can interpret without keyword routing or hardcoded domain identities.",
+        "manifest_required_fields": [
+          "domain_manifest_id",
+          "domain_id",
+          "domain_class",
+          "domain_version",
+          "extension_archetype",
+          "capability_kinds",
+          "role_kinds",
+          "activation_patterns",
+          "governed_object_types",
+          "function_claims",
+          "activation_evidence_types",
+          "non_activation_evidence",
+          "non_targets",
+          "function_scope_limits",
+          "overlap_behavior",
+          "disclosure_boundary"
+        ],
+        "manifest_conditional_fields": [
+          "authority_boundary_evidence",
+          "audit_scope_limits",
+          "meta_review_scope_limits",
+          "target_domain_scope",
+          "reviewed_audit_object_types",
+          "handoff_preferences",
+          "repair_contract",
+          "status_reporting_contract",
+          "record_contract"
+        ],
+        "extension_archetype_policy": {
+          "extension_archetype_is_manifest_declared": true,
+          "extension_archetype_is_not_activation": true,
+          "extension_archetype_does_not_define_priority": true,
+          "recognized_examples_are_non_exhaustive": true,
+          "recognized_examples": [
+            "ordinary_domain_extension",
+            "decision_structure_domain",
+            "decision_authority_domain",
+            "decision_audit_domain",
+            "audit_meta_review_domain",
+            "consulting_domain",
+            "project_orchestration_domain",
+            "operations_reliability_domain",
+            "security_domain",
+            "artifact_review_domain",
+            "runtime_execution_domain",
+            "architecture_domain",
+            "research_domain",
+            "policy_domain",
+            "external_reference"
+          ]
+        },
+        "function_claim_schema": {
+          "required_fields": [
+            "function_claim_id",
+            "function_id",
+            "function_description",
+            "claim_scope",
+            "role_request",
+            "activation_evidence_types",
+            "required_task_evidence",
+            "non_activation_evidence",
+            "overlap_behavior",
+            "default_role_request",
+            "scope_limits",
+            "bounded_veto_conditions",
+            "suppression_conditions"
+          ],
+          "claim_scope_values": [
+            "domain_specific",
+            "cross_domain_support",
+            "validation_only",
+            "bounded_veto_only",
+            "reference_only"
+          ],
+          "rules": {
+            "function_claim_is_not_role_grant": true,
+            "role_request_must_be_resolved_by_cdogd": true,
+            "bounded_veto_conditions_required_for_veto_role": true,
+            "default_role_request_must_not_override_task_evidence": true,
+            "function_scope_limits_must_be_preserved": true
+          }
+        },
+        "manifest_interpretation_rules": [
+          "read_manifest_as_capability_boundary_and_limit_input",
+          "do_not_route_by_domain_name",
+          "do_not_route_by_keyword_only",
+          "do_not_activate_from_manifest_presence_only",
+          "compare_manifest_claims_to_structured_task_evidence",
+          "apply_non_activation_evidence_before_activation",
+          "apply_non_target_penalty_when_material",
+          "select_roles_by_task_local_and_function_local_evidence",
+          "record_manifest_version_used_for_decision",
+          "treat_stale_or_incomplete_manifest_as_degraded_candidate_or_reference_only"
+        ],
+        "staleness_and_compatibility": {
+          "manifest_version_required": true,
+          "parent_definition_compatibility_required": true,
+          "unknown_manifest_version_defaults_to_candidate_or_reference_only": true,
+          "stale_manifest_requires_revalidation": true,
+          "incompatible_manifest_must_not_become_active_without_explicit_compatibility_decision": true
+        }
+      },
+      "orchestration_evidence_model": {
+        "purpose": "Capture structured task evidence used to infer applicability, roles, activation scope, attenuation, suppression, handoff, and repair propagation.",
+        "evidence_inputs": [
+          "user_requested_output_type",
+          "task_object_types",
+          "operation_types",
+          "artifact_types",
+          "governed_state_objects",
+          "required_governance_functions",
+          "side_effect_classes",
+          "authority_or_permission_routing_evidence",
+          "verification_requirements",
+          "repair_requirements",
+          "handoff_requirements",
+          "risk_class",
+          "non_targets",
+          "domain_manifest_capabilities",
+          "current_domain_states",
+          "current_function_role_assignments",
+          "detected_overlap",
+          "detected_failure",
+          "user_requested_strictness"
+        ],
+        "evidence_quality_dimensions": [
+          "explicitness",
+          "source_reliability",
+          "recency",
+          "task_relevance",
+          "manifest_relevance",
+          "conflict_presence",
+          "uncertainty_level",
+          "materiality"
+        ],
+        "evidence_record_rules": {
+          "evidence_source_required": true,
+          "evidence_type_required": true,
+          "task_frame_reference_required": true,
+          "manifest_reference_required_when_used": true,
+          "uncertainty_must_be_preserved": true,
+          "negative_evidence_must_be_preserved": true,
+          "rejected_evidence_must_be_recorded_when_material": true,
+          "keyword_match_alone_is_insufficient": true,
+          "authority_or_permission_inputs_are_evidence_not_delegation": true
+        },
+        "task_frame_components": [
+          "requested_outcome",
+          "target_artifacts",
+          "governed_objects",
+          "operations",
+          "side_effect_potential",
+          "authority_boundary",
+          "verification_need",
+          "repair_need",
+          "handoff_need",
+          "risk_class",
+          "constraints",
+          "non_targets",
+          "open_questions"
+        ]
+      },
+      "applicability_and_routing_inference": {
+        "purpose": "Infer applicable domain extensions and function roles from structured evidence, registered manifests, capability kinds, role kinds, and runtime context.",
+        "principles": {
+          "keyword_matching_is_insufficient": true,
+          "domain_names_must_not_drive_activation": true,
+          "task_object_evidence_required": true,
+          "governed_object_overlap_must_be_resolved": true,
+          "activation_requires_applicability_confidence": true,
+          "low_confidence_defaults_to_core_only_or_user_clarification_when_material": true,
+          "automatic_routing_must_remain_explainable": true,
+          "runtime_re_evaluation_required_when_task_frame_changes": true
+        },
+        "pipeline": [
+          "request_frame_extraction",
+          "governance_need_detection",
+          "manifest_matching",
+          "capability_resolution",
+          "applicability_scoring",
+          "non_activation_evidence_check",
+          "overlap_detection",
+          "role_assignment",
+          "scope_selection",
+          "attenuation_and_suppression_selection",
+          "orchestration_decision_falsification",
+          "decision_recording",
+          "runtime_re_evaluation"
+        ],
+        "score_component_policy": {
+          "component_weights_are_guidance_not_fixed_model_claim": true,
+          "weights_may_be_tuned_by_runtime_policy_or_release_manifest": true,
+          "weights_must_not_override_evidence_and_scope_requirements": true,
+          "default_components": {
+            "governed_object_match": 0.25,
+            "required_governance_function_match": 0.25,
+            "operation_type_match": 0.15,
+            "artifact_type_match": 0.1,
+            "side_effect_or_authority_boundary_match": 0.1,
+            "verification_or_repair_match": 0.1,
+            "non_target_penalty": 0.05
+          }
+        },
+        "threshold_policy": {
+          "thresholds_are_runtime_defaults_not_universal_truth": true,
+          "primary_role_minimum": 0.75,
+          "supporting_role_minimum": 0.5,
+          "validation_role_minimum": 0.45,
+          "reference_only_minimum": 0.25,
+          "below_reference_only": "dormant"
+        },
+        "low_confidence_policy": {
+          "do_not_activate_by_guess": true,
+          "ask_for_clarification_when_material": true,
+          "fallback_to_core_governance_only": true,
+          "record_low_confidence_reason": true
+        },
+        "routing_outputs": [
+          "primary_function_roles",
+          "supporting_function_roles",
+          "validation_function_roles",
+          "bounded_veto_roles",
+          "reference_only_roles",
+          "dormant_domains",
+          "activation_scope",
+          "confidence",
+          "routing_basis"
+        ]
+      },
+      "domain_state_model": {
+        "states": [
+          "unloaded",
+          "loaded",
+          "registered",
+          "reference_only",
+          "dormant",
+          "candidate",
+          "narrow_active",
+          "active_with_scope",
+          "attenuated",
+          "supporting",
+          "validation_only",
+          "bounded_veto_only",
+          "suppressed",
+          "degraded",
+          "invalidated"
+        ],
+        "state_definitions": {
+          "unloaded": "Domain payload is not present.",
+          "loaded": "Domain payload is present but has no authority by presence alone.",
+          "registered": "Domain registration has been recognized but activation has not been granted.",
+          "reference_only": "Domain may be consulted as non-authoritative reference.",
+          "dormant": "Domain is available but not participating in current orchestration.",
+          "candidate": "Domain is under applicability assessment.",
+          "narrow_active": "Only selected scopes or functions participate.",
+          "active_with_scope": "Domain participates within assigned scope and function roles.",
+          "attenuated": "Domain participates with reduced influence because overlap or uncertainty requires limitation.",
+          "supporting": "Domain supports a primary function role without overriding it.",
+          "validation_only": "Domain checks or validates within bounded scope but does not own primary role.",
+          "bounded_veto_only": "Domain may emit bounded stop or escalation condition only when declared conditions match.",
+          "suppressed": "Domain or function is prevented from participating because duplicate, conflicting, or unsafe role conflict would occur.",
+          "degraded": "Domain state or manifest is uncertain, incomplete, stale, or partially invalid.",
+          "invalidated": "Domain participation or orchestration decision is invalid until repaired and revalidated."
+        },
+        "state_transition_rules": [
+          "unloaded_to_loaded_when_payload_present",
+          "loaded_to_registered_when_registration_contract_valid",
+          "loaded_to_reference_only_when_unregistered_or_incomplete",
+          "registered_to_candidate_when_task_evidence_requires_assessment",
+          "candidate_to_narrow_active_when_scope_specific_evidence_matches",
+          "candidate_to_active_with_scope_when_broad_evidence_and_scope_justification_match",
+          "candidate_to_dormant_when_evidence_below_reference_threshold",
+          "candidate_to_reference_only_when_evidence_is_informational_but_not_authoritative",
+          "active_with_scope_to_attenuated_when_overlap_or_uncertainty_requires_reduced_influence",
+          "active_with_scope_to_suppressed_when_duplicate_or_conflicting_role_is_material",
+          "any_participating_state_to_degraded_when_manifest_or_evidence_quality_is_uncertain",
+          "any_participating_state_to_invalidated_when_critical_orchestration_failure_detected",
+          "degraded_or_invalidated_to_candidate_only_after_repair_and_revalidation"
+        ],
+        "state_separation_rules": [
+          "loaded_must_not_be_conflated_with_registered",
+          "registered_must_not_be_conflated_with_active",
+          "reference_only_must_not_be_conflated_with_governance_authority",
+          "narrow_active_must_not_be_conflated_with_full_domain_authority",
+          "domain_state_must_not_be_conflated_with_function_role",
+          "temporary_supporting_role_must_not_be_conflated_with_permanent_domain_hierarchy"
+        ]
+      },
+      "activation_pattern_model": {
+        "purpose": "Represent activation patterns declared by manifests without treating pattern presence as activation or priority.",
+        "supported_patterns_are_non_exhaustive": true,
+        "recognized_patterns": [
+          "ordinary_applicability_activation",
+          "runtime_re_evaluated_activation",
+          "pipeline_stage_activation",
+          "conditional_watchdog_activation",
+          "handoff_triggered_activation",
+          "incident_triggered_activation",
+          "publication_or_submission_triggered_activation",
+          "risk_triggered_activation",
+          "authority_boundary_triggered_activation",
+          "audit_failure_triggered_activation"
+        ],
+        "rules": {
+          "activation_pattern_must_be_declared_by_manifest": true,
+          "activation_pattern_is_not_activation": true,
+          "activation_pattern_does_not_define_priority": true,
+          "cdogd_remains_activation_decision_owner_within_orchestration_scope": true,
+          "default_state_is_dormant_or_reference_only_unless_manifest_and_task_evidence_support_activation": true,
+          "reactivation_required_when_material_conditions_change": true
+        },
+        "reactivation_triggers": [
+          "governed_target_change",
+          "premise_change",
+          "constraint_change",
+          "state_change",
+          "purpose_change",
+          "risk_change",
+          "output_requirement_change",
+          "authority_or_context_change",
+          "handoff_occurs",
+          "repair_occurs",
+          "audit_result_changes"
+        ]
+      },
+      "function_role_orchestration": {
+        "purpose": "Assign task-local and function-local roles across candidate or active domains without granting full domain authority or external decision authority.",
+        "principles": {
+          "domain_activation_does_not_grant_full_function_role_scope": true,
+          "function_overlap_is_expected": true,
+          "function_role_must_be_selected_when_overlap_is_material": true,
+          "supporting_roles_must_not_override_primary_role": true,
+          "parallel_duplicate_repair_or_audit_loops_are_prohibited_without_explicit_basis": true,
+          "core_parent_governance_remains_authoritative": true,
+          "function_role_must_be_generated_task_locally": true,
+          "domain_manifest_claims_are_inputs_not_role_grants": true,
+          "role_assignment_is_not_accountability_assignment": true,
+          "role_assignment_is_not_final_decision_authority": true,
+          "role_assignment_is_not_approval_authority": true
+        },
+        "function_roles": [
+          "primary_function_role",
+          "supporting_function_role",
+          "validation_function_role",
+          "bounded_veto_role",
+          "reference_function_role",
+          "attenuated_function_role",
+          "suppressed_function_role"
+        ],
+        "role_assignment_inputs": [
+          "function_claims",
+          "structured_task_evidence",
+          "governed_object_matches",
+          "required_governance_functions",
+          "authority_boundary_evidence",
+          "risk_class",
+          "overlap_status",
+          "confidence",
+          "core_authority_constraints",
+          "current_function_role_assignments"
+        ],
+        "role_assignment_rules": [
+          "assign_primary_function_role_only_when_evidence_and_scope_are_sufficient",
+          "assign_supporting_function_role_when_secondary_capability_adds_value_without_overriding",
+          "assign_validation_function_role_when_independent_or_specialized_check_is_needed",
+          "assign_bounded_veto_role_only_for_bounded_stop_or_escalation_conditions",
+          "assign_reference_function_role_when_domain_information_is_relevant_but_not_authoritative",
+          "assign_attenuated_function_role_when_overlap_or_uncertainty_requires_reduced_influence",
+          "assign_suppressed_function_role_when_duplicate_or_conflicting_governance_would_degrade_outcome",
+          "record_assignment_basis_for_all_material_roles"
+        ],
+        "influence_weight_policy": {
+          "influence_weight_is_interpretive_priority_not_model_weight_claim": true,
+          "weights_may_be_used_to_express_relative_governance_strength": true,
+          "weights_must_not_imply_internal_model_parameter_change": true,
+          "weights_must_be_task_local_and_function_local": true,
+          "weights_must_be_justified_by_evidence": true
+        }
+      },
+      "overlap_resolution_policy": {
+        "purpose": "Detect and resolve role overlap, boundary ambiguity, duplicate governance claims, and competing role claims across registered domain extensions.",
+        "principles": {
+          "overlap_is_expected": true,
+          "overlap_does_not_imply_joint_activation": true,
+          "domain_presence_does_not_imply_domain_authority": true,
+          "primary_function_role_must_be_selected_when_domains_overlap_materially": true,
+          "supporting_domains_must_have_limited_scope": true,
+          "duplicate_audit_and_repair_loops_must_not_run_in_parallel_without_explicit_basis": true,
+          "domain_overlap_is_not_an_error_unresolved_role_boundary_is_the_error": true
+        },
+        "resolution_required_when": [
+          "two_or_more_domains_claim_the_same_governed_object",
+          "two_or_more_domains_define_similar_evaluation_targets",
+          "two_or_more_domains_define_repair_actions_for_the_same_failure",
+          "domain_activation_conditions_overlap",
+          "domain_boundaries_are_ambiguous",
+          "handoff_direction_is_unclear",
+          "function_role_assignments_conflict",
+          "bounded_veto_scope_conflicts_with_primary_role_scope",
+          "status_reporting_would_duplicate_or_contradict"
+        ],
+        "resolution_outputs": [
+          "primary_function_roles",
+          "supporting_roles",
+          "validation_roles",
+          "bounded_veto_roles",
+          "reference_only_roles",
+          "suppressed_roles",
+          "function_role_assignments",
+          "attenuation_records",
+          "handoff_requirements",
+          "repair_propagation_requirements",
+          "unresolved_ambiguities"
+        ],
+        "resolution_rules": [
+          "resolve_by_structured_task_evidence_not_domain_name",
+          "resolve_by_governed_object_match",
+          "resolve_by_required_function_match",
+          "resolve_by_scope_limit",
+          "resolve_by_core_authority_constraints",
+          "resolve_by_confidence_and_risk",
+          "record_rejected_resolution_options_when_material",
+          "do_not_create_permanent_domain_hierarchy_from_task_local_resolution"
+        ]
+      },
+      "attenuation_and_suppression_policy": {
+        "purpose": "Prevent duplicate or conflicting governance functions from running at full influence when multiple domains are active or candidate.",
+        "attenuation_targets": [
+          "audit",
+          "repair",
+          "status_reporting",
+          "activation",
+          "rebind",
+          "evaluation",
+          "completion_claim",
+          "authority_boundary_claim",
+          "routing_claim",
+          "handoff_control"
+        ],
+        "default_policy": {
+          "only_primary_function_role_runs_full_domain_specific_audit_when_material": true,
+          "supporting_roles_run_scoped_audit_only": true,
+          "only_primary_function_role_proposes_domain_repair_by_default": true,
+          "general_repair_semantics_remain_under_parent_behavior_governance": true,
+          "status_reporting_must_be_deduplicated": true,
+          "activation_and_rebind_must_be_orchestrator_controlled": true,
+          "suppressed_function_must_not_emit_authoritative_status": true,
+          "attenuated_function_must_record_influence_limit": true
+        },
+        "attenuation_conditions": [
+          "duplicate_audit_targets",
+          "duplicate_repair_targets",
+          "duplicate_status_reports",
+          "conflicting_activation_claims",
+          "function_claim_scope_overlap",
+          "insufficient_confidence_for_full_role",
+          "supporting_role_more_appropriate_than_primary",
+          "temporary_validation_needed_without_role_transfer"
+        ],
+        "suppression_conditions": [
+          "parallel_duplicate_repair_would_conflict",
+          "parallel_duplicate_audit_would_obscure_primary_role",
+          "function_claim_exceeds_domain_scope",
+          "function_claim_conflicts_with_core_authority",
+          "manifest_stale_or_invalid_for_requested_function",
+          "bounded_veto_claim_unbounded_or_unjustified",
+          "domain_state_invalidated"
+        ],
+        "recording_rules": [
+          "attenuation_basis_required",
+          "suppression_basis_required",
+          "affected_functions_required",
+          "affected_domain_states_required",
+          "review_condition_status_required",
+          "re_evaluation_trigger_required"
+        ]
+      },
+      "decision_pipeline_orchestration_policy": {
+        "purpose": "Orchestrate multi-stage governance pipelines without hardcoding specific domain identities or granting CDOGD final decision authority.",
+        "pipeline_stage_domains_are_resolved_from_manifest_capabilities": true,
+        "pipeline_stage_order_must_be_task_local_and_evidence_based": true,
+        "pipeline_stage_order_must_not_be_fixed_by_domain_name": true,
+        "pipeline_stage_activation_does_not_grant_final_decision_authority": true,
+        "pipeline_stage_outputs_are_handoff_inputs_not_final_approval": true,
+        "pipeline_stage_examples_are_capability_kinds_not_domain_names": true,
+        "pipeline_stage_examples": [
+          "decision_structure_governance",
+          "decision_authority_governance",
+          "decision_audit_governance"
+        ],
+        "stage_transition_requires": [
+          "preserved_task_frame",
+          "preserved_scope",
+          "preserved_constraints",
+          "preserved_uncertainty",
+          "preserved_routing_basis",
+          "preserved_authority_boundary_evidence"
+        ],
+        "pipeline_failure_handling": {
+          "missing_prior_stage_output_requires_degraded_or_clarification_status_when_material": true,
+          "stage_output_must_not_be_reclassified_as_final_decision_by_cdogd": true,
+          "stage_order_change_requires_routing_basis": true,
+          "pipeline_re_evaluation_required_when_stage_output_changes": true
+        }
+      },
+      "conditional_watchdog_orchestration_policy": {
+        "purpose": "Support conditional watchdog or meta-review domains without creating mutual review loops or fixed domain pairs.",
+        "watchdog_domains_are_resolved_from_manifest_capabilities": true,
+        "watchdog_activation_is_conditional": true,
+        "watchdog_activation_requires_trigger_evidence": true,
+        "watchdog_target_scope_must_be_manifest_declared": true,
+        "watchdog_must_not_replace_target_domain": true,
+        "watchdog_must_not_directly_repair_target_domain_outputs_unless_manifest_scope_and_runtime_evidence_allow_it": true,
+        "watchdog_repair_instruction_scope_must_be_bounded": true,
+        "mutual_review_prohibited_unless_explicit_external_runtime_policy_allows_and_bounds_it": true,
+        "review_loop_limit_required_when_watchdog_chain_exists": true,
+        "fallback_when_watchdog_self_state_unreliable": [
+          "degrade_watchdog_result",
+          "emit_orchestration_status",
+          "route_to_external_authority_or_parent_governance_when_applicable"
+        ],
+        "trigger_examples_are_non_exhaustive": true,
+        "trigger_examples": [
+          "audit_result_unstable",
+          "audit_scope_unclear",
+          "rubber_stamp_risk_detected",
+          "overreach_risk_detected",
+          "conditional_pass_conditions_ambiguous",
+          "invalidate_result_excessive_or_underjustified"
+        ]
+      },
+      "cross_domain_handoff_contract": {
+        "purpose": "Preserve task frame, evidence, constraints, uncertainty, role assignments, and repair scope when governance responsibility moves or is shared across domains.",
+        "handoff_required_when": [
+          "primary_function_role_changes",
+          "function_role_assignment_changes",
+          "supporting_role_becomes_validation_role",
+          "bounded_veto_condition_is_triggered",
+          "repair_scope_moves_across_domain_boundary",
+          "task_frame_changes_materially",
+          "domain_state_becomes_degraded_or_invalidated",
+          "low_confidence_fallback_changes_participation",
+          "pipeline_stage_transition_occurs",
+          "watchdog_activation_or_deactivation_occurs"
+        ],
+        "handoff_record_required_fields": [
+          "handoff_record_id",
+          "source_domain_role",
+          "target_domain_role",
+          "task_frame",
+          "governed_objects",
+          "active_assumptions",
+          "constraints",
+          "unresolved_uncertainty",
+          "negative_evidence",
+          "rejected_routes",
+          "routing_basis",
+          "current_function_role_assignment",
+          "repair_scope",
+          "status_state",
+          "handoff_reason",
+          "handoff_timestamp"
+        ],
+        "integrity_rules": [
+          "handoff_must_preserve_task_frame",
+          "handoff_must_preserve_constraints",
+          "handoff_must_preserve_uncertainty",
+          "handoff_must_preserve_negative_evidence",
+          "handoff_must_preserve_rejected_routes_when_material",
+          "handoff_must_preserve_routing_basis",
+          "handoff_must_preserve_function_role_assignments",
+          "handoff_must_preserve_repair_scope",
+          "handoff_must_preserve_status_state",
+          "silent_handoff_prohibited"
+        ]
+      },
+      "cross_domain_repair_propagation": {
+        "purpose": "Control how repairs in one domain, function role, or orchestration decision propagate across other domains, functions, records, and core governance boundaries.",
+        "propagation_inputs": [
+          "repair_origin",
+          "failure_type",
+          "affected_domains",
+          "affected_function_roles",
+          "affected_records",
+          "current_domain_states",
+          "current_function_role_assignments",
+          "core_authority_constraints",
+          "handoff_records",
+          "status_state",
+          "risk_class"
+        ],
+        "propagation_outputs": [
+          "propagation_scope",
+          "reroute_required",
+          "revalidation_required",
+          "suppression_required",
+          "attenuation_required",
+          "handoff_required",
+          "core_repair_required",
+          "domain_specific_repair_required",
+          "status_update_required",
+          "residual_risk"
+        ],
+        "principles": {
+          "domain_specific_repair_must_not_silently_modify_core_premises": true,
+          "core_repair_must_be_handled_under_parent_governance": true,
+          "cross_domain_repair_requires_scope_record": true,
+          "repair_propagation_must_be_minimal_but_sufficient": true,
+          "repair_must_not_reactivate_invalidated_decision_without_revalidation": true,
+          "repair_must_preserve_prior_records": true
+        },
+        "repair_origin_mapping": {
+          "registration_failure": "domain_registration_contract",
+          "manifest_failure": "domain_manifest_model",
+          "evidence_failure": "orchestration_evidence_model",
+          "applicability_failure": "applicability_and_routing_inference",
+          "activation_failure": "domain_state_model",
+          "function_role_failure": "function_role_orchestration",
+          "overlap_failure": "overlap_resolution_policy",
+          "attenuation_or_suppression_failure": "attenuation_and_suppression_policy",
+          "pipeline_failure": "decision_pipeline_orchestration_policy",
+          "watchdog_failure": "conditional_watchdog_orchestration_policy",
+          "handoff_failure": "cross_domain_handoff_contract",
+          "propagation_failure": "cross_domain_repair_propagation",
+          "falsification_failure": "orchestration_decision_falsification",
+          "metadata_format_failure": "meta_data"
+        }
+      },
+      "orchestration_decision_falsification": {
+        "canonical_parent_mechanism": "argd_falsification_reference",
+        "required": true,
+        "purpose": "Falsify CDOGD routing, activation, role assignment, attenuation, suppression, handoff, pipeline, watchdog, and repair propagation decisions.",
+        "falsification_targets": [
+          "selected_primary_function_role",
+          "rejected_candidate_domains",
+          "activation_scope",
+          "function_role_assignment",
+          "supporting_role_assignment",
+          "validation_role_assignment",
+          "bounded_veto_assignment",
+          "attenuation_level",
+          "suppression_decision",
+          "pipeline_stage_order",
+          "watchdog_activation_decision",
+          "handoff_direction",
+          "repair_propagation_scope",
+          "low_confidence_fallback",
+          "disclosure_boundary_decision",
+          "record_schema_completeness",
+          "language_variant_parity_claim"
+        ],
+        "required_record_fields": [
+          "selected_decision",
+          "alternative_decisions",
+          "supporting_evidence",
+          "contradicting_evidence",
+          "rejected_alternatives",
+          "rejection_reasons",
+          "failure_conditions",
+          "uncertainty",
+          "confidence",
+          "fallback_policy",
+          "revalidation_requirement"
+        ],
+        "validation_rules": [
+          "single_best_route_without_basis_is_insufficient",
+          "activation_decision_requires_evidence_and_counter_evidence_review",
+          "suppression_decision_requires_contradicting_or_duplicate_role_basis",
+          "attenuation_decision_requires_overlap_or_uncertainty_basis",
+          "bounded_veto_assignment_requires_bounded_condition",
+          "pipeline_stage_order_requires_manifest_and_evidence_basis",
+          "watchdog_activation_requires_trigger_evidence_and_scope",
+          "handoff_direction_requires_preserved_context",
+          "repair_propagation_scope_requires_affected_records_and_functions",
+          "uncertainty_must_not_be_suppressed"
+        ],
+        "prohibited_shortcuts": [
+          "domain_name_as_activation_basis",
+          "keyword_as_sufficient_activation_basis",
+          "current_domain_count_as_completeness_basis",
+          "manifest_presence_as_activation_basis",
+          "registration_presence_as_activation_basis",
+          "supporting_role_as_primary_override",
+          "unbounded_veto_assignment",
+          "fixed_owner_domain_resolution"
+        ]
+      },
+      "capabilities": {
+        "canonical_source": "cross_domain_orchestration_capability_taxonomy",
+        "required_capabilities": [
+          "domain_registration_interpretation",
+          "domain_manifest_interpretation",
+          "structured_task_evidence_extraction",
+          "domain_applicability_inference",
+          "capability_resolution",
+          "routing_basis_recording",
+          "confidence_assessment",
+          "domain_state_assignment",
+          "activation_scope_selection",
+          "activation_pattern_interpretation",
+          "function_claim_interpretation",
+          "function_role_assignment",
+          "overlap_detection",
+          "overlap_resolution",
+          "function_attenuation",
+          "function_suppression",
+          "bounded_veto_assignment",
+          "decision_pipeline_orchestration",
+          "conditional_watchdog_orchestration",
+          "cross_domain_handoff_control",
+          "repair_propagation_scoping",
+          "orchestration_decision_falsification",
+          "orchestration_self_audit",
+          "status_deduplication",
+          "hardcoding_violation_detection",
+          "disclosure_boundary_review",
+          "language_variant_parity_review"
+        ],
+        "preferred_capabilities": [
+          "automatic_manifest_schema_validation",
+          "automatic_record_relationship_validation",
+          "domain_registry_diff_detection",
+          "stale_manifest_detection",
+          "orchestration_simulation",
+          "comparative_routing_audit",
+          "function_overlap_heatmap",
+          "runtime_re_evaluation_trace",
+          "policy_conflict_visualization",
+          "cross_domain_repair_dependency_analysis",
+          "language_artifact_structure_parity_diff",
+          "public_identifier_review_assistant"
+        ],
+        "capability_groups": {
+          "registration_and_manifest": [
+            "domain_registration_interpretation",
+            "domain_manifest_interpretation",
+            "manifest_schema_validation",
+            "domain_class_validation",
+            "default_state_validation"
+          ],
+          "evidence_and_applicability": [
+            "structured_task_evidence_extraction",
+            "domain_applicability_inference",
+            "capability_resolution",
+            "governed_object_matching",
+            "required_function_matching",
+            "operation_type_matching",
+            "artifact_type_matching",
+            "risk_class_matching",
+            "non_target_penalty_application",
+            "confidence_assessment",
+            "routing_basis_recording"
+          ],
+          "activation_and_state": [
+            "domain_state_assignment",
+            "activation_scope_selection",
+            "activation_pattern_interpretation",
+            "narrow_active_selection",
+            "reference_only_assignment",
+            "dormancy_assignment",
+            "deactivation_trigger_handling",
+            "runtime_re_evaluation"
+          ],
+          "function_roles": [
+            "function_claim_interpretation",
+            "function_role_assignment",
+            "primary_function_role_selection",
+            "supporting_function_role_selection",
+            "validation_function_role_selection",
+            "bounded_veto_assignment",
+            "reference_function_role_assignment",
+            "attenuated_function_role_assignment",
+            "suppressed_function_role_assignment"
+          ],
+          "overlap_and_attenuation": [
+            "overlap_detection",
+            "overlap_resolution",
+            "duplicate_audit_loop_prevention",
+            "duplicate_repair_loop_prevention",
+            "status_deduplication",
+            "function_attenuation",
+            "function_suppression",
+            "attenuation_basis_recording",
+            "suppression_basis_recording"
+          ],
+          "pipeline_and_watchdog": [
+            "decision_pipeline_orchestration",
+            "pipeline_stage_order_resolution",
+            "conditional_watchdog_orchestration",
+            "watchdog_trigger_interpretation",
+            "review_loop_limit_control"
+          ],
+          "handoff_and_repair": [
+            "cross_domain_handoff_control",
+            "handoff_basis_preservation",
+            "repair_origin_identification",
+            "repair_propagation_scoping",
+            "affected_scope_identification",
+            "revalidation_requirement_detection"
+          ],
+          "audit_status_and_artifacts": [
+            "orchestration_decision_falsification",
+            "orchestration_self_audit",
+            "status_reporting",
+            "hardcoding_violation_detection",
+            "disclosure_boundary_review",
+            "language_variant_parity_review"
+          ]
+        },
+        "mapping_policy": {
+          "required_capabilities_must_appear_in_capability_groups_when_groups_are_used": true,
+          "capability_groups_are_structural_not_exhaustive": true,
+          "future_extensions_should_attach_to_groups_before_adding_flat_items": true,
+          "capability_taxonomy_must_not_conflict_with_flat_required_list": true,
+          "capability_kind_addition_requires_manifest_scope_and_limit_declaration": true
+        }
+      },
+      "evaluation": {
+        "evaluation_policy": {
+          "domain_evaluation_required_when_orchestration_claim_is_made": true,
+          "scored_evaluation_is_optional": true,
+          "severity_model_is_enabled_for_cdogd_because_orchestration_failure_can_invalidate_runtime_claims": true,
+          "non_applicable_dimensions_must_be_excluded_with_reason_when_reporting": true,
+          "llm_self_assessment_must_not_be_presented_as_external_validation": true
+        },
+        "audit_targets": [
+          "core_authority_preservation",
+          "no_hardcoding_compliance",
+          "domain_registration_integrity",
+          "domain_manifest_integrity",
+          "structured_evidence_integrity",
+          "capability_resolution_integrity",
+          "domain_routing_accuracy",
+          "false_activation_prevention",
+          "false_dormancy_prevention",
+          "activation_scope_integrity",
+          "activation_pattern_integrity",
+          "domain_state_integrity",
+          "function_role_assignment_correctness",
+          "overlap_resolution_correctness",
+          "attenuation_correctness",
+          "suppression_correctness",
+          "bounded_veto_assignment_correctness",
+          "decision_pipeline_integrity",
+          "conditional_watchdog_integrity",
+          "handoff_integrity",
+          "repair_propagation_integrity",
+          "orchestration_decision_falsification_integrity",
+          "status_deduplication_integrity",
+          "domain_internal_schema_non_duplication",
+          "registered_domain_extension_inclusion",
+          "disclosure_boundary_preservation",
+          "language_variant_parity"
+        ],
+        "audit_target_to_score_dimension_map": {
+          "core_authority_preservation": "core_authority_score",
+          "no_hardcoding_compliance": "no_hardcoding_score",
+          "domain_registration_integrity": "registration_integrity_score",
+          "domain_manifest_integrity": "manifest_integrity_score",
+          "structured_evidence_integrity": "evidence_quality_score",
+          "capability_resolution_integrity": "capability_resolution_score",
+          "domain_routing_accuracy": "applicability_inference_score",
+          "false_activation_prevention": "activation_scope_score",
+          "false_dormancy_prevention": "activation_scope_score",
+          "activation_scope_integrity": "activation_scope_score",
+          "activation_pattern_integrity": "activation_pattern_score",
+          "domain_state_integrity": "domain_state_score",
+          "function_role_assignment_correctness": "function_role_score",
+          "overlap_resolution_correctness": "overlap_resolution_score",
+          "attenuation_correctness": "attenuation_suppression_score",
+          "suppression_correctness": "attenuation_suppression_score",
+          "bounded_veto_assignment_correctness": "bounded_veto_score",
+          "decision_pipeline_integrity": "decision_pipeline_score",
+          "conditional_watchdog_integrity": "conditional_watchdog_score",
+          "handoff_integrity": "handoff_integrity_score",
+          "repair_propagation_integrity": "repair_propagation_score",
+          "orchestration_decision_falsification_integrity": "falsification_score",
+          "status_deduplication_integrity": "status_reporting_score",
+          "domain_internal_schema_non_duplication": "domain_internal_boundary_score",
+          "registered_domain_extension_inclusion": "registered_extension_inclusion_score",
+          "disclosure_boundary_preservation": "disclosure_boundary_score",
+          "language_variant_parity": "language_variant_parity_score"
+        },
+        "minimum_pass_conditions": [
+          "core_authority_preserved",
+          "no_hardcoded_domain_identity_or_fixed_owner_domain",
+          "registration_and_manifest_contracts_present",
+          "structured_task_evidence_used_for_routing",
+          "activation_decision_contains_evidence_confidence_and_scope",
+          "function_role_assignment_contains_scope_and_basis",
+          "material_overlap_resolved_or_degraded",
+          "bounded_veto_roles_have_stop_conditions",
+          "pipeline_or_watchdog_activation_has_trigger_and_scope_when_used",
+          "handoff_preserves_routing_basis_and_uncertainty",
+          "repair_propagation_identifies_affected_scope",
+          "domain_internal_schemas_not_redefined_by_cdogd",
+          "human_or_authority_review_condition_status_reports_conditions_only"
+        ],
+        "orchestration_deviation_signals": [
+          "domain_name_begins_to_drive_activation",
+          "keyword_matching_replaces_structured_evidence",
+          "loaded_domain_treated_as_active",
+          "registered_domain_treated_as_active",
+          "domain_activation_expands_to_full_role_scope",
+          "supporting_role_overrides_primary_role",
+          "duplicate_orchestration_audit_loops_run_in_parallel",
+          "duplicate_orchestration_repair_loops_run_in_parallel",
+          "bounded_veto_scope_expands_without_basis",
+          "pipeline_stage_order_becomes_fixed_by_domain_name",
+          "watchdog_domain_becomes_target_domain_replacement",
+          "handoff_loses_routing_basis",
+          "repair_scope_expands_without_record",
+          "domain_internal_model_non_target_used_as_domain_exclusion",
+          "metadata_receives_external_packaging_location_information",
+          "mutual_review_loop_unbounded"
+        ],
+        "critical_invalidation_conditions": [
+          "core_authority_overridden",
+          "hardcoded_domain_extension_identity_in_normative_rule",
+          "hardcoded_domain_count_assumption_in_normative_rule",
+          "fixed_pairwise_domain_rule_in_normative_rule",
+          "fixed_owner_domain_in_normative_rule",
+          "domain_activation_without_evidence",
+          "function_role_assignment_without_scope",
+          "unresolved_material_role_boundary",
+          "unbounded_veto_assignment",
+          "domain_internal_schema_redefined_by_cdogd",
+          "registered_domain_extension_excluded_by_non_target_declaration",
+          "final_decision_authority_assigned_by_cdogd",
+          "approval_authority_assigned_by_cdogd",
+          "accountability_assigned_by_cdogd",
+          "human_or_organizational_delegation_assigned_by_cdogd",
+          "record_schema_required_for_execution_missing",
+          "localized_artifact_missing_normative_content"
+        ],
+        "scoring_model": {
+          "enabled_when_domain_defines_scored_evaluation": true,
+          "score_range": [
+            0,
+            100
+          ],
+          "score_bands": {
+            "90_100": "stable",
+            "75_89": "acceptable_with_minor_orchestration_deviation",
+            "50_74": "degraded",
+            "0_49": "unstable"
+          },
+          "domain_dimension_scores": [
+            "core_authority_score",
+            "no_hardcoding_score",
+            "registration_integrity_score",
+            "manifest_integrity_score",
+            "evidence_quality_score",
+            "capability_resolution_score",
+            "applicability_inference_score",
+            "activation_scope_score",
+            "activation_pattern_score",
+            "domain_state_score",
+            "function_role_score",
+            "overlap_resolution_score",
+            "attenuation_suppression_score",
+            "bounded_veto_score",
+            "decision_pipeline_score",
+            "conditional_watchdog_score",
+            "handoff_integrity_score",
+            "repair_propagation_score",
+            "falsification_score",
+            "status_reporting_score",
+            "domain_internal_boundary_score",
+            "registered_extension_inclusion_score",
+            "disclosure_boundary_score",
+            "language_variant_parity_score"
+          ],
+          "minimum_expected_scores": {
+            "core_authority_score": 90,
+            "no_hardcoding_score": 90,
+            "registration_integrity_score": 90,
+            "manifest_integrity_score": 90,
+            "evidence_quality_score": 85,
+            "capability_resolution_score": 90,
+            "applicability_inference_score": 90,
+            "activation_scope_score": 90,
+            "activation_pattern_score": 90,
+            "domain_state_score": 90,
+            "function_role_score": 90,
+            "overlap_resolution_score": 90,
+            "attenuation_suppression_score": 85,
+            "bounded_veto_score": 90,
+            "decision_pipeline_score": 90,
+            "conditional_watchdog_score": 90,
+            "handoff_integrity_score": 85,
+            "repair_propagation_score": 85,
+            "falsification_score": 85,
+            "status_reporting_score": 85,
+            "domain_internal_boundary_score": 90,
+            "registered_extension_inclusion_score": 90,
+            "disclosure_boundary_score": 90,
+            "language_variant_parity_score": 90
+          },
+          "aggregation_policy": {
+            "equal_weight_across_applicable_dimensions": true,
+            "non_applicable_dimensions_excluded_with_reason": true,
+            "missing_required_dimension_cannot_silently_pass": true,
+            "critical_invalidation_overrides_aggregate_score": true,
+            "score_source_must_be_disclosed": true,
+            "llm_self_assessment_must_not_be_presented_as_measured_runtime_evidence": true
+          },
+          "alignment_policy": {
+            "domain_dimension_scores_must_have_minimum_expected_scores_when_scoring_is_enabled": true,
+            "audit_targets_must_map_to_score_dimensions_or_explicit_non_scored_reason": true,
+            "critical_invalidation_conditions_must_appear_in_critical_severity_rules": true
+          }
+        },
+        "severity_model": {
+          "enabled_when_domain_uses_severity": true,
+          "levels": [
+            "low",
+            "moderate",
+            "high",
+            "critical"
+          ],
+          "severity_rules": {
+            "low": [
+              "minor_metadata_wording_issue",
+              "single_non_material_reference_omission"
+            ],
+            "moderate": [
+              "non_material_manifest_field_ambiguity",
+              "minor_status_deduplication_gap",
+              "non_material_handoff_field_omission"
+            ],
+            "high": [
+              "material_activation_scope_gap",
+              "material_function_role_gap",
+              "material_overlap_resolution_gap",
+              "material_pipeline_stage_gap",
+              "material_watchdog_scope_gap",
+              "material_repair_propagation_gap",
+              "material_disclosure_boundary_gap",
+              "record_relationship_gap_affecting_validation"
+            ],
+            "critical": [
+              "core_authority_overridden",
+              "hardcoded_domain_extension_identity_in_normative_rule",
+              "hardcoded_domain_count_assumption_in_normative_rule",
+              "fixed_pairwise_domain_rule_in_normative_rule",
+              "fixed_owner_domain_in_normative_rule",
+              "domain_activation_without_evidence",
+              "function_role_assignment_without_scope",
+              "unresolved_material_role_boundary",
+              "unbounded_veto_assignment",
+              "domain_internal_schema_redefined_by_cdogd",
+              "registered_domain_extension_excluded_by_non_target_declaration",
+              "final_decision_authority_assigned_by_cdogd",
+              "approval_authority_assigned_by_cdogd",
+              "accountability_assigned_by_cdogd",
+              "human_or_organizational_delegation_assigned_by_cdogd",
+              "record_schema_required_for_execution_missing",
+              "localized_artifact_missing_normative_content"
+            ]
+          }
+        }
+      },
+      "repair": {
+        "purpose": "Define CDOGD-local repair origins and repair directions without replacing parent repair governance or domain-internal repair governance.",
+        "core_rule": "repair_model_should_define_repair_origin_not_parent_repair_cycle",
+        "repair_origins": [
+          "hardcoding_violation",
+          "registration_failure",
+          "manifest_failure",
+          "evidence_failure",
+          "applicability_failure",
+          "activation_failure",
+          "function_role_failure",
+          "overlap_failure",
+          "attenuation_or_suppression_failure",
+          "pipeline_failure",
+          "watchdog_failure",
+          "handoff_failure",
+          "repair_propagation_failure",
+          "core_authority_violation",
+          "domain_internal_boundary_failure",
+          "disclosure_boundary_failure",
+          "record_schema_gap",
+          "language_variant_parity_failure"
+        ],
+        "repair_policy": {
+          "identify_repair_origin": true,
+          "repair_affected_scope": true,
+          "revalidate_affected_axes": true,
+          "preserve_revision_lineage_when_material": true,
+          "do_not_skip_repair_and_claim_ready_without_basis": true,
+          "partial_revalidation_requires_reason": true,
+          "post_repair_review_must_cover_affected_axes": true
+        },
+        "repair_directions": {
+          "hardcoding_violation": [
+            "replace_fixed_domain_reference_with_manifest_capability_resolution",
+            "rerun_no_hardcoding_audit"
+          ],
+          "registration_failure": [
+            "downgrade_domain_to_reference_only_until_registration_valid",
+            "revalidate_domain_class_and_default_state"
+          ],
+          "manifest_failure": [
+            "downgrade_to_reference_only_or_candidate_when_manifest_quality_insufficient",
+            "repair_capability_and_function_claim_mapping"
+          ],
+          "evidence_failure": [
+            "separate_keyword_match_from_structured_evidence",
+            "record_negative_evidence_and_uncertainty"
+          ],
+          "activation_failure": [
+            "revoke_or_narrow_activation_when_evidence_insufficient",
+            "restore_candidate_or_reference_only_state"
+          ],
+          "function_role_failure": [
+            "reassign_function_roles_by_task_evidence",
+            "bound_veto_scope",
+            "record_before_after_function_role_assignment"
+          ],
+          "overlap_failure": [
+            "select_task_local_primary_function_role",
+            "record_rejected_resolution_options"
+          ],
+          "pipeline_failure": [
+            "repair_pipeline_stage_order_from_manifest_and_evidence",
+            "preserve_stage_transition_context"
+          ],
+          "watchdog_failure": [
+            "bound_watchdog_scope",
+            "prevent_mutual_review_loop",
+            "degrade_watchdog_result_when_self_state_unreliable"
+          ],
+          "handoff_failure": [
+            "reconstruct_handoff_record_from_available_evidence",
+            "mark_unrecoverable_handoff_loss_explicitly"
+          ],
+          "repair_propagation_failure": [
+            "identify_repair_origin_affected_roles_and_records",
+            "define_revalidation_and_reroute_requirements"
+          ],
+          "core_authority_violation": [
+            "restore_parent_governance_authority",
+            "invalidate_conflicting_orchestration_decision"
+          ],
+          "domain_internal_boundary_failure": [
+            "remove_domain_internal_schema_from_cdogd",
+            "replace_with_manifest_reference_rule"
+          ],
+          "disclosure_boundary_failure": [
+            "flag_ambiguous_identifier_for_review",
+            "sanitize_private_identifier_when_not_declared_public"
+          ],
+          "record_schema_gap": [
+            "add_required_fields_and_field_groups",
+            "update_record_relationship_contract"
+          ],
+          "language_variant_parity_failure": [
+            "preserve_all_normative_items",
+            "rerun_structure_and_record_schema_parity_check"
+          ]
+        },
+        "human_or_runtime_review_condition_findings": [
+          "authority_boundary_unclear",
+          "approval_or_accountability_claim_present",
+          "external_decision_authority_needed",
+          "public_release_boundary_unclear",
+          "repeated_orchestration_repair_failure"
+        ],
+        "review_condition_wording_policy": {
+          "review_required_wording_requires_authority_basis": true,
+          "cdogd_should_emit_review_condition_status_not_create_review_obligation": true,
+          "authority_sensitive_review_findings_should_request_or_recommend_clarification_not_claim_final_requirement": true
+        }
+      },
+      "activation": {
+        "enabled": true,
+        "activation_mode": "core_bound_cross_domain_orchestration",
+        "binding_scope": {
+          "primary": [
+            "domain_registry",
+            "domain_manifest_set",
+            "current_task_frame",
+            "current_orchestration_decision",
+            "current_function_role_assignment",
+            "current_cross_domain_handoff",
+            "current_repair_propagation"
+          ],
+          "secondary": [
+            "current_response_generation",
+            "current_artifact_generation",
+            "current_evaluation_or_repair_stage"
+          ]
+        },
+        "initial_activation": {
+          "apply_when_required_parent_definitions_available_and_cdogd_is_explicitly_loaded": true,
+          "does_not_activate_domain_extensions_by_loading_them": true,
+          "preserve_confirmed_context": true,
+          "preserve_confirmed_premises": true,
+          "preserve_parent_governance_authority": true,
+          "preserve_domain_registration_state": true,
+          "preserve_domain_manifest_state": true,
+          "preserve_prior_orchestration_records": true
+        },
+        "activation_keys": {
+          "full_cdogd_reinjection": "replace the current confirmed CDOGD payload and rebind the cross-domain orchestration layer",
+          "orchestration_rebind": "re-anchor the current task frame, domain registry, manifests, activation states, and function role assignments without replacing parent governance",
+          "orchestration_enforce": "increase strictness for evidence-based routing, no-hardcoding, overlap control, and record completeness",
+          "manifest_rebind": "re-anchor registered domain manifests and capability claims",
+          "routing_rebind": "re-anchor current applicability assessments, activation decisions, and routing basis",
+          "function_role_rebind": "re-anchor function roles, attenuation, suppression, validation, and bounded veto assignments",
+          "repair_propagation_rebind": "re-anchor repair origin, affected scope, revalidation requirements, and status"
+        },
+        "safeguards": {
+          "does_not_discard_confirmed_parent_context": true,
+          "does_not_replace_argd_or_dagd": true,
+          "does_not_convert_domain_extensions_into_core": true,
+          "does_not_silently_activate_loaded_domain_extensions": true,
+          "does_not_claim_internal_model_weight_change": true,
+          "does_not_override_built_in_system_or_platform_policies": true,
+          "does_not_exclude_registered_domain_extensions_by_non_target_wording": true
+        }
+      },
+      "self_audit": {
+        "enabled": true,
+        "audit_frequency": {
+          "on_cdogd_load": true,
+          "on_domain_registration": true,
+          "on_manifest_read": true,
+          "on_task_frame_change": true,
+          "before_activation_decision": true,
+          "after_activation_decision": true,
+          "after_function_role_assignment": true,
+          "on_overlap_detection": true,
+          "on_attenuation_or_suppression": true,
+          "on_pipeline_stage_transition": true,
+          "on_watchdog_activation": true,
+          "on_handoff": true,
+          "on_repair_propagation": true,
+          "on_status_reporting": true,
+          "on_user_reported_orchestration_failure": true
+        },
+        "audit_axes": [
+          "core_authority",
+          "no_hardcoding",
+          "registration",
+          "manifest",
+          "evidence",
+          "routing",
+          "activation_scope",
+          "function_role",
+          "overlap",
+          "attenuation_suppression",
+          "pipeline",
+          "watchdog",
+          "handoff",
+          "repair_propagation",
+          "records",
+          "status_reporting",
+          "metadata_shape"
+        ],
+        "output_policy": {
+          "compact_by_default": true,
+          "emit_detail_on_anomaly": true,
+          "emit_detail_on_user_request": true,
+          "emit_detail_on_critical_failure": true
+        },
+        "required_basis_checks": [
+          "task_frame_identified",
+          "manifest_references_identified_when_used",
+          "routing_basis_recorded",
+          "negative_evidence_considered",
+          "role_scope_identified",
+          "authority_boundary_evidence_treated_as_evidence_only",
+          "hardcoding_scan_completed",
+          "metadata_shape_checked"
+        ],
+        "self_audit_result_connection_policy": {
+          "self_audit_result_values_must_be_mapped_or_marked_internal_only_when_defined": true,
+          "mapping_target_should_be_audit_to_action_when_actionable": true,
+          "internal_state_only_results_must_not_be_presented_as_action_outputs": true,
+          "result_names_and_action_names_must_remain_distinct": true,
+          "unmapped_actionable_self_audit_results_are_schema_hygiene_failure": true
+        }
+      },
+      "audit_to_action": {
+        "enabled": true,
+        "decision_mode": "rule_based_cross_domain_orchestration_action_mapping",
+        "decision_inputs": [
+          "severity",
+          "critical_invalidation_status",
+          "core_authority_status",
+          "hardcoding_status",
+          "registration_status",
+          "manifest_status",
+          "evidence_quality",
+          "applicability_confidence",
+          "activation_scope_status",
+          "function_role_status",
+          "overlap_resolution_status",
+          "attenuation_status",
+          "suppression_status",
+          "pipeline_status",
+          "watchdog_status",
+          "handoff_status",
+          "repair_propagation_status",
+          "disclosure_boundary_status",
+          "metadata_shape_status",
+          "parity_status",
+          "detected_deviations"
+        ],
+        "diagnostic_or_reserved_decision_inputs": {
+          "purpose": "Mark declared decision inputs that are currently used as diagnostic, status, precedence, reporting, or future runtime-policy inputs rather than direct decision_rule conditions.",
+          "policy": {
+            "listed_inputs_are_declared_decision_inputs": true,
+            "listed_inputs_are_not_currently_required_to_appear_in_every_decision_rule": true,
+            "listed_inputs_may_support_diagnostic_reporting_action_precedence_or_runtime_policy": true,
+            "listed_inputs_must_not_create_actions_without_decision_rule_or_external_runtime_policy": true,
+            "listed_inputs_must_remain_orchestration_local": true,
+            "if_a_listed_input_becomes_directly_used_by_decision_rules_it_should_be_removed_from_this_reserved_list_or_reclassified": true
+          },
+          "inputs": [
+            "severity",
+            "critical_invalidation_status",
+            "core_authority_status",
+            "hardcoding_status",
+            "registration_status",
+            "manifest_status",
+            "evidence_quality",
+            "applicability_confidence",
+            "activation_scope_status",
+            "function_role_status",
+            "overlap_resolution_status",
+            "attenuation_status",
+            "suppression_status",
+            "pipeline_status",
+            "watchdog_status",
+            "handoff_status",
+            "repair_propagation_status",
+            "disclosure_boundary_status",
+            "metadata_shape_status",
+            "parity_status"
+          ]
+        },
+        "action_outputs": [
+          "no_action",
+          "minimal_status_note",
+          "repair_record_inline",
+          "emit_traceability_note",
+          "update_decision_record",
+          "rerun_task_frame_extraction",
+          "rerun_applicability_assessment",
+          "revise_activation_scope",
+          "restore_candidate_or_reference_only_state",
+          "restore_dormant_state",
+          "repair_overlap_resolution",
+          "repair_handoff_record",
+          "repair_propagation_scope",
+          "rerun_orchestration_decision_falsification",
+          "repair_pipeline_stage_order",
+          "bound_watchdog_scope",
+          "prevent_mutual_review_loop",
+          "reassign_function_roles",
+          "attenuate_function_role",
+          "suppress_function_role",
+          "bound_veto_scope",
+          "orchestration_rebind",
+          "orchestration_enforce",
+          "manifest_rebind",
+          "routing_rebind",
+          "function_role_rebind",
+          "repair_propagation_rebind",
+          "invalidate_orchestration_decision",
+          "report_human_or_authority_review_condition",
+          "repair_hardcoding_violation",
+          "repair_metadata_shape",
+          "repair_disclosure_boundary",
+          "repair_record_schema_gap",
+          "repair_language_variant_parity",
+          "emit_compact_status",
+          "emit_extended_status",
+          "emit_degraded_status",
+          "emit_failed_status",
+          "emit_invalidated_status",
+          "emit_human_or_authority_review_condition_status"
+        ],
+        "audit_to_action_consistency_policy": {
+          "decision_inputs_must_be_declared_when_used": true,
+          "action_outputs_must_be_declared_when_used": true,
+          "audit_decision_rules_must_emit_registered_action_outputs_only": true,
+          "unregistered_action_output_is_schema_hygiene_failure": true,
+          "action_precedence_must_not_override_higher_authority": true,
+          "unused_action_outputs_must_be_removed_or_marked_reserved": true,
+          "unused_action_outputs_may_be_marked_in_diagnostic_or_payload_action_outputs": true,
+          "diagnostic_or_payload_action_outputs_must_reference_declared_action_outputs_only": true,
+          "diagnostic_or_payload_action_outputs_must_not_create_automatic_actions_without_decision_rule_or_external_runtime_policy": true,
+          "unused_decision_inputs_may_be_marked_in_diagnostic_or_reserved_decision_inputs": true,
+          "diagnostic_or_reserved_decision_inputs_must_reference_declared_decision_inputs_only": true,
+          "diagnostic_or_reserved_decision_inputs_must_not_create_decision_rule_conditions_by_presence_only": true,
+          "decision_rules_must_not_emit_unregistered_result_values_as_actions": true
+        },
+        "action_taxonomy": {
+          "informational_actions": [
+            "no_action",
+            "minimal_status_note"
+          ],
+          "record_actions": [
+            "repair_record_inline",
+            "emit_traceability_note",
+            "update_decision_record"
+          ],
+          "orchestration_actions": [
+            "rerun_task_frame_extraction",
+            "rerun_applicability_assessment",
+            "revise_activation_scope",
+            "restore_candidate_or_reference_only_state",
+            "restore_dormant_state",
+            "repair_overlap_resolution",
+            "repair_handoff_record",
+            "repair_propagation_scope",
+            "rerun_orchestration_decision_falsification",
+            "repair_pipeline_stage_order",
+            "bound_watchdog_scope",
+            "prevent_mutual_review_loop"
+          ],
+          "function_role_actions": [
+            "reassign_function_roles",
+            "attenuate_function_role",
+            "suppress_function_role",
+            "bound_veto_scope"
+          ],
+          "governance_actions": [
+            "orchestration_rebind",
+            "orchestration_enforce",
+            "manifest_rebind",
+            "routing_rebind",
+            "function_role_rebind",
+            "repair_propagation_rebind",
+            "invalidate_orchestration_decision",
+            "report_human_or_authority_review_condition"
+          ],
+          "metadata_and_release_boundary_actions": [
+            "repair_hardcoding_violation",
+            "repair_metadata_shape",
+            "repair_disclosure_boundary",
+            "repair_record_schema_gap",
+            "repair_language_variant_parity"
+          ],
+          "status_actions": [
+            "emit_compact_status",
+            "emit_extended_status",
+            "emit_degraded_status",
+            "emit_failed_status",
+            "emit_invalidated_status",
+            "emit_human_or_authority_review_condition_status"
+          ]
+        },
+        "diagnostic_or_payload_action_outputs": {
+          "purpose": "Mark declared action outputs that are available as diagnostic outputs, payload targets, status outputs, or reserved orchestration actions even when they are not directly emitted by the current decision_rules.",
+          "policy": {
+            "listed_outputs_are_declared_action_outputs": true,
+            "listed_outputs_may_be_used_by_status_reporting_record_payloads_runtime_policy_or_future_decision_rules": true,
+            "listed_outputs_must_not_be_treated_as_automatic_actions_without_decision_rule_or_external_runtime_policy": true,
+            "listed_outputs_must_remain_orchestration_local": true,
+            "if_a_listed_output_becomes_directly_emitted_by_decision_rules_it_should_be_removed_from_this_reserved_list_or_reclassified": true
+          },
+          "diagnostic_outputs": [
+            "no_action",
+            "minimal_status_note"
+          ],
+          "record_payload_outputs": [
+            "repair_record_inline",
+            "update_decision_record"
+          ],
+          "orchestration_payload_outputs": [
+            "rerun_task_frame_extraction",
+            "revise_activation_scope",
+            "restore_dormant_state",
+            "repair_handoff_record",
+            "repair_propagation_scope",
+            "repair_pipeline_stage_order"
+          ],
+          "function_role_payload_outputs": [
+            "attenuate_function_role",
+            "suppress_function_role",
+            "bound_veto_scope"
+          ],
+          "governance_payload_outputs": [
+            "orchestration_enforce",
+            "function_role_rebind",
+            "repair_propagation_rebind"
+          ],
+          "metadata_and_release_boundary_payload_outputs": [
+            "repair_disclosure_boundary",
+            "repair_record_schema_gap",
+            "repair_language_variant_parity"
+          ],
+          "status_payload_outputs": [
+            "emit_compact_status",
+            "emit_extended_status",
+            "emit_failed_status",
+            "emit_invalidated_status"
+          ]
+        },
+        "decision_rules": {
+          "hardcoded_domain_or_fixed_owner_detected": {
+            "if": {
+              "detected_deviations": {
+                "contains_any": [
+                  "hardcoded_domain_extension_identity_in_normative_rule",
+                  "fixed_owner_domain_in_normative_rule",
+                  "fixed_pairwise_domain_rule_in_normative_rule"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "emit_degraded_status",
+                "repair_hardcoding_violation"
+              ],
+              "recommended_actions": [
+                "rerun_orchestration_decision_falsification"
+              ]
+            }
+          },
+          "activation_without_evidence_or_scope": {
+            "if": {
+              "detected_deviations": {
+                "contains_any": [
+                  "domain_activation_without_evidence",
+                  "function_role_assignment_without_scope"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "invalidate_orchestration_decision",
+                "restore_candidate_or_reference_only_state"
+              ],
+              "recommended_actions": [
+                "rerun_applicability_assessment",
+                "routing_rebind"
+              ]
+            }
+          },
+          "unresolved_material_overlap": {
+            "if": {
+              "detected_deviations": {
+                "contains_any": [
+                  "unresolved_material_role_boundary"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "emit_degraded_status",
+                "repair_overlap_resolution"
+              ],
+              "recommended_actions": [
+                "reassign_function_roles",
+                "rerun_orchestration_decision_falsification"
+              ]
+            }
+          },
+          "authority_boundary_overreach": {
+            "if": {
+              "detected_deviations": {
+                "contains_any": [
+                  "final_decision_authority_assigned_by_cdogd",
+                  "approval_authority_assigned_by_cdogd",
+                  "accountability_assigned_by_cdogd"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "invalidate_orchestration_decision",
+                "report_human_or_authority_review_condition"
+              ],
+              "recommended_actions": [
+                "orchestration_rebind",
+                "emit_human_or_authority_review_condition_status"
+              ]
+            }
+          },
+          "watchdog_loop_risk": {
+            "if": {
+              "detected_deviations": {
+                "contains_any": [
+                  "watchdog_domain_becomes_target_domain_replacement",
+                  "mutual_review_loop_unbounded"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "bound_watchdog_scope",
+                "prevent_mutual_review_loop"
+              ],
+              "recommended_actions": [
+                "emit_degraded_status"
+              ]
+            }
+          },
+          "domain_internal_schema_duplication": {
+            "if": {
+              "detected_deviations": {
+                "contains_any": [
+                  "domain_internal_schema_redefined_by_cdogd"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "emit_degraded_status"
+              ],
+              "recommended_actions": [
+                "manifest_rebind"
+              ]
+            }
+          },
+          "metadata_shape_failure": {
+            "if": {
+              "detected_deviations": {
+                "contains_any": [
+                  "metadata_receives_external_packaging_location_information"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "emit_degraded_status",
+                "repair_metadata_shape"
+              ],
+              "recommended_actions": [
+                "emit_traceability_note"
+              ]
+            }
+          }
+        },
+        "action_precedence": {
+          "core_authority_repair_overrides_domain_assignment": true,
+          "hardcoding_repair_overrides_routing_reuse": true,
+          "critical_invalidation_overrides_aggregate_score": true,
+          "manifest_repair_precedes_applicability_reassessment_when_manifest_invalid": true,
+          "activation_repair_precedes_function_role_reuse": true,
+          "record_schema_repair_precedes_release_claim": true,
+          "deduplicate_actions_after_mapping": true
+        }
+      },
+      "status_reporting": {
+        "enabled": true,
+        "status_reporting_should_define_orchestration_delta_only": true,
+        "modes": [
+          "silent_by_default",
+          "emit_on_anomaly",
+          "emit_on_user_request",
+          "emit_on_critical_invalidation",
+          "emit_after_activation_decision_when_material",
+          "emit_after_handoff_when_material",
+          "emit_after_repair_when_material"
+        ],
+        "score_source_taxonomy": [
+          "rule_based_audit",
+          "manifest_schema_validation",
+          "record_schema_validation",
+          "structure_diff",
+          "runtime_observation",
+          "llm_self_assessment"
+        ],
+        "score_source_rules": {
+          "score_source_required": true,
+          "llm_self_assessment_must_not_be_presented_as_measured_runtime_evidence": true,
+          "mixed_source_scores_must_be_labeled_per_dimension": true,
+          "uncalibrated_scores_must_be_disclosed": true
+        },
+        "report_templates": {
+          "compact_fields": [
+            "orchestration_decision_id",
+            "task_frame_id",
+            "domain_state_summary",
+            "function_role_assignment_summary",
+            "detected_deviations",
+            "severity",
+            "repair_applied",
+            "human_or_authority_review_condition_status"
+          ],
+          "extended_fields": [
+            "orchestration_decision_id",
+            "domain_registration_references",
+            "domain_manifest_references",
+            "orchestration_evidence_references",
+            "applicability_assessment_references",
+            "activation_decision_references",
+            "function_role_assignment_references",
+            "overlap_resolution_references",
+            "attenuation_and_suppression_references",
+            "pipeline_references",
+            "watchdog_references",
+            "handoff_references",
+            "repair_propagation_references",
+            "audit_references",
+            "detected_deviations",
+            "severity",
+            "critical_invalidation_status",
+            "before_after_comparison",
+            "recommended_next_action",
+            "human_or_authority_review_condition_status"
+          ],
+          "before_after_fields": [
+            "comparison_basis",
+            "before_domain_states",
+            "after_domain_states",
+            "before_function_role_assignments",
+            "after_function_role_assignments",
+            "changed_assignments",
+            "unchanged_assignments",
+            "affected_records",
+            "before_scores",
+            "after_scores",
+            "score_sources",
+            "remaining_limitations"
+          ]
+        },
+        "visibility_rules": {
+          "always_show_critical_invalidation": true,
+          "always_show_hardcoding_violation_when_material": true,
+          "always_show_core_authority_violation": true,
+          "always_show_private_identifier_leak": true,
+          "suppress_verbose_status_when_no_anomaly_and_no_user_request": true
+        }
+      },
+      "record_schemas": {
+        "record_policy": {
+          "record_schemas_are_required_for_material_cdogd_execution_records": true,
+          "if_records_exist_required_fields_must_map_to_field_groups": true,
+          "records_must_not_redefine_parent_audit_or_repair_cycle": true,
+          "records_must_remain_orchestration_delta": true,
+          "record_fields_should_track_required_orchestration_evidence_not_documentation_exhaustiveness": true
+        },
+        "domain_record_templates": {
+          "domain_registration_record": {
+            "schema_name": "cdogd_domain_registration_record",
+            "schema_version": "0.1.0",
+            "purpose": "Record a domain registration as an orchestratable input without granting activation or function role by registration alone.",
+            "required_fields": [
+              "domain_registration_id",
+              "domain_id",
+              "domain_name",
+              "domain_class",
+              "domain_version",
+              "parent_definitions",
+              "default_activation_state",
+              "activation_conditions",
+              "deactivation_conditions",
+              "governed_object_types",
+              "capability_kinds",
+              "function_claims",
+              "non_targets",
+              "disclosure_boundary",
+              "registration_timestamp",
+              "registration_status",
+              "validation_result"
+            ],
+            "field_groups": {
+              "identity": [
+                "domain_registration_id",
+                "domain_id",
+                "domain_name",
+                "domain_class",
+                "domain_version"
+              ],
+              "compatibility": [
+                "parent_definitions"
+              ],
+              "state_policy": [
+                "default_activation_state",
+                "activation_conditions",
+                "deactivation_conditions"
+              ],
+              "capability_scope": [
+                "governed_object_types",
+                "capability_kinds",
+                "function_claims"
+              ],
+              "boundaries": [
+                "non_targets",
+                "disclosure_boundary"
+              ],
+              "validation": [
+                "registration_timestamp",
+                "registration_status",
+                "validation_result"
+              ]
+            },
+            "validation_rules": [
+              "domain_registration_id_required",
+              "domain_id_required",
+              "domain_class_required",
+              "registration_must_not_grant_activation",
+              "domain_class_must_not_be_inferred_from_name_only",
+              "validation_result_required"
+            ]
+          },
+          "domain_manifest_record": {
+            "schema_name": "cdogd_domain_manifest_record",
+            "schema_version": "0.1.0",
+            "purpose": "Record manifest capability, function claims, limits, activation patterns, and overlap behavior used by CDOGD.",
+            "required_fields": [
+              "domain_manifest_id",
+              "domain_id",
+              "manifest_version",
+              "manifest_timestamp",
+              "extension_archetype",
+              "capability_kinds",
+              "role_kinds",
+              "activation_patterns",
+              "governed_object_types",
+              "function_claims",
+              "activation_evidence_types",
+              "non_activation_evidence",
+              "non_targets",
+              "function_scope_limits",
+              "overlap_behavior",
+              "disclosure_boundary",
+              "compatibility_status",
+              "staleness_status"
+            ],
+            "field_groups": {
+              "identity": [
+                "domain_manifest_id",
+                "domain_id",
+                "manifest_version",
+                "manifest_timestamp"
+              ],
+              "classification": [
+                "extension_archetype",
+                "capability_kinds",
+                "role_kinds",
+                "activation_patterns"
+              ],
+              "capability_claims": [
+                "governed_object_types",
+                "function_claims",
+                "activation_evidence_types"
+              ],
+              "limits": [
+                "non_activation_evidence",
+                "non_targets",
+                "function_scope_limits",
+                "disclosure_boundary"
+              ],
+              "overlap": [
+                "overlap_behavior"
+              ],
+              "quality": [
+                "compatibility_status",
+                "staleness_status"
+              ]
+            },
+            "validation_rules": [
+              "domain_manifest_id_required",
+              "domain_id_required",
+              "manifest_version_required",
+              "function_claims_are_not_role_grants",
+              "manifest_presence_is_not_activation",
+              "stale_manifest_requires_revalidation"
+            ]
+          },
+          "orchestration_evidence_record": {
+            "schema_name": "cdogd_orchestration_evidence_record",
+            "schema_version": "0.1.0",
+            "purpose": "Record structured evidence used for applicability, roles, activation scope, attenuation, suppression, handoff, and repair propagation.",
+            "required_fields": [
+              "orchestration_evidence_id",
+              "task_frame_id",
+              "user_requested_output_type",
+              "task_object_types",
+              "operation_types",
+              "artifact_types",
+              "governed_state_objects",
+              "required_governance_functions",
+              "side_effect_classes",
+              "authority_or_permission_routing_evidence",
+              "verification_requirements",
+              "repair_requirements",
+              "handoff_requirements",
+              "risk_class",
+              "non_targets",
+              "evidence_sources",
+              "uncertainty",
+              "negative_evidence"
+            ],
+            "field_groups": {
+              "identity": [
+                "orchestration_evidence_id",
+                "task_frame_id"
+              ],
+              "task_frame": [
+                "user_requested_output_type",
+                "task_object_types",
+                "operation_types",
+                "artifact_types",
+                "governed_state_objects"
+              ],
+              "governance_need": [
+                "required_governance_functions",
+                "verification_requirements",
+                "repair_requirements",
+                "handoff_requirements"
+              ],
+              "risk_and_authority_boundary": [
+                "side_effect_classes",
+                "authority_or_permission_routing_evidence",
+                "risk_class"
+              ],
+              "limits_and_quality": [
+                "non_targets",
+                "evidence_sources",
+                "uncertainty",
+                "negative_evidence"
+              ]
+            },
+            "validation_rules": [
+              "task_frame_id_required",
+              "evidence_sources_required",
+              "keyword_match_alone_insufficient",
+              "uncertainty_must_be_preserved",
+              "negative_evidence_must_be_recorded_when_material"
+            ]
+          },
+          "domain_applicability_assessment_record": {
+            "schema_name": "cdogd_domain_applicability_assessment_record",
+            "schema_version": "0.1.0",
+            "purpose": "Record how candidate domains were assessed against task evidence and manifests before routing, activation, reference, dormancy, validation, or bounded veto decisions.",
+            "required_fields": [
+              "applicability_assessment_id",
+              "orchestration_evidence_id",
+              "candidate_domain_ids",
+              "manifest_references",
+              "governed_object_matches",
+              "required_function_matches",
+              "capability_kind_matches",
+              "operation_type_matches",
+              "artifact_type_matches",
+              "side_effect_or_authority_boundary_matches",
+              "verification_or_repair_matches",
+              "non_target_penalties",
+              "non_activation_evidence",
+              "applicability_scores",
+              "confidence",
+              "recommended_roles",
+              "rejected_candidates",
+              "assessment_limitations",
+              "assessment_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "applicability_assessment_id",
+                "orchestration_evidence_id",
+                "assessment_timestamp"
+              ],
+              "candidate_set": [
+                "candidate_domain_ids",
+                "manifest_references"
+              ],
+              "match_details": [
+                "governed_object_matches",
+                "required_function_matches",
+                "capability_kind_matches",
+                "operation_type_matches",
+                "artifact_type_matches"
+              ],
+              "risk_and_penalty": [
+                "side_effect_or_authority_boundary_matches",
+                "verification_or_repair_matches",
+                "non_target_penalties",
+                "non_activation_evidence"
+              ],
+              "results": [
+                "applicability_scores",
+                "confidence",
+                "recommended_roles",
+                "rejected_candidates",
+                "assessment_limitations"
+              ]
+            },
+            "validation_rules": [
+              "candidate_domain_ids_required",
+              "manifest_references_required",
+              "applicability_scores_required",
+              "confidence_required",
+              "assessment_must_not_use_domain_name_as_primary_basis"
+            ]
+          },
+          "domain_activation_decision_record": {
+            "schema_name": "cdogd_domain_activation_decision_record",
+            "schema_version": "0.1.0",
+            "purpose": "Record domain state and activation decisions derived from applicability assessments, manifest capability resolution, and overlap resolution.",
+            "required_fields": [
+              "activation_decision_id",
+              "applicability_assessment_id",
+              "selected_domain_ids",
+              "rejected_domain_ids",
+              "assigned_domain_roles",
+              "activation_scope",
+              "domain_states",
+              "confidence",
+              "routing_basis",
+              "fallback_policy",
+              "low_confidence_actions",
+              "overlap_resolution_reference",
+              "function_role_assignment_reference",
+              "decision_timestamp",
+              "decision_limitations",
+              "re_evaluation_triggers",
+              "decision_status"
+            ],
+            "field_groups": {
+              "identity": [
+                "activation_decision_id",
+                "applicability_assessment_id",
+                "decision_timestamp"
+              ],
+              "selection": [
+                "selected_domain_ids",
+                "rejected_domain_ids",
+                "assigned_domain_roles",
+                "domain_states"
+              ],
+              "scope_and_basis": [
+                "activation_scope",
+                "confidence",
+                "routing_basis",
+                "fallback_policy",
+                "low_confidence_actions"
+              ],
+              "links": [
+                "overlap_resolution_reference",
+                "function_role_assignment_reference"
+              ],
+              "lifecycle": [
+                "decision_limitations",
+                "re_evaluation_triggers",
+                "decision_status"
+              ]
+            },
+            "validation_rules": [
+              "activation_decision_id_required",
+              "activation_scope_required",
+              "routing_basis_required",
+              "confidence_required",
+              "activation_without_evidence_prohibited",
+              "domain_activation_must_not_grant_full_function_role_scope"
+            ]
+          },
+          "function_role_assignment_record": {
+            "schema_name": "cdogd_function_role_assignment_record",
+            "schema_version": "0.1.0",
+            "purpose": "Record function-level primary, support, validation, bounded veto, reference, attenuation, and suppression roles.",
+            "required_fields": [
+              "function_role_assignment_id",
+              "activation_decision_id",
+              "function_claim_references",
+              "primary_function_roles",
+              "supporting_function_roles",
+              "validation_function_roles",
+              "bounded_veto_roles",
+              "reference_function_roles",
+              "attenuated_function_roles",
+              "suppressed_function_roles",
+              "role_scope",
+              "assignment_basis",
+              "core_authority_constraints",
+              "confidence",
+              "assignment_timestamp",
+              "re_evaluation_triggers"
+            ],
+            "field_groups": {
+              "identity": [
+                "function_role_assignment_id",
+                "activation_decision_id",
+                "assignment_timestamp"
+              ],
+              "function_claims": [
+                "function_claim_references",
+                "role_scope",
+                "core_authority_constraints"
+              ],
+              "roles": [
+                "primary_function_roles",
+                "supporting_function_roles",
+                "validation_function_roles",
+                "bounded_veto_roles",
+                "reference_function_roles",
+                "attenuated_function_roles",
+                "suppressed_function_roles"
+              ],
+              "basis": [
+                "assignment_basis",
+                "confidence",
+                "re_evaluation_triggers"
+              ]
+            },
+            "validation_rules": [
+              "function_role_assignment_id_required",
+              "primary_function_role_required_when_overlap_material",
+              "supporting_functions_must_not_override_primary",
+              "bounded_veto_roles_must_have_bounded_scope",
+              "suppressed_functions_must_have_suppression_basis",
+              "core_authority_constraints_required"
+            ]
+          },
+          "overlap_resolution_record": {
+            "schema_name": "cdogd_overlap_resolution_record",
+            "schema_version": "0.1.0",
+            "purpose": "Record how domain or function overlaps were detected and resolved without hardcoded pairwise rules.",
+            "required_fields": [
+              "overlap_resolution_id",
+              "applicability_assessment_id",
+              "overlap_type",
+              "overlapping_domain_ids",
+              "overlapping_function_claims",
+              "overlapping_governed_objects",
+              "resolution_strategy",
+              "primary_function_roles",
+              "supporting_roles",
+              "validation_roles",
+              "bounded_veto_roles",
+              "reference_only_roles",
+              "suppressed_roles",
+              "resolution_basis",
+              "rejected_resolution_options",
+              "unresolved_ambiguities",
+              "resolution_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "overlap_resolution_id",
+                "applicability_assessment_id",
+                "resolution_timestamp"
+              ],
+              "overlap": [
+                "overlap_type",
+                "overlapping_domain_ids",
+                "overlapping_function_claims",
+                "overlapping_governed_objects"
+              ],
+              "resolution": [
+                "resolution_strategy",
+                "primary_function_roles",
+                "supporting_roles",
+                "validation_roles",
+                "bounded_veto_roles",
+                "reference_only_roles",
+                "suppressed_roles"
+              ],
+              "basis": [
+                "resolution_basis",
+                "rejected_resolution_options",
+                "unresolved_ambiguities"
+              ]
+            },
+            "validation_rules": [
+              "overlap_type_required",
+              "resolution_basis_required",
+              "material_overlap_must_not_remain_unresolved",
+              "resolution_must_not_use_fixed_pairwise_domain_rule"
+            ]
+          },
+          "attenuation_and_suppression_record": {
+            "schema_name": "cdogd_attenuation_and_suppression_record",
+            "schema_version": "0.1.0",
+            "purpose": "Record reduced or suppressed function influence when duplicate, conflicting, low-confidence, or unsafe governance participation would occur.",
+            "required_fields": [
+              "attenuation_record_id",
+              "function_role_assignment_id",
+              "affected_domain_ids",
+              "affected_function_claims",
+              "attenuated_function_roles",
+              "suppressed_function_roles",
+              "attenuation_basis",
+              "suppression_basis",
+              "influence_limits",
+              "status_reporting_limits",
+              "review_conditions",
+              "re_evaluation_triggers",
+              "record_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "attenuation_record_id",
+                "function_role_assignment_id",
+                "record_timestamp"
+              ],
+              "affected_scope": [
+                "affected_domain_ids",
+                "affected_function_claims",
+                "attenuated_function_roles",
+                "suppressed_function_roles"
+              ],
+              "basis": [
+                "attenuation_basis",
+                "suppression_basis",
+                "influence_limits",
+                "status_reporting_limits"
+              ],
+              "lifecycle": [
+                "review_conditions",
+                "re_evaluation_triggers"
+              ]
+            },
+            "validation_rules": [
+              "attenuation_or_suppression_basis_required",
+              "affected_functions_required",
+              "suppressed_function_must_not_emit_authoritative_status",
+              "attenuation_must_not_hide_material_uncertainty",
+              "review_conditions_required"
+            ]
+          },
+          "decision_pipeline_record": {
+            "schema_name": "cdogd_decision_pipeline_record",
+            "schema_version": "0.1.0",
+            "purpose": "Record manifest-resolved pipeline stage ordering and stage handoff context without fixed domain owners or final approval claims.",
+            "required_fields": [
+              "pipeline_record_id",
+              "task_frame_id",
+              "pipeline_stage_capability_kinds",
+              "candidate_stage_domains",
+              "selected_stage_roles",
+              "stage_order_basis",
+              "stage_outputs",
+              "stage_transition_context",
+              "unresolved_stage_gaps",
+              "pipeline_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "pipeline_record_id",
+                "task_frame_id",
+                "pipeline_timestamp"
+              ],
+              "stage_candidates": [
+                "pipeline_stage_capability_kinds",
+                "candidate_stage_domains",
+                "selected_stage_roles"
+              ],
+              "basis": [
+                "stage_order_basis",
+                "unresolved_stage_gaps"
+              ],
+              "handoff": [
+                "stage_outputs",
+                "stage_transition_context"
+              ]
+            },
+            "validation_rules": [
+              "pipeline_record_id_required",
+              "stage_order_basis_required",
+              "stage_order_must_not_be_fixed_by_domain_name",
+              "stage_outputs_must_not_be_final_approval"
+            ]
+          },
+          "conditional_watchdog_record": {
+            "schema_name": "cdogd_conditional_watchdog_record",
+            "schema_version": "0.1.0",
+            "purpose": "Record conditional watchdog activation, target scope, trigger evidence, and loop controls.",
+            "required_fields": [
+              "watchdog_record_id",
+              "trigger_evidence",
+              "watchdog_capability_kind",
+              "candidate_watchdog_domains",
+              "target_scope",
+              "reviewed_object_types",
+              "activation_basis",
+              "repair_instruction_scope",
+              "loop_limit_status",
+              "fallback_policy",
+              "watchdog_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "watchdog_record_id",
+                "watchdog_timestamp"
+              ],
+              "trigger": [
+                "trigger_evidence",
+                "watchdog_capability_kind",
+                "candidate_watchdog_domains"
+              ],
+              "scope": [
+                "target_scope",
+                "reviewed_object_types",
+                "activation_basis"
+              ],
+              "control": [
+                "repair_instruction_scope",
+                "loop_limit_status",
+                "fallback_policy"
+              ]
+            },
+            "validation_rules": [
+              "watchdog_record_id_required",
+              "trigger_evidence_required",
+              "target_scope_required",
+              "watchdog_must_not_replace_target_domain",
+              "loop_limit_status_required"
+            ]
+          },
+          "cross_domain_handoff_record": {
+            "schema_name": "cdogd_cross_domain_handoff_record",
+            "schema_version": "0.1.0",
+            "purpose": "Record preservation of task frame, routing basis, constraints, uncertainty, function role assignments, and repair scope when responsibility shifts across domains.",
+            "required_fields": [
+              "handoff_record_id",
+              "source_domain_role",
+              "target_domain_role",
+              "task_frame",
+              "governed_objects",
+              "active_assumptions",
+              "constraints",
+              "unresolved_uncertainty",
+              "negative_evidence",
+              "rejected_routes",
+              "routing_basis",
+              "current_function_role_assignment",
+              "repair_scope",
+              "status_state",
+              "handoff_reason",
+              "handoff_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "handoff_record_id",
+                "handoff_timestamp",
+                "handoff_reason"
+              ],
+              "participants": [
+                "source_domain_role",
+                "target_domain_role"
+              ],
+              "preserved_context": [
+                "task_frame",
+                "governed_objects",
+                "active_assumptions",
+                "constraints",
+                "unresolved_uncertainty",
+                "negative_evidence",
+                "rejected_routes",
+                "routing_basis"
+              ],
+              "state": [
+                "current_function_role_assignment",
+                "repair_scope",
+                "status_state"
+              ]
+            },
+            "validation_rules": [
+              "handoff_record_id_required",
+              "source_and_target_roles_required",
+              "routing_basis_must_transfer",
+              "uncertainty_must_transfer",
+              "repair_scope_must_transfer",
+              "silent_handoff_prohibited"
+            ]
+          },
+          "repair_propagation_record": {
+            "schema_name": "cdogd_repair_propagation_record",
+            "schema_version": "0.1.0",
+            "purpose": "Record how repair in one orchestration component propagates across domains, function roles, records, and core authority boundaries.",
+            "required_fields": [
+              "repair_propagation_id",
+              "repair_origin",
+              "failure_type",
+              "affected_domain_ids",
+              "affected_function_roles",
+              "affected_records",
+              "propagation_scope",
+              "reroute_required",
+              "revalidation_required",
+              "suppression_required",
+              "attenuation_required",
+              "handoff_required",
+              "core_repair_required",
+              "domain_specific_repair_required",
+              "status_update_required",
+              "residual_risk",
+              "human_or_authority_review_condition_status",
+              "record_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "repair_propagation_id",
+                "repair_origin",
+                "failure_type",
+                "record_timestamp"
+              ],
+              "affected_scope": [
+                "affected_domain_ids",
+                "affected_function_roles",
+                "affected_records",
+                "propagation_scope"
+              ],
+              "required_actions": [
+                "reroute_required",
+                "revalidation_required",
+                "suppression_required",
+                "attenuation_required",
+                "handoff_required",
+                "core_repair_required",
+                "domain_specific_repair_required",
+                "status_update_required"
+              ],
+              "limitations": [
+                "residual_risk",
+                "human_or_authority_review_condition_status"
+              ]
+            },
+            "validation_rules": [
+              "repair_origin_required",
+              "affected_scope_required",
+              "propagation_scope_required",
+              "core_repair_must_use_parent_governance",
+              "domain_specific_repair_must_not_modify_core_premises",
+              "revalidation_required_when_prior_decision_affected"
+            ]
+          },
+          "orchestration_audit_record": {
+            "schema_name": "cdogd_orchestration_audit_record",
+            "schema_version": "0.1.0",
+            "purpose": "Record audit of CDOGD routing, activation, overlap resolution, function roles, attenuation, handoff, repair propagation, hardcoding compliance, and boundary preservation.",
+            "required_fields": [
+              "orchestration_audit_id",
+              "audit_timestamp",
+              "audit_mode",
+              "audit_targets",
+              "score_sources",
+              "dimension_scores",
+              "detected_deviations",
+              "severity",
+              "critical_invalidation_status",
+              "core_authority_status",
+              "hardcoding_status",
+              "registration_status",
+              "manifest_status",
+              "evidence_status",
+              "activation_status",
+              "function_role_status",
+              "overlap_resolution_status",
+              "attenuation_suppression_status",
+              "pipeline_status",
+              "watchdog_status",
+              "handoff_status",
+              "repair_propagation_status",
+              "disclosure_boundary_status",
+              "metadata_shape_status",
+              "parity_status",
+              "repair_applied",
+              "human_or_authority_review_condition_status"
+            ],
+            "field_groups": {
+              "identity": [
+                "orchestration_audit_id",
+                "audit_timestamp",
+                "audit_mode"
+              ],
+              "criteria_and_scores": [
+                "audit_targets",
+                "score_sources",
+                "dimension_scores"
+              ],
+              "deviation_status": [
+                "detected_deviations",
+                "severity",
+                "critical_invalidation_status"
+              ],
+              "component_status": [
+                "core_authority_status",
+                "hardcoding_status",
+                "registration_status",
+                "manifest_status",
+                "evidence_status",
+                "activation_status",
+                "function_role_status",
+                "overlap_resolution_status",
+                "attenuation_suppression_status",
+                "pipeline_status",
+                "watchdog_status",
+                "handoff_status",
+                "repair_propagation_status"
+              ],
+              "artifact_status": [
+                "disclosure_boundary_status",
+                "metadata_shape_status",
+                "parity_status"
+              ],
+              "actions": [
+                "repair_applied",
+                "human_or_authority_review_condition_status"
+              ]
+            },
+            "validation_rules": [
+              "audit_id_required",
+              "score_source_required_for_each_reported_score",
+              "critical_invalidation_cannot_be_cancelled_by_aggregate_score",
+              "hardcoding_status_required",
+              "repair_applied_required_when_deviation_repaired"
+            ]
+          }
+        },
+        "record_relationship_contract": {
+          "schema_name": "cdogd_record_relationship_contract",
+          "schema_version": "0.1.0",
+          "purpose": "Define key relationships among registration, manifest, evidence, assessment, activation, assignment, overlap, attenuation, pipeline, watchdog, handoff, repair, and audit records.",
+          "primary_keys": {
+            "domain_registration_record": [
+              "domain_registration_id"
+            ],
+            "domain_manifest_record": [
+              "domain_manifest_id"
+            ],
+            "orchestration_evidence_record": [
+              "orchestration_evidence_id"
+            ],
+            "domain_applicability_assessment_record": [
+              "applicability_assessment_id"
+            ],
+            "domain_activation_decision_record": [
+              "activation_decision_id"
+            ],
+            "function_role_assignment_record": [
+              "function_role_assignment_id"
+            ],
+            "overlap_resolution_record": [
+              "overlap_resolution_id"
+            ],
+            "attenuation_and_suppression_record": [
+              "attenuation_record_id"
+            ],
+            "decision_pipeline_record": [
+              "pipeline_record_id"
+            ],
+            "conditional_watchdog_record": [
+              "watchdog_record_id"
+            ],
+            "cross_domain_handoff_record": [
+              "handoff_record_id"
+            ],
+            "repair_propagation_record": [
+              "repair_propagation_id"
+            ],
+            "orchestration_audit_record": [
+              "orchestration_audit_id"
+            ]
+          },
+          "foreign_key_expectations": {
+            "domain_manifest_record.domain_id": "domain_registration_record.domain_id",
+            "domain_applicability_assessment_record.orchestration_evidence_id": "orchestration_evidence_record.orchestration_evidence_id",
+            "domain_activation_decision_record.applicability_assessment_id": "domain_applicability_assessment_record.applicability_assessment_id",
+            "function_role_assignment_record.activation_decision_id": "domain_activation_decision_record.activation_decision_id",
+            "overlap_resolution_record.applicability_assessment_id": "domain_applicability_assessment_record.applicability_assessment_id",
+            "attenuation_and_suppression_record.function_role_assignment_id": "function_role_assignment_record.function_role_assignment_id",
+            "decision_pipeline_record.task_frame_id": "orchestration_evidence_record.task_frame_id",
+            "conditional_watchdog_record.trigger_evidence": "orchestration_evidence_record.orchestration_evidence_id",
+            "cross_domain_handoff_record.current_function_role_assignment": "function_role_assignment_record.function_role_assignment_id",
+            "repair_propagation_record.affected_records": "one_or_more_cdogd_record_primary_keys",
+            "orchestration_audit_record.detected_deviations": "evaluation.detected_deviations"
+          },
+          "orphan_record_rules": {
+            "manifest_without_registration_requires_reference_only_status": true,
+            "assessment_without_evidence_prohibited": true,
+            "activation_decision_without_assessment_prohibited": true,
+            "function_role_assignment_without_activation_decision_prohibited": true,
+            "attenuation_record_without_function_role_assignment_prohibited": true,
+            "pipeline_record_without_task_frame_prohibited": true,
+            "watchdog_record_without_trigger_evidence_prohibited": true,
+            "handoff_without_preserved_context_prohibited": true,
+            "repair_propagation_without_repair_origin_prohibited": true,
+            "audit_without_targets_prohibited": true
+          },
+          "validation_rules": [
+            "primary_keys_must_be_unique",
+            "foreign_key_references_must_resolve_or_be_marked_unresolved",
+            "material_unresolved_reference_requires_degraded_status",
+            "record_relationship_break_requires_repair_before_public_release_claim"
+          ]
+        },
+        "record_schema_consistency_policy": {
+          "record_required_fields_must_be_mapped_to_field_groups": true,
+          "field_group_items_inherit_group_requirement_level_unless_overridden": true,
+          "field_group_items_must_have_known_requirement_level_after_inheritance": true,
+          "record_relationships_must_not_create_orphan_records": true
+        }
+      },
+      "meta_data": {
+        "version": "0.1.0"
+      }
+    }
+  }
+}

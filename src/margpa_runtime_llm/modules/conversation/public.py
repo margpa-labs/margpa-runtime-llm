@@ -13,6 +13,7 @@ from .contracts import (
     MAX_CONVERSATION_MESSAGES,
     MAX_CONVERSATION_TOTAL_CHARACTERS,
     MAX_WEB_NEW_TOKENS,
+    ContextUsagePromptInjectionMode,
     ConversationDeltaChannel,
     ConversationEvent,
     ConversationEventType,
@@ -20,6 +21,7 @@ from .contracts import (
     ConversationMessage,
     ConversationRole,
     ConversationSettings,
+    ExpressiveMode,
 )
 
 __all__ = [
@@ -29,6 +31,7 @@ __all__ = [
     "MAX_WEB_NEW_TOKENS",
     "SUMMARY_FALLBACK_WARNING",
     "TOKEN_LIMIT_WARNING",
+    "ContextUsagePromptInjectionMode",
     "ConversationDeltaChannel",
     "ConversationEvent",
     "ConversationEventType",
@@ -39,4 +42,5 @@ __all__ = [
     "ConversationRole",
     "ConversationSettings",
     "DocumentationRagMode",
+    "ExpressiveMode",
 ]

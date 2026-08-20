@@ -20,11 +20,13 @@ from .identity import (
 )
 
 MAX_PERSISTED_MESSAGE_CHARACTERS = 32_768
+MAX_CONVERSATION_TITLE_CHARACTERS = 200
 
 
 class ConversationState(StrEnum):
     ACTIVE = "active"
     ARCHIVED = "archived"
+    DELETED = "deleted"
 
 
 class ConversationSessionState(StrEnum):
@@ -60,6 +62,26 @@ def _is_utc(value: datetime) -> bool:
 def _require_utc(value: datetime, *, field_name: str) -> datetime:
     if not _is_utc(value):
         raise ValueError(f"{field_name} must be timezone-aware UTC")
+    return value
+
+
+def _validate_title(value: str | None) -> str | None:
+    """A conversation title is either absent (fall back to an auto-generated
+    label) or a non-blank, already-trimmed single line within the length
+    limit. `None` and `""` are deliberately not interchangeable: only `None`
+    means "no custom title" — an empty string is rejected rather than
+    silently treated the same way, so a caller cannot accidentally persist
+    an ambiguous blank title.
+    """
+
+    if value is None:
+        return None
+    if value != value.strip() or not value:
+        raise ValueError("conversation title must be a non-blank, trimmed value")
+    if len(value) > MAX_CONVERSATION_TITLE_CHARACTERS:
+        raise ValueError("conversation title exceeds the maximum length")
+    if any(ord(character) < 0x20 or ord(character) == 0x7F for character in value):
+        raise ValueError("conversation title must not contain control characters")
     return value
 
 
@@ -184,12 +206,18 @@ class ConversationSnapshot(ImmutableContract):
     scope_id: ConversationScopeId
     conversation_id: ConversationId
     state: ConversationState
+    title: str | None = None
     head_turn_id: ConversationTurnId | None = None
     created_at: datetime
     updated_at: datetime
     sessions: tuple[ConversationSessionRecord, ...] = ()
     turns: tuple[ConversationTurn, ...] = ()
     messages: tuple[PersistedConversationMessage, ...] = ()
+
+    @field_validator("title")
+    @classmethod
+    def validate_title(cls, value: str | None) -> str | None:
+        return _validate_title(value)
 
     @field_validator("created_at", "updated_at")
     @classmethod
@@ -290,11 +318,15 @@ class ConversationSnapshot(ImmutableContract):
             if head is None or head.state is not ConversationTurnState.COMPLETED:
                 raise ValueError("conversation head must reference a completed turn")
 
-        if self.state is ConversationState.ARCHIVED:
+        if self.state in {ConversationState.ARCHIVED, ConversationState.DELETED}:
             if any(session.state is ConversationSessionState.ACTIVE for session in self.sessions):
-                raise ValueError("an archived conversation cannot have an active session")
+                raise ValueError(
+                    "an archived or deleted conversation cannot have an active session"
+                )
             if non_terminal_count:
-                raise ValueError("an archived conversation cannot have a non-terminal turn")
+                raise ValueError(
+                    "an archived or deleted conversation cannot have a non-terminal turn"
+                )
         return self
 
     @staticmethod
@@ -364,9 +396,16 @@ class ConversationSummary(ImmutableContract):
     scope_id: ConversationScopeId
     conversation_id: ConversationId
     state: ConversationState
+    title: str | None = None
     head_turn_id: ConversationTurnId | None = None
     created_at: datetime
     updated_at: datetime
+    has_active_session: bool
+
+    @field_validator("title")
+    @classmethod
+    def validate_title(cls, value: str | None) -> str | None:
+        return _validate_title(value)
 
     @field_validator("created_at", "updated_at")
     @classmethod

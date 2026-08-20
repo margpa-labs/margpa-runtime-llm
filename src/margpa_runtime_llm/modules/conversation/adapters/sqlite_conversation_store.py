@@ -15,6 +15,12 @@ from typing import Any
 
 from pydantic import ValidationError
 
+from margpa_runtime_llm.modules.documentation_rag.contracts import (
+    CITATION_EVIDENCE_SCHEMA_VERSION,
+    CitationUnavailable,
+    PersistedTurnCitationEvidence,
+)
+
 from ..domain import (
     ConversationId,
     ConversationOperationId,
@@ -38,13 +44,17 @@ from ..ports import (
 )
 
 APPLICATION_ID = "margpa-runtime-llm"
-STORAGE_SCHEMA_VERSION = "sqlite-1"
+STORAGE_BACKEND_KIND = "sqlite"
+STORAGE_SCHEMA_VERSION = "sqlite-3"
 STORAGE_FORMAT_VERSION = "sqlite-json-1"
 DOMAIN_SCHEMA_VERSION = "1"
 _CURSOR_VERSION = "1"
 _SCOPE_DOMAIN = b"margpa-conversation-scope-v1\0"
 _COMMAND_DOMAIN = b"margpa-conversation-command-v1\0"
-_EXPECTED_TABLES = frozenset({"store_metadata", "conversations", "commit_operations"})
+_EXPECTED_TABLES = frozenset(
+    {"store_metadata", "conversations", "commit_operations", "turn_citations"}
+)
+_CITATION_STORAGE_FORMAT_VERSION = "sqlite-citation-json-1"
 
 
 def scope_directory_key(scope_id: ConversationScopeId) -> str:
@@ -129,6 +139,12 @@ class SQLiteConversationStore:
     def migration_marker_directory(self) -> Path:
         return self._marker_dir
 
+    @property
+    def backend_version(self) -> str:
+        """The linked storage engine's own version (not the Project's storage_schema_version)."""
+
+        return sqlite3.sqlite_version
+
     def inspect_schema(self) -> ConversationStorageSchemaStatus:
         self._validate_existing_path_chain()
         active_marker = self._active_marker_id()
@@ -152,7 +168,7 @@ class SQLiteConversationStore:
                         "SELECT name FROM sqlite_master WHERE type = 'table'"
                     )
                 }
-                if not _EXPECTED_TABLES.issubset(tables):
+                if "store_metadata" not in tables:
                     return self._status(StorageReadiness.CORRUPT)
                 row = connection.execute(
                     "SELECT application_id, storage_schema_version, "
@@ -173,6 +189,10 @@ class SQLiteConversationStore:
                 write_enabled=False,
             )
         if storage_version != STORAGE_SCHEMA_VERSION:
+            # A store honestly at an older, known-legacy version is not expected to
+            # already have the current version's full table set (that is exactly
+            # what MIGRATION_REQUIRED -> migrate() adds); only a store that claims
+            # to already be at the current version must have every expected table.
             readiness = (
                 StorageReadiness.MIGRATION_REQUIRED
                 if storage_version in self._known_legacy_versions
@@ -184,6 +204,8 @@ class SQLiteConversationStore:
                 domain_schema_version=domain_version,
                 write_enabled=False,
             )
+        if not _EXPECTED_TABLES.issubset(tables):
+            return self._status(StorageReadiness.CORRUPT)
         if domain_version != DOMAIN_SCHEMA_VERSION:
             return ConversationStorageSchemaStatus(
                 readiness=StorageReadiness.UNSUPPORTED,
@@ -236,6 +258,7 @@ class SQLiteConversationStore:
                     created_at_utc TEXT NOT NULL,
                     updated_at_utc TEXT NOT NULL,
                     updated_at_us INTEGER NOT NULL,
+                    title TEXT,
                     PRIMARY KEY (scope_id, conversation_id)
                 );
                 CREATE TABLE commit_operations (
@@ -250,10 +273,21 @@ class SQLiteConversationStore:
                     committed_at_utc TEXT NOT NULL,
                     PRIMARY KEY (scope_id, operation_id)
                 );
+                CREATE TABLE turn_citations (
+                    scope_id TEXT NOT NULL,
+                    conversation_id TEXT NOT NULL,
+                    turn_id TEXT NOT NULL,
+                    citation_schema_version INTEGER NOT NULL,
+                    citations_json BLOB NOT NULL,
+                    citations_sha512 TEXT NOT NULL,
+                    operation_id TEXT NOT NULL,
+                    committed_at_utc TEXT NOT NULL,
+                    PRIMARY KEY (scope_id, conversation_id, turn_id)
+                );
                 CREATE INDEX conversations_list_idx
                   ON conversations(scope_id, updated_at_us DESC, conversation_id ASC);
                 INSERT INTO store_metadata VALUES (
-                    1, 'margpa-runtime-llm', 'sqlite-1', '1', 'ready', NULL
+                    1, 'margpa-runtime-llm', 'sqlite-3', '1', 'ready', NULL
                 );
                 COMMIT;
                 """
@@ -287,7 +321,7 @@ class SQLiteConversationStore:
                 row = connection.execute(
                     "SELECT storage_revision, last_operation_id, storage_format_version, "
                     "snapshot_json, snapshot_sha512, state, head_turn_id, created_at_utc, "
-                    "updated_at_utc, updated_at_us FROM conversations "
+                    "updated_at_utc, updated_at_us, title FROM conversations "
                     "WHERE scope_id = ? AND conversation_id = ?",
                     (scope_id.value, conversation_id.value),
                 ).fetchone()
@@ -401,7 +435,7 @@ class SQLiteConversationStore:
             )
             if actual_revision is None:
                 connection.execute(
-                    "INSERT INTO conversations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    "INSERT INTO conversations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     values,
                 )
             else:
@@ -409,7 +443,7 @@ class SQLiteConversationStore:
                     "UPDATE conversations SET storage_revision = ?, last_operation_id = ?, "
                     "storage_format_version = ?, snapshot_json = ?, snapshot_sha512 = ?, "
                     "state = ?, head_turn_id = ?, created_at_utc = ?, updated_at_utc = ?, "
-                    "updated_at_us = ? WHERE scope_id = ? AND conversation_id = ? "
+                    "updated_at_us = ?, title = ? WHERE scope_id = ? AND conversation_id = ? "
                     "AND storage_revision = ?",
                     (
                         committed_revision,
@@ -426,6 +460,23 @@ class SQLiteConversationStore:
                         "The conversation changed before it could be saved.",
                         command=command,
                     )
+            if command.citation_evidence is not None:
+                citation_bytes, citation_digest = self._encode_citation_evidence(
+                    command.citation_evidence
+                )
+                connection.execute(
+                    "INSERT INTO turn_citations VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                    (
+                        command.scope_id.value,
+                        command.conversation.conversation_id.value,
+                        command.citation_evidence.turn_id,
+                        command.citation_evidence.citation_schema_version,
+                        citation_bytes,
+                        citation_digest,
+                        command.operation_id.value,
+                        command.conversation.updated_at.isoformat(),
+                    ),
+                )
             receipt = ConversationCommitReceipt(
                 scope_id=command.scope_id,
                 conversation_id=command.conversation.conversation_id,
@@ -491,7 +542,9 @@ class SQLiteConversationStore:
         values.append(query.limit + 1)
         sql = (
             "SELECT conversation_id, state, head_turn_id, created_at_utc, updated_at_utc, "
-            "updated_at_us FROM conversations WHERE "
+            "updated_at_us, title, EXISTS(SELECT 1 FROM json_each(snapshot_json, "
+            "'$.conversation.sessions') WHERE json_extract(value, '$.state') = 'active') "
+            "AS has_active_session FROM conversations WHERE "
             + " AND ".join(where)
             + " ORDER BY updated_at_us DESC, conversation_id ASC LIMIT ?"
         )
@@ -704,6 +757,7 @@ class SQLiteConversationStore:
             or snapshot.updated_at.isoformat() != row[8]
             or _updated_at_us(snapshot.updated_at) != row[9]
             or row[2] != STORAGE_FORMAT_VERSION
+            or snapshot.title != row[10]
         ):
             raise self._error(
                 ConversationStorageErrorCode.INVALID_RECORD,
@@ -743,6 +797,7 @@ class SQLiteConversationStore:
             snapshot.created_at.isoformat(),
             snapshot.updated_at.isoformat(),
             _updated_at_us(snapshot.updated_at),
+            snapshot.title,
         )
 
     def _command_digest(self, command: CommitConversation) -> str:
@@ -751,8 +806,108 @@ class SQLiteConversationStore:
             "operation_id": command.operation_id.value,
             "expected_revision": command.expected_revision,
             "conversation": command.conversation.model_dump(mode="json"),
+            "citation_evidence": (
+                None
+                if command.citation_evidence is None
+                else command.citation_evidence.model_dump(mode="json")
+            ),
         }
         return _sha512(_COMMAND_DOMAIN + _canonical_bytes(value))
+
+    @staticmethod
+    def _encode_citation_evidence(
+        evidence: PersistedTurnCitationEvidence,
+    ) -> tuple[bytes, str]:
+        envelope = {
+            "citation_storage_format_version": _CITATION_STORAGE_FORMAT_VERSION,
+            "citation_evidence": evidence.model_dump(mode="json"),
+        }
+        payload = _canonical_bytes(envelope)
+        return payload, _sha512(payload)
+
+    @staticmethod
+    def _decode_citation_evidence(
+        turn_id: str,
+        schema_version: object,
+        payload: bytes,
+        digest: str,
+    ) -> PersistedTurnCitationEvidence | CitationUnavailable:
+        # `schema_version` is the raw DB column value, passed through unconverted by the
+        # caller (P2E-CODEX-005): SQLite's permissive type affinity can store non-numeric
+        # TEXT even in an INTEGER-declared column, so any int()-conversion must happen in
+        # here, guarded, rather than in the caller where a ValueError would escape this
+        # fail-closed boundary and break the whole conversation fetch.
+        if isinstance(schema_version, bool) or not isinstance(schema_version, int):
+            return CitationUnavailable(turn_id=turn_id, reason="corrupt_record")
+        if schema_version < 1 or schema_version > CITATION_EVIDENCE_SCHEMA_VERSION:
+            return CitationUnavailable(turn_id=turn_id, reason="unsupported_schema_version")
+        if _sha512(payload) != digest:
+            return CitationUnavailable(turn_id=turn_id, reason="corrupt_record")
+        try:
+            value = json.loads(payload.decode("utf-8"), object_pairs_hook=_reject_duplicate_keys)
+        except (UnicodeDecodeError, ValueError, TypeError):
+            return CitationUnavailable(turn_id=turn_id, reason="corrupt_record")
+        if not isinstance(value, dict) or set(value) != {
+            "citation_storage_format_version",
+            "citation_evidence",
+        }:
+            return CitationUnavailable(turn_id=turn_id, reason="corrupt_record")
+        if value["citation_storage_format_version"] != _CITATION_STORAGE_FORMAT_VERSION:
+            return CitationUnavailable(turn_id=turn_id, reason="unsupported_schema_version")
+        citation_payload = value["citation_evidence"]
+        if not isinstance(citation_payload, dict):
+            return CitationUnavailable(turn_id=turn_id, reason="corrupt_record")
+        embedded_version = citation_payload.get("citation_schema_version")
+        # The database column is the trusted, independently-stored version marker.
+        # A mismatching or unrecognized value embedded inside the JSON payload
+        # itself must never be silently accepted as if it were the column value.
+        if embedded_version != schema_version:
+            return CitationUnavailable(turn_id=turn_id, reason="unsupported_schema_version")
+        try:
+            return PersistedTurnCitationEvidence.model_validate(citation_payload)
+        except ValidationError:
+            return CitationUnavailable(turn_id=turn_id, reason="corrupt_record")
+
+    def get_turn_citations(
+        self,
+        conversation_id: str,
+        turn_id: str,
+    ) -> PersistedTurnCitationEvidence | CitationUnavailable:
+        self._require_ready()
+        try:
+            with self._connect(read_only=True) as connection:
+                row = connection.execute(
+                    "SELECT turn_id, citation_schema_version, citations_json, citations_sha512 "
+                    "FROM turn_citations WHERE scope_id = ? AND conversation_id = ? "
+                    "AND turn_id = ?",
+                    (self._scope_id.value, conversation_id, turn_id),
+                ).fetchone()
+        except sqlite3.Error as exc:
+            raise self._map_error(exc) from None
+        if row is None:
+            return CitationUnavailable(turn_id=turn_id, reason="not_present")
+        return self._decode_citation_evidence(str(row[0]), row[1], bytes(row[2]), str(row[3]))
+
+    def get_conversation_citations(
+        self,
+        conversation_id: str,
+    ) -> dict[str, PersistedTurnCitationEvidence | CitationUnavailable]:
+        self._require_ready()
+        try:
+            with self._connect(read_only=True) as connection:
+                rows = connection.execute(
+                    "SELECT turn_id, citation_schema_version, citations_json, citations_sha512 "
+                    "FROM turn_citations WHERE scope_id = ? AND conversation_id = ?",
+                    (self._scope_id.value, conversation_id),
+                ).fetchall()
+        except sqlite3.Error as exc:
+            raise self._map_error(exc) from None
+        return {
+            str(row[0]): self._decode_citation_evidence(
+                str(row[0]), row[1], bytes(row[2]), str(row[3])
+            )
+            for row in rows
+        }
 
     def _summary_from_row(self, row: tuple[Any, ...]) -> ConversationSummary:
         try:
@@ -760,9 +915,11 @@ class SQLiteConversationStore:
                 scope_id=self._scope_id,
                 conversation_id=ConversationId(value=str(row[0])),
                 state=ConversationState(str(row[1])),
+                title=(None if row[6] is None else str(row[6])),
                 head_turn_id=(None if row[2] is None else ConversationTurnId(value=str(row[2]))),
                 created_at=datetime.fromisoformat(str(row[3])),
                 updated_at=datetime.fromisoformat(str(row[4])),
+                has_active_session=bool(row[7]),
             )
         except (ValueError, ValidationError):
             raise self._error(

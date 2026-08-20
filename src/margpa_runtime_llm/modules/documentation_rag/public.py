@@ -2,6 +2,8 @@
 
 from .application import DocumentationRagApplicationService
 from .contracts import (
+    CITATION_EVIDENCE_SCHEMA_VERSION,
+    CitationUnavailable,
     CorpusManifest,
     DocumentationAugmentation,
     DocumentationCitation,
@@ -13,9 +15,12 @@ from .contracts import (
     DocumentationWarning,
     DocumentManifestEntry,
     LocalDocumentationRagFeatureConfig,
+    PersistedTurnCitationEvidence,
+    build_turn_citation_evidence,
 )
 from .ports import (
     ChunkerPort,
+    CitationEvidenceStorePort,
     CitationPort,
     ContextAssemblerPort,
     ContextualRagOrchestratorPort,
@@ -27,8 +32,11 @@ from .ports import (
 )
 
 __all__ = [
+    "CITATION_EVIDENCE_SCHEMA_VERSION",
     "ChunkerPort",
+    "CitationEvidenceStorePort",
     "CitationPort",
+    "CitationUnavailable",
     "ContextAssemblerPort",
     "ContextualRagOrchestratorPort",
     "CorpusManifest",
@@ -46,6 +54,8 @@ __all__ = [
     "EmbeddingPort",
     "IndexStorePort",
     "LocalDocumentationRagFeatureConfig",
+    "PersistedTurnCitationEvidence",
     "RagOrchestratorPort",
     "RetrieverPort",
+    "build_turn_citation_evidence",
 ]

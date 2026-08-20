@@ -34,6 +34,16 @@ class ConversationMessage(ImmutableContract):
         return value
 
 
+class ContextUsagePromptInjectionMode(StrEnum):
+    DISABLED = "disabled"
+    ENABLED = "enabled"
+
+
+class ExpressiveMode(StrEnum):
+    DISABLED = "disabled"
+    ENABLED = "enabled"
+
+
 class ConversationSettings(ImmutableContract):
     response_language: ResponseLanguage
     max_new_tokens: int = Field(strict=True, gt=0, le=MAX_WEB_NEW_TOKENS)
@@ -41,6 +51,10 @@ class ConversationSettings(ImmutableContract):
     thinking_visibility: ThinkingVisibility
     summary_mode: SummaryMode = SummaryMode.OFF
     documentation_rag_mode: DocumentationRagMode = DocumentationRagMode.DISABLED
+    context_usage_prompt_injection_mode: ContextUsagePromptInjectionMode = (
+        ContextUsagePromptInjectionMode.DISABLED
+    )
+    expressive_mode: ExpressiveMode = ExpressiveMode.DISABLED
 
     @field_validator("thinking_mode")
     @classmethod

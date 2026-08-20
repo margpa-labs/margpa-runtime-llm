@@ -1,0 +1,2041 @@
+{
+  "document_id": "phase_2_final_lossless_manifest",
+  "status": "final",
+  "generated_at": "2026-08-21 03:10:52 JST",
+  "algorithm": "SHA-512",
+  "source_root": "docs/project/phases/phase_2",
+  "source_count": 406,
+  "source_set_digest": "4823206ddfc90ef9a302eef0463462b584dce75f2af6c8144c81e12d30e653f2435eb4b2aba8ba03a183d3912ea7d5100616dd55b8bf17c24d8e32874234616f",
+  "entries": [
+    {
+      "path": "docs/project/phases/phase_2/adr/phase_2_a_conversation_domain_adr_ja.md",
+      "size_bytes": 5731,
+      "sha512": "e9bf5dd804142cab4e139eeef37d1c3195dbcf13cb3fa94a43072debc637296ac66d51134c9b4883d973c289618679733c072a6fa5f9b95fe07046e178f3cf3a"
+    },
+    {
+      "path": "docs/project/phases/phase_2/adr/phase_2_b_conversation_persistence_adr_ja.md",
+      "size_bytes": 5520,
+      "sha512": "f072ac0ed41a0bf14124f9795faffcd730b8227166d8c584cc208286e4778ee80a226c1afa9bb8a1c892968db1fdcd2272188cc1f967471e18d5807c94ecd153"
+    },
+    {
+      "path": "docs/project/phases/phase_2/adr/phase_2_c_persistent_conversation_api_ux_adr_ja.md",
+      "size_bytes": 4145,
+      "sha512": "30561813096a0bf1de8a6140b402e586e73af42a0777546ab15283e374009dc06f07047248d7555ad10e7aaf90281f457cbb992d399a3db9cc0f0e17f29518ec"
+    },
+    {
+      "path": "docs/project/phases/phase_2/adr/phase_2_d_configuration_control_adr_ja.md",
+      "size_bytes": 5170,
+      "sha512": "e53868a5e91f6be8cd45aae052f31c5ae3da2e115cbc6a99ce06a7e9f2c4348d2858c3a37cf3f97660666d93d19e2f94ec7f05da0652d4aa4919a7323433e300"
+    },
+    {
+      "path": "docs/project/phases/phase_2/architecture/phase_2_0_automation_pilot_architecture_ja.md",
+      "size_bytes": 25293,
+      "sha512": "5b961eb52483b604d50169645e38172b0b39fe1bca2fc00842c0d4874e7c477b691e3a18a109498f28a129b4afefdb164494b9771e288d78026074c826092c62"
+    },
+    {
+      "path": "docs/project/phases/phase_2/architecture/phase_2_a_conversation_domain_architecture_ja.md",
+      "size_bytes": 14671,
+      "sha512": "5c381dc2f69e45fe448faefe656d2866ec767fb7b5ef413c2b831918b5380319f97879b531fe6646c0933d79a6cdb875022cc92b3b6169c6e1163548867962b4"
+    },
+    {
+      "path": "docs/project/phases/phase_2/architecture/phase_2_b_conversation_persistence_architecture_ja.md",
+      "size_bytes": 14215,
+      "sha512": "1816a8a2a3fc758fb07f8359313ab2c481b8410d48635955b198617a50bdd645911837f37d0ae6d3aef157cc91851e4694a3c78efe48cbaccc822afadd6a6c27"
+    },
+    {
+      "path": "docs/project/phases/phase_2/architecture/phase_2_c_persistent_conversation_api_ux_architecture_ja.md",
+      "size_bytes": 10696,
+      "sha512": "6304204f2f6670a1551d52a25ca1ec4fae3bc0f621f219617ab334e7c980f2dd262aa5e1b8f7c6b4d186d93a15d7e87fc5b6d82440ededb8b9939752539279f4"
+    },
+    {
+      "path": "docs/project/phases/phase_2/architecture/phase_2_d_configuration_control_architecture_ja.md",
+      "size_bytes": 9129,
+      "sha512": "b9bac1ea255e71449622c994c7312f021bb54df236c70933ac2f60f82f644ec88c98889f5eb1fdf9e99adf2e2a7781fced9ee767a341bc67ec28368e1268471f"
+    },
+    {
+      "path": "docs/project/phases/phase_2/architecture/phase_2_runtime_data_root_and_recording_architecture_ja.md",
+      "size_bytes": 11658,
+      "sha512": "5d4b0aab3d089ffe107d6fa155c340713e3226f1fd94419762dbed1a5585c2595ad481c6742b820ad9ae72f6a4e9a6152048fbc4b0a246d036be30919f476e3b"
+    },
+    {
+      "path": "docs/project/phases/phase_2/governance/phase_2_0_authorization_envelope_draft_ja.md",
+      "size_bytes": 15469,
+      "sha512": "9873b456b4620c96466df2be726d4d1cbbef2048f2c1705e39778ef09dffd16f3d93d1c4ae70b2d53cb02f6e44faa5eb53d43597623f9667c071bdc5308026e0"
+    },
+    {
+      "path": "docs/project/phases/phase_2/governance/phase_2_0_bounded_read_manifest_draft_ja.md",
+      "size_bytes": 6275,
+      "sha512": "81a38ca3ad20cd8592555389c0aec77f8b3c446c80da6c8e3ca4f22624046707c53b832120651e3cf51810c1fc0d8d6ffbac5269890dc4e60eefd53c4e2a1aa0"
+    },
+    {
+      "path": "docs/project/phases/phase_2/governance/phase_2_0_phase_designer_role_view_draft_ja.md",
+      "size_bytes": 7281,
+      "sha512": "b83b8211cd74a93dcbda276a5681b4afad63d6404c524bdefa5ff0d0c84348a2e87a79e8e3ff5384117ca6caeb45626fe9329b57ad0fb08302c18210c61db0e3"
+    },
+    {
+      "path": "docs/project/phases/phase_2/governance/phase_2_a_implementation_authorization_envelope_ja.md",
+      "size_bytes": 3909,
+      "sha512": "e08d2f0db39a722a6f9eec6a6d0e6c90f040a2a22169fa8592b3cd5e9f2e7cf7153f53d59e6c1587de2d572e22f7ebc1fe662ba6bb1a0469493a148e725039d4"
+    },
+    {
+      "path": "docs/project/phases/phase_2/handoffs/claude_code/phase_2_e_claude_design_governance_handoff_ja.md",
+      "size_bytes": 18484,
+      "sha512": "58cb0836d3f4780ee89d2b52540a7f3b8c1df39a038c2ac259d2cae91fc9478bedeb6bdf347001256909acf3201aab41bebe17ed731502cbeb80ecddba877276"
+    },
+    {
+      "path": "docs/project/phases/phase_2/handoffs/claude_code/phase_2_e_claude_design_governance_index_ja.md",
+      "size_bytes": 5861,
+      "sha512": "870a86ac92f2f14d9998de098adf32e7db5902ab41a7b1a63900ed9e6dd62a4dc55a151c601e1c834c686339997d7132d679993229fbd64209895bd60d2e6ddf"
+    },
+    {
+      "path": "docs/project/phases/phase_2/handoffs/phase_2_0_phase_designer_bootstrap_handoff_draft_ja.md",
+      "size_bytes": 10026,
+      "sha512": "9e3b1e689b476ea177d64dbc4934d4701696409bd7ab10fda3a26fb8d6ef76488e0cb55f160922b1a116f82e33f363d2d6ac5850f579ef8e71995203867c71f2"
+    },
+    {
+      "path": "docs/project/phases/phase_2/handoffs/phase_2_a_implementation_handoff_ja.md",
+      "size_bytes": 3047,
+      "sha512": "d6b670c489e9a0f4a822dcb6b555beb60d87286455a4fb806a5a8bc787f4979f433ced9a1ee8362a8860f93f156fad65bb022cbf4f7fd0b0d074eccfcfb8a8bd"
+    },
+    {
+      "path": "docs/project/phases/phase_2/handoffs/phase_2_b_entry_handoff_ja.md",
+      "size_bytes": 6097,
+      "sha512": "b19a338efd2347a3bf9ef08acac0e8a1ea3eb931ed00114871f09184ee6395b5fad04cbf7ca30ec22f4a487b21abca92b60f534597868ddba095781cfd49c622"
+    },
+    {
+      "path": "docs/project/phases/phase_2/handoffs/phase_2_b_implementation_handoff_ja.md",
+      "size_bytes": 9755,
+      "sha512": "b94511eca797b33d81551b634a6a4d0d5a2a7664c50ad0fc8cd2321efcfaddd62a593d80494fdf3b71fc93e3775571837a9a8da0bcc126d6f30b7496904e8b71"
+    },
+    {
+      "path": "docs/project/phases/phase_2/handoffs/phase_2_c_implementation_handoff_ja.md",
+      "size_bytes": 11080,
+      "sha512": "4639b99d6e3d239b131db4b4b7a477533a6d5b9063adfbc14dd777a9dbe02b3156d165157be21a918b2138e0f2b1f4299a1c0f9851a14619d9106fe04089be94"
+    },
+    {
+      "path": "docs/project/phases/phase_2/handoffs/phase_2_d_implementation_handoff_ja.md",
+      "size_bytes": 11094,
+      "sha512": "25836313bd033c519c9447eb3f141c10d53edd4975ee1abb90ab7924d91087d5487715882e81b5c9848d6190ceaf9bd8ab8f22bce6b3158b0c2fb3ed06a6297c"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/adr/claude_phase_2_e_adr_ja_20260815004739.md",
+      "size_bytes": 6595,
+      "sha512": "5c2d85e67a547cd4e126c785a5dbc7e95f3495db0ef823c5d1f79a368eb7b619584dff30c3463a40699ec854a83f1eb0cf5887e1451acdb4d1841410a469184a"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/claude_phase_2_e_architecture_ja_20260815004739.md",
+      "size_bytes": 17678,
+      "sha512": "f5a39a70532bdadc77b0339be754cc0cd2a6b5af74eeabbdc4bb9ae001cbd5176e54303eaa6b04063184fb01dd662f111a197fe1efa67f91c27750c1632140fb"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/claude_phase_2_e_e_to_h_react_migration_design_ja_20260816102654.md",
+      "size_bytes": 8025,
+      "sha512": "347fd4ef3c3e86e38ff96b554250acf5144fa4ced9b12dcae03b15b9045809bd362fbaad19bf2474e7cb41455bf9e8efa99104b3b11e2725ecedf063a72d314b"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/claude_phase_2_e_h_process_breakdown_design_ja_20260816173714.md",
+      "size_bytes": 14647,
+      "sha512": "a77d9f63987893c10e98af68f96247b98bcbab74a445f50fc9e7016a1f348c62ddfb8706de252406810ab303a31b58f08cbcb888fe9263be44f19e0c65815736"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/claude_phase_2_e_i_i6_context_usage_gauge_followup_design_ja_20260818223456.md",
+      "size_bytes": 6770,
+      "sha512": "a68655fddcca32bf3ec702138458e6614840a0a29a34a5df6338a456443fd6f78c554eff4846a052b60c900f717f58080aaf7cc0e097b668c553425a35d652c5"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/claude_phase_2_e_i_process_breakdown_design_ja_20260818165116.md",
+      "size_bytes": 14164,
+      "sha512": "cd73f82425c532ac0a1a4b3d5190fc45a70ded58a0d5e7ee942993c8f65c0056afabe7f768f7881c22141677245cb2ebf4ea65d0d283b5524571dabb112aaac5"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/phase_2_0_automation_pilot_architecture_after_bounded_read_retest_revision_ja_20260811001918.md",
+      "size_bytes": 16083,
+      "sha512": "0fdc20fe73c588ac755aaa7694ca7ac71119552bd84f5c2889b60ebc46ed39c757d557da2c3d6348f2726c9f92ef550e4c7bae06de7422a9d8fd9651ecd7359d"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/phase_2_0_automation_pilot_architecture_after_capability_contract_redesign_ja_20260811231332.md",
+      "size_bytes": 23830,
+      "sha512": "ec8b9f6dad48dab545c43abd9bee99bff7dbb0a8aacb6e2b2271718db83b3159aa51c545aa3bd4008d5dfb90b93ad8f4d7963293cfe155984e900aec458c6b50"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/phase_2_0_automation_pilot_architecture_after_control_state_and_enforcement_revision_ja_20260809195620.md",
+      "size_bytes": 12932,
+      "sha512": "7a33fe405e8df7eed074b8c611702968a6e921c493780603c7effbbecf983015be4bf5e86cc321e974cf5e324f3a336eb8085926626bc6c54bcf59485a2c7e97"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/phase_2_0_automation_pilot_architecture_after_delegated_role_dynamic_judgment_hierarchy_ja_20260811124635.md",
+      "size_bytes": 21338,
+      "sha512": "461a8ba3ec8b513911fd2b7891a3ed19a721aecd873e5ae0bb33c28b7526574b3eb80d1941ad27c6c4c26f90eaa31dcea69797f7dd5d59a6df8dd4c3f8a97f99"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/phase_2_0_automation_pilot_architecture_after_document_authority_matrix_ja_20260811013723.md",
+      "size_bytes": 17439,
+      "sha512": "21c45d9ccd37ba549691e5f4cea647b13456624a2526e66ed42248dfbdad368119d22f512f4add949cab3b9d647cd93151f52744edcf4a1af6870e7a12c65681"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/phase_2_0_automation_pilot_architecture_after_dynamic_documentation_and_general_hardcode_rule_ja_20260811113401.md",
+      "size_bytes": 19347,
+      "sha512": "a7f3da0a2207fe23f9e2f84c2ac587739f546f3c737292ce7a8726ae24d5a727c68555ea7c77c8a09d0bd2bcc115069d99c3a061f71adeb7b24f7652827e1726"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/phase_2_0_automation_pilot_architecture_after_gate_reconciliation_20260809210503.md",
+      "size_bytes": 13593,
+      "sha512": "7f43dedfcbc8c01a182baaf0dd289bc1c67355103f4634b55ab4427984fb2aed85167e6387d9f6d3397e47c096f25df631718dd5346d532aa9520554441a2195"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/phase_2_0_automation_pilot_architecture_after_p2_0_closure_alignment_ja_20260812003750.md",
+      "size_bytes": 25238,
+      "sha512": "77a2a3c0dd7d237074ce9ad6f3156c9fd072e27330d01fdd260dbe47e7671ab2fdca94878ca7bb70ec035b18b8d084eb9389b60d99c6b5909a6b552ce449a24f"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/phase_2_0_automation_pilot_architecture_after_p2_0_final_closure_ja_20260812012339.md",
+      "size_bytes": 25293,
+      "sha512": "5b961eb52483b604d50169645e38172b0b39fe1bca2fc00842c0d4874e7c477b691e3a18a109498f28a129b4afefdb164494b9771e288d78026074c826092c62"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/phase_2_0_automation_pilot_architecture_after_responsible_role_dynamic_judgment_consolidation_ja_20260811122047.md",
+      "size_bytes": 19139,
+      "sha512": "0b4e122fd14726131ad0ffa1526289551d31f405a0ce5145e73ba27f1ab3e299f1612b803c082102174bbc84a625c715f708b9ada4fbe3266f070ecb91329194"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/phase_2_0_automation_pilot_architecture_after_role_authority_matrix_ja_20260811010924.md",
+      "size_bytes": 16771,
+      "sha512": "46cf5f037faee27b018954945f88251d0b29fe940db210f6d8ae737164761120eff19495932e83dcb440afbbc8a73525535334ecea03dccd67dded88c9ec29a0"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/phase_2_0_automation_pilot_architecture_before_bounded_read_retest_revision_ja_20260811001918.md",
+      "size_bytes": 13593,
+      "sha512": "7f43dedfcbc8c01a182baaf0dd289bc1c67355103f4634b55ab4427984fb2aed85167e6387d9f6d3397e47c096f25df631718dd5346d532aa9520554441a2195"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/phase_2_0_automation_pilot_architecture_before_capability_contract_redesign_ja_20260811231332.md",
+      "size_bytes": 21454,
+      "sha512": "feaae7a5f486ffdad4b82298f624396b329f8dbdbbf8465e96efaba39a06fb5cb86969b7f49cd19a4054e18fe45bd2fe6713627338ad3dbfe8f58637e3023cfe"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/phase_2_0_automation_pilot_architecture_before_control_state_and_enforcement_revision_ja_20260809195620.md",
+      "size_bytes": 11485,
+      "sha512": "e20ace3b99e189e42309a4d846d049740af4543544102ce617e7d7cbe792053e35544c6331103dfe7c0a50b8dc9b4899a3b8ce3b76b555382eddf79bf18fa66a"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/phase_2_0_automation_pilot_architecture_before_delegated_role_dynamic_judgment_hierarchy_ja_20260811124635.md",
+      "size_bytes": 19139,
+      "sha512": "0b4e122fd14726131ad0ffa1526289551d31f405a0ce5145e73ba27f1ab3e299f1612b803c082102174bbc84a625c715f708b9ada4fbe3266f070ecb91329194"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/phase_2_0_automation_pilot_architecture_before_document_authority_matrix_ja_20260811013723.md",
+      "size_bytes": 16771,
+      "sha512": "46cf5f037faee27b018954945f88251d0b29fe940db210f6d8ae737164761120eff19495932e83dcb440afbbc8a73525535334ecea03dccd67dded88c9ec29a0"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/phase_2_0_automation_pilot_architecture_before_dynamic_documentation_and_general_hardcode_rule_ja_20260811113401.md",
+      "size_bytes": 17844,
+      "sha512": "2d351f5eb910311d74ef193cfe8863b33bc81c95838b949a4f96123d45c8fa1f28812a414ed4cdce249b3321612bc287e8640ea745202e18a89a5ed22ce3a821"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/phase_2_0_automation_pilot_architecture_before_gate_reconciliation_20260809210503.md",
+      "size_bytes": 12932,
+      "sha512": "7a33fe405e8df7eed074b8c611702968a6e921c493780603c7effbbecf983015be4bf5e86cc321e974cf5e324f3a336eb8085926626bc6c54bcf59485a2c7e97"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/phase_2_0_automation_pilot_architecture_before_p2_0_closure_alignment_ja_20260812003750.md",
+      "size_bytes": 23830,
+      "sha512": "ec8b9f6dad48dab545c43abd9bee99bff7dbb0a8aacb6e2b2271718db83b3159aa51c545aa3bd4008d5dfb90b93ad8f4d7963293cfe155984e900aec458c6b50"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/phase_2_0_automation_pilot_architecture_before_p2_0_final_closure_ja_20260812012339.md",
+      "size_bytes": 25238,
+      "sha512": "77a2a3c0dd7d237074ce9ad6f3156c9fd072e27330d01fdd260dbe47e7671ab2fdca94878ca7bb70ec035b18b8d084eb9389b60d99c6b5909a6b552ce449a24f"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/phase_2_0_automation_pilot_architecture_before_pilot_authority_correction_ja_20260811005738.md",
+      "size_bytes": 16083,
+      "sha512": "0fdc20fe73c588ac755aaa7694ca7ac71119552bd84f5c2889b60ebc46ed39c757d557da2c3d6348f2726c9f92ef550e4c7bae06de7422a9d8fd9651ecd7359d"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/phase_2_0_automation_pilot_architecture_before_responsible_role_dynamic_judgment_consolidation_ja_20260811122047.md",
+      "size_bytes": 19347,
+      "sha512": "a7f3da0a2207fe23f9e2f84c2ac587739f546f3c737292ce7a8726ae24d5a727c68555ea7c77c8a09d0bd2bcc115069d99c3a061f71adeb7b24f7652827e1726"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/architecture/phase_2_0_automation_pilot_architecture_before_role_authority_matrix_ja_20260811010924.md",
+      "size_bytes": 16664,
+      "sha512": "4c7543aabf47046e427c7504801e695f3d7ab1eafac601e5ce887bc3202fe383185ac2994d2c728906c191029a0f92d60c41760f6dca6cf2b66726ca811819c7"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_authorization_envelope_after_bounded_read_retest_revision_ja_20260811001918.md",
+      "size_bytes": 10508,
+      "sha512": "5c65f7faa047dc9bd0c5b4871417fc3945d8e89245b69439c4cb2ddd80dfbf1a471636ccbbda3e451f7e4cdb022e43e4896c96e419628014969fa841efdec41c"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_authorization_envelope_after_delegated_escalation_and_handoff_correction_ja_20260811130930.md",
+      "size_bytes": 14364,
+      "sha512": "7d1eddefa011cd7e2798bb8a49d2bd64598ea978f3c243cebcfb58dc2396731ef0e0780621b83f4862a1bde37848044817e2d1256b9947da334f9f54284eb869"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_authorization_envelope_after_document_authority_matrix_ja_20260811013723.md",
+      "size_bytes": 11505,
+      "sha512": "f424fb9a17c169986ffef710382223c2d017e7131a0d683a69dac3c825b7674303e0c259820b46e13e5b08924870004d88e993ca62e302743cf81518323f3ecc"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_authorization_envelope_after_dynamic_documentation_and_general_hardcode_rule_ja_20260811113401.md",
+      "size_bytes": 13598,
+      "sha512": "3dbba1333a44f369e707439bb098e8e4194acd71366565c545cd8478a5302da5110c2b84b367f615f2dd23d38f0abc176da9835cd297483416d6f97272c16928"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_authorization_envelope_after_full_pre_pilot_governance_consolidation_ja_20260809195620.md",
+      "size_bytes": 8591,
+      "sha512": "e11248111d2433f41a4c0e242994ab71912da3843fdf2b1eb4fb72ee13c5abe51d146539becf43e13ae24fb8138aecedf72bb42148d42d6a6bf130a052a1930a"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_authorization_envelope_after_gate_reconciliation_20260809210503.md",
+      "size_bytes": 9323,
+      "sha512": "f6e57d5e74391262437581c5a24d91248c9f6d912c60032aea0f4c7c249269f21625756193f1fde2f0c1dc06baee3b1b8f458da76b63ecc82c95a01e515bb703"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_authorization_envelope_after_responsible_role_dynamic_judgment_consolidation_ja_20260811122047.md",
+      "size_bytes": 13732,
+      "sha512": "bb02cc7d25a1c8ee9703491fbd5f00ab80c737c0fed10047438acbfdbae172f2c1278b7ff15a4ba65b92eab2c9bc65cc214d48a0c19db4ccd6056dfde0a74db5"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_authorization_envelope_after_role_authority_matrix_ja_20260811010924.md",
+      "size_bytes": 11337,
+      "sha512": "88b066a579bc1abd015dcd5cdd95a1f1a03ae2407d9f5f6e2a930b26b11bc0a60343aaa405ff729b0370a9db00f364c9fed5bb2dacda66a6a97766b2f5212c06"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_authorization_envelope_before_bounded_read_retest_revision_ja_20260811001918.md",
+      "size_bytes": 9323,
+      "sha512": "f6e57d5e74391262437581c5a24d91248c9f6d912c60032aea0f4c7c249269f21625756193f1fde2f0c1dc06baee3b1b8f458da76b63ecc82c95a01e515bb703"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_authorization_envelope_before_delegated_escalation_and_handoff_correction_ja_20260811130930.md",
+      "size_bytes": 13732,
+      "sha512": "bb02cc7d25a1c8ee9703491fbd5f00ab80c737c0fed10047438acbfdbae172f2c1278b7ff15a4ba65b92eab2c9bc65cc214d48a0c19db4ccd6056dfde0a74db5"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_authorization_envelope_before_document_authority_matrix_ja_20260811013723.md",
+      "size_bytes": 11337,
+      "sha512": "88b066a579bc1abd015dcd5cdd95a1f1a03ae2407d9f5f6e2a930b26b11bc0a60343aaa405ff729b0370a9db00f364c9fed5bb2dacda66a6a97766b2f5212c06"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_authorization_envelope_before_dynamic_documentation_and_general_hardcode_rule_ja_20260811113401.md",
+      "size_bytes": 12223,
+      "sha512": "1df7f59b4df90c0aab43b185cfbdefa363880cebf6651f4aee440ee7dd95152ddf7ae965ec7f6bc0c5fd51403a40c097d5eecd5cfee293c9fc4e610db8140222"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_authorization_envelope_before_gate_reconciliation_20260809210503.md",
+      "size_bytes": 8591,
+      "sha512": "e11248111d2433f41a4c0e242994ab71912da3843fdf2b1eb4fb72ee13c5abe51d146539becf43e13ae24fb8138aecedf72bb42148d42d6a6bf130a052a1930a"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_authorization_envelope_before_pilot_authority_correction_ja_20260811005738.md",
+      "size_bytes": 10508,
+      "sha512": "5c65f7faa047dc9bd0c5b4871417fc3945d8e89245b69439c4cb2ddd80dfbf1a471636ccbbda3e451f7e4cdb022e43e4896c96e419628014969fa841efdec41c"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_authorization_envelope_before_responsible_role_dynamic_judgment_consolidation_ja_20260811122047.md",
+      "size_bytes": 13598,
+      "sha512": "3dbba1333a44f369e707439bb098e8e4194acd71366565c545cd8478a5302da5110c2b84b367f615f2dd23d38f0abc176da9835cd297483416d6f97272c16928"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_authorization_envelope_before_role_authority_matrix_ja_20260811010924.md",
+      "size_bytes": 10956,
+      "sha512": "a9edb7118f4fd34d9dddbdbf88dd8c96f3386b3efa49d387b7b06963dd1e625b5d8a379b2601b6e956ec66cd798b481a9cafea9db00124aee16d35bda810a119"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_bounded_documentation_write_envelope_p2_0_wu_003_20260811221344.md",
+      "size_bytes": 6346,
+      "sha512": "d4c04dd9e494d4f333476037ed49cca89619ac6dc0b7436945236ec6ea6432d0fc386576cb085ec3900cb9bd43d314ad672fa9b4cd71175f573c1248ba3777b5"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_bounded_documentation_write_envelope_p2_0_wu_003_exact_2_20260811221832.md",
+      "size_bytes": 7027,
+      "sha512": "ab893d07f22dfc8a165eca912a29a2ab78fb5a318810db297f5ca69e7a84e54cba65932dcb8a61fdbbcf09b20cf8beae45119d232652900d0b481c7df724e738"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_bounded_documentation_write_manifest_p2_0_wu_003_20260811221344.md",
+      "size_bytes": 5784,
+      "sha512": "616332df3343c4c73466736d875240afc7f77f2ffc68d4cd46ff7b93973dd2b4742d4fa39ffe4550f1dce4ee11dfac362fc1c4795a0dd86906565ef06e38c5f4"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_bounded_read_manifest_after_role_authority_matrix_ja_20260811010924.md",
+      "size_bytes": 5532,
+      "sha512": "6d3d5bb1b70677dfa68222e86f413dd08e7a44065e1ff6befa896e5d3b9890eb3bd0d316f01833d0091521278faf9c45efb44067a379a372a51bcb9bd22c1851"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_bounded_read_manifest_before_pilot_authority_correction_ja_20260811005738.md",
+      "size_bytes": 5327,
+      "sha512": "eafaf87b49f6ffaeedf9e22be0f8f55f5205907016047d2b6a443be4e50308f4139b6b33566c79e2a57d146612d036c2eec4f26ee687546c22b8b0ae714538b4"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_bounded_read_manifest_before_role_authority_matrix_ja_20260811010924.md",
+      "size_bytes": 5376,
+      "sha512": "2e7cdb9ef1f958117721c41023f6f67f05aeb2c79364d220cdde9872990e18cf6e0db3e27679e8b82cfabd0bf72495b87fa4e89c93e6deff2bacf9547155891a"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_bounded_read_manifest_phase_2_initial_ja_20260811001918.md",
+      "size_bytes": 5327,
+      "sha512": "eafaf87b49f6ffaeedf9e22be0f8f55f5205907016047d2b6a443be4e50308f4139b6b33566c79e2a57d146612d036c2eec4f26ee687546c22b8b0ae714538b4"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_documentation_capability_envelope_p2_0_wu_004_exact_1_20260811233209.md",
+      "size_bytes": 7058,
+      "sha512": "c3535189a8e7ebad1b46d86476a2c99031604869df5eafbfa2195af1a2a623ef12c4aa89ec4c729bb8b602aa2c0bde620d28f7b244a932978bdf5abbb5cb4cb8"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_documentation_capability_manifest_p2_0_wu_004_exact_1_20260811233209.md",
+      "size_bytes": 6566,
+      "sha512": "13352b02fb4a71156535cd9f3691587d3d7a05df6a4c0eeff0bc831c3621ffa2235ed607140fd2393970a627a566d2f69a5606dd603dc81fe82150fea8b0a706"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_phase_designer_role_view_after_delegated_role_dynamic_judgment_hierarchy_ja_20260811124635.md",
+      "size_bytes": 7204,
+      "sha512": "679f94e16ced3db8dfece9733aa81c667ee137b363d1558d1eea3db9ad49eaef17c0fb15e98da0471ca6119f86d915bb279850b74fe4830641102a8689b6e4ef"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_phase_designer_role_view_after_document_authority_matrix_ja_20260811013723.md",
+      "size_bytes": 5173,
+      "sha512": "ba5c22d29ed7dcf3781118b018b3025f180122fddebf7b085b16955e121fc47cf3a585aff6eae48bf4240bd023b1552491ef57205973db4be792480dd9f4ae01"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_phase_designer_role_view_after_dynamic_documentation_and_general_hardcode_rule_ja_20260811113401.md",
+      "size_bytes": 5746,
+      "sha512": "ef6fa03db63d05b9779baf370e900998ec63fecc3e22df65b811965346b91f8606865a779f785f722686832f7bea6dd75928a5467abf9724069b7dc7e7f476db"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_phase_designer_role_view_after_responsible_role_dynamic_judgment_consolidation_ja_20260811122047.md",
+      "size_bytes": 5800,
+      "sha512": "59c07142a6ec504c7c2028695149872415c52f7632eb01864ecf4b2befb739a7d4d9f190709cbac5684413161b4017476335a1c4074d3b0a4b5adfd87d5b930e"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_phase_designer_role_view_before_delegated_role_dynamic_judgment_hierarchy_ja_20260811124635.md",
+      "size_bytes": 5800,
+      "sha512": "59c07142a6ec504c7c2028695149872415c52f7632eb01864ecf4b2befb739a7d4d9f190709cbac5684413161b4017476335a1c4074d3b0a4b5adfd87d5b930e"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_phase_designer_role_view_before_document_authority_matrix_ja_20260811013723.md",
+      "size_bytes": 4544,
+      "sha512": "fb57472d97d2976c222ed84c0e036f474d9b4c8a06d9253b9b26cc0a197d2dcbd8712b03c1bd68b76c94d2c673b147563eb18dec760c5ad40ae429dd5edb6a5c"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_phase_designer_role_view_before_dynamic_documentation_and_general_hardcode_rule_ja_20260811113401.md",
+      "size_bytes": 5382,
+      "sha512": "d936442ceb7924eecb14298289262d7266bf9becb02af84f874e9e32b9a7b493aa8ea308bd1baa9205d9079a5ca017235eea7b6b199b0f9ce5ac1ada326a5061"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_phase_designer_role_view_before_responsible_role_dynamic_judgment_consolidation_ja_20260811122047.md",
+      "size_bytes": 5746,
+      "sha512": "ef6fa03db63d05b9779baf370e900998ec63fecc3e22df65b811965346b91f8606865a779f785f722686832f7bea6dd75928a5467abf9724069b7dc7e7f476db"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/governance/phase_2_0_phase_designer_role_view_initial_ja_20260811010924.md",
+      "size_bytes": 4544,
+      "sha512": "fb57472d97d2976c222ed84c0e036f474d9b4c8a06d9253b9b26cc0a197d2dcbd8712b03c1bd68b76c94d2c673b147563eb18dec760c5ad40ae429dd5edb6a5c"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_auto_compaction_recovery_cycle_7_and_rag_pattern2_open_question_recovery_index_ja_20260819182942.md",
+      "size_bytes": 8073,
+      "sha512": "579bbaa791ce597554f906633e7c1984cbc32b62e512e56bf5a688924d9f33a5d439015866ae359591971cb2d746841621a5eba43162d41e0206b394e41a91aa"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_long_running_companion_established_and_rag_fix_pre_work_recovery_index_ja_20260819181056.md",
+      "size_bytes": 8703,
+      "sha512": "2ee6385985633382dc58cfd1a2631dfba24bd37c44cbb4e591ebf7149712cea8269f5b4dc60871412a13a8c64a07971d0d7131821d7bfb7476e1bba9fc24aecf"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_e_b_e_c_completion_handoff_ja_20260815221756.md",
+      "size_bytes": 11582,
+      "sha512": "dde004de3632db5c5e5c917ff3a1f8b2f672304515a1da7c5b9b1b8d9c98cc90895fcbb4426414e9b4c3e1aa403b133c4cfce91521a21124e502d2fbad60df85"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_e_b_storage_version_field_addendum_ja_20260815223912.md",
+      "size_bytes": 5145,
+      "sha512": "24cbe45f890a1b5fad10a241344bf34a0b470bdfdd1eff4376f0aa713c5226c9a13eb654f3f72384eb06d2a2e75863666032d604d45a7326578355ce4ffd85b2"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_e_completion_handoff_20260815075322.md",
+      "size_bytes": 12780,
+      "sha512": "98c1e0f51df6ae0027490a317d9d7fcbd861c1936a48dd4d8855ca94c246b58e7f2c0d35d3d9e84ee2d630aca9736a424d34e059a198a1c38e160612013a40e7"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_e_d_completion_handoff_ja_20260816004711.md",
+      "size_bytes": 8570,
+      "sha512": "2881549871024c774642edddbe4f48327b6326eac129aa39c41f4486a32da855036dd6a45094e0091984c319fdebbfb765594bd65aaf042a97fbf87145d38b4b"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_e_e_completion_handoff_ja_20260816113534.md",
+      "size_bytes": 14414,
+      "sha512": "821311cdb70fe0e497c781b48dc50e3146003beed5a504affc48ba506f6b7e54463e78f11f5eea448e943f20626e577395ebf834945e687908e76e1a5870548c"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_e_expansion_index_ja_20260816165825.md",
+      "size_bytes": 11846,
+      "sha512": "056738558c37dc74ddeeccbf30b370e7d72afb6a31cd368f3d1beb953c51d27af892ea186cbf08479daa72f96a4b6afaeed5b29566b5f423a73b20af15320212"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_e_f_completion_handoff_ja_20260816115426.md",
+      "size_bytes": 13052,
+      "sha512": "7115cf4a12848f92b79e054b99fbf169fc754f86594f145a72da959d0e8395fc8e7bd2554c1ce079787b0ce02b5d3ac4a9afc6b2740d1067ff4f3fada5da184f"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_e_f_g_css_refinement_completion_handoff_ja_20260816132247.md",
+      "size_bytes": 9485,
+      "sha512": "dc5050f0e58d844fd2592f25d6edf6298aad3b46c1de4eb7a0148d8785a75eee4b87ac407d1a4a5baaf85cb6e565675e984bf47a9b154459d92b43bad2b3fe63"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_e_f_g_css_refinement_round2_completion_handoff_ja_20260816142248.md",
+      "size_bytes": 7733,
+      "sha512": "c067a52e35ad675e4b4d6e0eb6e7c1df6fad0d5e4931b30a3e9a370aef840e9c486493b32234e36299b800b6927c7d99b67a7f1fd7365db68d9acfa5f8319343"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_e_f_g_css_refinement_round3_completion_handoff_ja_20260816144539.md",
+      "size_bytes": 5415,
+      "sha512": "10f064e1a353d649a184c4f0ba0b97ee46f3e5a0daab515d39aeb6853c1eeee3ff3092671e3ca45caf73b4c58f06d8ba59365820577b3aa68143a33d6426b238"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_e_f_g_css_refinement_round4_completion_handoff_ja_20260816150655.md",
+      "size_bytes": 4302,
+      "sha512": "8cb98e984c754c864541fd2d4ff36cb41365a38ac950d3093a667674a70424f7f06c846c07504a6fabf55e01d696593886f31a9c966ac013eac73e93613123c3"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_e_f_g_css_refinement_round5_completion_handoff_ja_20260816151713.md",
+      "size_bytes": 4253,
+      "sha512": "051228b1a286a8c20462b674f182f1a36b3f3476c6a5cb800779becc68f96bbebaa66313f998029f6b3df1810b8ba6573b660499a300f081af85f9e4855d2ac2"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_e_final_rework_completion_handoff_20260815092725.md",
+      "size_bytes": 13498,
+      "sha512": "329c0f763de247b3baa42a6fb5c379b6ba55c92ee89d0d7cd2a272364395b64cd31ed6fd8ca381282e3f9e5b837e6bdeb076c3b6d84981786312d4c2a694fa81"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_e_g_completion_handoff_ja_20260816120251.md",
+      "size_bytes": 10768,
+      "sha512": "5b4b589202b7ef08952dff857da58f514ebe073e55b5a7acc76cbaabfa9cfddc5632f18f96029fb1c773f6b898cf85402c3466d138ad73eb978d82f691126f26"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_e_h_and_beyond_expansion_index_ja_20260818004859.md",
+      "size_bytes": 10727,
+      "sha512": "0161df3b18b1223d9ab164bc7a0f290de7918ddd3d5063c87ef8eb74b2b3c0b320a7c589236afc5b5072ac0e56c7aaf7c73b023c6731cdb99bdd70ed6db52552"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_e_h_completion_handoff_ja_20260816193010.md",
+      "size_bytes": 13172,
+      "sha512": "69366ac707d25b1eead49a55b788e226b6cbbdb25ea14d3d7cda1883380d30983809939d9dceb7cc51641cc10c863b93f9e40367c06f9988e253ab74cae43c03"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_e_i_completion_and_hash_manifest_recovery_index_ja_20260818223600.md",
+      "size_bytes": 11043,
+      "sha512": "dac7ed36bfff9f421f9ff228d56e772f5a55c55ae05589e9487295066cdccc3bbd0fcd1efd657d52603afaabccf752ff69519049bcf17a8ebe5ef7f7949beeb8"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_e_i_design_and_pre_implementation_recovery_index_ja_20260818171608.md",
+      "size_bytes": 17326,
+      "sha512": "9d33551b2cb52ff1fb3c13e38778acca1078436c85188ebb368fe4b8e448f45d874ee76cd530cadd2c55abff1629dc8749c641ec297389cac6dfcfaa8ba29153"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_e_i_i6_completion_and_followup_fixes_recovery_index_ja_20260819113639.md",
+      "size_bytes": 12736,
+      "sha512": "14d4a009eea76bc3b3790ee9f8df1ab50f85226f76b3ba0afd9043d9784986afdbfdfd2b22617ce164f5f0ea6387b6ac5519df104ff5f98977d0c4d8f92df6e3"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_e_implementer_handoff_ja_20260815004739.md",
+      "size_bytes": 4983,
+      "sha512": "f8b7be8adf8576cf1469e7f2d50618e3efde397480c4dff07f5dd6837e20efa713883a1ae95c2420809a9cd08e9962f50db53475bdc79babe81bb7d40e123793"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_e_mac_manual_acceptance_result_20260815112801.md",
+      "size_bytes": 16594,
+      "sha512": "90ec326ce3de991f2a501fd589d0dfccf9782b50087f6d43fc146818d7e9459b3feb63508208be04786357adb1c2671135b147b90577d17b5608c9b7acf111cd"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_e_mac_manual_acceptance_result_20260815202128.md",
+      "size_bytes": 7443,
+      "sha512": "840b342cb198373e8cc6cec1e4e70dd4220d5840e7d88288484d5f84e9df226cb95c6242281b3079818ecc527e495f6d706cfe7e5aed059e35979137cf44f52e"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_e_manual_acceptance_configuration_control_ux_finding_ja_20260815200020.md",
+      "size_bytes": 10504,
+      "sha512": "772ed471db6530535b7e53867b91e40aad2117787f1a3a694d3a25ca54ea5b3139b9f53c9b51607ae1d4fd16aa821a122c5b1ddd500441391c14c8fa170cbd39"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_e_rework_completion_handoff_20260815084816.md",
+      "size_bytes": 11800,
+      "sha512": "2330279022eb712440ebff2dcfc08967b376445171f9ffeb1dc69d621d85882a4ca01958cb52f99c93033f7780cd335ed7c8a7e824a5187519140b07d78363ca"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_phase_2_governance_restructuring_and_compaction_recovery_index_ja_20260818160144.md",
+      "size_bytes": 18116,
+      "sha512": "cd3c6d984309b9330e894419dbea2d961827a38392cda15edde6020d54c6503354dac01fc71dfd669ac749f0395a7520992b4aea4fb9c9368acf691050fd731a"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_rag_pattern2_deferral_and_self_location_evidence_recovery_index_ja_20260819185117.md",
+      "size_bytes": 6943,
+      "sha512": "2a6c35e107bb6bc988a2b8cd350e541da6323baed6a899496663c2319191149349ce3178cc783b94bb7327bcc51ffece790640ac31296dae48167c11b0afcd79"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_settings_modal_resize_verification_failure_recovery_index_ja_20260820035431.md",
+      "size_bytes": 6029,
+      "sha512": "4709ae9d1b4e416e7582cb57f5ae210af62f08f6aa0fc74d1300f37f446f32b05cc577eebfa38261093576256f0823f79e6350bda79ce0191dbd4893076a71d9"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_settings_modal_ui_restructure_and_phase3_handoff_recovery_index_ja_20260820155729.md",
+      "size_bytes": 7192,
+      "sha512": "82bdf45330bba064a40f6106ac5c6febd27d49bee83958999699bb4b044fbad4e0e95475e97ff9c8d4069f9b34c3101427e56e2258d8511c139216bc0386be5e"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/claude_ui_batch_closure_and_phase_3_handoff_prep_recovery_index_ja_20260819144637.md",
+      "size_bytes": 14520,
+      "sha512": "d382581aa7f77a744c7fb4ee0af11dc5571db0cec17b711b837e1cd16fc6d45f4e170749c5e94b227bf45f88943861a1979b1731a658ae09a301995774c636bb"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/codex_to_claude_phase_2_e_final_rework_handoff_20260815090218.md",
+      "size_bytes": 9964,
+      "sha512": "c734d78cb4f73573e111e35f78c19346b3cc98ed96381bd0dfec2a5cb4d74990534a8eb08ece714f75affe09dad48a0934789ba2563c1f12fe4060140459473b"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/codex_to_claude_phase_2_e_mac_manual_acceptance_handoff_20260815095155.md",
+      "size_bytes": 12237,
+      "sha512": "8cf58f102277b00c61566855a3ee3d78dc99f0a5366dd539c88f3cbe1c9153a9a537cf1c2efef647d20738e5a6d802e185940919adf3cc0b4d13baee9129c9ad"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/codex_to_claude_phase_2_e_required_rework_handoff_20260815081954.md",
+      "size_bytes": 10118,
+      "sha512": "c2bec3220e542bd62925c2d760c8a0af4efe42f76593dd8e336492b16b28b9fba6ff45f831953675f0c0c8b386a6ac87fc98119b88929c0964d3e79593f9a65c"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/implementer_rework_status_phase_2_b_20260814021434.md",
+      "size_bytes": 4757,
+      "sha512": "c5ac1ef8a352ae0c15f3dc963adf71f015bfef5888322fb79a5d37a24c81e8843ea586a6f3e3c2d3007176b903da08fa8ceef75a191f4fe77b386e9d28742f46"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/implementer_rework_status_phase_2_c_20260814032250.md",
+      "size_bytes": 5568,
+      "sha512": "70ffec54c8f57e237c662f9a1be6facf5a59276cabd3035a206d53065c0c277b6c834141b65b58cb19ff846f9b009ccda262f3f86ad9340252f45704cc858af3"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/implementer_rework_status_phase_2_d_20260814040833.md",
+      "size_bytes": 3773,
+      "sha512": "be0ecc85182369af61f65e7a7b1a9aba534ea8fd0295ba8d87a55b9e4460c51d7359fec340ada4741a47fe514734158ff3397e1f9a79cf996707e66c79ef8b62"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/implementer_status_phase_2_a_wu_002_20260812020515.md",
+      "size_bytes": 1956,
+      "sha512": "3e6244677cffc1301f2e38af701cded87dc1fe64ae37764a08ef292a977b9ee559895e10c9663491feaf757d6ab050694cbd1b5eea92d723987e38fa19a11cee"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/implementer_status_phase_2_b_20260814015827.md",
+      "size_bytes": 6663,
+      "sha512": "5016aa58044a1379f8f9b758b9c8726f6c62d408fdd3482b590a76e7dd2f72386dbd029702f59666fcdb76e02a79711389e01215e6a186fc958d87ac6b4c3ede"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/implementer_status_phase_2_c_20260814030637.md",
+      "size_bytes": 6172,
+      "sha512": "6b8f76437aa6d0ee288ceb971277dfcfa31694fd7e16ab8aaf6c55439c2d2dface2856c44872b0f2fa59ad4c409383f5de3fea1b5c0a2bbff80c34cf1572e77d"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/implementer_status_phase_2_d_20260814035807.md",
+      "size_bytes": 9340,
+      "sha512": "d794f470294476751cd20327b2caf42e459206619dd1628c4e1ebf8b9ad22c96214331b514e7f8e5688370445ecf26284fd83b999728e48fe00e4447fb973117"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/phase_2_0_phase_designer_bootstrap_handoff_after_bounded_read_retest_revision_ja_20260811001918.md",
+      "size_bytes": 7452,
+      "sha512": "26bd9266297deef3c6fa42248f3f6b5be175480a44f65131fe0ba29a0bbf238480b0e2fc18fc130992e6611650cfd0c7c41c72bc9f94ee1d1cf84835b9cbf5ce"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/phase_2_0_phase_designer_bootstrap_handoff_after_delegated_role_dynamic_judgment_hierarchy_ja_20260811124635.md",
+      "size_bytes": 9890,
+      "sha512": "a8ba2c536d062de2ad2fcdfe36f6b9b24bdd0b0540d153f3c80c4d34295e2592877f479b99aef6e1eeda30d80fd2bd576ee64c47e4faa7305db10c7d72265c09"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/phase_2_0_phase_designer_bootstrap_handoff_after_document_authority_matrix_ja_20260811013723.md",
+      "size_bytes": 8112,
+      "sha512": "a7065da57a1e6b982e68f8466d618f4cb9d3f44e78741cc5b9cfe19cdd3db79b939e050fbe93368ab5d19dd029c1f455445498d681cdc37175c5c8ea84646ff5"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/phase_2_0_phase_designer_bootstrap_handoff_after_dynamic_documentation_and_general_hardcode_rule_ja_20260811113401.md",
+      "size_bytes": 8853,
+      "sha512": "8da86a4e382ae666afa942081e5da0551c11a897bf85508209b9aabdeecd56cfb7070fcdb3c966574339dcd8cc804efe45a7eb230c1665f37f772381c6701815"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/phase_2_0_phase_designer_bootstrap_handoff_after_gate_reconciliation_20260809210503.md",
+      "size_bytes": 7752,
+      "sha512": "827f2398469a03e18506acbc3316c9c7f22d1582b88aaa1afdb09e43fd47866e8faacf7a45414b0ce6ff3e22d443e168018df6a59d5b85533b2f9969e1422ed1"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/phase_2_0_phase_designer_bootstrap_handoff_after_responsible_role_dynamic_judgment_consolidation_ja_20260811122047.md",
+      "size_bytes": 8903,
+      "sha512": "86f6c5e1cd867315dd32efbf59b0b501f1ca6fe5fffd35bedb05b5b701a7c93a694922c9184284744d0a01fb4b36d4deda61915b0b63fba6aaf0202bcba037cd"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/phase_2_0_phase_designer_bootstrap_handoff_after_role_authority_matrix_ja_20260811010924.md",
+      "size_bytes": 7818,
+      "sha512": "ad351774168ea9b81d2a5c97407cc36e064d6f04e433e8f658ed3aed3bd68f3b230bd071478641c185b708c1c044d54f4098df7b342b55f4218dbfa17fd25eed"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/phase_2_0_phase_designer_bootstrap_handoff_before_bounded_read_retest_revision_ja_20260811001918.md",
+      "size_bytes": 7752,
+      "sha512": "827f2398469a03e18506acbc3316c9c7f22d1582b88aaa1afdb09e43fd47866e8faacf7a45414b0ce6ff3e22d443e168018df6a59d5b85533b2f9969e1422ed1"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/phase_2_0_phase_designer_bootstrap_handoff_before_delegated_role_dynamic_judgment_hierarchy_ja_20260811124635.md",
+      "size_bytes": 8903,
+      "sha512": "86f6c5e1cd867315dd32efbf59b0b501f1ca6fe5fffd35bedb05b5b701a7c93a694922c9184284744d0a01fb4b36d4deda61915b0b63fba6aaf0202bcba037cd"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/phase_2_0_phase_designer_bootstrap_handoff_before_document_authority_matrix_ja_20260811013723.md",
+      "size_bytes": 7818,
+      "sha512": "ad351774168ea9b81d2a5c97407cc36e064d6f04e433e8f658ed3aed3bd68f3b230bd071478641c185b708c1c044d54f4098df7b342b55f4218dbfa17fd25eed"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/phase_2_0_phase_designer_bootstrap_handoff_before_dynamic_documentation_and_general_hardcode_rule_ja_20260811113401.md",
+      "size_bytes": 8530,
+      "sha512": "029f838b5097c638ef9d4fff3ca8d1fa572f9763033230f2bf85232e959f32f8705fe7ca1bca234977f0bdf8678f4b8cab7d521e768d1b2cd1151f779516cd5e"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/phase_2_0_phase_designer_bootstrap_handoff_before_gate_reconciliation_20260809210503.md",
+      "size_bytes": 6681,
+      "sha512": "da6226cc894220c49a4e42b6dba0af14c8a3211124ba48b37194e0bc04bad7c51f931921cf0546f1e74155222e5283c146f41a6c97755fc80f765fdbfbbaf582"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/phase_2_0_phase_designer_bootstrap_handoff_before_pilot_authority_correction_ja_20260811005738.md",
+      "size_bytes": 7452,
+      "sha512": "26bd9266297deef3c6fa42248f3f6b5be175480a44f65131fe0ba29a0bbf238480b0e2fc18fc130992e6611650cfd0c7c41c72bc9f94ee1d1cf84835b9cbf5ce"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/phase_2_0_phase_designer_bootstrap_handoff_before_responsible_role_dynamic_judgment_consolidation_ja_20260811122047.md",
+      "size_bytes": 8853,
+      "sha512": "8da86a4e382ae666afa942081e5da0551c11a897bf85508209b9aabdeecd56cfb7070fcdb3c966574339dcd8cc804efe45a7eb230c1665f37f772381c6701815"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/phase_2_0_phase_designer_bootstrap_handoff_before_role_authority_matrix_ja_20260811010924.md",
+      "size_bytes": 7301,
+      "sha512": "5fcd9824b0d40da3e85b5f645550e46159892710c9bbc2e4eaeed768e26a8e099092c8a1c8dc20d6658954f2b9024c2e57bc802da81b7714cd821fd139bc1ef4"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/phase_2_0_phase_designer_bootstrap_handoff_p2_0_wu_002_20260811205201.md",
+      "size_bytes": 6034,
+      "sha512": "a79e28c12598477d574a20c95a1987a28f739949468208533ad091b48b7e22e4125fa3fed234792ba7f7f057c634f5531fbf185194860a056460717cd121290f"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/phase_2_0_phase_designer_bootstrap_handoff_p2_0_wu_002_20260811205659.md",
+      "size_bytes": 6341,
+      "sha512": "09cae1d07293a262998ee66236c9dcb196287dcaddc5f65377e20905a2a945849bfaf3014a8de925dfb9bd00ef44207ba4c3c0a54c1fc4760bd8ba1b55d27f92"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/phase_2_0_phase_designer_bootstrap_handoff_p2_0_wu_002_20260811210503.md",
+      "size_bytes": 6399,
+      "sha512": "8979b0088b6ee124f68b12c5d24d5781c798eea0ef10540c40bf459011523311abf0b8507c0ce48995fc1136ab74a443f836a48ca2de0d72d7225b7a522f312a"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/phase_2_0_phase_designer_bounded_write_handoff_p2_0_wu_003_20260811221344.md",
+      "size_bytes": 6887,
+      "sha512": "7230bda705472e6bc3fa820224584531bd47aa7fe7701a8d728e479c5dd3d274afad10b04cabdc226221af6f295ac5724f319dc95b95e0b7f3305126cb5a6a7e"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/phase_2_0_phase_designer_bounded_write_handoff_p2_0_wu_003_exact_2_20260811221832.md",
+      "size_bytes": 7478,
+      "sha512": "0b3c242fa309a3be2507251a17bb60d4a770e1fc9c6a0e131e90dadb34ae920519d37527a47ad5f0b265efb08bd02f1266327ecc2c40b7bdadb6970c95ece569"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/phase_2_0_phase_designer_capability_retest_handoff_p2_0_wu_004_exact_1_20260811233209.md",
+      "size_bytes": 9281,
+      "sha512": "01e4bbfb5592cae212faae639f2d4e74cf4fa62b67026325fb0da5a9bc3e20fe8a412c3a6f63b4a78fd3359acb0f96f5da643c2d6e7e68674679ecf21fdb3a1f"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/phase_2_0_phase_designer_status_p2_0_wu_002_20260811210503.md",
+      "size_bytes": 3677,
+      "sha512": "2c36c5e80ecd46bf9ec5c48209980fc402646f0f08101ab77f73ffda0b338c64e249f2c7aa36e067ac2c6655ac89891fed6c8e4145b9be7e3c488f673dd082c3"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/phase_2_b_entry_handoff_after_role_delegation_revision_20260814002302.md",
+      "size_bytes": 6097,
+      "sha512": "b19a338efd2347a3bf9ef08acac0e8a1ea3eb931ed00114871f09184ee6395b5fad04cbf7ca30ec22f4a487b21abca92b60f534597868ddba095781cfd49c622"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/handoffs/phase_2_b_entry_handoff_before_role_delegation_revision_20260814002301.md",
+      "size_bytes": 3569,
+      "sha512": "30d31f2194a959f58fe1cdc62a158872be96f1f9ff9ae77b54385e73d7a06807de2cac6239c64d241fb3741aface29362094a929f126f1601c9fd17926bad077"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/claude_side_phase_index_ja_20260818021437.md",
+      "size_bytes": 11898,
+      "sha512": "56eef03d9227b0ea2d29d90db82c5919d7bc34b7bd50ce0999df5d239cfb072040bc43d9dbdb7432d381cbcb3f5b61d788861222291ec387e218af42095e7563"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/claude_side_phase_index_ja_20260818121842.md",
+      "size_bytes": 14577,
+      "sha512": "306a9a6f87d4a7bb6a05ae241479633ebdc7d762109fd3273165c416e2afa54ce55e542dae5354041c43e407a3823e6fe9caf9e41323f309cdeeccff7f1f0dcc"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/claude_side_phase_index_ja_20260818160352.md",
+      "size_bytes": 14360,
+      "sha512": "905cbfb2772114dc162678ec308b11b9ceb3332c514e016ac9957fc45c77bf7dc4ac628f9792f8ccc1b9f14d3819c32e6bd4c3a0ff3f4198137685dd5870df3f"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/claude_side_phase_index_ja_20260818171727.md",
+      "size_bytes": 16313,
+      "sha512": "8ba2fdb639ae4806ce061687ecd4f962044fc396b4939da920472855c2c4e5d6b2cdd93f3343eb2fcf7a06958a646cea80f90ab943bb4c7729d87fdf2cba364b"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/claude_side_phase_index_ja_20260818181920.md",
+      "size_bytes": 14858,
+      "sha512": "ad6a66554e2314d5ca78a9479f1d9fad029ea8f85abb20fc1a1217c21f00776eb210ffd7fa7981c63b9766114adcb6a6bc952e506e7748180addf8accf594637"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/claude_side_phase_index_ja_20260818223600.md",
+      "size_bytes": 10070,
+      "sha512": "876648bf1d1643fe62ee867bf0756fdc53e8978731fda60c9ccf007eee336a5ac01e26911e7a465d006b8eff29ba57647096f0b4d757ed95523c04362f92a7c0"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/claude_side_phase_index_ja_20260818231009.md",
+      "size_bytes": 12412,
+      "sha512": "71a5566a8341c40cd3e620425f5b26b26144824175a52f70e02c6039fcb6745dc3dd950445f3e7799d33c629ff0de2728d51ea73e6f4664c1cae47d8dd60f64d"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/claude_side_phase_index_ja_20260819002344.md",
+      "size_bytes": 9344,
+      "sha512": "98bad5f7b38bdd5e600847ac1584e1eff82b667d7a87c850722bf0dac08b54abf66c9495d8d2478650ebd9181046462d49770e6c470a6ee617cb723215ff33b0"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/claude_side_phase_index_ja_20260819113202.md",
+      "size_bytes": 19767,
+      "sha512": "91cd4e19e339aef9c6997e5feedb9f9230d0fe14dabc6b3d8cfa72742ebf2d2d801f18c7a87f1a294ed32135eb28bac3bb9550f79f65f6f4ff586dde9444e8f3"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/claude_side_phase_index_ja_20260819144637.md",
+      "size_bytes": 19602,
+      "sha512": "67ffd497263b2d16ead7dc2cb325d029a4d57ec28d732321495b57d81a41223316d823db19d8a069e2ef92a31eaf5099809904d4b32a3cb7f1327ea75237c459"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/claude_side_phase_index_ja_20260819181056.md",
+      "size_bytes": 9289,
+      "sha512": "1d6d9dc236d8610ba14a359517a5a0e907af713c371e6c8022a1d8697b21ddf711c652cf1893b1718265d5ba604ab45336bff36c2fa07bd1680dac6b2a35e1b5"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/claude_side_phase_index_ja_20260819182942.md",
+      "size_bytes": 9536,
+      "sha512": "cb9b5747c3a8380a9f68208efabd42ee14991879f568523b8f83412b43bec76b9b2dc520a25636872b5336826f6efacd7ba327b432b7152a57c4a4bdf951f98b"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/claude_side_phase_index_ja_20260819185117.md",
+      "size_bytes": 9768,
+      "sha512": "5b3e45071810f8a5c73f4990a50cf110cc7fc87bd9df7dd2f5649327fb6800a08456081ff9f4048a2f39331632e354f2fe33e3a02c973027b5e646aff72a8d92"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/claude_side_phase_index_ja_20260820035431.md",
+      "size_bytes": 8781,
+      "sha512": "e0a5e329c199aea89ad25f288389162b4baa3f3464873e8ce834c3ff858acc67b946e4a1b3a2ec2034c5e8dd0cb1dcedb0afd8acf27bb1ec5843e86d5c68c47c"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/claude_side_phase_index_ja_20260820114230.md",
+      "size_bytes": 14788,
+      "sha512": "e0165da5b8207861c67cc8cc29e716ede63e601b816d841880bf2b83d95f12034db94970d7109157f0ca0aae629270d0cb2443b33da117ec1148a37664d99e5b"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/claude_side_phase_index_ja_20260820155729.md",
+      "size_bytes": 11135,
+      "sha512": "bc30c185b8f94565a0374348463140c5c15544f3cf51416a61c27a9790d4f33b4570dfa895ce93c3b6d17e3fd1c6f1e0f2fc176d0718a1ac32647627bd478013"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260804111744.md",
+      "size_bytes": 2398,
+      "sha512": "fcc7998bdc587ff5312898214c5287727053cfa3351cacb42d37fd0266a934677e8dd90e69f1212ae2a6be929eb66e6c49e7ac7ce56a82e4ae1b7925f99f86e1"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260809181100.md",
+      "size_bytes": 2918,
+      "sha512": "8330dd54795045899ce5b615a372d6e396b8806450940e84b4571ddbde77a99695de795aa25f392b81443e8de00fd372f9ecc6da20a029adcd1171eadb15bf28"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260809184134.md",
+      "size_bytes": 2385,
+      "sha512": "02f7c915c99f46852cc594cb0cc7b841a1c47df532da35e2d7584ddc1be76be0f0768cc693e6e0b0bdb9baac9e58423af5812f1b9edc7c1f5b2005535fd58d85"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260809195620.md",
+      "size_bytes": 3369,
+      "sha512": "b49571368f2c91661525079aeb95afe15a4e2e742ad822a4cbd07c6b013c1c85a95cc3d49b1fa3c3015f900a7542856df19c5b0645044be3536a63b7b92ce890"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260809210503.md",
+      "size_bytes": 2689,
+      "sha512": "c75bea9c5dfb9720620c7536a0f3787643b105dab05c5bb2856df89a5d95da0f99ad7d48b2938af3052a49d0c9ae0fdf7596fd5d11c90de753771914a1181cfa"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260811000435.md",
+      "size_bytes": 3267,
+      "sha512": "90571be8b3587a16681a210e11be735d6d7df383b5a4db6404eec4f6448c531fc1fee31dcb0dde3073708075de24467cb971423501fbeab319e95318dfbfbc73"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260811001918.md",
+      "size_bytes": 5321,
+      "sha512": "e67d0a5e30763308ee360b6b990f4ec77c30175faf1d7d1c4bc1b361a1541a588e2dcaea69d93581d8260ae37476bf1fcafb60337aa3582ef0d085d8ca58e05e"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260811010924.md",
+      "size_bytes": 2401,
+      "sha512": "54d8a4e787256aa841420b7653d4c8ee8704a3088d745883aedf82010d2154a333782b1d8a01fd05c47fab1d1955c91a04fc423fc91385cba58adfc1fb6cda56"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260811013723.md",
+      "size_bytes": 2902,
+      "sha512": "be308d517ef600ec0aabc92cf0c5cd480651e41df56cf960486694d11d50c23afef0807559f13b77e1cd13357fbd785e32a7531498d4c26442ce43d98597f6de"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260811104642.md",
+      "size_bytes": 1828,
+      "sha512": "46a55f47adc160c5d96e7064154db2f0cbb658d2815095476e1d1bd08a0124275e07f8d67c46b08b30188dffebc20a7cf33c007b74775a29e130633c657d0a7c"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260811113401.md",
+      "size_bytes": 3963,
+      "sha512": "09a96f2ec03c6f32023c61e40f8e3e6ad67fbeb56d879183dee3e8155b7a15adc144cfd2772fb37ce4421b12e707299e4667c1bb801d78cb3f2926bfbed08c4c"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260811114801.md",
+      "size_bytes": 1751,
+      "sha512": "03ee5a28e828c1d21d473f79d56b96b2b9258cfaf9558b02f2fcfd32babea1ec57f049a4d1a02eaba7e6191d1c6ef0fe5fd32c0fda017b136a74a4ddb20ecfcf"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260811122047.md",
+      "size_bytes": 4099,
+      "sha512": "3c29fce19806a07a30e527e12c7f76de009ed71af161505ab361bc1329b414f02cfdd4aa008817aeff539dfd8af16b28c7ec43bbf6f49d6106242d1cc03409c0"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260811124635.md",
+      "size_bytes": 4628,
+      "sha512": "89d87af7ece2845d0b382299d837402aadb713de10a80c7a536a7f15074fdfc54365d7432d1c0908934d875c8c46475820d6fe7490afefea227ddc38376546bb"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260811130930.md",
+      "size_bytes": 3463,
+      "sha512": "c1e45998f21a7a8cde8546e83f23ed064e36d83701b1ccb3b13a37c815eb9f5e05f881891aec7d5cc5df6cf7da178c457930de428aa044474f61aa20df343a69"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260811132741.md",
+      "size_bytes": 4407,
+      "sha512": "0b2b5a8db36d74025e743f470dea845c2f018b5b0e77ea48677ef2fa75c9e63e8028c38a1caf88ca73171fa9dd31a3ee2b13393b1987b9addf8ba2a39d231407"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260811134922.md",
+      "size_bytes": 1759,
+      "sha512": "acb900433e73b7bc30db52cd8e165fb55d936d44c52d128a654a3bec3d9737ca4b1db9f9581896e5693b83013eb496d3315b626d828756a225ad477105fbfaf2"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260811205201.md",
+      "size_bytes": 2762,
+      "sha512": "c08d9810d8a56311c107d444ebcc484d38bc07508629b0ea5f52010dbec59fea3f953c6793dbe92abfcfe661074fd3171b6c88b9fb30a7714a0567892f9d080b"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260811205659.md",
+      "size_bytes": 3448,
+      "sha512": "8a630b543a3401c68c0a83132bc9fe7ea9795257531d5ee655f0b2d1ed8160436a8c4e8e21f1b6450ad0d9495bd125f06cd95844c56c8ada7fa1d5faced1e4c7"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260811210503.md",
+      "size_bytes": 3837,
+      "sha512": "526ca3ecf0e22571e03baf963af994e4f8e31f10fe9a061161648adea440f8d1f60afca7bc5f7b31bca544347bbefc7a4f2d818bad27d1cc75a6cba981ff2a8e"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260812015152.md",
+      "size_bytes": 1098,
+      "sha512": "4982f8219424c9add9e5c74a78c2c0d09637f0ee0a0061ac41308c340c2c64921d33ffc9e2e35ed0bb99c4dbb4b246a6abd3df49cd7adb49d3166e663ab89cfb"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260812020515.md",
+      "size_bytes": 953,
+      "sha512": "f49ab1a7ac0be9d0823f586d582e6100f082f58b1f5f6341122d4b44e890741dad30bf77de72eef166ad193549c3fc9fe76f21c0084e894e0eab9c5468d78141"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260812021052.md",
+      "size_bytes": 984,
+      "sha512": "2cad83bafed8eea8b073f7355573ac90e01205a92ca4f83b83b13fb7479dbe787db2e0c51cf9496c909b3a6c8fa6d0509a8477a25f45a57ef17fec63e3a37722"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260812021546.md",
+      "size_bytes": 1142,
+      "sha512": "0781dd8c7e93311a68128ff9b4079c7e05206e003e8b2faceecd4cea0beba154479459b263fbbbc9f4405fa0fb49c0ab97b738b8dad029ba71fb0a3edb2353d7"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260814002301.md",
+      "size_bytes": 1165,
+      "sha512": "adc13decb2403903a00442b343728c9fbdb31857c0e1e7d6e3e35850c0629c4efcf2e027e1bc42a5f9cc0be57b0d8fc759d39bcc30bbb7b70047567bdadf3953"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260814042000.md",
+      "size_bytes": 1871,
+      "sha512": "cf6abe9397dce080793cca44e0447acb361dd7fc2a9616444211ae4f72dc9d89b6dc80ba9574c1ac6e8742c14e2a1affd655669651703aee60a2dfe9822503d8"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260814210500.md",
+      "size_bytes": 32883,
+      "sha512": "e05551e0a33f996159deba514bc9b9b7e4071f712f0f85329e1d103ea683aa531b47d7b25c691e6005bdef59e2fa31ed1ae3a0c00ff74d18c388bab1afaed38b"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260814215110.md",
+      "size_bytes": 33607,
+      "sha512": "e7be89fcab22236a658942d96607401d5d452e723599664e2eeeab693f45297ca8cf93b063469b83ab5dc642161ae47e4418f7caeadfa65c74806a53ba2e18cd"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260814230103.md",
+      "size_bytes": 36841,
+      "sha512": "51b8862d8fb3532f396b35a51dd53f69e1ca3ef0f71c7763120953bb42b4abb03e5a047172fa29eab1340c4774a9f4aaee9752b893814f92f5be68d044798b29"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_20260815101850.md",
+      "size_bytes": 4681,
+      "sha512": "7f080800c5ab66f49d12378ea84dc15cef1a76fadc0460e32a2b5e21bf5356db9d6ae9d668f53891565a13fb572278c01070ea3772eb5eb4b8e57ac084f20332"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/documentation_index_after_p2_0_wu_002_20260811210503.md",
+      "size_bytes": 1861,
+      "sha512": "2c1e6d5b81266018bfb95ce146726b4c8943f09e2a216868c42e6992a75f5358a668eb94d400570f4252c1a615024301846bf4260f1c4cac1f0eefe88a98df0f"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_after_bounded_read_retest_revision_20260811001918.md",
+      "size_bytes": 14400,
+      "sha512": "2053c9c448a7512ee3463c01d1f439dd067da0d53d11ebff8977d876803fd148f47697b0932faf3e7add4adb2e134c139525767e74303925fdff43bbfd27b05e"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_after_capability_contract_redesign_20260811231332.md",
+      "size_bytes": 18765,
+      "sha512": "2c482cf084274a5cde868a1ff9c73b545ae9e2a0c415f0223b612529800ea3c5dbe1c3b505aea7f5a0b71a37505b79837148b6c5c24c27669da345886c5e4355"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_after_delegated_escalation_and_handoff_correction_20260811130930.md",
+      "size_bytes": 19251,
+      "sha512": "0735e98d560c030f9437a733b3a26044ef699a1d4b698e1c5bb19019fe3869477cd1e87ec38c09d583e22c06e73b7836f6d35127072a0ddad25c269d9ec36363"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_after_delegated_role_dynamic_judgment_hierarchy_20260811124635.md",
+      "size_bytes": 18892,
+      "sha512": "52b642b09063059d6ab89b8e2a2f09f1117375544a2273cc2b1a890864e2b9f74a35c60f8692f57818682bc6893f04a949169ab49218e6ac18e19697d16209a0"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_after_document_authority_matrix_20260811013723.md",
+      "size_bytes": 15427,
+      "sha512": "bdc5b06acdc77c08898d37306c244411a9db09a80bd700a8691dcd71e0e5825384a28661c231671d979560f441d3bfc2eba55070cf6d7b785c8349a93b51a4a8"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_after_dynamic_documentation_and_general_hardcode_rule_20260811113401.md",
+      "size_bytes": 16977,
+      "sha512": "e67043d1812f492c4ed53ba9ca86b1a985ad6333e8d6cac115f6c254e757ecf10b487cf30a4a11a2f0801c86f3ee154e85427a4c09afc2a15c30b78b38c72ec6"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_after_dynamic_documentation_evidence_link_closure_20260811114801.md",
+      "size_bytes": 17256,
+      "sha512": "62333cd736205a06a6e1815db2c0a8f6c00fd239a5ad77ddc84359f30cd12011575c77248c18f513d09e35c5315994c6ccee5f54ed464c4cf6d7f63ce95e541e"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_after_gate_reconciliation_20260809210503.md",
+      "size_bytes": 12092,
+      "sha512": "317cf9f52499276232bb7d511c5e97e53ce564371a072a29ab16baff9dbdebe3eacff83f5c69fbc2f81e7b9424408d02b1c429396735ef7e76e683533772315d"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_after_initial_pilot_and_role_authority_redesign_checkpoint_20260811132741.md",
+      "size_bytes": 19487,
+      "sha512": "ff4a8f0929d55d3753113e25549a942ccbada6abd2719b52b686e1a11d24e38e31e56d2df14143e53132aa0c723b8cfe6bb2e709fd2f9e4b9d6180bfa1842405"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_after_initial_pilot_execution_20260811000435.md",
+      "size_bytes": 13321,
+      "sha512": "64a571f40b68d313183709c6cc815ee87624c2239f7983b3a8e77c7d4fbbd53634da9f1e762d2f2ab86934b7f2658de9431cd4fac8c4e170dde778e3809aeab0"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_after_mode_invariant_authority_correction_20260811104642.md",
+      "size_bytes": 16159,
+      "sha512": "9424dc373bbd61cd6ad61120555d20d89ac21d9c11fdf1ed8437ba09795682c13453489a43c93636d20a7eb88264dbcdfc47e4ef59e5c131d348f68c839e4807"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_after_p2_0_closure_alignment_20260812003750.md",
+      "size_bytes": 20194,
+      "sha512": "df84a9c58bfcec19eec0f8b1793020b3e6c0df92924b1a5fd39d03890e748d82fd844a82cbbd0474a70c60c8c574421076a74359fac8823f5476d18bcb63994d"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_after_p2_0_final_closure_20260812012339.md",
+      "size_bytes": 20711,
+      "sha512": "e6e75604a649c525ff712b2b86f0f2182a7df381fdf4799bc27b0fda89fa7b2a8861ca9f43f942b4c57bd80aae2b044604f69f355f6a1478357f0c46d560341c"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_after_p2_a_final_closure_review_20260812021546.md",
+      "size_bytes": 24296,
+      "sha512": "ecc23089af5308bb1b799bf802297be34e6243648dc22eca70e811dbf77ae37744cafa6c953e80caabbd680d2f9a996fc6e9b0b61e9f64231fc8d6ea3a159508"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_after_p2_a_wu_001_design_freeze_20260812015152.md",
+      "size_bytes": 22817,
+      "sha512": "fc091f1c573b0aa0020c1ad748def2c0be16455f33f2c50e993aceec3e39b90e0e454e5a66eb3c095f39f417207570ae28b23985c631b2c3bbf8ae49964a29d7"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_after_p2_a_wu_002_implementation_20260812020515.md",
+      "size_bytes": 23227,
+      "sha512": "6283e968b21d29b2bd52e37f1ce7435549f1796bbf4b6fa28e1f181680edf072c6f0b23d379a3adf414c7114a283b36886dde6ef249d8a279a23e81c159e6ba7"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_after_p2_a_wu_003_closure_20260812021052.md",
+      "size_bytes": 23715,
+      "sha512": "b0cd3e891cdb37537038b440606ddc8356305a71160eb4fb2e3b141daa77dc736e24b0de45a5ba9909f69c2839fff463a8e10ba9ba550eece0742ce6370cfbb3"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_after_phase_2_a_role_delegation_correction_20260814002302.md",
+      "size_bytes": 25775,
+      "sha512": "5d543970f81a797e708bb04e9d0cb24ee8da38a0b1ea2a518badfa6b2aa4c3426e1e423b65ce618e17d068a2cc10bba314f48de04a62ef33f6882990bc978db2"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_after_phase_2_a_start_20260812014331.md",
+      "size_bytes": 21358,
+      "sha512": "6b717af7f5de754f85acf8fcc4aa0efe700ce06c957b4f30a16668c1026e53d257a0e85de5544e9c338cde8cce57bc2772111821a3c116fd4c5c6020ccb49d73"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_after_phase_2_e_claude_handoff_ready_20260814230103.md",
+      "size_bytes": 36841,
+      "sha512": "51b8862d8fb3532f396b35a51dd53f69e1ca3ef0f71c7763120953bb42b4abb03e5a047172fa29eab1340c4774a9f4aaee9752b893814f92f5be68d044798b29"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_after_phase_2_e_cross_provider_completion_candidate_20260815101850.md",
+      "size_bytes": 40008,
+      "sha512": "117f4fda5cc5ec2e1124801f1d16e32f845e379cdb69c22cf90da50c9e56875ac7e755b42aaab95d259fb32f557c8be4662bdc63235584007e1d8e56dd1d1d6a"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_after_responsible_role_dynamic_judgment_consolidation_20260811122047.md",
+      "size_bytes": 17683,
+      "sha512": "c334c50fc5ff90af41e1f6e84811465a428cf0ae9d2a8dd29601cbf11fafd7635f3f8e0abf45903193a2dd76d12a868df3c0154249846779c643b88d90c7e5a4"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_after_role_authority_matrix_20260811010924.md",
+      "size_bytes": 14946,
+      "sha512": "a6c0b4d9258856ed2517a98bdffa15e92e0b376adebaf1e5f84853a3c4e5078ef2387591b5641c68c69d5d7bffd4289e3d6f4dbebaf25e208ecfd19be53a2dda"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_before_bounded_read_retest_revision_20260811001918.md",
+      "size_bytes": 13321,
+      "sha512": "64a571f40b68d313183709c6cc815ee87624c2239f7983b3a8e77c7d4fbbd53634da9f1e762d2f2ab86934b7f2658de9431cd4fac8c4e170dde778e3809aeab0"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_before_capability_contract_redesign_20260811231332.md",
+      "size_bytes": 19172,
+      "sha512": "95712d109f5e6dc3dfd3001a600d9aa787ff2908cff87ca5e105dd3b1fbb69f84f437539f5b5485335e489e6d01dfda11f58fa604e6788a1db1717746fb1bbce"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_before_delegated_escalation_and_handoff_correction_20260811130930.md",
+      "size_bytes": 18892,
+      "sha512": "52b642b09063059d6ab89b8e2a2f09f1117375544a2273cc2b1a890864e2b9f74a35c60f8692f57818682bc6893f04a949169ab49218e6ac18e19697d16209a0"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_before_delegated_role_dynamic_judgment_hierarchy_20260811124635.md",
+      "size_bytes": 17683,
+      "sha512": "c334c50fc5ff90af41e1f6e84811465a428cf0ae9d2a8dd29601cbf11fafd7635f3f8e0abf45903193a2dd76d12a868df3c0154249846779c643b88d90c7e5a4"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_before_document_authority_matrix_20260811013723.md",
+      "size_bytes": 14946,
+      "sha512": "a6c0b4d9258856ed2517a98bdffa15e92e0b376adebaf1e5f84853a3c4e5078ef2387591b5641c68c69d5d7bffd4289e3d6f4dbebaf25e208ecfd19be53a2dda"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_before_dynamic_documentation_and_general_hardcode_rule_20260811113401.md",
+      "size_bytes": 16159,
+      "sha512": "9424dc373bbd61cd6ad61120555d20d89ac21d9c11fdf1ed8437ba09795682c13453489a43c93636d20a7eb88264dbcdfc47e4ef59e5c131d348f68c839e4807"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_before_dynamic_documentation_evidence_link_closure_20260811114801.md",
+      "size_bytes": 16977,
+      "sha512": "e67043d1812f492c4ed53ba9ca86b1a985ad6333e8d6cac115f6c254e757ecf10b487cf30a4a11a2f0801c86f3ee154e85427a4c09afc2a15c30b78b38c72ec6"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_before_gate_reconciliation_20260809210503.md",
+      "size_bytes": 11326,
+      "sha512": "38656de2f28c9415b783c3884c84e842a66a387ecd9c9ec470cba5b5a856910bbfb997c65192d887c41ad2ab1cecb7abbb20b7476188517200667d8526e07d2e"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_before_initial_pilot_and_role_authority_redesign_checkpoint_20260811132741.md",
+      "size_bytes": 19251,
+      "sha512": "0735e98d560c030f9437a733b3a26044ef699a1d4b698e1c5bb19019fe3869477cd1e87ec38c09d583e22c06e73b7836f6d35127072a0ddad25c269d9ec36363"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_before_initial_pilot_execution_20260811000435.md",
+      "size_bytes": 12092,
+      "sha512": "317cf9f52499276232bb7d511c5e97e53ce564371a072a29ab16baff9dbdebe3eacff83f5c69fbc2f81e7b9424408d02b1c429396735ef7e76e683533772315d"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_before_mode_invariant_authority_correction_20260811104642.md",
+      "size_bytes": 15427,
+      "sha512": "bdc5b06acdc77c08898d37306c244411a9db09a80bd700a8691dcd71e0e5825384a28661c231671d979560f441d3bfc2eba55070cf6d7b785c8349a93b51a4a8"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_before_p2_0_closure_alignment_20260812003750.md",
+      "size_bytes": 18765,
+      "sha512": "2c482cf084274a5cde868a1ff9c73b545ae9e2a0c415f0223b612529800ea3c5dbe1c3b505aea7f5a0b71a37505b79837148b6c5c24c27669da345886c5e4355"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_before_p2_0_final_closure_20260812012339.md",
+      "size_bytes": 20194,
+      "sha512": "df84a9c58bfcec19eec0f8b1793020b3e6c0df92924b1a5fd39d03890e748d82fd844a82cbbd0474a70c60c8c574421076a74359fac8823f5476d18bcb63994d"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_before_phase_2_a_role_delegation_correction_20260814002301.md",
+      "size_bytes": 24296,
+      "sha512": "ecc23089af5308bb1b799bf802297be34e6243648dc22eca70e811dbf77ae37744cafa6c953e80caabbd680d2f9a996fc6e9b0b61e9f64231fc8d6ea3a159508"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_before_phase_2_a_start_20260812014331.md",
+      "size_bytes": 20711,
+      "sha512": "e6e75604a649c525ff712b2b86f0f2182a7df381fdf4799bc27b0fda89fa7b2a8861ca9f43f942b4c57bd80aae2b044604f69f355f6a1478357f0c46d560341c"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_before_phase_2_e_claude_handoff_ready_20260814225735.md",
+      "size_bytes": 34137,
+      "sha512": "e5658614c661096581975b674dc0326deb0d3da88089ff1cb9615e00f1613701f217501c2095c7b79f06903c8d71958593db8873574c1fee6f12b4fadff1d5a6"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_before_phase_2_e_cross_provider_completion_candidate_20260815101850.md",
+      "size_bytes": 36841,
+      "sha512": "51b8862d8fb3532f396b35a51dd53f69e1ca3ef0f71c7763120953bb42b4abb03e5a047172fa29eab1340c4774a9f4aaee9752b893814f92f5be68d044798b29"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_before_phase_2_final_closure_ja_20260821031052.md",
+      "size_bytes": 40008,
+      "sha512": "117f4fda5cc5ec2e1124801f1d16e32f845e379cdb69c22cf90da50c9e56875ac7e755b42aaab95d259fb32f557c8be4662bdc63235584007e1d8e56dd1d1d6a"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_before_pilot_authority_correction_20260811005738.md",
+      "size_bytes": 14400,
+      "sha512": "2053c9c448a7512ee3463c01d1f439dd067da0d53d11ebff8977d876803fd148f47697b0932faf3e7add4adb2e134c139525767e74303925fdff43bbfd27b05e"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_before_responsible_role_dynamic_judgment_consolidation_20260811122047.md",
+      "size_bytes": 17256,
+      "sha512": "62333cd736205a06a6e1815db2c0a8f6c00fd239a5ad77ddc84359f30cd12011575c77248c18f513d09e35c5315994c6ccee5f54ed464c4cf6d7f63ce95e541e"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/index/phase_index_before_role_authority_matrix_20260811010924.md",
+      "size_bytes": 14410,
+      "sha512": "db9aff9b4cbf658ca5c066d11ce0749a4e72fdf4e26da3ebd152553ebb48026f2a1c79cbfe5124c92d3d385036967caa077d24c3dd3caccf7c3ab3bacabf9d43"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/claude_phase_2_e_acceptance_matrix_ja_20260815004739.md",
+      "size_bytes": 7250,
+      "sha512": "9412696b49e3105273b9017f8de8692c85d012b138cb76a2972b56b34b85837890a41a9cad01ef47ce7a8d505713d2471c068a80bc71e983020595f90dd335c3"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/claude_phase_2_e_conformance_review_ja_20260815075219.md",
+      "size_bytes": 7451,
+      "sha512": "0a6292061d3fde5dd9ff41af553717e9d5234f0446f6652b2b26581e429793756987172c90ada3ea60e57652ce4c76906b515a08ef0306a881830f41bdc03eb3"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/claude_phase_2_e_design_review_and_freeze_ja_20260815010500.md",
+      "size_bytes": 5162,
+      "sha512": "a7cc51f9c1528e93ae82700f3fd2ca36e0913b4a79193852648a0200837192de5ecfafc383ed8e2d5620947547500fe2bf9ce93bc6ab54d056c8e4bb5319a07b"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/claude_phase_2_e_evidence_correction_p2e_codex_004_ja_20260815084348.md",
+      "size_bytes": 10444,
+      "sha512": "dcb03a74e8ab5451cb531760365e7352450444c17f7fbc509b27214fbe4978cf1c6f50bf345c1c77832359c52e389f4f1bd8fab112cdee66f3132bb6e9736eda"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/claude_phase_2_e_mutation_manifest_ja_20260815004739.md",
+      "size_bytes": 8631,
+      "sha512": "d09c94ff082af34add349bf9ec434032f19599c505d4e51adaa3e779e6a885d7bb4420ab6d2556c9348f1c5d1aa550093f824cabdeae55abf35039b11aef2e4a"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/claude_phase_2_e_real_mac_migration_and_rollback_procedure_20260815092359.md",
+      "size_bytes": 8341,
+      "sha512": "ed954eb41e9b86dd5027732c73da65715deea61ec5ff60cf7df5910c8d66a11240c4d6d7373050a94a82572483fa0c2632f8adbff4e498015e7925df7d8299b3"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/documentation_rag_retrieval_relevance_and_static_results_known_issue_ja_20260819113116.md",
+      "size_bytes": 5478,
+      "sha512": "2476df9f1f9b8574957969a3b9663628103e46d9b969cb8a1292070b357b6cdda8e758ca04a720ad068e7acbdc4574cc301628a21f626608d71bed8fab2b5fa1"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/documentation_rag_root_cause_investigation_pre_fix_ja_20260819181056.md",
+      "size_bytes": 5553,
+      "sha512": "2260aa9eae35a2ac3191b533d50ea92b725f8826f02999a40f14b95e90a2ce8ec352223a72b371f58faabf2e895bd2d193acce9d25ed9d6b1fc6d7d3178a7ccc"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/documentation_rag_subject_coverage_self_citation_known_issue_ja_20260818002529.md",
+      "size_bytes": 8244,
+      "sha512": "298b99e1eb9b7df77c607eabb22858981e28c8f606f8a799bf4a694202f51520a0b8bacd83c2478b72a3f361c45babf9bd0c88c53bc72fb2d86d31ac87a4a970"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_architecture_after_automation_control_revision_ja_20260809181100.md",
+      "size_bytes": 11485,
+      "sha512": "e20ace3b99e189e42309a4d846d049740af4543544102ce617e7d7cbe792053e35544c6331103dfe7c0a50b8dc9b4899a3b8ce3b76b555382eddf79bf18fa66a"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_architecture_before_automation_control_revision_ja_20260809181100.md",
+      "size_bytes": 10131,
+      "sha512": "c9b2c9fb8e9c5dbae4e1ced9322acbcac6f33d5bfd2ead4102b2613180b344143e2f8c48bbf1b3e7db1e8aebaabeac312c36610f38e06932f2f141f2bde31b6f"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_authorization_envelope_before_full_pre_pilot_governance_consolidation_ja_20260809195620.md",
+      "size_bytes": 7699,
+      "sha512": "92d5f3e3b6d173ca754af5d458619c30c618035decb7ae8fb99faceda1cbe720068e9a40625c1f128490cfcdbf3aca8e9b2591cdd1908919fa9cc46de016e705"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_automation_pilot_cumulative_controller_review_20260812002752.md",
+      "size_bytes": 22123,
+      "sha512": "c2d9f48dbb6e955f5b46ad5d3ea7472125400f9411128954b80933582cb2e152bae27be167ef8b626d5e7a5817f6c99c8cbdac08f5a9c4acbc91a21ffce047ec"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_automation_pilot_execution_plan_after_bounded_read_retest_revision_ja_20260811001918.md",
+      "size_bytes": 8996,
+      "sha512": "69cdfac093d4773109355bb301df77ee2a76d32933431dae5f57244f9323adc4605aad9ecd56e2fe0106da74d291d598ff1381bcb67c98a71df9eb203a964cfb"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_automation_pilot_execution_plan_after_capability_contract_redesign_ja_20260811231332.md",
+      "size_bytes": 13843,
+      "sha512": "9e539e423940b462d17a7c990d68524f7c88b85215a316b568a372da88b784b5b3f48abe92cd981d737efcd35ed54afc7b9abb2c2d9853574045b7645cc1d06d"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_automation_pilot_execution_plan_after_delegated_role_dynamic_judgment_hierarchy_ja_20260811124635.md",
+      "size_bytes": 11930,
+      "sha512": "d63f3d3ccf17156fde11c99870e2136555b41d04b55cc6c77413b0ae553ec474be827fca709404997ff314474807d2394e9daf5a3fa2f3e914f6c3f9bff37232"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_automation_pilot_execution_plan_after_document_authority_matrix_ja_20260811013723.md",
+      "size_bytes": 9646,
+      "sha512": "1f8a02e58f0c288112835e72b3ecf7cc31b556ea496731610b684b0309138020cd1ba37a85004a87104210b7fcfa8001b1e46c465d1f559286a3d8e4b0dd784f"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_automation_pilot_execution_plan_after_dynamic_documentation_and_general_hardcode_rule_ja_20260811113401.md",
+      "size_bytes": 10931,
+      "sha512": "cca012dc4c783c5313af847492faa8441890968905347ddb2a2300e6d65079006988bd6714072216568b5258629e09c43472bafd46ba10b3b033ca8ca070ccd3"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_automation_pilot_execution_plan_after_gate_reconciliation_20260809210503.md",
+      "size_bytes": 12077,
+      "sha512": "d4539dfd705f4752696035a1b3bd374bdca712fcc1b82c165766d0cad34954bc9e450e870ec5e1e71240e6f49bd6d3b43b2076dfff20286825574a2eb52645b9"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_automation_pilot_execution_plan_after_p2_0_closure_alignment_ja_20260812003750.md",
+      "size_bytes": 14677,
+      "sha512": "93b0503a0a76994c1a96fa6fc3b9dea0088a491147bc401713c3cee6381fd6dc3c0d30c2f230d49fb57c9a3a6778ed8ff18d162e16466befd951f5bd8efd97f5"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_automation_pilot_execution_plan_after_p2_0_final_closure_ja_20260812012339.md",
+      "size_bytes": 15058,
+      "sha512": "d109c5def7e3f6da08a78fe73dd11cf30607020fe3bf28225d88a3fa5407138565d2c896dec9ee65d33a5904d678296685511891f85d938989e81a18713c36a7"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_automation_pilot_execution_plan_after_responsible_role_dynamic_judgment_consolidation_ja_20260811122047.md",
+      "size_bytes": 10615,
+      "sha512": "af1f128a3fc9f629a0c172c0d6c4a8d6fd245ac5a6aa90e1607d1edabc59b579ffa2cf55f072a9f8619605f0080a60d77a78474dbce7b772496785814b442719"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_automation_pilot_execution_plan_after_role_authority_matrix_ja_20260811010924.md",
+      "size_bytes": 9572,
+      "sha512": "d5a3f278a4f3d00a6c1c4d5eda5cf426bb30c6b6e4149801747c02954669064a533cbcf9e5dee9ca178623d77cbcebeb662ab5e23192b7f7cb5ce07031930dde"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_automation_pilot_execution_plan_before_bounded_read_retest_revision_ja_20260811001918.md",
+      "size_bytes": 12077,
+      "sha512": "d4539dfd705f4752696035a1b3bd374bdca712fcc1b82c165766d0cad34954bc9e450e870ec5e1e71240e6f49bd6d3b43b2076dfff20286825574a2eb52645b9"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_automation_pilot_execution_plan_before_capability_contract_redesign_ja_20260811231332.md",
+      "size_bytes": 12198,
+      "sha512": "2ddb06e2b45b68c0977f975607e58a00335d8bcf519433d2a53b93a68580c68be7f6e4d26322b26ff156a708b648cacb2c397b129c2b6957b9a513ea876757b1"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_automation_pilot_execution_plan_before_delegated_role_dynamic_judgment_hierarchy_ja_20260811124635.md",
+      "size_bytes": 10615,
+      "sha512": "af1f128a3fc9f629a0c172c0d6c4a8d6fd245ac5a6aa90e1607d1edabc59b579ffa2cf55f072a9f8619605f0080a60d77a78474dbce7b772496785814b442719"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_automation_pilot_execution_plan_before_document_authority_matrix_ja_20260811013723.md",
+      "size_bytes": 9572,
+      "sha512": "d5a3f278a4f3d00a6c1c4d5eda5cf426bb30c6b6e4149801747c02954669064a533cbcf9e5dee9ca178623d77cbcebeb662ab5e23192b7f7cb5ce07031930dde"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_automation_pilot_execution_plan_before_dynamic_documentation_and_general_hardcode_rule_ja_20260811113401.md",
+      "size_bytes": 10204,
+      "sha512": "e0f63ef5f94fcea9ea377c8f2099bc00f701fb062717c25eb227c51fd5d2115bb95407f7bae4b039f0eee788655a390c7d39795161b456979e7d3c88936fed25"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_automation_pilot_execution_plan_before_gate_reconciliation_20260809210503.md",
+      "size_bytes": 10656,
+      "sha512": "ea3b6684b32b06d06281531ead0da04069dda23f964cb604b80ead0408ab0a57a79714830a25324fe7e6eacb89926e96865476cf5dd2c7d160bccd375051d0e9"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_automation_pilot_execution_plan_before_p2_0_closure_alignment_ja_20260812003750.md",
+      "size_bytes": 13843,
+      "sha512": "9e539e423940b462d17a7c990d68524f7c88b85215a316b568a372da88b784b5b3f48abe92cd981d737efcd35ed54afc7b9abb2c2d9853574045b7645cc1d06d"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_automation_pilot_execution_plan_before_p2_0_final_closure_ja_20260812012339.md",
+      "size_bytes": 14677,
+      "sha512": "93b0503a0a76994c1a96fa6fc3b9dea0088a491147bc401713c3cee6381fd6dc3c0d30c2f230d49fb57c9a3a6778ed8ff18d162e16466befd951f5bd8efd97f5"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_automation_pilot_execution_plan_before_pilot_authority_correction_ja_20260811005738.md",
+      "size_bytes": 8996,
+      "sha512": "69cdfac093d4773109355bb301df77ee2a76d32933431dae5f57244f9323adc4605aad9ecd56e2fe0106da74d291d598ff1381bcb67c98a71df9eb203a964cfb"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_automation_pilot_execution_plan_before_responsible_role_dynamic_judgment_consolidation_ja_20260811122047.md",
+      "size_bytes": 10931,
+      "sha512": "cca012dc4c783c5313af847492faa8441890968905347ddb2a2300e6d65079006988bd6714072216568b5258629e09c43472bafd46ba10b3b033ca8ca070ccd3"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_automation_pilot_execution_plan_before_role_authority_matrix_ja_20260811010924.md",
+      "size_bytes": 9184,
+      "sha512": "03407a92fdf133af84d991207c649b03332845cde54ed9c856b5be5ba0b58445642ad9dd9f9b1a6b7d8fbd1ba122479d443d20b879bd6bb45380fb5a218cf1e1"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_blocker_correction_and_closure_ready_20260812004603.md",
+      "size_bytes": 6496,
+      "sha512": "389aa34c464d742d48e2230989a21430ba1ec2d9d83de5f340efe4e039199b2d89d6cbfc98d4ccc78c77e783d8b6837987c1676f158f0b6f41c72e876d967586"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_bounded_documentation_write_candidate_p2_0_wu_003_20260811220630.md",
+      "size_bytes": 7715,
+      "sha512": "45fae66ea8566aeff63aa6450ea937952b5d9db0081e5ad78e53eaa5a3b4525a85ee878261ff124ca1b35a02336b209286a008886fcaf87ea9837d8e849df727"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_bounded_documentation_write_freeze_receipt_p2_0_wu_003_20260811222544.md",
+      "size_bytes": 4808,
+      "sha512": "4546213a5b475ddb6ae7fd55a63c904bbec87b4e06de4ba1bdba7bcebe6d5a69577797fe803c12fa0536c1630547524a0db58f5a8b23e2a862f2ca53f8185ed4"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_bounded_documentation_write_freeze_receipt_p2_0_wu_003_exact_1_20260811223702.md",
+      "size_bytes": 4780,
+      "sha512": "1905de40d99e996365c6b3c204cb6658241f846a4d1c411803d5332e8b0812ef29ae8b6d554aa3b2e10ccaa773fec0ce3a65629e7a63841d4663bb7e9293a600"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_bounded_read_retest_freeze_receipt_20260811004534.md",
+      "size_bytes": 7981,
+      "sha512": "2f00847d0e2f9a77a9cf165a3b8ae16a6f7b1b808f452a6cb1546b5cb77ac08f3df829a8e36579a790a052f1879d1f4ee7589d592189e9a8dd0cba0ad318db6d"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_bounded_read_retest_freeze_receipt_20260811010201.md",
+      "size_bytes": 7654,
+      "sha512": "e9fbb1cc713162d9ae1391762c20d8b0f4b56525286aacccbb54b9d4c74da0d2a0672799f8df3a913f6cc68d3f70bebaf692e7d95700789581ac2ebe38d31c05"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_bounded_read_retest_freeze_receipt_20260811205201.md",
+      "size_bytes": 10469,
+      "sha512": "e338874a27e78ab2d4af36133225b996f6ce08450f8329d560023cfe198e752ebefebbd68343bbd36aa0bc037ee0998f072f90fbc40d6d6291657d2d463eb81c"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_bounded_read_retest_freeze_receipt_20260811205659.md",
+      "size_bytes": 10720,
+      "sha512": "64a6ac62654c03df2c70fe0f7953e61982ca4f7cc95cf77b5429891b3950113d7a3133b89910225420f6bb14c7c1e8259fc9d6f4b21d1fb3f97846f746ed2f97"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_bounded_read_retest_freeze_receipt_20260811210503.md",
+      "size_bytes": 11985,
+      "sha512": "8822385701a036da209bdc01a4de79e4f780873e4d24d71238ead035d65a13f56b497f78717b3d8c4c49704714954a138b71f7de5d780e27419b563d570b8d0e"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_bounded_read_retest_redesign_20260811001918.md",
+      "size_bytes": 5125,
+      "sha512": "82a2936069bbe9c27fddc5f4aa05c741cd3a47fe8eaef66aad6275b9d496be5ac94808d1852769d68079b4a6c68d38451a3c57c3e4ae928fd9f938b13e735f2b"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_bounded_read_retest_review_20260811210503.md",
+      "size_bytes": 5061,
+      "sha512": "db4f1593b53779314031ec78a05cee1ad7e21d0983b7bcd58752a83d5c6d2e85dda015a34ade2b6c335c6700167c2fe88f46822df081d7f6ec10eed7313e4af1"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_bounded_read_user_acceptance_p2_0_wu_002_20260811220630.md",
+      "size_bytes": 1901,
+      "sha512": "3466c4e064dfe061824d0905e6f4c47dd28fae56bb701c7946f1824b7acf71d3ea536115f6898fea0bc5584ef0909418a49e3e3f4e915acd8f70f0b0b69089b5"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_bounded_write_controller_review_p2_0_wu_003_20260811225656.md",
+      "size_bytes": 7925,
+      "sha512": "e443c4e0371f084f5329cf681d83b6fdd94f623f85607bc6a7adc35fbd60a36bcbdc6d366b9dfa53db145e5e047a37a7e2a8e304a7038028d94a1fd034ca2c31"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_bounded_write_corrected_ack_review_p2_0_wu_003_20260811223953.md",
+      "size_bytes": 2461,
+      "sha512": "a103c92f8636bcdf657fa535d624e4806131531fa3d9796138ddd96e779b0d872b99a55d156e6bdc42f5b991994e9764f142a6f705b1b45676a1eb92bf6ea762"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_bounded_write_initial_ack_review_p2_0_wu_003_20260811223702.md",
+      "size_bytes": 3489,
+      "sha512": "599b4903240c8b6f16dafd1a014df56b6dad6d91fb10011dac563d9d6fdf8a968e214fb386d5e1c8ad4d8a2f67996d599eccd5916f25e697a803b7c77be20bde"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_capability_contract_redesign_after_p2_0_wu_003_20260811231332.md",
+      "size_bytes": 4686,
+      "sha512": "1a40e0f32e50e474ade8ed4928b08b1bdec3b2bf39a8166314b889a083114cbf4d13041ba2a8d74a42f469cb28664a88a6930a6f41b1ec32dc037e8637e71b24"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_delegated_escalation_and_handoff_correction_20260811130930.md",
+      "size_bytes": 7510,
+      "sha512": "7a45c130dce7575ab093c667023c7c4ee17dbc28048f8ce1b48a1786c31e1f684c9aea5803f1a8b4a75aa51d1ce7039825254775ada1b9cbf4185b9e2a798ab4"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_delegated_role_dynamic_judgment_hierarchy_20260811124635.md",
+      "size_bytes": 10108,
+      "sha512": "179bab1827d4cb62682c8b6c6f9003eb6ccf64bc1c6831e2851c6e5a78c9a05ac0c855da203834cbb145f96241eaf1888873a8a47bc47624606ca19f81684d53"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_documentation_capability_conformance_result_p2_0_wu_004_20260811233209.md",
+      "size_bytes": 10403,
+      "sha512": "43efb5a9d32ae42c7acf80b110b5d1a826066e1f8698096283bfa096c992e58257dbb2fe0518e0ba15078eb2329bd0f2b2749a7945ef0f0175affbd38fe7d6fe"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_documentation_capability_controller_review_p2_0_wu_004_20260812001515.md",
+      "size_bytes": 5753,
+      "sha512": "d76e6d471f644395ab08bf9dd0b7383e22f35c1585d6fa845487d05c27be7eb8315939afeb95e64e2c587a9eecd6802189b7cfec6c20bd52c61e1ffa25957616"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_documentation_capability_corrected_ack_ready_p2_0_wu_004_20260812000533.md",
+      "size_bytes": 4821,
+      "sha512": "bc572bfb2869d3fb0e9bd94441e39d2fb52480d1f74e207ceec3106e7da065b20b74640280f615fef8446b59d8b5ae6fa22cf7a30df8ad9749b95cedcc55b1b4"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_documentation_capability_freeze_receipt_p2_0_wu_004_exact_1_20260811233209.md",
+      "size_bytes": 7076,
+      "sha512": "060b7ee9abd6bb173663265f1209051cae1d41c02c2ad96220eb65dd1697e9ce4a7d093a7e1e2ae851bdc1296258990ae36f5a189b6f057f6d972fe68c8e93d9"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_documentation_capability_initial_ack_review_p2_0_wu_004_20260811234420.md",
+      "size_bytes": 5144,
+      "sha512": "0b0a2ae4797a3eea0469159cbbbf7bf620cce374aa51258ff3d8316ecf39c85546dfb7324ce845d4489b667e4c626dffbabc45b33f3306f2575c3f8374fd8d54"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_documentation_capability_package_review_p2_0_wu_004_20260811233847.md",
+      "size_bytes": 6271,
+      "sha512": "4a91f75183ff0386673401d4ace3dbbc8f8ba1f2723ffaeda5a530a7e90a73c926f4664b9c0ee950d0f2b3a993e77a7c4fe441dd4042619c74d30f860bc2934b"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_documentation_capability_user_acceptance_p2_0_wu_004_20260812001837.md",
+      "size_bytes": 3693,
+      "sha512": "2dab921e186e3d217d4f1e0ed7924e2aaa14e56778c30729b9636d5c9b45048aa669a2caee985ea971100d27b9313bb5e78ab816f1ca711155672c0a4956996b"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_draft3_to_document_authority_findings_20260811013723.md",
+      "size_bytes": 5695,
+      "sha512": "b93e72bf21998f3a575c60951dd972c321d7bb87da61613e964800dd4df6030178ef6301b7a3eb3e1ebe9cf424ca519a539cf2a02efc3f4204c4352a80ae0360"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_dynamic_documentation_resolution_and_general_hardcode_rule_20260811113401.md",
+      "size_bytes": 11047,
+      "sha512": "07374e7a17f5d0713dfbf2464c2ad464f76b9ded929774670a4e9778a3f1bb13f3c30ab97d28c5f62725eeff16be435188504199433657e09c61eba1f2fe1dd2"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_envelope_after_automation_control_revision_ja_20260809181100.md",
+      "size_bytes": 7699,
+      "sha512": "92d5f3e3b6d173ca754af5d458619c30c618035decb7ae8fb99faceda1cbe720068e9a40625c1f128490cfcdbf3aca8e9b2591cdd1908919fa9cc46de016e705"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_envelope_before_automation_control_revision_ja_20260809181100.md",
+      "size_bytes": 7150,
+      "sha512": "3a4177bbf59a3b417fb095e38779a615845ce8b1c67c87d6efbdfff81d05859df443293f2f07cc729df5fe17434d3db016612765acb194f800b60bde401439c2"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_execution_plan_after_automation_control_revision_ja_20260809181100.md",
+      "size_bytes": 8594,
+      "sha512": "c3eb06a5187edf3c3c2c5ade0c05da774156c7835b6be8e8b504d0052f93e17744d97575f4165d63b2ffff4f43c79c461544c55957396e802a8073b8c36d395a"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_execution_plan_after_full_pre_pilot_governance_consolidation_ja_20260809195620.md",
+      "size_bytes": 10656,
+      "sha512": "ea3b6684b32b06d06281531ead0da04069dda23f964cb604b80ead0408ab0a57a79714830a25324fe7e6eacb89926e96865476cf5dd2c7d160bccd375051d0e9"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_execution_plan_after_human_only_supreme_rule_revision_ja_20260809191956.md",
+      "size_bytes": 9379,
+      "sha512": "71cf02d0894a21ab997317cbe8e376d03ebc0f1792912b91846c42c2cf4910493ca2fc79db6d963d68813dd328726a5254f0aa25ea1a7d41ab535406c3a864a3"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_execution_plan_after_pre_pilot_checkpoint_revision_ja_20260809184134.md",
+      "size_bytes": 9095,
+      "sha512": "64c61db2029a2af25717eb8e541900898e6912d35f38ad2a53b335b68b7259bd95d67d4de7e683eef0ea0bee28390f87d220115135ffcfbda06aa5a727f02840"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_execution_plan_before_automation_control_revision_ja_20260809181100.md",
+      "size_bytes": 7299,
+      "sha512": "5cf59a5e19e0334140b1c499f22132fb7b6e0f020bcd808825cd27767d067aeacd713be415f81d6b2e153cf1a94fb8ea7fb04e749a3eb21986962e4235ad9ab1"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_execution_plan_before_full_pre_pilot_governance_consolidation_ja_20260809195620.md",
+      "size_bytes": 9379,
+      "sha512": "71cf02d0894a21ab997317cbe8e376d03ebc0f1792912b91846c42c2cf4910493ca2fc79db6d963d68813dd328726a5254f0aa25ea1a7d41ab535406c3a864a3"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_execution_plan_before_human_only_supreme_rule_revision_ja_20260809191956.md",
+      "size_bytes": 9095,
+      "sha512": "64c61db2029a2af25717eb8e541900898e6912d35f38ad2a53b335b68b7259bd95d67d4de7e683eef0ea0bee28390f87d220115135ffcfbda06aa5a727f02840"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_execution_plan_before_pre_pilot_checkpoint_revision_ja_20260809184134.md",
+      "size_bytes": 8594,
+      "sha512": "c3eb06a5187edf3c3c2c5ade0c05da774156c7835b6be8e8b504d0052f93e17744d97575f4165d63b2ffff4f43c79c461544c55957396e802a8073b8c36d395a"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_final_alignment_correction_20260811204741.md",
+      "size_bytes": 1873,
+      "sha512": "4760483d7b16a668d7f717fecf0840c170db02b7b95cd93f901306715161d15b218987fa70c090636668f2df8e9355a70d80989ffc6150af08038bd5c569280c"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_final_closure_acceptance_and_phase_2_a_ready_20260812012339.md",
+      "size_bytes": 3644,
+      "sha512": "463643f14b0774686db3dc102fbb3ba0d701c7f00ab25798f073732ddb37899dcd00de1d1e69178bc18d5dd158ddb77f7fd7d5fb94a0573e469460a929d94c2e"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_git_checkpoint_postflight_20260811134922.md",
+      "size_bytes": 3042,
+      "sha512": "9272b3091479c7a0331be8e23c2dd2b6e060694b858bfb0a8e34a1e09696bbb592484e19b001ae2e4cbb464f383492deb4f0965d081221fa4d4976762aa98025"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_handoff_after_automation_control_revision_ja_20260809181100.md",
+      "size_bytes": 6681,
+      "sha512": "da6226cc894220c49a4e42b6dba0af14c8a3211124ba48b37194e0bc04bad7c51f931921cf0546f1e74155222e5283c146f41a6c97755fc80f765fdbfbbaf582"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_handoff_before_automation_control_revision_ja_20260809181100.md",
+      "size_bytes": 5975,
+      "sha512": "e88b9559955b20679a1c283657931b6112a62fb9c1ecddbfa439a146e60ff19609b0a309902c3b96b2ae2e5d0360e2fae90fbe4337c18d87b8174fd0cd6d98cb"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_initial_automation_pilot_execution_evidence_20260811000435.md",
+      "size_bytes": 6238,
+      "sha512": "dd0a5f90fd20996b65e6d816bf474480f39b6885a77aa6059c20b63f3856f29ea7bf2880836b7fdb8b3321b5ab128a60f82f02d953647f5373bcd6af05fd1da0"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_layered_recovery_operational_view_result_p2_0_wu_003_20260811220630.md",
+      "size_bytes": 14293,
+      "sha512": "5f552de7d61b3e57c4fae0e25af262a8a071ffc008ad1267f9d18fb96f434780131fc5e5f4655503b0cd703febf9b0e2cda7e7f22d010c83bdbb4b268a3f8154"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_mode_invariant_role_and_document_authority_correction_20260811104642.md",
+      "size_bytes": 5300,
+      "sha512": "63caf67346d36eed5c9b2d009e95611c9c22d41c3a6e6607e2891c5a186ef669ff04a78b91a236993eb66afd3ed7e6b2c53b5d9a2e1ec2103f0d3e6991069b88"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_requirements_after_automation_control_revision_ja_20260809181100.md",
+      "size_bytes": 12699,
+      "sha512": "1862d02e14ceb196a318c6f6a6b65deb5767212b1f4aa19cafa3eb7a084a342de3402dd6dd076a8c60cfc0579a2b1025574a6f97e5ff24ca31dd8d4aeadee378"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_requirements_before_automation_control_revision_ja_20260809181100.md",
+      "size_bytes": 10290,
+      "sha512": "d7e21cdd26821f7058fadefd21f32c0c5311d9cbd35aacaeb51baafcb3952ddefdea46ece9af9b5c98d9980a0de8dc7afdc3a2872df6c03506ec401cc6632c02"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_responsible_role_dynamic_judgment_correction_20260811122047.md",
+      "size_bytes": 10438,
+      "sha512": "cacf6915b4d599733fc60c797e12accc7b4eff8cc31293dde95de591a9e706ddf7995eee89dd125dde5c4f8f2052da1cf18ec512d14e384c4417f478de86dc71"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_roadmap_and_checkpoint_state_refresh_20260811132741.md",
+      "size_bytes": 4863,
+      "sha512": "524b1961e8141e9f245850140b47212b51d7e6b0e2ce56897a5d35d8b9d38587f1632b8a754b00b07aa83fd772667b975f8bb80ab81cfd949031b2fb90c3b013"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_0_role_authority_matrix_redesign_20260811010924.md",
+      "size_bytes": 3745,
+      "sha512": "5633d2716439abb9d61f96934a02147507baedb2caca1d21d938e64936a564b581f3530bef3a24a451b95f99061118490011b27c0a253c82f7c8e92536f03aed"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_a_bounded_automation_execution_evidence_20260812021546.md",
+      "size_bytes": 2611,
+      "sha512": "aa4cddcebf2b5c22785f085433f42f6256b7843e481f2f7a5c28699ca9e47649fd352817c12954f40708e96c01ce0e462dd4e39a7c4c54e91b988a680e72aa85"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_a_role_delegation_evidence_correction_20260814002301.md",
+      "size_bytes": 4231,
+      "sha512": "84e6491af1ef3a159c71ab90def4e7a312ac3ed0565a1c3ae44c226a7fd5b609f5b27e54f9a81a718eb4864fa2112ffe112e99b0d52001966dc6b1ede3acd0e6"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_a_start_and_automation_activation_receipt_20260812014331.md",
+      "size_bytes": 3605,
+      "sha512": "29a7fee1f774bf7ad965e96d768d21c7f92d1b336c47333cc29ac57eced4c4ea040eb4b5210928123c2795a868ab516788fbd7bbcd48b925174c43d39077268d"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_a_to_d_user_manual_acceptance_20260814210500.md",
+      "size_bytes": 2825,
+      "sha512": "6a40e5c1f78dc66068a646cd6beb68dc8f33842001343130403c1996567e9f41e98f11610a7da99709eeaef06351c7806963ed124769e62b65550b3c0cf9be21"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_a_wu_001_design_freeze_correction_receipt_20260812021546.md",
+      "size_bytes": 2208,
+      "sha512": "aeb842d7f212f20e3c1a6f7f41b4c34bb895a6614270bf6f4fe0f98574fb6bdc6400612afafa71a58c6ab4adc1961e05b22eb37edfe0ad9f699d26cf59493ae9"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_a_wu_001_design_freeze_receipt_20260812015152.md",
+      "size_bytes": 3292,
+      "sha512": "e3a20489aca2cb49e8a3b1277136f4bdbb2ce4a86886ac6ab80e14ac67ed2b6d896cbd411b4185047a6ef1efbac3da01a64a300da03150cbf26e54db756c472d"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_a_wu_002_controller_review_20260812020515.md",
+      "size_bytes": 1485,
+      "sha512": "e1a74bb90eac689c77652f09af424b7e12b39a3b146244fae7c818a86467892cdef8ddc0405811e38e2434ba86539c5904dc060adb74fb30df6c7cfc2e8d211f"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_a_wu_003_closure_review_20260812021052.md",
+      "size_bytes": 2738,
+      "sha512": "1589903e1e83828fe5d002459318de76ced0185b04177910014f2075ca9b38a1e3b8e7f6da53ee5dfce15c80f4316aa2b1048c7d8f044f28b859b16939e0038d"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_a_wu_003_final_closure_review_20260812021546.md",
+      "size_bytes": 1680,
+      "sha512": "58e64fdb8af126ff5f7366c818b505f27eb92f6b09bf1762856eb947b7945a0d7be648a4d0eadadaccbc5ca69a86923fd52cbe18972b77bf2753684555260bc6"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_automation_control_and_combined_role_revision_20260809181100.md",
+      "size_bytes": 5052,
+      "sha512": "018924019f075fe3976997ea45742b5b4392c48f170a9f45744e047a9bc3cd140ea8862d4336cc8e7e40042593a29dc6c3abaf8d9b55c88bd618d8184b8a6b78"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_b_controller_closure_20260814022130.md",
+      "size_bytes": 1917,
+      "sha512": "ef6819005ba4138e0488cd1da723a2c9f28b759a271e84fa83123005bedd8354bfc72a873d83fba1f0fa2106dc7206702392f4f79962ad4748bed6544845e3ca"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_b_design_conformance_final_review_20260814021951.md",
+      "size_bytes": 5267,
+      "sha512": "d15ccf90776b690b22a59d94024c4887ba772064100c8bf914aafbb061373430474c08071d0b746bd5388763cd528399b0fd7ab9ca4ff477b66a3a25aa74514b"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_b_design_conformance_review_20260814020244.md",
+      "size_bytes": 8895,
+      "sha512": "e9c824eb1d7181e85ca772ae5a30e3e4c44d01c2bbd00c92cbce57fa68de15534983fa75291e826aa56cfea4f68e0ddae28ebb00277d35b040e9915397c55781"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_b_design_freeze_receipt_20260814013652.md",
+      "size_bytes": 2491,
+      "sha512": "50dc772118992659b7949c1a78ac5cd8ecfc372833519219161fd02ea712654c6ae2ef2c4516521e409cd67709caa49da4443a860b5feb051818d0fe45b7ce77"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_b_to_d_campaign_activation_receipt_20260814010636.md",
+      "size_bytes": 2292,
+      "sha512": "32ae568c21e000e3fb6ea682a61bf6fdd60a748065a6665a1a3d7ec47ef65d46fe5178bc3737bba1a372728b90e71f7739b87f2241750424321f618f03d9e202"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_b_to_d_campaign_controller_closure_20260814042000.md",
+      "size_bytes": 4513,
+      "sha512": "43c4d099e4a2d3072d1a20d4c5d57146eb97a9c5b8a4a0aacb448bc07ed246ec14d109a2b06609a73620cf574f01fff483a1b95476a8690061d3005620607bd0"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_b_to_d_manual_acceptance_rework_20260814205814.md",
+      "size_bytes": 4656,
+      "sha512": "e8b030d3024bffe8564ae8ac451b34f5f6701e5f32069400c11715748c7af2ae3f8929eb1004ff08fd9043a284d73eb291e43f3bd747e8c3163fdd33b3331088"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_c_controller_closure_20260814032700.md",
+      "size_bytes": 1451,
+      "sha512": "df6402e94f54ee80afd1cfe560f6d571822c7d513c14ffce3c8676a0ea0c349b7059d0836db5f9909649b1b94f998c9c2cfefb0f1d2e394ff8e00f2725178727"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_c_design_conformance_final_review_20260814032523.md",
+      "size_bytes": 4629,
+      "sha512": "d52e99f8cb73d87503e5d4ae9e814ec20bdea2a978cd1d6dc5c822236c5b5f968cfa259e160678ac4f6d73dc99b757b93384d1b71a663d2fc8349b1d29edd410"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_c_design_conformance_review_20260814031257.md",
+      "size_bytes": 7833,
+      "sha512": "d97bdac05738fe708874015ebc71f01cb636023243e242e40cccbf00a070ede40ff45cb57bf4929996065b280b75e46947301e8adf8f9a7ff9a1d228ac582d1e"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_c_design_freeze_receipt_20260814023310.md",
+      "size_bytes": 2181,
+      "sha512": "df6c91af54c72514959ee80aafcec7e9f041e8f3bd1aa9d6ef023a96d24b00eb5a5d9ed87af521b664784e00e3fc5c9aaa8a2282b54ebcbf4730e4c86655a859"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_constitution_workspace_and_pre_pilot_checkpoint_reservation_20260809184134.md",
+      "size_bytes": 3680,
+      "sha512": "44c0281a0ba49ea43f459f814e0fbf0a4262884082fc9a35e45e4e748c8f7626953f9dfa42770d2a94f82949438d48b118bcd32403a1aed2082dcdac467fe799"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_d_controller_closure_20260814041200.md",
+      "size_bytes": 1750,
+      "sha512": "e952f17ecd19cde3ad13a950c7bf96b88f7369a81db86fed417554163cdd812abaae9b19342375caedebf3fca504b8fc3715d152e9ce5872e1339b60118d758d"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_d_design_conformance_final_review_20260814041029.md",
+      "size_bytes": 4313,
+      "sha512": "d54391198ad31a0ad5a47ab110fdfe02b93c1ebaee07b04d40e6deea41246874dc283c395bb97af43fc63ce49b4776239181f027ce3bc65c86cbc1a0be30dff7"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_d_design_conformance_review_20260814040416.md",
+      "size_bytes": 6615,
+      "sha512": "46e15e46eaaaf3297e7110ca9b31ee3bb8912e02c36d2e0356dfe40591f50d11e82747efd29f61c822e531df80d41884d1c7acb195c381896cb03c722ffa413d"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_d_design_freeze_receipt_20260814033900.md",
+      "size_bytes": 2310,
+      "sha512": "7965d1c9875dfc698ff0f4a1b7d636da2e96f857efcc2be7959bee27844bf22fb0ef58298500ad4338c0cb86364dd931136c7f81e56682ff3f0a4b406beeea9f"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_d_test_module_identity_correction_20260814035021.md",
+      "size_bytes": 4633,
+      "sha512": "89757dcb96a2a4d3684974524c2006ab7daf818a43d546674ed6188c791377737d8062cf299d4b82a5a0b8bd7b713d96004296598d12bf00a61ad5a8d1361dc2"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_e_claude_provider_handoff_ready_checkpoint_20260814230103.md",
+      "size_bytes": 4423,
+      "sha512": "7db809df3abe524ae85901d35019e7146cfd1ee3520f2a042d424b6ba84886bd7768bf3b920d5ad030c0efae528ace30831d52c0733068f5a18b34df67ac9284"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_e_persistent_rag_citation_evidence_reservation_20260814215110.md",
+      "size_bytes": 3606,
+      "sha512": "69b71b1cbf07df6eff02f8229c269825960723e99ae69d3b81ae8ed9cb76961b2f1b64c6d0b0e7bcecd76458bf3a1f551dcabb0691f0e0044582d4dc4c47a3b9"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_e_technical_and_cross_provider_checkpoint_20260815101850.md",
+      "size_bytes": 5114,
+      "sha512": "95a0f682142562a2d51782fc880e4927fd49a416767af8a16737bddb0ba23b8d432e6d2082f177cbc83d7f9b60162b66811d97280c758418e94b2827a7ae6c80"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_pre_pilot_gate_reconciliation_20260809210503.md",
+      "size_bytes": 6047,
+      "sha512": "a0f705c4995b62240d45f8ca0d5d4ab0c6ce51fa4deec67807e2a4029e4a1a159acc55c669c9555f2c795bc358713b4a566865853d309fc6575a5f30c7f0fc29"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_pre_pilot_governance_full_consolidation_20260809195620.md",
+      "size_bytes": 19917,
+      "sha512": "bc860f0ee633f76a66506edefd35b9be655cf67f9ed3135ddd134106bd7a9cdf55f559ca294d00d06467d9ba348804afd637cbc07cc329f3511bca3212a97ea7"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_2_start_and_automation_pilot_design_20260804111744.md",
+      "size_bytes": 5355,
+      "sha512": "7d1c5413d70505cdbf335e34b10559284c97c043743a93bad8c93e1faae9d454257ed5b313c39a1ae805f2a63790efbfa538c4e22dff0045afcb73b8f55c2fb0"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_completion_git_and_private_runtime_data_policy_update_20260821000524.md",
+      "size_bytes": 2948,
+      "sha512": "274f05ffcbd41b0cb7544af64aa07a60634254923c0d9e6d5c167c2018eed06eb1b8c76e46e0f0914164735ea2761cf45f9442db721110ee42eb9b211c749152"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_index_phase_2_after_automation_control_revision_ja_20260809181100.md",
+      "size_bytes": 8931,
+      "sha512": "5928f2e40e0f5c5ee1cd0babb5c25df25a55d12d2429bcdbde1871c600380a95c55f82dae02085e1e08421c1db3a8b0a5de015861a0fddebbb570198ec02f454"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_index_phase_2_after_full_pre_pilot_governance_consolidation_ja_20260809195620.md",
+      "size_bytes": 11326,
+      "sha512": "38656de2f28c9415b783c3884c84e842a66a387ecd9c9ec470cba5b5a856910bbfb997c65192d887c41ad2ab1cecb7abbb20b7476188517200667d8526e07d2e"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_index_phase_2_after_human_only_supreme_rule_revision_ja_20260809191956.md",
+      "size_bytes": 9919,
+      "sha512": "2787830ffc9653d576fa31d4ac6490b5cb0b3fc3829e17e5f54978294e695680fe75fb156b76c7bbf53deb916b24a40a19eb967bb05059be0857f5cd34113352"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_index_phase_2_after_pre_pilot_checkpoint_revision_ja_20260809184134.md",
+      "size_bytes": 9602,
+      "sha512": "cd736e2003c5ff0b6cbb3f76566586bf1382933224afcae5c850f10a1ffa988bde54e540a8b399bbe2472b619e201efd542cb4cf48c6b20914664e38ddfdc2b4"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_index_phase_2_before_automation_control_revision_ja_20260809181100.md",
+      "size_bytes": 7865,
+      "sha512": "ebddd6f17ba8ef126cb00aaaf5625218562255d4598462ec1116a2b747415b0b9bc9c8ad73e03a8c7f932c928f4521d4985f4c317375167d73d6ed28ffcc7606"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_index_phase_2_before_full_pre_pilot_governance_consolidation_ja_20260809195620.md",
+      "size_bytes": 9919,
+      "sha512": "2787830ffc9653d576fa31d4ac6490b5cb0b3fc3829e17e5f54978294e695680fe75fb156b76c7bbf53deb916b24a40a19eb967bb05059be0857f5cd34113352"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_index_phase_2_before_human_only_supreme_rule_revision_ja_20260809191956.md",
+      "size_bytes": 9602,
+      "sha512": "cd736e2003c5ff0b6cbb3f76566586bf1382933224afcae5c850f10a1ffa988bde54e540a8b399bbe2472b619e201efd542cb4cf48c6b20914664e38ddfdc2b4"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_index_phase_2_before_pre_pilot_checkpoint_revision_ja_20260809184134.md",
+      "size_bytes": 8931,
+      "sha512": "5928f2e40e0f5c5ee1cd0babb5c25df25a55d12d2429bcdbde1871c600380a95c55f82dae02085e1e08421c1db3a8b0a5de015861a0fddebbb570198ec02f454"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/phase_index_phase_2_final_automation_control_revision_ja_20260809182953.md",
+      "size_bytes": 8931,
+      "sha512": "5928f2e40e0f5c5ee1cd0babb5c25df25a55d12d2429bcdbde1871c600380a95c55f82dae02085e1e08421c1db3a8b0a5de015861a0fddebbb570198ec02f454"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/readme_phase_2_after_pilot_design_20260804111744.md",
+      "size_bytes": 2249,
+      "sha512": "fc1b9429eaf7a161bfb33d8d466aebc3be55fa4d742de535e1efcb32ffc38456d171faf546a814c2e05658aea12097a3431fa07360004ddecb33ce473dd9c460"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/operations/readme_phase_2_before_pilot_design_20260804111744.md",
+      "size_bytes": 2126,
+      "sha512": "6a744e8d028f416542a25c1e3a213ef1ca1dbc96b54a413f6e97fa0615fa81cdc7990a3c44fe6c861bf25d227128679a033cddddf1b203ecad66ceee16def520"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/requirements/claude_phase_2_e_requirements_ja_20260815004739.md",
+      "size_bytes": 11262,
+      "sha512": "97a689d2bc96defb448302ca1630333b356bc2d3cfc96fc900316939d1e660b923a93ad3fe39a8ad73ee094377dad5523c9825c4c9a6ca9781b44735ea2d0d79"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/requirements/phase_2_0_automation_pilot_requirements_after_bounded_read_retest_revision_ja_20260811001918.md",
+      "size_bytes": 20486,
+      "sha512": "1672c36f016a23acefc36526e00cd5228418c3a911cf634f93dfcedcbee3a8a59e6d2538a1288e3bdc43002451d5e4998428dda4ad06e9c067ca42b407e70f6f"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/requirements/phase_2_0_automation_pilot_requirements_after_capability_contract_redesign_ja_20260811231332.md",
+      "size_bytes": 28483,
+      "sha512": "c987ff2f299e5b44061cef7a0b86685ac6b42a5fd415f8ec43ad0f7125de92627b6c93cfd5de73f06bdd0a96ed6265d61f3803c55db31922582be8ad5e7bfad0"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/requirements/phase_2_0_automation_pilot_requirements_after_control_state_and_enforcement_revision_ja_20260809195620.md",
+      "size_bytes": 15023,
+      "sha512": "c2bfc4802adb8547e0c1c5cb2544951be9949b9be11592caf0d3d6a3be1404ed741a9caafa83be09867083d8aed0aa18bcf463fe8b9555d96958fd62fb4d2ad3"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/requirements/phase_2_0_automation_pilot_requirements_after_delegated_role_dynamic_judgment_hierarchy_ja_20260811124635.md",
+      "size_bytes": 24635,
+      "sha512": "87690f2f13def290b1bb6cf3ceb08641404623a720e4d1121c82011d4ce233ef5742c3a3c9438e7b99e65b369825fdf138f394601b08790696258146d661c4b1"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/requirements/phase_2_0_automation_pilot_requirements_after_document_authority_matrix_ja_20260811013723.md",
+      "size_bytes": 21670,
+      "sha512": "d4ceaf165e841cfca648eb4fedc1a8e30e451d6833c606281acea458bd86b974ef16d01a1ad4864ed8a6f4928eb4f12e2d8191b1da8cb241b7e9f5939389605a"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/requirements/phase_2_0_automation_pilot_requirements_after_dynamic_documentation_and_general_hardcode_rule_ja_20260811113401.md",
+      "size_bytes": 22788,
+      "sha512": "961fc17bd251103a5b6fc44ec89456485f1aba247c497407b1cc4a303291d8d7dae38dc6ebdf1e29f8151d087488d551956f798d2ad52d15589f5d78009a8886"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/requirements/phase_2_0_automation_pilot_requirements_after_gate_reconciliation_20260809210503.md",
+      "size_bytes": 16162,
+      "sha512": "22c7020b0bd23e1cba8aeddab64c4d7a76bd167f24c658f797df2e5cb6bf7be5eb2bdbdc4b29725c26d0a549cef6720fa0744a5d595935f0416ed915f76c4e07"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/requirements/phase_2_0_automation_pilot_requirements_after_p2_0_closure_alignment_ja_20260812003750.md",
+      "size_bytes": 29411,
+      "sha512": "d941a8cc54b0f078432daec3c17179c03dfb9a2aff8c7f7959339529e814401aa868f32b10116e02689dd3b7b597f91fb99d796d8ae69aaa8de1edc228872c68"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/requirements/phase_2_0_automation_pilot_requirements_after_p2_0_final_closure_ja_20260812012339.md",
+      "size_bytes": 29392,
+      "sha512": "d02922f0bbc3807a2f5686354c30e31b8a9f2a3e92425c33a044fe3c83899794058ff9dfbc95476e480b6d1239e7887469d0bebe959e84d6e3ce95bf6cd929e7"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/requirements/phase_2_0_automation_pilot_requirements_after_responsible_role_dynamic_judgment_consolidation_ja_20260811122047.md",
+      "size_bytes": 22759,
+      "sha512": "4c3df44818e827faa7231e348ccc38fb3a51cf7aa549e330187795105db1815a09b7e767c4acc7fe0a0b36cfe48eca68f5cd0de406ee4263f25ee268f70e063a"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/requirements/phase_2_0_automation_pilot_requirements_after_role_authority_matrix_ja_20260811010924.md",
+      "size_bytes": 21323,
+      "sha512": "6d8a0c6697e9b28e11b54d525ab99f066e53c8ef5c9046f0565b0a7e07652c0283c89fa25ac75e7da7a71ccc0c7dff1b2d6a01752e02574eb073f9703fbea697"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/requirements/phase_2_0_automation_pilot_requirements_before_bounded_read_retest_revision_ja_20260811001918.md",
+      "size_bytes": 16162,
+      "sha512": "22c7020b0bd23e1cba8aeddab64c4d7a76bd167f24c658f797df2e5cb6bf7be5eb2bdbdc4b29725c26d0a549cef6720fa0744a5d595935f0416ed915f76c4e07"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/requirements/phase_2_0_automation_pilot_requirements_before_capability_contract_redesign_ja_20260811231332.md",
+      "size_bytes": 24817,
+      "sha512": "1ece58eac74b94eb6b3864861821773882c4896fdc170d1dfd930942fc1665bd81e7df4ec1712bb54594640f1d706618a167e37f38e151f372561581e08ae9cd"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/requirements/phase_2_0_automation_pilot_requirements_before_control_state_and_enforcement_revision_ja_20260809195620.md",
+      "size_bytes": 12699,
+      "sha512": "1862d02e14ceb196a318c6f6a6b65deb5767212b1f4aa19cafa3eb7a084a342de3402dd6dd076a8c60cfc0579a2b1025574a6f97e5ff24ca31dd8d4aeadee378"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/requirements/phase_2_0_automation_pilot_requirements_before_delegated_role_dynamic_judgment_hierarchy_ja_20260811124635.md",
+      "size_bytes": 22759,
+      "sha512": "4c3df44818e827faa7231e348ccc38fb3a51cf7aa549e330187795105db1815a09b7e767c4acc7fe0a0b36cfe48eca68f5cd0de406ee4263f25ee268f70e063a"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/requirements/phase_2_0_automation_pilot_requirements_before_document_authority_matrix_ja_20260811013723.md",
+      "size_bytes": 21323,
+      "sha512": "6d8a0c6697e9b28e11b54d525ab99f066e53c8ef5c9046f0565b0a7e07652c0283c89fa25ac75e7da7a71ccc0c7dff1b2d6a01752e02574eb073f9703fbea697"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/requirements/phase_2_0_automation_pilot_requirements_before_dynamic_documentation_and_general_hardcode_rule_ja_20260811113401.md",
+      "size_bytes": 21754,
+      "sha512": "edba447969e75048a0c6e3e96ef016dde77add994404fb59c973b8a54c73548a2d51a83e02e649bd5c1ada6f7b4eee480b175a306cdcb1a8d1815f6ffce613c8"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/requirements/phase_2_0_automation_pilot_requirements_before_gate_reconciliation_20260809210503.md",
+      "size_bytes": 15023,
+      "sha512": "c2bfc4802adb8547e0c1c5cb2544951be9949b9be11592caf0d3d6a3be1404ed741a9caafa83be09867083d8aed0aa18bcf463fe8b9555d96958fd62fb4d2ad3"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/requirements/phase_2_0_automation_pilot_requirements_before_p2_0_closure_alignment_ja_20260812003750.md",
+      "size_bytes": 28483,
+      "sha512": "c987ff2f299e5b44061cef7a0b86685ac6b42a5fd415f8ec43ad0f7125de92627b6c93cfd5de73f06bdd0a96ed6265d61f3803c55db31922582be8ad5e7bfad0"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/requirements/phase_2_0_automation_pilot_requirements_before_p2_0_final_closure_ja_20260812012339.md",
+      "size_bytes": 29411,
+      "sha512": "d941a8cc54b0f078432daec3c17179c03dfb9a2aff8c7f7959339529e814401aa868f32b10116e02689dd3b7b597f91fb99d796d8ae69aaa8de1edc228872c68"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/requirements/phase_2_0_automation_pilot_requirements_before_pilot_authority_correction_ja_20260811005738.md",
+      "size_bytes": 20486,
+      "sha512": "1672c36f016a23acefc36526e00cd5228418c3a911cf634f93dfcedcbee3a8a59e6d2538a1288e3bdc43002451d5e4998428dda4ad06e9c067ca42b407e70f6f"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/requirements/phase_2_0_automation_pilot_requirements_before_responsible_role_dynamic_judgment_consolidation_ja_20260811122047.md",
+      "size_bytes": 22788,
+      "sha512": "961fc17bd251103a5b6fc44ec89456485f1aba247c497407b1cc4a303291d8d7dae38dc6ebdf1e29f8151d087488d551956f798d2ad52d15589f5d78009a8886"
+    },
+    {
+      "path": "docs/project/phases/phase_2/history/requirements/phase_2_0_automation_pilot_requirements_before_role_authority_matrix_ja_20260811010924.md",
+      "size_bytes": 20690,
+      "sha512": "1e182906fd89979a2d37deb6c345af24d8183cea4d4d141ae9a63ffd022e0b300d06e3549250290f89039e7abb67962bb037a58ebeae9ccb7a24194071d32dd9"
+    },
+    {
+      "path": "docs/project/phases/phase_2/operations/phase_2_0_automation_pilot_execution_plan_ja.md",
+      "size_bytes": 15058,
+      "sha512": "d109c5def7e3f6da08a78fe73dd11cf30607020fe3bf28225d88a3fa5407138565d2c896dec9ee65d33a5904d678296685511891f85d938989e81a18713c36a7"
+    },
+    {
+      "path": "docs/project/phases/phase_2/operations/phase_2_a_execution_plan_ja.md",
+      "size_bytes": 3251,
+      "sha512": "b2a8b5e09e8ea8ad24da0453eac28f34cd1ca98b7b635c07a0caa9baa94dbc5a22d9962409a6b00d60071b49b93aec5df633530ad6ad99ee7233b4ac72914e7c"
+    },
+    {
+      "path": "docs/project/phases/phase_2/operations/phase_2_b_acceptance_matrix_ja.md",
+      "size_bytes": 6267,
+      "sha512": "0325bda71d301eb03a4186f6bd4f350cdfaf5f9a60370c057eed1b6dd2d8ff8bd1a152ad78ec0ada24c10c182b89d4b6e223176fc123e55d892d5c3f3cf33f19"
+    },
+    {
+      "path": "docs/project/phases/phase_2/operations/phase_2_b_to_d_automation_campaign_plan_ja.md",
+      "size_bytes": 13597,
+      "sha512": "2efa118d32e0721bd1388fa95063dbc8d9cbff0f86ff2fdc7a4c3c2d7c0027bdedd13a1b9cd13902d03ab5b7629e3b11153d5e17def0e241c23fea7c46c9fd6c"
+    },
+    {
+      "path": "docs/project/phases/phase_2/operations/phase_2_c_acceptance_matrix_ja.md",
+      "size_bytes": 5424,
+      "sha512": "58554519c7dbe054c9c26bca26f1afa18486e9e3f2a6da3080f3ece22c850379f1e59bcad56e6eb13434c04c844411a67926c378a5a85e7474cf3f154f8bb06a"
+    },
+    {
+      "path": "docs/project/phases/phase_2/operations/phase_2_d_acceptance_matrix_ja.md",
+      "size_bytes": 5762,
+      "sha512": "73766dab0f477211d08c64a0692d14849290893e675389f0b038902185936c4834356adbdb73eef35d01083cc01aaa3ff91203e1a4a1f195bbf259fc8b7fb640"
+    },
+    {
+      "path": "docs/project/phases/phase_2/phase_index_ja.md",
+      "size_bytes": 41387,
+      "sha512": "3edc34758600650032640bd51d9b3b0f0521113651779ab8b060fd6c9a7234bb87ad2b0b50edf4b1247e4f4f1bd3da33187553e25c93e7d6e789e55048526d3a"
+    },
+    {
+      "path": "docs/project/phases/phase_2/requirements/phase_2_0_automation_pilot_requirements_ja.md",
+      "size_bytes": 29392,
+      "sha512": "d02922f0bbc3807a2f5686354c30e31b8a9f2a3e92425c33a044fe3c83899794058ff9dfbc95476e480b6d1239e7887469d0bebe959e84d6e3ce95bf6cd929e7"
+    },
+    {
+      "path": "docs/project/phases/phase_2/requirements/phase_2_a_conversation_domain_requirements_ja.md",
+      "size_bytes": 14790,
+      "sha512": "2496e1587d80e23d7fd33f997ee2f5c78b71d552732dd86d85b0650fbc164765c02852541857702ff6e2f706b36b0d720a4bf65c5cd20c464d72d13ddd01ad6b"
+    },
+    {
+      "path": "docs/project/phases/phase_2/requirements/phase_2_b_conversation_persistence_requirements_ja.md",
+      "size_bytes": 16364,
+      "sha512": "e397112af068d608f68a9edfe52d551478d414cb64cb20ad52b3f3b7d897f1b2aa10ff12eb703d782cdef32fc9fa0fa0ec5be44ed67a48b36781e1f92f0f4501"
+    },
+    {
+      "path": "docs/project/phases/phase_2/requirements/phase_2_c_persistent_conversation_api_ux_requirements_ja.md",
+      "size_bytes": 11130,
+      "sha512": "f1c1b78e0d0b7e7bb21ebce30d90dd12fd10e2aff981ce9bdfe5d0fa4e5d26c6ab7b50cd57999caba178f2b3c9a0ceee6ed3e573b1dcee4f32d9ea93efca08f6"
+    },
+    {
+      "path": "docs/project/phases/phase_2/requirements/phase_2_d_configuration_control_requirements_ja.md",
+      "size_bytes": 10056,
+      "sha512": "5cc8a66f366c21c3fe63bd2dc67b27f3ba13f6137b318a66947743ae5d49bf644f418f5c198965f5d9445896df062708d976f63c5d65a814468f71180accb223"
+    }
+  ]
+}

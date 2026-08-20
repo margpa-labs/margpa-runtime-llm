@@ -107,7 +107,7 @@ def test_phase1b_production_runtime_load_generate_stream_cancel_and_unload() -> 
         assert runtime is not None
         assert runtime.backend_version == "0.3.34"
         assert runtime.backend_build_variant == "metal"
-        assert runtime.loaded_context_size == 4096
+        assert runtime.loaded_context_size == 8192
         assert runtime.model_architecture == "qwen3"
         assert runtime.device == "metal"
         assert runtime.device_kind == "gpu"

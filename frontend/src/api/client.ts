@@ -1,0 +1,257 @@
+// Typed fetch wrappers over the existing Backend API. This intentionally
+// mirrors the request/response shapes already used by the vanilla-JS
+// client (web/static/app.js) rather than introducing a new contract.
+import type {
+  ChatMessage,
+  ConfigurationPreviewResult,
+  ConfigurationSnapshot,
+  GenerationSettings,
+  PersistentConversationDetail,
+  PersistentConversationPage,
+  PersistentMutationResponse,
+  PersistentRuntimeResponse,
+  RuntimeInfo,
+} from "../types";
+
+export interface ApiFailure {
+  code: string | null;
+  message: string;
+}
+
+export async function safeError(response: Response, fallbackMessage: string): Promise<ApiFailure> {
+  try {
+    const payload = (await response.json()) as { code?: string; message?: string };
+    return { code: payload.code ?? null, message: payload.message ?? fallbackMessage };
+  } catch {
+    return { code: null, message: fallbackMessage };
+  }
+}
+
+export async function fetchRuntime(): Promise<RuntimeInfo> {
+  const response = await fetch("/api/v1/runtime", { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("runtime_load_failed");
+  }
+  return (await response.json()) as RuntimeInfo;
+}
+
+export function startChatStream(
+  messages: ChatMessage[],
+  settings: GenerationSettings,
+  signal: AbortSignal,
+): Promise<Response> {
+  return fetch("/api/v1/chat/stream", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ messages, settings }),
+    signal,
+    cache: "no-store",
+  });
+}
+
+export async function stopChat(requestId: string): Promise<void> {
+  await fetch("/api/v1/chat/stop", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ request_id: requestId }),
+    cache: "no-store",
+  });
+}
+
+export async function fetchPersistentRuntime(): Promise<PersistentRuntimeResponse> {
+  const response = await fetch("/api/v2/conversations/runtime", { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("persistent_capability_load_failed");
+  }
+  return (await response.json()) as PersistentRuntimeResponse;
+}
+
+export async function fetchPersistentList(): Promise<PersistentConversationPage> {
+  const response = await fetch("/api/v2/conversations?limit=50", { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error((await safeError(response, "request_failed")).message);
+  }
+  return (await response.json()) as PersistentConversationPage;
+}
+
+export async function fetchPersistentDetail(
+  conversationId: string,
+): Promise<PersistentConversationDetail> {
+  const response = await fetch(`/api/v2/conversations/${encodeURIComponent(conversationId)}`, {
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new Error((await safeError(response, "request_failed")).message);
+  }
+  return (await response.json()) as PersistentConversationDetail;
+}
+
+export async function createPersistentConversation(
+  operationId: string,
+): Promise<PersistentMutationResponse> {
+  const response = await fetch("/api/v2/conversations", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ operation_id: operationId, expected_revision: null }),
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new Error("request_failed");
+  }
+  return (await response.json()) as PersistentMutationResponse;
+}
+
+export function startPersistentTurnStream(
+  conversationId: string,
+  content: string,
+  settings: GenerationSettings,
+  operationId: string,
+  expectedRevision: number,
+  signal: AbortSignal,
+): Promise<Response> {
+  return fetch(`/api/v2/conversations/${encodeURIComponent(conversationId)}/turns/stream`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      content,
+      settings,
+      operation_id: operationId,
+      expected_revision: expectedRevision,
+    }),
+    signal,
+    cache: "no-store",
+  });
+}
+
+export function startPersistentDerivedStream(
+  conversationId: string,
+  turnId: string,
+  kind: "retry" | "regenerate",
+  settings: GenerationSettings,
+  operationId: string,
+  expectedRevision: number,
+  signal: AbortSignal,
+): Promise<Response> {
+  return fetch(
+    `/api/v2/conversations/${encodeURIComponent(conversationId)}/turns/${encodeURIComponent(turnId)}/${kind}/stream`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        settings,
+        operation_id: operationId,
+        expected_revision: expectedRevision,
+      }),
+      signal,
+      cache: "no-store",
+    },
+  );
+}
+
+export async function stopPersistentGeneration(
+  conversationId: string,
+  requestId: string,
+  expectedRevision: number,
+): Promise<Response> {
+  return fetch(
+    `/api/v2/conversations/${encodeURIComponent(conversationId)}/generations/${encodeURIComponent(requestId)}/stop`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ request_id: requestId, expected_revision: expectedRevision }),
+      cache: "no-store",
+    },
+  );
+}
+
+export async function persistentMutation(
+  path: string,
+  operationId: string,
+  expectedRevision: number,
+): Promise<Response> {
+  return fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ operation_id: operationId, expected_revision: expectedRevision }),
+    cache: "no-store",
+  });
+}
+
+export async function renamePersistentConversation(
+  conversationId: string,
+  title: string,
+  operationId: string,
+  expectedRevision: number,
+): Promise<Response> {
+  return fetch(`/api/v2/conversations/${encodeURIComponent(conversationId)}/rename`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      title,
+      operation_id: operationId,
+      expected_revision: expectedRevision,
+    }),
+    cache: "no-store",
+  });
+}
+
+export async function fetchConfigurationRuntime(): Promise<{
+  enabled: boolean;
+  non_persistent: boolean;
+}> {
+  const response = await fetch("/api/v2/configuration/runtime", { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("configuration_runtime_unavailable");
+  }
+  return (await response.json()) as { enabled: boolean; non_persistent: boolean };
+}
+
+export async function fetchConfigurationEffective(): Promise<ConfigurationSnapshot> {
+  const response = await fetch("/api/v2/configuration/effective", { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("configuration_effective_unavailable");
+  }
+  return (await response.json()) as ConfigurationSnapshot;
+}
+
+export async function previewConfigurationPatch(
+  patch: Record<string, unknown>,
+): Promise<ConfigurationPreviewResult> {
+  const response = await fetch("/api/v2/configuration/preview", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ patch }),
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new Error("configuration_preview_failed");
+  }
+  return (await response.json()) as ConfigurationPreviewResult;
+}
+
+export async function applyConfigurationPatch(
+  operationId: string,
+  expectedRevision: number,
+  expectedDigest: string,
+  patch: Record<string, unknown>,
+): Promise<Response> {
+  return fetch("/api/v2/configuration/apply", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      operation_id: operationId,
+      expected_revision: expectedRevision,
+      expected_digest: expectedDigest,
+      patch,
+    }),
+    cache: "no-store",
+  });
+}
+
+export function newActionId(): string {
+  if (typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  return Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("");
+}

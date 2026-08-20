@@ -12,7 +12,10 @@ from margpa_runtime_llm.bootstrap.config_loader import (
     resolve_effective_config,
 )
 from margpa_runtime_llm.bootstrap.configuration_control import build_configuration_control
-from margpa_runtime_llm.modules.configuration_control import ConfigurationSource
+from margpa_runtime_llm.modules.configuration_control import (
+    ApplyDisposition,
+    ConfigurationSource,
+)
 from margpa_runtime_llm.web.access_profiles import DocumentationRagEffectiveState
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -104,9 +107,59 @@ def test_safe_bootstrap_projection_has_exact_allowlist_and_typed_hook_state_matr
         "acceleration_api",
         "max_new_tokens",
         "research_developer_mode",
+        "conversation_storage_kind",
+        "conversation_storage_version",
     }
     assert snapshot.feature_hooks[0].component_key == "documentation_rag"
     assert snapshot.feature_hooks[0].current_mode.value == expected_mode
     assert snapshot.feature_hooks[0].available is expected_available
     assert snapshot.recording_hooks[0].component_key == "conversation_recording"
     assert snapshot.recording_hooks[0].current_mode.value == "off"
+
+
+@pytest.mark.parametrize(
+    (
+        "persistence_enabled",
+        "storage_backend",
+        "storage_backend_version",
+        "expected_kind",
+        "expected_version",
+    ),
+    [
+        (False, None, None, "disabled", "disabled"),
+        (True, "sqlite", "3.45.1", "sqlite", "3.45.1"),
+    ],
+)
+def test_conversation_storage_kind_and_version_reflect_the_actual_composed_backend(
+    persistence_enabled: bool,
+    storage_backend: str | None,
+    storage_backend_version: str | None,
+    expected_kind: str,
+    expected_version: str,
+) -> None:
+    effective = resolve_effective_config(
+        load_application_config(APPLICATION_PATH),
+        load_deployment_profile(PROFILE_PATH),
+        project_root=PROJECT_ROOT,
+        environment={},
+    )
+
+    control = build_configuration_control(
+        effective=effective,
+        documentation_rag_state=DocumentationRagEffectiveState.UNAVAILABLE,
+        conversation_persistence_enabled=persistence_enabled,
+        conversation_storage_backend=storage_backend,
+        conversation_storage_backend_version=storage_backend_version,
+    )
+    snapshot = control.effective()
+    kind_field = next(item for item in snapshot.fields if item.key == "conversation_storage_kind")
+    version_field = next(
+        item for item in snapshot.fields if item.key == "conversation_storage_version"
+    )
+
+    assert kind_field.value == expected_kind
+    assert kind_field.source is ConfigurationSource.COMPOSED_RUNTIME
+    assert kind_field.apply_disposition is ApplyDisposition.READ_ONLY
+    assert version_field.value == expected_version
+    assert version_field.source is ConfigurationSource.COMPOSED_RUNTIME
+    assert version_field.apply_disposition is ApplyDisposition.READ_ONLY

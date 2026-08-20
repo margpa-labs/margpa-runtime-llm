@@ -138,9 +138,24 @@ def build_parser() -> argparse.ArgumentParser:
         help="Server-owned local conversation scope identity",
     )
     parser.add_argument(
+        "--conversation-persistence-migrate",
+        action="store_true",
+        help=(
+            "Explicit opt-in: on startup, upgrade an existing older-schema "
+            "conversation store in place (checkpoint/digest/rollback via the "
+            "existing migration contract). Without this flag, an older-schema "
+            "store fails closed instead of starting."
+        ),
+    )
+    parser.add_argument(
         "--configuration-control",
         action="store_true",
         help="Enable loopback-only process-local configuration control",
+    )
+    parser.add_argument(
+        "--runtime-composition-inspection",
+        action="store_true",
+        help="Enable loopback-only read-only runtime component inspection",
     )
     return parser
 
@@ -161,10 +176,17 @@ def main(argv: Sequence[str] | None = None) -> int:
             access_mode=web_access_profile.access.mode,
             authentication_required=access_policy.authentication_required,
         )
+        runtime_composition_inspection_enabled = _runtime_composition_inspection_enabled(
+            enabled=args.runtime_composition_inspection,
+            host=args.host,
+            access_mode=web_access_profile.access.mode,
+            authentication_required=access_policy.authentication_required,
+        )
         conversation_persistence_settings = _conversation_persistence_settings(
             enabled=args.conversation_persistence,
             runtime_data_root=args.conversation_runtime_data_root,
             scope_id=args.conversation_scope_id,
+            allow_migration=args.conversation_persistence_migrate,
             host=args.host,
             access_mode=web_access_profile.access.mode,
             authentication_required=access_policy.authentication_required,
@@ -240,6 +262,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             documentation_rag_token_counter_binder=documentation_rag_token_counter_binder,
             conversation_persistence_settings=conversation_persistence_settings,
             configuration_control_enabled=configuration_control_enabled,
+            runtime_composition_inspection_enabled=runtime_composition_inspection_enabled,
         )
         app = create_web_app(
             runtime_factory=runtime_factory,
@@ -306,6 +329,7 @@ def _conversation_persistence_settings(
     enabled: bool,
     runtime_data_root: Path | None,
     scope_id: str | None,
+    allow_migration: bool,
     host: str,
     access_mode: WebExposureMode,
     authentication_required: bool,
@@ -316,6 +340,11 @@ def _conversation_persistence_settings(
             raise InferenceError(
                 code=InferenceErrorCode.INVALID_CONFIGURATION,
                 safe_message="Conversation persistence inputs require explicit opt-in.",
+            )
+        if allow_migration:
+            raise InferenceError(
+                code=InferenceErrorCode.INVALID_CONFIGURATION,
+                safe_message="Conversation persistence migration requires explicit opt-in.",
             )
         return None
     if (
@@ -336,6 +365,7 @@ def _conversation_persistence_settings(
             enabled=True,
             runtime_data_root=runtime_data_root,
             scope_id=ConversationScopeId(value=scope_id),
+            allow_migration=allow_migration,
         )
     except ValueError as exc:
         raise InferenceError(
@@ -362,6 +392,29 @@ def _configuration_control_enabled(
             code=InferenceErrorCode.INVALID_CONFIGURATION,
             safe_message=(
                 "Configuration control requires local loopback access and explicit opt-in."
+            ),
+        )
+    return True
+
+
+def _runtime_composition_inspection_enabled(
+    *,
+    enabled: bool,
+    host: str,
+    access_mode: WebExposureMode,
+    authentication_required: bool,
+) -> bool:
+    if not enabled:
+        return False
+    if (
+        access_mode is not WebExposureMode.LOCAL
+        or authentication_required
+        or not _is_loopback_host(host)
+    ):
+        raise InferenceError(
+            code=InferenceErrorCode.INVALID_CONFIGURATION,
+            safe_message=(
+                "Runtime composition inspection requires local loopback access and explicit opt-in."
             ),
         )
     return True

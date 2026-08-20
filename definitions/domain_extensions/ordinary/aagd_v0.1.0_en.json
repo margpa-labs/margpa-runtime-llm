@@ -1,0 +1,1337 @@
+{
+  "aagd": {
+    "agentic_ai_governance_definition": {
+      "description": {
+        "purpose": "govern agentic AI runtime execution envelopes by preserving goal, task, plan, step, tool-call, side-effect, workflow, handoff, memory, verification, repair, and final status integrity",
+        "short_definition": "AAGD is a domain governance definition for agentic runtime execution envelope integrity, not for authority ownership, security threat analysis, operations judgement, architecture design, or domain routing.",
+        "governance_focus": [
+          "agentic execution state integrity",
+          "agentic claim integrity",
+          "tool call and side effect visibility",
+          "workflow state and checkpoint visibility",
+          "handoff and memory binding integrity",
+          "completion verification and final status truthfulness",
+          "repair origin and retry/rollback/compensation state visibility"
+        ],
+        "primary_boundary_statement": "AAGD governs whether an agentic execution claim is traceable, bounded, verified, and honestly reported; it does not decide external authority, security safety, operational recovery policy, static architecture validity, project priority, artifact quality, or cross-domain routing.",
+        "release_intent": "candidate 002 refactor of AAGD v0.1.0, preserving the original domain concept while reducing old-generation over-absorption and aligning with the common domain governance skeleton."
+      },
+      "inheritance": {
+        "inheritance_mode": "additive_domain_extension",
+        "parent_definitions": [
+          {
+            "syntax_id": "argd",
+            "role": "general_reasoning_procedure_governance",
+            "required": true
+          },
+          {
+            "syntax_id": "dagd",
+            "role": "general_behavior_audit_repair_activation_and_status_governance",
+            "required": true
+          }
+        ],
+        "dependency_version_policy": {
+          "specific_parent_versions_are_not_hardcoded_in_domain_compatibility_labels": true,
+          "parent_version_binding_is_external_to_this_domain_definition": true,
+          "version_binding_owner": "runtime_bundle_or_release_manifest"
+        },
+        "standalone_reference_use": {
+          "allowed": true,
+          "condition": "standalone_readers_must_treat_parent_mechanisms_as_external_prerequisites_or_reference_context",
+          "does_not_grant_parent_functionality": true,
+          "runtime_conformance_requires_parent_definitions": true
+        },
+        "replaces_parent_definitions": false,
+        "duplicates_parent_rules": false,
+        "parent_rules_remain_authoritative": true,
+        "domain_delta_only": true,
+        "preserved_parent_mechanism_policy": {
+          "inherited_governance_must_be_referenced_not_reexpanded": true,
+          "silent_parent_rule_override_prohibited": true,
+          "parent_mechanism_lists_must_not_be_recreated_unless_required_by_explicit_context": true
+        },
+        "conflict_policy": {
+          "general_reasoning_conflicts": "resolve_under_parent_reasoning_governance",
+          "general_behavior_and_governance_conflicts": "resolve_under_parent_behavior_governance",
+          "domain_specific_conflicts": "resolve_under_domain_governance_only_for_agentic_execution_envelope_claims_when_not_in_conflict_with_parent_governance_or_higher_authority",
+          "higher_level_system_policies_remain_authoritative": true,
+          "sibling_domain_priority_and_routing": "external_orchestration_or_explicit_runtime_context"
+        }
+      },
+      "orchestration_reference": {
+        "orchestration_definition": "cdogd",
+        "relationship": "external_orchestration_reference",
+        "cdogd_is_not_reimplemented_here": true,
+        "registry_and_activation_logic_are_external": true,
+        "routing_priority_and_domain_selection_are_external": true,
+        "registered_domain_extension_storage_is_external": true
+      },
+      "domain_scope": {
+        "domain": "agentic_ai_runtime_execution_governance",
+        "scope_statement": "governs runtime execution envelopes for agentic AI workflows, including goal/task binding, plan and step execution, tool calls, external side effects, workflow state, checkpoints, handoffs, memory bindings, completion verification, and execution-status reporting",
+        "governed_target_categories": [
+          "tool_using_ai_execution",
+          "autonomous_or_semi_autonomous_agent_execution",
+          "planner_executor_workflow_execution",
+          "multi_agent_or_delegated_workflow_execution",
+          "long_running_agentic_workflow_execution",
+          "human_in_the_loop_agentic_execution_state",
+          "file_api_or_external_resource_action_execution_state",
+          "agentic_completion_and_status_claim"
+        ],
+        "lifecycle_coverage": [
+          "goal_and_task_intake",
+          "scope_and_completion_criteria_fixation",
+          "role_authority_reference_and_permission_state_capture",
+          "plan_step_checkpoint_and_abort_condition_capture",
+          "tool_call_and_side_effect_trace_capture",
+          "intermediate_verification_state_update",
+          "handoff_memory_and_workflow_state_update",
+          "completion_claim_verification",
+          "repair_retry_rollback_or_compensation_state_capture",
+          "final_agentic_status_reporting"
+        ],
+        "sibling_domain_boundaries": {
+          "aiagd": "static AI system architecture, component, interface, topology, and architecture conformance judgement remain outside AAGD",
+          "daagd": "decision authority, approval authority, delegation authority, accountability, and final authorization remain outside AAGD",
+          "aisgd": "AI-mediated security risk, prompt/tool abuse security, leakage/threat judgement, and security-domain adjudication remain outside AAGD",
+          "omrgd": "operations, maintenance, reliability, incident, monitoring, and recovery judgement remain outside AAGD",
+          "pmogd": "project coordination, stakeholder delivery sequencing, and project blocker ownership remain outside AAGD",
+          "dcagd": "development consulting, design recommendation, and technical option judgement remain outside AAGD",
+          "acrgd": "artifact production, formatting, and artifact-quality governance remain outside AAGD",
+          "cdogd": "domain routing, priority, registry, and orchestration remain external to AAGD"
+        },
+        "non_targets": [
+          "replacement_of_parent_governance",
+          "replacement_of_external_orchestration",
+          "absorption_of_sibling_domain_definitions",
+          "authority_decision_or_final_approval_ownership",
+          "security_threat_analysis_or_security_clearance",
+          "operational_recovery_or_incident_policy_judgement",
+          "static_architecture_design_or_topology_judgement",
+          "project_priority_or_delivery_management",
+          "artifact_quality_or_publication_approval",
+          "model_weight_modification",
+          "training_data_modification",
+          "replacement_of_built_in_system_policies"
+        ]
+      },
+      "abstraction_and_context_policy": {
+        "purpose": "prevent domain rules from becoming brittle case-specific prohibitions while allowing context-local specificity when required",
+        "rule_bodies_must_use_highest_safe_abstraction_level": true,
+        "rule_hardcoding_prohibited_by_default": true,
+        "rules_must_be_abstract_by_default": true,
+        "case_specific_constraints_must_be_contextual": true,
+        "domain_instances_must_not_be_encoded_as_general_rules": true,
+        "implementation_details_must_not_become_domain_rules": true,
+        "rule_bodies_must_not_hardcode": [
+          "specific_tool",
+          "specific_platform",
+          "specific_repository",
+          "specific_external_system",
+          "specific_local_workflow",
+          "specific_professional_field",
+          "specific_creative_style",
+          "specific_organization_policy",
+          "specific_private_system",
+          "specific_user_workflow",
+          "specific_medium_or_transport",
+          "specific_identifier_policy"
+        ],
+        "contextual_specificity_conditions": [
+          "explicit_user_instruction",
+          "identity_or_verification_requires_specific_name",
+          "hallucination_prevention_requires_specific_name",
+          "system_integrity_requires_specific_constraint",
+          "domain_context_or_governed_target_context_would_break_without_specificity"
+        ],
+        "specificity_handling": {
+          "specificity_scope": "domain_local_context_or_governed_target_context",
+          "specificity_must_not_be_promoted_to_general_rule_without_basis": true,
+          "specificity_must_be_traceable_to_context_or_instruction": true,
+          "specificity_must_not_override_higher_authority": true
+        },
+        "example_policy": {
+          "examples_are_non_normative": true,
+          "examples_may_illustrate_failures_but_do_not_define_the_rule": true,
+          "test_cases_must_remain_separate_from_general_domain_rules": true,
+          "examples_must_not_narrow_domain_scope": true,
+          "representative_domain_lists_should_not_be_used_as_domain_rules": true
+        },
+        "declared_context_policy_principles": [
+          "declared_policy_must_be_fixed_when_material",
+          "declared_policy_must_not_be_mixed",
+          "declared_policy_must_not_be_silently_changed",
+          "declared_policy_must_be_applied_consistently",
+          "declared_policy_conflict_must_be_reported_or_repaired"
+        ],
+        "declared_context_policy_types": [
+          "agentic_goal_policy",
+          "task_scope_policy",
+          "authority_reference_policy",
+          "tool_permission_state_policy",
+          "side_effect_trace_policy",
+          "handoff_state_policy",
+          "memory_binding_policy",
+          "completion_claim_policy"
+        ],
+        "rule_body_policy": {
+          "rule_bodies_define_abstract_failures_not_specific_cases": true,
+          "case_specific_detail_must_be_domain_or_target_local_unless_promoted_by_valid_governance_basis": true,
+          "specific_names_may_be_used_for_identity_verification_or_hallucination_prevention": true,
+          "specific_constraints_may_be_used_when_omission_breaks_system_integrity_or_domain_meaning": true
+        },
+        "contextual_specificity_exception_policy": {
+          "exception_scope": "domain_local_context_or_governed_target_context",
+          "exception_must_not_become_general_domain_rule_without_basis": true,
+          "exception_must_not_override_higher_authority": true,
+          "specificity_required_when": [
+            "explicit_user_instruction",
+            "identity_or_verification_requires_specific_name",
+            "hallucination_prevention_requires_specific_name",
+            "system_integrity_requires_specific_constraint",
+            "domain_context_or_governed_target_context_would_break_without_specificity"
+          ]
+        }
+      },
+      "role_complete_separation": {
+        "required": true,
+        "principle": "AAGD must keep agentic execution evidence, external authority references, sibling-domain handoff conditions, evaluation, repair, status reporting, records, orchestration, and metadata separate.",
+        "separation_targets": {
+          "agentic_execution_evidence": "goal, task, plan, step, workflow, tool-call, side-effect, handoff, memory, verification, repair, and status evidence owned by AAGD",
+          "authority_reference": "authority, approval, delegation, and accountability references owned externally, usually by DAAGD, human authority, or runtime authority context",
+          "security_domain_handoff": "security-sensitive runtime indicators reported to AISGD or relevant security context without AAGD making security clearance decisions",
+          "operations_domain_handoff": "operational runtime indicators reported to OMRGD or relevant operations context without AAGD making operations recovery judgements",
+          "architecture_domain_handoff": "architecture-related runtime mismatch indicators reported to AIAGD or relevant architecture context without AAGD making architecture design judgements",
+          "external_orchestration": "routing, activation priority, registry, and sibling conflict resolution remain external to AAGD",
+          "metadata": "identity, compatibility, versioning, authorship, license, and repository information remain metadata, not domain rules"
+        },
+        "non_absorption_rules": [
+          "parent_governance_must_be_referenced_not_reexpanded",
+          "sibling_domain_judgement_must_be_reported_or_referenced_not_absorbed",
+          "external_orchestration_must_not_be_reimplemented_in_aagd",
+          "authority_decisions_must_not_be_created_by_aagd",
+          "security_operations_architecture_project_or_artifact_judgements_must_not_be_silently_imported_into_aagd"
+        ],
+        "review_implications": [
+          "if_aagd_wording_appears_to_decide_authority_security_operations_architecture_or_routing_it_must_be_softened_or_handed_off",
+          "aagd_may_block_or_qualify_agentic_ready_or_completion_claims_but_must_not_claim_external_execution_authority_without_basis"
+        ]
+      },
+      "cross_domain_interference_policy": {
+        "purpose": "prevent domain reuse from causing sibling domain absorption, implicit priority conflicts, or cross-domain rule leakage",
+        "rules": [
+          "sibling_domain_references_must_be_explicit_when_material",
+          "sibling_domain_rules_must_not_be_copied_by_default",
+          "domain_overlap_must_be_declared_when_material",
+          "cross_domain_activation_priority_is_external_to_this_domain_definition",
+          "domain_specific_rule_conflicts_must_not_be_silently_merged",
+          "shared_terms_must_not_imply_shared_authority_without_boundary_statement"
+        ],
+        "overlap_handling": {
+          "overlap_is_allowed": true,
+          "overlap_must_preserve_domain_responsibility_boundaries": true,
+          "overlap_resolution_owner": "external_orchestration_or_explicit_runtime_context"
+        },
+        "aagd_specific_overlap_policy": {
+          "overlap_terms_do_not_transfer_authority": true,
+          "tool_overlap_rule": "AAGD governs tool-call trace and side-effect state; AISGD, OMRGD, AIAGD, DCAGD, or SEGD may own other tool-related judgements depending on context.",
+          "approval_overlap_rule": "AAGD records approval or authority reference state; DAAGD or external authority context owns approval authority judgement.",
+          "failure_overlap_rule": "AAGD governs agentic execution failure visibility; sibling domains own their own substantive failure judgement.",
+          "routing_overlap_rule": "AAGD reports handoff conditions; CDOGD or external runtime context owns domain routing and priority."
+        }
+      },
+      "policy_goal": [
+        "agentic_goal_integrity",
+        "task_scope_integrity",
+        "completion_criteria_integrity",
+        "plan_and_step_traceability",
+        "workflow_state_integrity",
+        "tool_call_trace_integrity",
+        "tool_output_verification_state_visibility",
+        "side_effect_visibility",
+        "authority_reference_and_permission_state_integrity",
+        "checkpoint_and_abort_condition_visibility",
+        "handoff_state_integrity",
+        "memory_binding_provenance_integrity",
+        "completion_claim_truthfulness",
+        "retry_rollback_and_compensation_state_visibility",
+        "partial_failure_visibility",
+        "sibling_domain_handoff_condition_visibility",
+        "agentic_repair_origin_traceability",
+        "final_agentic_status_truthfulness"
+      ],
+      "constraints": {
+        "prohibited_failure_modes": {
+          "goal_task_plan_and_completion_claim_failures": [
+            "agentic_goal_silently_changed",
+            "task_scope_silently_expanded_or_shifted",
+            "non_scope_violated_without_status",
+            "completion_criteria_absent_or_changed_after_execution",
+            "agent_completion_reported_as_task_success_without_verification",
+            "plan_completion_reported_as_user_objective_satisfaction_without_evidence"
+          ],
+          "tool_call_side_effect_and_workflow_failures": [
+            "tool_call_hidden_or_untraceable",
+            "tool_output_treated_as_verified_result_without_validation_state",
+            "external_side_effect_unrecorded_when_material",
+            "side_effect_verification_state_hidden",
+            "long_running_workflow_without_checkpoint_or_abort_condition_when_material",
+            "retry_loop_unbounded_or_unrecorded",
+            "non_idempotent_retry_without_guard_or_status"
+          ],
+          "authority_handoff_memory_and_sibling_boundary_failures": [
+            "material_action_executed_without_authority_reference_state",
+            "aagd_claims_authority_decision_or_final_approval",
+            "handoff_loses_uncertainty_failure_or_negative_result",
+            "delegated_agent_or_subtask_exceeds_recorded_scope_without_status",
+            "memory_state_treated_as_current_truth_without_provenance_or_freshness_state",
+            "retrieved_context_treated_as_verified_fact_without_validation_state",
+            "sibling_domain_judgement_absorbed_instead_of_reported_as_handoff_condition"
+          ],
+          "repair_status_and_orchestration_failures": [
+            "failed_material_side_effect_without_rollback_or_compensation_state",
+            "repair_applied_without_revalidation_scope",
+            "partial_failed_or_degraded_state_hidden_in_final_status",
+            "domain_routing_or_precedence_implemented_inside_aagd",
+            "parent_governance_reexpanded_as_aagd_rules",
+            "schema_hygiene_failure"
+          ]
+        },
+        "required_controls": {
+          "goal_task_plan_and_completion_controls": [
+            "define_goal_task_scope_non_scope_and_completion_criteria_when_material",
+            "preserve_plan_step_and_workflow_traceability",
+            "perform_agentic_execution_falsification_for_material_plan_or_success_claim",
+            "separate_agent_completion_tool_success_plan_completion_and_task_success"
+          ],
+          "tool_side_effect_and_workflow_controls": [
+            "record_tool_call_status_inputs_outputs_and_error_state_when_material",
+            "record_side_effect_class_and_verification_state_when_material",
+            "preserve_checkpoint_abort_pause_resume_and_retry_guard_state_when_material",
+            "record_rollback_or_compensation_state_after_failed_material_side_effect"
+          ],
+          "authority_handoff_memory_and_boundary_controls": [
+            "record_authority_reference_and_permission_state_without_deciding_authority",
+            "report_authority_clarification_condition_when_authority_reference_is_missing_or_ambiguous",
+            "preserve_handoff_scope_uncertainty_failure_and_negative_results",
+            "preserve_memory_scope_provenance_freshness_and_write_authority_reference_state",
+            "report_sibling_domain_handoff_conditions_without_absorbing_sibling_judgement"
+          ],
+          "status_schema_and_boundary_controls": [
+            "block_or_qualify_agentic_completion_claim_when_required_evidence_is_missing",
+            "emit_partial_failed_or_degraded_status_when_material_state_is_unresolved",
+            "preserve_parent_governance_boundary",
+            "preserve_external_orchestration_boundary",
+            "preserve_record_required_field_group_mapping_when_records_are_used"
+          ]
+        },
+        "runtime_constraints": {
+          "domain_only": true,
+          "does_not_redefine_parent_governance": true,
+          "does_not_reimplement_external_orchestration": true,
+          "does_not_define_registry_logic": true,
+          "does_not_define_global_domain_priority": true,
+          "does_not_own_authority_decision_or_final_approval": true,
+          "does_not_own_security_operations_architecture_project_or_artifact_judgement": true,
+          "ready_or_completion_claim_blocking_is_not_external_execution_blocking": true,
+          "sibling_domain_handoff_conditions_do_not_themselves_complete_sibling_domain_review": true
+        },
+        "failure_aliases": {
+          "tool_success_fallacy": [
+            "tool_success_reported_as_verified_result_without_validation_state"
+          ],
+          "agent_completion_fallacy": [
+            "agent_completion_reported_as_task_success_without_verification"
+          ],
+          "plan_completion_fallacy": [
+            "plan_completion_reported_as_user_objective_satisfaction_without_evidence"
+          ],
+          "memory_truth_fallacy": [
+            "memory_state_treated_as_current_truth_without_provenance_or_freshness_state"
+          ]
+        },
+        "schema_hygiene_constraints": {
+          "taxonomy_group_membership_must_match_requirement_level": true,
+          "record_required_fields_must_be_mapped_to_field_groups_when_records_exist": true,
+          "field_group_items_may_inherit_group_requirement_level_when_not_overridden": true,
+          "evaluation_dimensions_must_align_with_thresholds_and_audit_targets_when_scoring_exists": true,
+          "critical_invalidation_conditions_must_be_represented_in_critical_severity_rules_when_severity_model_exists": true,
+          "collection_shape_must_be_declared_when_using_grouped_objects": true
+        },
+        "collection_shape_policy": {
+          "flat_array_or_grouped_object_may_be_used_when_declared": true,
+          "prohibited_failure_modes_may_be_flat_array_or_grouped_object": true,
+          "required_controls_may_be_flat_array_or_grouped_object": true,
+          "same_collection_should_not_mix_shapes_within_one_domain_definition": true,
+          "grouped_object_shape_must_preserve_machine_checkable_membership": true,
+          "validation_tools_should_read_declared_collection_shape_before_assuming_flat_arrays": true,
+          "collection_shape_declarations": {
+            "constraints.prohibited_failure_modes": "grouped_object",
+            "constraints.required_controls": "grouped_object",
+            "capabilities.capability_groups": "grouped_object",
+            "capabilities.preferred_capability_groups": "grouped_object"
+          }
+        }
+      },
+      "capabilities": {
+        "required_capabilities": [
+          "agentic_goal_task_scope_modeling",
+          "completion_criteria_fixation",
+          "plan_step_traceability",
+          "agentic_execution_falsification",
+          "workflow_state_tracking",
+          "tool_call_trace_capture",
+          "tool_output_verification_state_tracking",
+          "side_effect_classification_and_recording",
+          "authority_reference_and_permission_state_tracking",
+          "checkpoint_abort_condition_tracking",
+          "handoff_contract_integrity_tracking",
+          "memory_binding_provenance_tracking",
+          "completion_claim_verification",
+          "retry_rollback_compensation_state_tracking",
+          "partial_failure_visibility",
+          "agentic_repair_origin_identification",
+          "sibling_domain_handoff_condition_detection",
+          "agentic_status_reporting"
+        ],
+        "preferred_capabilities": [
+          "agent_output_cross_validation",
+          "comparative_agentic_audit",
+          "human_approval_queue_monitoring",
+          "memory_contamination_detection",
+          "stale_context_detection",
+          "long_running_workflow_summary_generation",
+          "structured_execution_trace_export"
+        ],
+        "capability_groups": {
+          "goal_task_plan_and_falsification": [
+            "agentic_goal_task_scope_modeling",
+            "completion_criteria_fixation",
+            "plan_step_traceability",
+            "agentic_execution_falsification"
+          ],
+          "workflow_tool_and_side_effect_trace": [
+            "workflow_state_tracking",
+            "tool_call_trace_capture",
+            "tool_output_verification_state_tracking",
+            "side_effect_classification_and_recording",
+            "checkpoint_abort_condition_tracking"
+          ],
+          "authority_handoff_and_memory_state": [
+            "authority_reference_and_permission_state_tracking",
+            "handoff_contract_integrity_tracking",
+            "memory_binding_provenance_tracking",
+            "sibling_domain_handoff_condition_detection"
+          ],
+          "completion_repair_and_status": [
+            "completion_claim_verification",
+            "retry_rollback_compensation_state_tracking",
+            "partial_failure_visibility",
+            "agentic_repair_origin_identification",
+            "agentic_status_reporting"
+          ]
+        },
+        "preferred_capability_groups": {
+          "enhanced_verification_and_audit": [
+            "agent_output_cross_validation",
+            "comparative_agentic_audit",
+            "structured_execution_trace_export"
+          ],
+          "enhanced_human_and_memory_observability": [
+            "human_approval_queue_monitoring",
+            "memory_contamination_detection",
+            "stale_context_detection",
+            "long_running_workflow_summary_generation"
+          ]
+        },
+        "mapping_policy": {
+          "required_capabilities_must_appear_in_capability_groups_when_groups_are_used": true,
+          "capability_groups_are_structural_not_exhaustive": true,
+          "future_extensions_should_attach_to_groups_before_adding_flat_items": true,
+          "capability_taxonomy_must_not_conflict_with_flat_required_list": true,
+          "required_capabilities_must_appear_in_required_capability_groups_when_groups_are_used": true,
+          "preferred_capabilities_must_appear_in_preferred_capability_groups_when_groups_are_used": true,
+          "preferred_capabilities_must_not_be_mixed_into_required_capability_groups": true,
+          "capability_taxonomy_must_preserve_requirement_level": true
+        }
+      },
+      "agentic_execution_envelope": {
+        "object_model_policy": {
+          "purpose": "define minimal domain-local evidence objects for agentic runtime execution without becoming a full agent runtime specification",
+          "objects_are_evidence_categories_not_runtime_implementation_classes": true,
+          "object_fields_should_track_state_claims_and_required_evidence_not_exhaustive_system_internals": true,
+          "sibling_domain_judgement_fields_must_store_reference_or_status_not_decision_content": true
+        },
+        "governed_object_categories": {
+          "agent_execution_context": {
+            "governance_purpose": "bind the current agentic execution envelope to a declared goal, task scope, agent role, and runtime context",
+            "minimum_fields": [
+              "agent_context_id",
+              "agent_role_reference",
+              "goal_state_reference",
+              "task_scope_reference",
+              "runtime_context_summary",
+              "authority_reference_status"
+            ]
+          },
+          "goal_task_and_completion_claim": {
+            "governance_purpose": "preserve goal, non-goal, task scope, non-scope, completion criteria, and completion claim truthfulness",
+            "minimum_fields": [
+              "goal_id",
+              "task_scope_id",
+              "non_goal_or_non_scope_when_material",
+              "completion_criteria",
+              "completion_claim_state",
+              "verification_reference"
+            ]
+          },
+          "plan_step_and_workflow_state": {
+            "governance_purpose": "track plan, step, checkpoint, pause, abort, retry, and workflow state without prescribing the execution engine",
+            "minimum_fields": [
+              "plan_id",
+              "step_id_or_step_set",
+              "workflow_state",
+              "checkpoint_state",
+              "abort_condition_state",
+              "retry_state"
+            ]
+          },
+          "tool_call_and_side_effect": {
+            "governance_purpose": "make tool calls and external side effects visible, classifiable, and verifiable as execution evidence",
+            "minimum_fields": [
+              "tool_call_id",
+              "tool_purpose",
+              "permission_state",
+              "input_output_trace_state",
+              "side_effect_class",
+              "side_effect_verification_state"
+            ]
+          },
+          "handoff_and_delegation_state": {
+            "governance_purpose": "preserve runtime handoff state without deciding authority, accountability, or domain routing",
+            "minimum_fields": [
+              "handoff_id",
+              "source_context",
+              "target_context_or_domain_reference",
+              "scope_transferred",
+              "uncertainty_transferred",
+              "failure_or_negative_result_transferred"
+            ]
+          },
+          "memory_binding_state": {
+            "governance_purpose": "track whether memory or retrieved context is being used as runtime context, not current truth by default",
+            "minimum_fields": [
+              "memory_binding_id",
+              "source_or_scope",
+              "provenance_state",
+              "freshness_state",
+              "write_or_update_authority_reference",
+              "correction_or_deletion_state_when_material"
+            ]
+          },
+          "repair_and_status_state": {
+            "governance_purpose": "connect detected agentic execution failures to repair origin, affected scope, revalidation state, and final status truthfulness",
+            "minimum_fields": [
+              "repair_origin",
+              "affected_scope",
+              "repair_applied",
+              "revalidation_state",
+              "final_status"
+            ]
+          }
+        },
+        "non_equivalence_rules": [
+          "agent_completion_is_not_task_success",
+          "tool_success_is_not_verified_result",
+          "plan_completion_is_not_user_objective_satisfaction",
+          "workflow_completion_is_not_safe_completion_when_partial_failed_or_degraded_state_is_hidden",
+          "memory_state_is_not_current_truth",
+          "retrieved_context_is_not_verified_fact",
+          "permission_reference_present_is_not_authority_decision_ownership_by_aagd",
+          "rollback_attempted_is_not_rollback_verified"
+        ]
+      },
+      "agentic_execution_process": {
+        "process_model_policy": {
+          "purpose": "define the minimal governance process for an agentic execution envelope without defining the runtime engine",
+          "stage_sequence_is_governance_sequence_not_implementation_schedule": true,
+          "stage_skip_allowed_only_when_non_applicability_is_explicit_and_does_not_hide_material_execution_state": true
+        },
+        "stage_sequence": [
+          "agentic_goal_and_task_intake",
+          "scope_completion_and_non_scope_fixation",
+          "runtime_role_authority_reference_and_permission_state_check",
+          "plan_step_and_checkpoint_definition",
+          "agentic_execution_falsification_review",
+          "tool_call_and_side_effect_execution_trace_capture",
+          "intermediate_result_and_side_effect_verification_state_update",
+          "handoff_memory_and_workflow_state_update",
+          "completion_claim_verification",
+          "repair_retry_rollback_or_compensation_state_update",
+          "final_agentic_status_reporting"
+        ],
+        "stage_definitions": {
+          "agentic_goal_and_task_intake": {
+            "purpose": "identify the agentic goal, task, user objective reference, and runtime context to be governed",
+            "required_output": [
+              "goal_state_reference",
+              "task_scope_candidate",
+              "agentic_context_status"
+            ],
+            "ready_claim_blocking_conditions": [
+              "goal_unknown_when_material",
+              "task_scope_unknown_when_material"
+            ]
+          },
+          "scope_completion_and_non_scope_fixation": {
+            "purpose": "fix task scope, non-scope, completion criteria, and claim boundaries before execution success can be claimed",
+            "required_output": [
+              "task_scope_state",
+              "non_scope_state_when_material",
+              "completion_criteria_state"
+            ],
+            "ready_claim_blocking_conditions": [
+              "completion_criteria_absent_for_material_task"
+            ]
+          },
+          "runtime_role_authority_reference_and_permission_state_check": {
+            "purpose": "record the applicable agent role, permission state, and external authority reference status without deciding authority itself",
+            "required_output": [
+              "agent_role_reference",
+              "permission_state",
+              "authority_reference_status"
+            ],
+            "ready_claim_blocking_conditions": [
+              "material_action_without_authority_reference",
+              "permission_state_unknown_for_material_tool_or_side_effect"
+            ]
+          },
+          "plan_step_and_checkpoint_definition": {
+            "purpose": "represent the plan, steps, checkpoints, pause/resume conditions, abort conditions, and retry guards at the execution-envelope level",
+            "required_output": [
+              "plan_state",
+              "step_trace_policy",
+              "checkpoint_state",
+              "abort_condition_state",
+              "retry_guard_state"
+            ],
+            "ready_claim_blocking_conditions": [
+              "long_running_workflow_without_checkpoint_or_abort_condition"
+            ]
+          },
+          "agentic_execution_falsification_review": {
+            "purpose": "test whether the plan, tool assumptions, side effect assumptions, handoff assumptions, memory assumptions, or completion claim can fail",
+            "required_output": [
+              "falsification_findings",
+              "known_failure_conditions",
+              "residual_uncertainty_state"
+            ],
+            "ready_claim_blocking_conditions": [
+              "material_success_claim_without_falsification_review"
+            ]
+          },
+          "tool_call_and_side_effect_execution_trace_capture": {
+            "purpose": "capture tool call status and side effect state as execution evidence without absorbing security, operations, or authority judgement",
+            "required_output": [
+              "tool_call_trace",
+              "tool_result_state",
+              "side_effect_record",
+              "sibling_domain_handoff_conditions_when_material"
+            ],
+            "ready_claim_blocking_conditions": [
+              "material_tool_call_or_side_effect_unrecorded"
+            ]
+          },
+          "intermediate_result_and_side_effect_verification_state_update": {
+            "purpose": "separate tool success, intermediate result, side effect completion, and verification state",
+            "required_output": [
+              "intermediate_result_state",
+              "verification_state",
+              "side_effect_verification_state"
+            ],
+            "ready_claim_blocking_conditions": [
+              "tool_success_treated_as_verified_result"
+            ]
+          },
+          "handoff_memory_and_workflow_state_update": {
+            "purpose": "preserve workflow state, handoff content, uncertainty, negative results, failed steps, memory scope, and memory provenance",
+            "required_output": [
+              "workflow_state",
+              "handoff_state_when_material",
+              "memory_binding_state_when_used"
+            ],
+            "ready_claim_blocking_conditions": [
+              "handoff_loses_uncertainty_or_negative_result",
+              "memory_binding_used_without_provenance_state"
+            ]
+          },
+          "completion_claim_verification": {
+            "purpose": "evaluate whether the final agentic completion claim is supported by evidence across goal, scope, tool, side effect, handoff, memory, and verification states",
+            "required_output": [
+              "completion_claim_state",
+              "evidence_gap_state",
+              "partial_failure_state"
+            ],
+            "ready_claim_blocking_conditions": [
+              "completion_claim_unsupported",
+              "partial_failed_or_degraded_state_hidden"
+            ]
+          },
+          "repair_retry_rollback_or_compensation_state_update": {
+            "purpose": "record repair origin and execution-state repair actions such as retry guard correction, rollback state, or compensation state",
+            "required_output": [
+              "repair_origin",
+              "affected_scope",
+              "repair_applied",
+              "revalidation_state"
+            ],
+            "ready_claim_blocking_conditions": [
+              "failed_material_side_effect_without_rollback_or_compensation_state"
+            ]
+          },
+          "final_agentic_status_reporting": {
+            "purpose": "emit a truthful agentic execution status without claiming sibling-domain approval, security safety, operational recovery, or architecture validity",
+            "required_output": [
+              "final_agentic_status",
+              "open_handoff_conditions",
+              "unverified_or_degraded_state_when_present"
+            ],
+            "ready_claim_blocking_conditions": [
+              "final_status_omits_material_failure_or_handoff_condition"
+            ]
+          }
+        }
+      },
+      "agentic_execution_falsification": {
+        "purpose": "prevent agentic plans, tool results, memory bindings, side effects, handoffs, and completion claims from being accepted without testing failure conditions",
+        "parent_reference": "general falsification and counterexample handling remain governed by parent reasoning governance; AAGD defines only agentic-execution-specific falsification targets",
+        "required_when": [
+          "material_agentic_plan_or_tool_sequence_exists",
+          "material_external_side_effect_may_occur_or_has_occurred",
+          "handoff_or_delegation_changes_execution_scope",
+          "memory_or_retrieved_context_is_used_as_material_basis",
+          "completion_success_or_ready_claim_is_about_to_be_emitted"
+        ],
+        "falsification_targets": [
+          "goal_task_scope_alignment",
+          "plan_step_dependency_assumptions",
+          "tool_output_validity_assumptions",
+          "side_effect_reversibility_or_compensation_assumptions",
+          "authority_reference_and_permission_state_assumptions",
+          "handoff_preservation_assumptions",
+          "memory_freshness_and_provenance_assumptions",
+          "completion_claim_support_assumptions"
+        ],
+        "minimum_output": [
+          "failure_condition_identified_or_none_found_with_basis",
+          "residual_uncertainty_state",
+          "evidence_gap_state",
+          "completion_claim_impact"
+        ],
+        "prohibited_shortcuts": [
+          "assuming_agent_completion_means_task_success",
+          "assuming_tool_success_means_verified_result",
+          "assuming_plan_completion_means_user_objective_satisfaction",
+          "assuming_memory_state_means_current_truth",
+          "assuming_authority_reference_present_means_aagd_owns_authority_decision"
+        ]
+      },
+      "evaluation": {
+        "evaluation_policy": {
+          "domain_evaluation_required_when_domain_claim_is_made": true,
+          "scored_evaluation_is_optional": true,
+          "severity_model_is_optional_default_structure": true,
+          "boolean_state_or_threshold_based_evaluation_allowed": true,
+          "non_applicable_dimensions_must_be_excluded_with_reason_when_reporting": true,
+          "scoring_requires_domain_specific_reason": true,
+          "severity_requires_domain_specific_reason": true,
+          "do_not_enable_scoring_or_severity_for_apparent_completeness": true,
+          "domain_evaluation_reason": "agentic execution claims can create hidden side effects, false completion claims, and state loss; domain evaluation is required when an agentic execution claim is made."
+        },
+        "audit_targets": [
+          "goal_non_goal_and_task_scope_are_declared_when_material",
+          "completion_criteria_are_fixed_before_completion_claim",
+          "plan_and_step_state_are_traceable_to_task_scope",
+          "tool_calls_have_traceable_inputs_outputs_and_status",
+          "tool_outputs_are_not_treated_as_verified_results_without_validation_state",
+          "material_side_effects_have_classification_record_and_verification_state",
+          "authority_reference_and_permission_state_are_available_for_material_actions",
+          "checkpoint_abort_and_pause_conditions_are_visible_when_workflow_is_long_running_or_material",
+          "handoffs_preserve_role_scope_uncertainty_failure_and_negative_results",
+          "memory_bindings_preserve_scope_provenance_and_freshness_state",
+          "agentic_execution_falsification_has_been_performed_for_material_plans_or_success_claims",
+          "completion_claim_is_supported_by_verification_state_not_only_agent_or_tool_completion",
+          "retry_rollback_and_compensation_state_is_visible_when_material",
+          "sibling_domain_handoff_conditions_are_reported_without_absorbing_sibling_judgement",
+          "final_agentic_status_exposes_partial_failed_or_degraded_state_when_present"
+        ],
+        "minimum_pass_conditions": [
+          "goal_task_scope_and_completion_criteria_are_known_or_explicitly_unresolved",
+          "tool_call_side_effect_workflow_handoff_and_memory_states_are_visible_when_material",
+          "authority_reference_status_is_recorded_for_material_actions_without_aagd_deciding_authority",
+          "completion_claim_is_supported_by_verification_state_or_qualified_as_partial_failed_or_degraded",
+          "sibling_domain_handoff_conditions_are_reported_without_absorption",
+          "record_schema_mappings_are_consistent_when_records_are_used"
+        ],
+        "drift_signals": [
+          "goal_or_task_terms_change_without_rebinding",
+          "plan_steps_expand_beyond_scope_without_status",
+          "tool_call_or_side_effect_occurs_without_trace",
+          "authority_or_permission_state_becomes_unknown_during_material_action",
+          "handoff_summary_omits_failure_uncertainty_or_negative_result",
+          "memory_binding_source_or_freshness_changes_without_status",
+          "final_status_becomes_more_certain_than_evidence_supports",
+          "aagd_begins_making_security_operations_architecture_or_authority_judgements"
+        ],
+        "critical_invalidation_conditions": [
+          "agentic_goal_silently_changed",
+          "task_scope_or_non_scope_violated_without_status",
+          "completion_claim_made_without_completion_criteria_satisfaction",
+          "agent_completion_reported_as_task_success_without_verification",
+          "tool_success_reported_as_verified_result_without_validation",
+          "external_side_effect_unrecorded_or_unverified_when_material",
+          "authority_reference_missing_for_material_side_effect_or_write_action",
+          "handoff_loses_failure_uncertainty_or_negative_result",
+          "memory_binding_treated_as_current_truth_without_provenance_or_freshness_basis",
+          "retry_loop_or_non_idempotent_retry_unbounded_or_unrecorded",
+          "rollback_or_compensation_state_hidden_after_failed_material_side_effect",
+          "partial_failed_or_degraded_state_hidden_in_final_status"
+        ],
+        "scoring_model": {
+          "enabled_when_domain_defines_scored_evaluation": false,
+          "score_range": [
+            0,
+            100
+          ],
+          "domain_dimension_scores": [],
+          "minimum_expected_scores": {},
+          "aggregation_policy": {
+            "equal_weight_across_applicable_dimensions": true,
+            "non_applicable_dimensions_excluded_with_reason": true,
+            "critical_invalidation_overrides_aggregate_score": true,
+            "llm_self_assessment_must_not_be_presented_as_external_validation": true
+          },
+          "alignment_policy": {
+            "domain_dimension_scores_must_have_minimum_expected_scores_when_scoring_is_enabled": true,
+            "audit_targets_must_have_corresponding_dimension_or_explicit_non_scored_reason": true,
+            "critical_invalidation_conditions_must_appear_in_severity_model_when_material_and_severity_model_exists": true
+          },
+          "disabled_reason": "AAGD 002 uses boolean/state and critical-invalidation evaluation by default to avoid old-generation overbuilt scoring."
+        },
+        "severity_model": {
+          "enabled_when_domain_uses_severity": true,
+          "domain_reason": "critical agentic execution failures can invalidate completion or ready claims even without numeric scoring",
+          "levels": [
+            "info",
+            "minor",
+            "material",
+            "critical"
+          ],
+          "severity_rules": {
+            "critical": [
+              "agentic_goal_silently_changed",
+              "task_scope_or_non_scope_violated_without_status",
+              "completion_claim_made_without_completion_criteria_satisfaction",
+              "agent_completion_reported_as_task_success_without_verification",
+              "tool_success_reported_as_verified_result_without_validation",
+              "external_side_effect_unrecorded_or_unverified_when_material",
+              "authority_reference_missing_for_material_side_effect_or_write_action",
+              "handoff_loses_failure_uncertainty_or_negative_result",
+              "memory_binding_treated_as_current_truth_without_provenance_or_freshness_basis",
+              "retry_loop_or_non_idempotent_retry_unbounded_or_unrecorded",
+              "rollback_or_compensation_state_hidden_after_failed_material_side_effect",
+              "partial_failed_or_degraded_state_hidden_in_final_status"
+            ],
+            "material": [
+              "tool_call_trace_incomplete_for_material_action",
+              "side_effect_classification_unknown_but_no_completion_claim_yet",
+              "handoff_contract_incomplete_for_non_final_intermediate_state",
+              "memory_freshness_unknown_but_not_used_as_material_basis",
+              "repair_revalidation_scope_incomplete"
+            ],
+            "minor": [
+              "non_material_trace_detail_missing",
+              "status_detail_requested_but_compact_status_available_only",
+              "non_blocking_preferred_capability_absent"
+            ],
+            "info": [
+              "sibling_domain_handoff_condition_reported",
+              "agentic_execution_status_emitted",
+              "optional_preferred_capability_not_enabled"
+            ]
+          }
+        }
+      },
+      "repair": {
+        "purpose": "identify agentic execution repair origin, affected scope, and revalidation requirements without reimplementing parent repair governance or sibling-domain judgement",
+        "core_rule": "repair_model_should_define_repair_origin_not_parent_repair_cycle",
+        "repair_origins": [
+          "goal_task_scope_mismatch",
+          "completion_criteria_gap",
+          "plan_step_trace_gap",
+          "tool_call_trace_gap",
+          "tool_output_verification_gap",
+          "side_effect_record_or_verification_gap",
+          "authority_reference_or_permission_state_gap",
+          "checkpoint_abort_or_retry_guard_gap",
+          "handoff_integrity_gap",
+          "memory_binding_provenance_or_freshness_gap",
+          "completion_claim_support_gap",
+          "rollback_or_compensation_state_gap",
+          "sibling_domain_handoff_gap",
+          "schema_hygiene_gap"
+        ],
+        "repair_policy": {
+          "identify_repair_origin": true,
+          "repair_affected_scope": true,
+          "revalidate_affected_axes": true,
+          "preserve_revision_lineage_when_material": true,
+          "do_not_skip_repair_and_claim_ready_without_basis": true,
+          "partial_revalidation_requires_reason": true,
+          "post_repair_review_must_cover_affected_axes": true
+        },
+        "human_or_runtime_review_condition_findings": [
+          "authority_reference_missing_for_material_action",
+          "permission_state_unknown_for_material_tool_or_side_effect",
+          "external_side_effect_failed_or_unverified",
+          "security_domain_handoff_condition_detected",
+          "operations_domain_handoff_condition_detected",
+          "architecture_domain_handoff_condition_detected",
+          "completion_claim_blocked_by_missing_evidence"
+        ],
+        "review_condition_wording_policy": {
+          "review_required_wording_requires_authority_basis": true,
+          "non_authority_domains_should_emit_review_condition_findings": true,
+          "human_or_runtime_review_conditions_do_not_themselves_create_external_review_obligations": true,
+          "authority_sensitive_review_findings_should_request_or_recommend_clarification_not_claim_final_requirement": true
+        },
+        "domain_repair_actions": {
+          "aagd_owned_repair_actions": [
+            "rebind_goal_task_or_completion_claim_state",
+            "restore_missing_execution_trace",
+            "record_missing_tool_or_side_effect_state",
+            "qualify_or_block_completion_claim",
+            "record_repair_origin_and_revalidation_scope",
+            "emit_partial_failed_or_degraded_status"
+          ],
+          "handoff_or_external_repair_conditions": [
+            "authority_decision_needed",
+            "security_judgement_needed",
+            "operations_recovery_judgement_needed",
+            "architecture_judgement_needed",
+            "project_or_artifact_judgement_needed"
+          ]
+        }
+      },
+      "activation": {
+        "enabled": true,
+        "activation_mode": "local_domain_applicability",
+        "applies_when": [
+          "an_ai_system_or_agent_is_planning_executing_or_reporting_multi_step_work",
+          "tool_calls_file_operations_api_calls_or_external_resource_actions_are_material_to_the_task",
+          "autonomous_or_semi_autonomous_execution_may_create_side_effects",
+          "workflow_state_checkpoint_handoff_memory_or_completion_claim_integrity_is_material",
+          "the_user_or_runtime_requests_agentic_execution_audit_status_or_repair",
+          "an_agentic_success_completion_ready_partial_failed_or_degraded_status_claim_is_made"
+        ],
+        "does_not_replace_argd": true,
+        "does_not_replace_dagd": true,
+        "does_not_reimplement_cdogd": true,
+        "does_not_define_registry_logic": true,
+        "routing_and_priority_are_external": true,
+        "activation_record_minimum_fields": [
+          "activation_reason",
+          "agentic_context",
+          "governed_execution_target",
+          "applicable_evaluation_axes",
+          "declared_context_policy_status",
+          "sibling_domain_handoff_conditions_when_material"
+        ],
+        "local_activation_scope_policy": {
+          "domain_activation_is_context_local": true,
+          "external_orchestration_may_select_or_prioritize_domain": true,
+          "domain_definition_does_not_store_registry_or_routing_logic": true
+        },
+        "reactivation_policy": {
+          "domain_activation_is_not_one_shot": true,
+          "domain_may_be_reactivated_when_relevant_conditions_recur": true,
+          "reactivation_triggers": [
+            "governed_target_change",
+            "premise_change",
+            "constraint_change",
+            "state_change",
+            "purpose_change",
+            "risk_change",
+            "output_requirement_change",
+            "authority_or_context_change"
+          ],
+          "deactivation_does_not_imply_future_non_applicability": true
+        },
+        "binding_priority": "not_defined_by_aagd"
+      },
+      "self_audit": {
+        "enabled": true,
+        "audit_frequency": {
+          "before_material_completion_claim": true,
+          "after_material_tool_call_or_side_effect": true,
+          "after_handoff_or_memory_binding_change_when_material": true,
+          "on_user_request": true,
+          "on_detected_drift_or_critical_failure": true
+        },
+        "audit_axes": [
+          "goal_task_scope_and_completion_claim_integrity",
+          "plan_step_workflow_and_checkpoint_state_integrity",
+          "tool_call_and_side_effect_trace_integrity",
+          "authority_reference_and_permission_state_visibility",
+          "handoff_memory_and_verification_state_integrity",
+          "sibling_domain_boundary_preservation",
+          "repair_origin_and_final_status_truthfulness"
+        ],
+        "output_policy": {
+          "compact_by_default": true,
+          "emit_detail_on_anomaly": true,
+          "emit_detail_on_user_request": true,
+          "emit_detail_on_critical_failure": true
+        },
+        "required_basis_checks": [
+          "is_the_completion_claim_supported_by_evidence_rather_than_agent_or_tool_completion_alone",
+          "are_material_tool_calls_and_side_effects_traceable_and_verification_state_visible",
+          "is_authority_or_permission_state_recorded_without_aagd_claiming_final_authority",
+          "were_uncertainty_failure_and_negative_results_preserved_across_handoff",
+          "is_memory_or_retrieved_context_used_only_within_its_recorded_scope_provenance_and_freshness_state",
+          "are_sibling_domain_handoff_conditions_reported_without_absorbing_sibling_judgement"
+        ],
+        "domain_specific_self_state_audit_policy": {
+          "optional_domain_local_policy": true,
+          "allowed_when_domain_requires_stronger_self_state_control": true,
+          "must_remain_domain_local": true,
+          "must_not_replace_parent_audit_or_repair_governance": true,
+          "must_not_be_treated_as_self_approval": true,
+          "must_define_overreach_detection_when_authority_sensitive": true,
+          "must_define_repair_or_escalation_when_self_state_is_unreliable": true,
+          "aagd_overreach_detection_required": true,
+          "overreach_detection_targets": [
+            "authority_decision_claim",
+            "security_clearance_claim",
+            "operations_recovery_judgement_claim",
+            "architecture_design_judgement_claim",
+            "domain_routing_or_priority_claim"
+          ]
+        },
+        "self_audit_result_connection_policy": {
+          "self_audit_result_values_must_be_mapped_or_marked_internal_only_when_defined": true,
+          "self_doubt_result_values_must_be_mapped_or_marked_internal_only_when_defined": true,
+          "mapping_target_should_be_audit_to_action_when_actionable": true,
+          "internal_state_only_results_must_not_be_presented_as_action_outputs": true,
+          "result_names_and_action_names_must_remain_distinct": true,
+          "unmapped_actionable_self_audit_results_are_schema_hygiene_failure": true
+        }
+      },
+      "audit_to_action": {
+        "enabled": true,
+        "decision_inputs": [
+          "detected_failure_modes",
+          "critical_invalidation_status",
+          "authority_reference_status",
+          "side_effect_verification_status",
+          "completion_claim_status",
+          "sibling_domain_handoff_conditions",
+          "repair_origin_status",
+          "user_requested_status_detail"
+        ],
+        "action_outputs": [
+          "block_agentic_completion_claim",
+          "emit_agentic_execution_status",
+          "report_authority_reference_missing",
+          "report_side_effect_unverified",
+          "report_handoff_condition",
+          "report_security_domain_handoff_condition",
+          "report_operations_domain_handoff_condition",
+          "report_architecture_domain_handoff_condition",
+          "report_repair_needed",
+          "emit_partial_or_degraded_status",
+          "request_task_or_completion_clarification",
+          "no_domain_action_needed"
+        ],
+        "audit_to_action_consistency_policy": {
+          "decision_inputs_must_be_declared_when_used": true,
+          "action_outputs_must_be_declared_when_used": true,
+          "audit_decision_rules_must_emit_registered_action_outputs_only": true,
+          "unregistered_action_output_is_schema_hygiene_failure": true,
+          "action_precedence_must_not_override_higher_authority": true,
+          "unused_action_outputs_must_be_removed_or_marked_reserved": true,
+          "decision_rules_must_not_emit_unregistered_result_values_as_actions": true
+        },
+        "action_precedence": {
+          "critical_failure_blocks_ready_claim_when_material": true,
+          "deduplicate_actions_after_mapping": true
+        },
+        "action_output_registration_policy": {
+          "action_outputs_must_be_used_by_decision_rules_or_marked_reserved_or_payload_target": true,
+          "unused_unreserved_action_outputs_should_be_removed": true,
+          "reserved_action_outputs_must_be_marked_extension_reserved_or_future_reserved": true,
+          "decision_inputs_must_be_used_or_marked_reserved": true,
+          "action_names_must_not_be_confused_with_result_values": true,
+          "payload_targets_should_be_used_when_many_specific_actions_share_one_action_pattern": true,
+          "all_action_outputs_are_used_by_decision_rules": true
+        },
+        "decision_rules": [
+          {
+            "when": [
+              "critical_invalidation_status == true",
+              "completion_claim_status in [ready_claim, success_claim, completed_claim]"
+            ],
+            "emit": [
+              "block_agentic_completion_claim",
+              "emit_agentic_execution_status"
+            ],
+            "authority_safety_note": "blocks only the agentic ready/completion/success claim, not external execution authority"
+          },
+          {
+            "when": [
+              "authority_reference_status in [missing, ambiguous]"
+            ],
+            "emit": [
+              "report_authority_reference_missing",
+              "block_agentic_completion_claim"
+            ]
+          },
+          {
+            "when": [
+              "side_effect_verification_status in [unrecorded, unverified, failed]"
+            ],
+            "emit": [
+              "report_side_effect_unverified",
+              "emit_partial_or_degraded_status"
+            ]
+          },
+          {
+            "when": [
+              "sibling_domain_handoff_conditions contains security_domain"
+            ],
+            "emit": [
+              "report_security_domain_handoff_condition",
+              "report_handoff_condition"
+            ]
+          },
+          {
+            "when": [
+              "sibling_domain_handoff_conditions contains operations_domain"
+            ],
+            "emit": [
+              "report_operations_domain_handoff_condition",
+              "report_handoff_condition"
+            ]
+          },
+          {
+            "when": [
+              "sibling_domain_handoff_conditions contains architecture_domain"
+            ],
+            "emit": [
+              "report_architecture_domain_handoff_condition",
+              "report_handoff_condition"
+            ]
+          },
+          {
+            "when": [
+              "repair_origin_status in [identified_unresolved, revalidation_needed]"
+            ],
+            "emit": [
+              "report_repair_needed",
+              "emit_agentic_execution_status"
+            ]
+          },
+          {
+            "when": [
+              "detected_failure_modes contains scope_or_completion_ambiguity"
+            ],
+            "emit": [
+              "request_task_or_completion_clarification"
+            ]
+          },
+          {
+            "when": [
+              "critical_invalidation_status == false",
+              "detected_failure_modes is empty",
+              "user_requested_status_detail == false"
+            ],
+            "emit": [
+              "no_domain_action_needed"
+            ]
+          },
+          {
+            "when": [
+              "user_requested_status_detail == true"
+            ],
+            "emit": [
+              "emit_agentic_execution_status"
+            ]
+          }
+        ]
+      },
+      "status_reporting": {
+        "enabled": true,
+        "status_reporting_should_define_domain_delta_only": true,
+        "modes": [
+          "silent_by_default",
+          "emit_on_anomaly",
+          "emit_on_user_request",
+          "emit_on_blocking_failure",
+          "emit_after_material_repair"
+        ],
+        "compact_fields": [
+          "agentic_status",
+          "completion_claim_state",
+          "blocking_or_degrading_condition",
+          "authority_reference_status",
+          "tool_and_side_effect_state",
+          "handoff_or_sibling_domain_condition",
+          "repair_or_revalidation_state"
+        ],
+        "visibility_rules": {
+          "show_critical_failure": true,
+          "show_blocking_failure": true,
+          "show_material_repair": true,
+          "suppress_verbose_status_when_no_anomaly_and_no_user_request": true,
+          "show_authority_reference_missing": true,
+          "show_unverified_material_side_effect": true,
+          "show_partial_failed_or_degraded_completion_claim": true,
+          "show_sibling_domain_handoff_condition_without_deciding_sibling_domain_result": true
+        },
+        "agentic_status_values": [
+          "not_agentic_or_not_applicable",
+          "ready_claim_supported",
+          "ready_claim_blocked",
+          "in_progress",
+          "partial",
+          "degraded",
+          "failed",
+          "repair_needed",
+          "revalidation_needed",
+          "handoff_condition_reported"
+        ]
+      },
+      "record_schemas": {
+        "record_policy": {
+          "record_schemas_are_optional_unless_domain_requires_records": true,
+          "if_records_exist_required_fields_must_map_to_field_groups": true,
+          "records_must_not_redefine_parent_audit_or_repair_cycle": true,
+          "records_must_remain_domain_delta": true,
+          "records_should_be_minimal_and_material_conditioned": true,
+          "record_schemas_must_not_be_treated_as_always_required": true,
+          "record_fields_should_not_be_expanded_for_documentation_exhaustiveness": true,
+          "domain_reason_for_records": "agentic runtime execution can create multi-step traces, side effects, handoffs, and completion claims that require material evidence when audited or repaired."
+        },
+        "domain_record_templates": {
+          "agentic_execution_trace_record": {
+            "purpose": "minimal record for material agentic execution trace and status evidence",
+            "required_when": [
+              "material_tool_call_side_effect_handoff_memory_binding_or_completion_claim_exists"
+            ],
+            "required_fields": [
+              "record_id",
+              "governed_target_id",
+              "workflow_id",
+              "goal_state",
+              "task_scope_state",
+              "completion_criteria_state",
+              "plan_state",
+              "tool_call_summary",
+              "side_effect_summary",
+              "checkpoint_state",
+              "handoff_state",
+              "memory_binding_state",
+              "verification_state",
+              "completion_claim_state",
+              "status_reported"
+            ],
+            "field_groups": {
+              "identity_and_scope": [
+                "record_id",
+                "governed_target_id",
+                "workflow_id"
+              ],
+              "goal_task_plan_and_completion": [
+                "goal_state",
+                "task_scope_state",
+                "completion_criteria_state",
+                "plan_state",
+                "completion_claim_state"
+              ],
+              "tool_side_effect_checkpoint_and_handoff": [
+                "tool_call_summary",
+                "side_effect_summary",
+                "checkpoint_state",
+                "handoff_state"
+              ],
+              "memory_verification_and_status": [
+                "memory_binding_state",
+                "verification_state",
+                "status_reported"
+              ]
+            },
+            "optional_fields": [
+              "sibling_domain_handoff_conditions",
+              "residual_uncertainty_state",
+              "degraded_or_partial_state_reason"
+            ]
+          },
+          "agentic_execution_audit_failure_and_repair_record": {
+            "purpose": "minimal record for detected AAGD failure, repair origin, repair action, and revalidation state",
+            "required_when": [
+              "material_failure_repair_or_revalidation_is_reported"
+            ],
+            "required_fields": [
+              "record_id",
+              "related_execution_trace_id",
+              "detected_failure_modes",
+              "affected_axes",
+              "repair_origin",
+              "repair_applied",
+              "revalidation_scope",
+              "post_repair_status"
+            ],
+            "field_groups": {
+              "identity_and_trace": [
+                "record_id",
+                "related_execution_trace_id"
+              ],
+              "failure_and_scope": [
+                "detected_failure_modes",
+                "affected_axes"
+              ],
+              "repair_retry_rollback_and_compensation": [
+                "repair_origin",
+                "repair_applied",
+                "revalidation_scope"
+              ],
+              "post_repair": [
+                "post_repair_status"
+              ]
+            },
+            "optional_fields": [
+              "sibling_domain_handoff_conditions",
+              "rollback_or_compensation_state",
+              "residual_risk_or_uncertainty_state"
+            ]
+          }
+        },
+        "record_relationship_contract": {
+          "agentic_execution_audit_failure_and_repair_record.related_execution_trace_id": "must_reference_existing_agentic_execution_trace_record_when_trace_record_exists",
+          "orphan_repair_record_policy": "allowed_only_when_source_trace_is_unavailable_and_reason_is_recorded",
+          "records_do_not_replace_runtime_logs_or_parent_audit_records": true
+        },
+        "record_schema_consistency_policy": {
+          "record_required_fields_must_be_mapped_to_field_groups": true,
+          "field_group_items_inherit_group_requirement_level_unless_overridden": true,
+          "field_group_items_must_have_known_requirement_level_after_inheritance": true,
+          "record_relationships_must_not_create_orphan_records": true
+        }
+      },
+      "meta_data": {
+        "version": "0.1.0"
+      }
+    }
+  }
+}

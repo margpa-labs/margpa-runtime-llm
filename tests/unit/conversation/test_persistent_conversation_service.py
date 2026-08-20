@@ -65,6 +65,7 @@ class FakeSession:
     def __init__(self, events: tuple[ConversationEvent, ...]) -> None:
         self.request_id = "request-1"
         self._events = events
+        self.documentation_augmentation = None
 
     def events(self) -> Iterator[ConversationEvent]:
         yield from self._events
@@ -171,6 +172,9 @@ def test_lifecycle_create_pending_generating_complete_close_resume(tmp_path: Pat
     assert completed.conversation.messages[-1].content == "answer"
     assert completed.conversation.head_turn_id == ConversationTurnId(value="turn-1")
 
+    listed_while_active = service.list_conversations()
+    assert listed_while_active.items[0].has_active_session is True
+
     with pytest.raises(PersistentConversationError):
         service.fail_generation(
             conversation_id=CID,
@@ -184,6 +188,9 @@ def test_lifecycle_create_pending_generating_complete_close_resume(tmp_path: Pat
         operation_id=op("close"),
         expected_revision=completed.storage_revision,
     )
+    listed_while_closed = service.list_conversations()
+    assert listed_while_closed.items[0].has_active_session is False
+
     resumed = service.resume_conversation(
         conversation_id=CID,
         session_id=ConversationSessionId(value="session-2"),
@@ -192,6 +199,8 @@ def test_lifecycle_create_pending_generating_complete_close_resume(tmp_path: Pat
     )
     assert resumed.conversation.sessions[0].state is ConversationSessionState.CLOSED
     assert resumed.conversation.sessions[1].state is ConversationSessionState.ACTIVE
+    listed_after_resume = service.list_conversations()
+    assert listed_after_resume.items[0].has_active_session is True
 
 
 def test_cancel_complete_competition_allows_only_one_terminal_commit(tmp_path: Path) -> None:

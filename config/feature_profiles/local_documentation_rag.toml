@@ -26,7 +26,7 @@ overlap_characters = 120
 maximum_characters = 1600
 
 [retrieval]
-top_k = 4
+top_k = 8
 max_chunks_per_document = 2
 minimum_score = 0.1
 bm25_k1 = 1.5

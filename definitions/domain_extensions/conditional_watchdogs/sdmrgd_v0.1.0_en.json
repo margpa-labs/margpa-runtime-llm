@@ -1,0 +1,1395 @@
+{
+  "sdmrgd": {
+    "strategic_decision_meta_review_governance_definition": {
+      "description": "SDMRGD (Strategic Decision Meta-Review Governance Definition) is an additive domain governance definition for meta-reviewing SDAGD audit state, audit quality, responsibility-boundary integrity, audit-result classification, repair necessity, and escalation necessity. SDMRGD is a dormant, conditionally activated, repeatably reactivatable safety valve for cases where SDAGD's own audit state is doubtful. SDMRGD does not audit strategic decisions directly, does not determine decision authority, does not make final decisions, does not replace SDAGD, does not complete SDAGD's primary audit, and does not enter mutual audit with SDAGD. Its outputs are limited to meta_review_pass, meta_review_repair_instruction, and meta_review_escalate.",
+      "inheritance": {
+        "inheritance_mode": "additive_domain_extension",
+        "parent_definitions": [
+          {
+            "syntax_id": "argd",
+            "role": "general_reasoning_procedure_governance",
+            "required": true
+          },
+          {
+            "syntax_id": "dagd",
+            "role": "general_behavior_audit_repair_activation_and_status_governance",
+            "required": true
+          }
+        ],
+        "dependency_version_policy": {
+          "specific_parent_versions_are_not_hardcoded_in_domain_compatibility_labels": true,
+          "parent_version_binding_is_external_to_this_domain_definition": true,
+          "version_binding_owner": "runtime_bundle_or_release_manifest"
+        },
+        "standalone_reference_use": {
+          "allowed": true,
+          "condition": "standalone_readers_must_treat_parent_mechanisms_as_external_prerequisites_or_reference_context",
+          "does_not_grant_parent_functionality": true,
+          "runtime_conformance_requires_parent_definitions": true
+        },
+        "replaces_parent_definitions": false,
+        "duplicates_parent_rules": false,
+        "parent_rules_remain_authoritative": true,
+        "domain_delta_only": true,
+        "preserved_parent_mechanism_policy": {
+          "inherited_governance_must_be_referenced_not_reexpanded": true,
+          "silent_parent_rule_override_prohibited": true,
+          "parent_mechanism_lists_must_not_be_recreated_unless_required_by_explicit_context": true
+        },
+        "conflict_policy": {
+          "general_reasoning_conflicts": "resolve_under_parent_reasoning_governance",
+          "general_behavior_and_governance_conflicts": "resolve_under_parent_behavior_governance",
+          "strategic_decision_meta_review_conflicts": "resolve_under_sdmrgd_when_limited_to_sdagd_audit_state_and_not_in_conflict_with_parent_governance_or_higher_authority",
+          "decision_authority_conflicts": "handoff_to_daagd_or_external_decision_authority_governance",
+          "strategic_judgment_structure_conflicts": "handoff_to_sppgd_or_external_strategic_structure_governance",
+          "cross_domain_boundary_conflicts": "handoff_to_cdogd_or_external_orchestration",
+          "higher_level_system_policies_remain_authoritative": true,
+          "silent_parent_rule_override_prohibited": true
+        }
+      },
+      "orchestration_reference": {
+        "orchestration_definition": "cdogd",
+        "relationship": "external_orchestration_reference",
+        "cdogd_is_not_reimplemented_here": true,
+        "registry_and_activation_logic_are_external": true,
+        "routing_priority_and_domain_selection_are_external": true,
+        "registered_domain_extension_storage_is_external": true,
+        "loaded_or_registered_state_does_not_activate_sdmrgd_by_itself": true,
+        "cross_domain_responsibility_resolution_is_external": true
+      },
+      "domain_scope": {
+        "domain": "strategic_decision_meta_review",
+        "scope_statement": "Govern meta-review of SDAGD audit state, audit quality, audit-result classification, responsibility-boundary integrity, repair necessity, and escalation necessity when doubt arises about SDAGD's audit posture. SDMRGD does not audit strategic decisions directly, does not determine decision authority, and does not make or authorize final decisions.",
+        "governed_target_categories": [
+          "sdagd_audit_state",
+          "sdagd_audit_quality",
+          "sdagd_audit_scope",
+          "sdagd_audit_criteria",
+          "sdagd_audit_basis",
+          "sdagd_audit_result_classification",
+          "sdagd_self_audit_result",
+          "sdagd_repair_need",
+          "sdagd_escalation_need",
+          "sdagd_responsibility_boundary",
+          "sdagd_overreach_signal",
+          "sdagd_rubber_stamp_signal",
+          "sdagd_audit_impossibility_signal"
+        ],
+        "lifecycle_coverage": [
+          "sdagd_audit_state_questioned",
+          "sdagd_self_audit_detected_issue",
+          "sdagd_audit_result_questioned",
+          "meta_review_activation",
+          "meta_review_scope_fixation",
+          "sdagd_audit_state_review",
+          "sdagd_result_classification_review",
+          "repair_instruction_generation",
+          "escalation_assessment",
+          "sdmrgd_self_audit",
+          "sdmrgd_self_repair",
+          "deactivation_to_dormant",
+          "reactivation_when_new_sdagd_doubt_arises"
+        ],
+        "non_targets": [
+          "strategic_decision_structure_creation",
+          "decision_authority_determination",
+          "final_decision_making",
+          "replacement_of_sdagd",
+          "replacement_of_sppgd",
+          "replacement_of_daagd",
+          "replacement_of_domain_specific_judgment",
+          "replacement_of_dagd_upper_repair",
+          "replacement_of_cdogd_responsibility_resolution",
+          "direct_modification_of_sdagd_audit_target",
+          "completion_of_sdagd_primary_audit",
+          "conversion_of_sdagd_result_to_final_pass",
+          "conversion_of_meta_review_pass_to_strategic_pass",
+          "conversion_of_meta_review_pass_to_decision_authority_clearance",
+          "self_approval_by_self_audit",
+          "mutual_audit_with_sdagd",
+          "continuous_monitoring_domain",
+          "one_shot_domain",
+          "replacement_of_parent_governance",
+          "replacement_of_external_orchestration",
+          "absorption_of_sibling_domain_definitions",
+          "model_weight_modification",
+          "training_data_modification",
+          "replacement_of_built_in_system_policies"
+        ]
+      },
+      "abstraction_and_context_policy": {
+        "purpose": "Keep SDMRGD limited to SDAGD audit-state meta-review without hardcoding case-specific strategic domains, decision contexts, organizations, tools, workflows, or runtime implementations as universal rules.",
+        "rule_bodies_must_use_highest_safe_abstraction_level": true,
+        "rule_hardcoding_prohibited_by_default": true,
+        "rules_must_be_abstract_by_default": true,
+        "case_specific_constraints_must_be_contextual": true,
+        "domain_instances_must_not_be_encoded_as_general_rules": true,
+        "implementation_details_must_not_become_domain_rules": true,
+        "rule_bodies_must_not_hardcode": [
+          "specific_tool",
+          "specific_platform",
+          "specific_repository",
+          "specific_external_system",
+          "specific_local_workflow",
+          "specific_professional_field",
+          "specific_creative_style",
+          "specific_organization_policy",
+          "specific_private_system",
+          "specific_user_workflow",
+          "specific_medium_or_transport",
+          "specific_identifier_policy",
+          "specific_role_title_as_global_authority"
+        ],
+        "contextual_specificity_conditions": [
+          "explicit_user_instruction",
+          "identity_or_verification_requires_specific_name",
+          "hallucination_prevention_requires_specific_name",
+          "system_integrity_requires_specific_constraint",
+          "sdagd_audit_state_context_would_break_without_specificity",
+          "responsibility_boundary_review_requires_specific_domain_name",
+          "escalation_target_identification_requires_specific_authority_reference"
+        ],
+        "specificity_handling": {
+          "specificity_scope": "sdagd_audit_state_context_or_governed_target_context",
+          "specificity_must_not_be_promoted_to_general_rule_without_basis": true,
+          "specificity_must_be_traceable_to_context_or_instruction": true,
+          "specificity_must_not_override_higher_authority": true
+        },
+        "declared_context_policy_types": [
+          "sdagd_meta_review_policy",
+          "repair_instruction_policy",
+          "escalation_policy",
+          "dormant_activation_policy",
+          "reactivation_policy",
+          "self_audit_non_approval_policy",
+          "mutual_audit_prevention_policy"
+        ],
+        "example_policy": {
+          "examples_are_non_normative": true,
+          "examples_may_illustrate_failures_but_do_not_define_the_rule": true,
+          "test_cases_must_remain_separate_from_general_domain_rules": true,
+          "examples_must_not_narrow_sdmrgd_scope": true
+        }
+      },
+      "role_complete_separation": {
+        "required": true,
+        "principle": "SDMRGD must keep SDAGD audit-state meta-review, SDAGD primary audit, strategic judgment structure, decision authority assessment, final decision, domain-specific judgment, inherited governance, external orchestration, human or higher runtime authority, records, and metadata responsibilities separated.",
+        "separation_targets": {
+          "source_material": "inputs, references, and prior materials used to understand SDAGD's audit state; source content is not absorbed by default",
+          "sdagd_primary_audit": "SDAGD-owned audit of strategic decision structure and decision authority assessment; not completed or replaced by SDMRGD",
+          "sdmrgd_meta_review": "SDMRGD-owned review of SDAGD audit state, audit quality, result classification, boundary integrity, repair necessity, and escalation necessity",
+          "sppgd_strategic_structure": "strategic judgment structure remains owned by SPPGD or equivalent strategic structure governance",
+          "daagd_authority_assessment": "decision authority, accountability, approval, and delegation assessment remains owned by DAAGD or equivalent authority governance",
+          "final_decision": "final decision remains with the defined human, runtime, system owner, or accountable decision authority",
+          "domain_specific_judgment": "target-specific expert or domain judgment remains owned by the relevant source domain or human expert context",
+          "inherited_governance": "parent ARGD and DAGD governance referenced as authoritative context and not re-expanded inside SDMRGD",
+          "sibling_reference": "SPPGD, DAAGD, SDAGD, CDOGD, and other domains referenced only when material and not absorbed into SDMRGD",
+          "external_orchestration": "CDOGD routing, registry, priority, activation, and responsibility resolution remain external to SDMRGD",
+          "human_or_higher_runtime_authority": "human responsibility, higher runtime confirmation, and external authority are escalation destinations, not SDMRGD-owned authority",
+          "records": "SDMRGD-local records remain structurally separate from evaluation, repair, status, and metadata",
+          "metadata": "identity, authorship, license, repository, compatibility, and version information remain metadata, not governance authority"
+        },
+        "non_absorption_rules": [
+          "sdagd_primary_audit_must_not_be_absorbed_into_sdmrgd",
+          "sppgd_strategic_structure_must_not_be_absorbed_into_sdmrgd",
+          "daagd_authority_assessment_must_not_be_absorbed_into_sdmrgd",
+          "domain_specific_judgment_must_not_be_absorbed_into_sdmrgd",
+          "final_decision_authority_must_not_be_absorbed_into_sdmrgd",
+          "dagd_upper_repair_must_not_be_reimplemented_in_sdmrgd",
+          "cdogd_responsibility_resolution_must_not_be_reimplemented_in_sdmrgd",
+          "inherited_governance_must_be_referenced_not_reexpanded",
+          "external_orchestration_must_not_be_reimplemented_in_sdmrgd",
+          "metadata_must_not_be_promoted_to_domain_rule_without_basis"
+        ],
+        "review_implications": [
+          "role_separation_check_required_when_sdagd_boundary_sppgd_boundary_daagd_boundary_or_escalation_context_is_material",
+          "role_mixing_failure_is_material_when_it_turns_meta_review_into_primary_audit_authority_judgment_strategy_generation_or_final_decision"
+        ]
+      },
+      "cross_domain_interference_policy": {
+        "purpose": "Prevent SDMRGD from absorbing SDAGD, SPPGD, DAAGD, CDOGD, DAGD, human authority, higher runtime authority, or domain-specific functions while still allowing context references needed to review SDAGD's audit state.",
+        "rules": [
+          "sibling_domain_references_must_be_explicit_when_material",
+          "sibling_domain_rules_must_not_be_copied_by_default",
+          "domain_overlap_must_be_declared_when_material",
+          "cross_domain_activation_priority_is_external_to_sdmrgd",
+          "sdagd_meta_review_conflicts_must_not_be_silently_merged_with_primary_audit",
+          "shared_terms_must_not_imply_shared_authority_without_boundary_statement",
+          "sppgd_outputs_may_be_referenced_only_as_context_for_sdagd_audit_state_review",
+          "daagd_outputs_may_be_referenced_only_as_context_for_sdagd_audit_state_review",
+          "sdmrgd_must_not_decide_domain_responsibility_conflicts_when_cdogd_resolution_is_required",
+          "sdmrgd_must_not_treat_escalation_as_final_decision_authority"
+        ],
+        "overlap_handling": {
+          "overlap_is_allowed": true,
+          "overlap_must_preserve_domain_responsibility_boundaries": true,
+          "overlap_resolution_owner": "external_orchestration_or_explicit_runtime_context",
+          "sdmrgd_may_flag_boundary_overlap_but_must_not_create_global_domain_priority": true
+        },
+        "known_boundary_formula": {
+          "sppgd": "strategic_judgment_structure",
+          "daagd": "decision_authority_and_accountability",
+          "sdagd": "strategic_decision_audit",
+          "sdmrgd": "sdagd_audit_state_meta_review",
+          "dagd": "parent_audit_repair_status_failure_handling",
+          "cdogd": "cross_domain_orchestration_and_responsibility_resolution"
+        }
+      },
+      "sdagd_relationship_model": {
+        "relationship_type": "asymmetric_meta_review",
+        "mutual_audit_allowed": false,
+        "sdmrgd_reviews_only_sdagd_audit_state": true,
+        "sdagd_does_not_audit_or_approve_sdmrgd": true,
+        "normal_flow": [
+          "sdagd_self_audits_its_audit_state",
+          "sdagd_or_human_or_higher_runtime_detects_doubt_about_sdagd_audit_state",
+          "sdmrgd_is_conditionally_activated",
+          "sdmrgd_meta_reviews_sdagd_audit_state",
+          "sdmrgd_returns_meta_review_pass_repair_instruction_or_escalation",
+          "sdagd_repairs_its_own_audit_state_when_repair_instruction_is_returned",
+          "sdmrgd_deactivates_to_dormant_after_current_meta_review_target_is_completed"
+        ],
+        "mutual_audit_prohibition_reasons": [
+          "infinite_regress_risk",
+          "audit_authority_circulation_risk",
+          "unclear_final_stopping_point",
+          "mutual_rubber_stamp_risk",
+          "endless_repair_loop_risk",
+          "loss_of_sdmrgd_sdagd_dedicated_meta_review_scope"
+        ],
+        "sdmrgd_failure_handling": {
+          "if_sdmrgd_self_state_is_unstable": "self_repair_or_escalate",
+          "if_sdmrgd_cannot_recover": "escalate_to_dagd_human_or_higher_runtime",
+          "must_not_return_to_sdagd_for_mutual_audit": true
+        }
+      },
+      "meta_review_model": {
+        "purpose": "Review whether SDAGD is in a valid audit posture without taking over SDAGD's primary audit or final decision flow.",
+        "review_questions": [
+          "did_sdagd_correctly_recognize_the_audit_target",
+          "did_sdagd_handle_the_audit_scope_without_material_overreach_or_omission",
+          "did_sdagd_state_the_audit_criteria",
+          "is_sdagd_audit_basis_sufficient_for_its_result_classification",
+          "is_sdagd_result_classification_reasonable_as_sdagd_audit_state",
+          "is_sdagd_rubber_stamp_risk_present",
+          "is_sdagd_overreach_risk_present",
+          "is_sdagd_hiding_audit_impossibility",
+          "is_sdagd_intruding_into_sppgd_daagd_or_final_decider_role",
+          "is_sdagd_repair_instruction_needed",
+          "is_escalation_required_beyond_sdagd_or_sdmrgd"
+        ],
+        "input_boundary": {
+          "allowed_inputs": [
+            "sdagd_audit_target",
+            "sdagd_audit_scope",
+            "sdagd_audit_criteria",
+            "sdagd_audit_basis",
+            "sdagd_audit_result_classification",
+            "sdagd_self_audit_result",
+            "sdmrgd_activation_reason",
+            "sdagd_self_identified_doubt_points",
+            "sdagd_judgment_impossible_points",
+            "sdagd_unrecoverable_points",
+            "relationship_to_sppgd_daagd_or_domain_specific_outputs",
+            "human_approval_or_higher_runtime_relevance"
+          ],
+          "context_only_inputs": [
+            "strategic_decision_structure_context",
+            "decision_authority_assessment_context",
+            "domain_specific_output_context",
+            "final_decision_flow_context"
+          ],
+          "prohibited_processing": [
+            "direct_processing_of_strategic_decision_itself_as_sdmrgd_target",
+            "direct_processing_of_decision_authority_judgment_itself_as_sdmrgd_target",
+            "direct_rewriting_of_sdagd_audit_target",
+            "direct_completion_of_sdagd_primary_audit",
+            "direct_final_decision_or_approval"
+          ]
+        },
+        "result_values": {
+          "meta_review_pass": {
+            "description": "No material problem is found in SDAGD's audit state; SDAGD may return to its own audit-result handling.",
+            "not_strategic_decision_pass": true,
+            "not_decision_authority_clearance": true,
+            "not_final_decision": true
+          },
+          "meta_review_repair_instruction": {
+            "description": "A repairable problem exists in SDAGD's audit state; SDMRGD returns repair instructions limited to SDAGD's own audit state.",
+            "allowed_repair_instruction_items": [
+              "recheck_sdagd_audit_target",
+              "clarify_sdagd_audit_scope",
+              "state_sdagd_audit_criteria",
+              "strengthen_sdagd_audit_basis",
+              "re_evaluate_pass_reason",
+              "clarify_conditional_pass_conditions",
+              "clarify_return_for_repair_reason",
+              "re_evaluate_invalidate_reason",
+              "retract_overreach_segment",
+              "remove_intrusion_into_sppgd_daagd_or_final_decider_role",
+              "disclose_audit_impossible_segments",
+              "disclose_uncertainty",
+              "rerun_sdagd_audit_when_needed"
+            ],
+            "must_not_complete_sdagd_primary_audit": true,
+            "must_not_directly_modify_sdagd_audit_target": true
+          },
+          "meta_review_escalate": {
+            "description": "The issue is unrecoverable within SDAGD or SDMRGD, or higher responsibility-boundary confirmation is required.",
+            "escalation_targets": [
+              "dagd_upper_repair",
+              "cdogd_responsibility_boundary_resolution",
+              "human_responsible_actor",
+              "higher_runtime"
+            ],
+            "sdagd_must_not_claim_audited_when_escalation_is_required": true
+          }
+        }
+      },
+      "output_contract": {
+        "output_values": [
+          "meta_review_pass",
+          "meta_review_repair_instruction",
+          "meta_review_escalate"
+        ],
+        "output_is_strategic_decision_pass": false,
+        "output_is_decision_authority_clearance": false,
+        "output_is_final_decision": false,
+        "output_is_sdagd_primary_audit_completion": false,
+        "minimum_fields": [
+          "meta_review_result",
+          "activation_reason",
+          "review_scope",
+          "sdagd_audit_state_summary",
+          "reviewed_sdagd_result_classification",
+          "detected_issues",
+          "basis",
+          "repair_instruction",
+          "escalation_target",
+          "uncertainty",
+          "prohibited_interpretations"
+        ],
+        "output_rules": [
+          "emit_only_registered_meta_review_outputs",
+          "state_that_meta_review_pass_is_not_strategic_pass_when_material",
+          "state_that_meta_review_pass_is_not_final_decision_when_material",
+          "repair_instruction_must_target_sdagd_audit_state_only",
+          "escalation_must_identify_target_when_required",
+          "do_not_claim_sdagd_audit_completed_by_sdmrgd",
+          "do_not_claim_decision_authority_defined_by_sdmrgd"
+        ]
+      },
+      "policy_goal": [
+        "sdagd_meta_review_integrity",
+        "sdagd_audit_state_visibility",
+        "sdagd_audit_quality_review",
+        "sdagd_audit_scope_integrity",
+        "sdagd_audit_criteria_visibility",
+        "sdagd_audit_basis_sufficiency_review",
+        "sdagd_result_classification_validity_review",
+        "rubber_stamp_detection",
+        "sdagd_overreach_detection",
+        "hidden_audit_impossibility_detection",
+        "sdagd_role_boundary_preservation",
+        "non_replacement_of_sdagd_primary_audit",
+        "non_interference_with_sppgd_daagd_and_final_decider",
+        "repair_instruction_scope_integrity",
+        "escalation_integrity",
+        "dormant_conditional_activation",
+        "repeatable_reactivation_when_doubt_recurs",
+        "deactivation_non_finality",
+        "mutual_audit_prevention",
+        "sdmrgd_self_audit_without_self_approval"
+      ],
+      "constraints": {
+        "prohibited_failure_modes": [
+          "reviewing_non_sdagd_target",
+          "sdagd_primary_audit_replacement",
+          "strategic_decision_creation_by_sdmrgd",
+          "decision_authority_determination_by_sdmrgd",
+          "final_decision_making_by_sdmrgd",
+          "sppgd_role_intrusion",
+          "daagd_role_intrusion",
+          "final_decider_role_intrusion",
+          "domain_specific_judgment_replacement",
+          "direct_modification_of_sdagd_audit_target",
+          "sdagd_result_converted_to_final_pass",
+          "meta_review_pass_treated_as_strategic_pass",
+          "meta_review_pass_treated_as_decision_authority_clearance",
+          "meta_review_pass_treated_as_final_decision",
+          "self_audit_used_as_self_approval",
+          "self_doubt_used_as_self_approval",
+          "mutual_audit_with_sdagd",
+          "infinite_audit_regress",
+          "rubber_stamp_meta_review",
+          "overreaching_meta_review",
+          "hidden_meta_review_impossibility",
+          "ambiguous_repair_instruction",
+          "excessive_repair_instruction",
+          "escalation_suppressed_when_required",
+          "one_shot_misinterpretation",
+          "deactivation_treated_as_future_non_applicability",
+          "prior_activation_treated_as_current_safety_guarantee",
+          "role_mixing_failure",
+          "parent_governance_reexpansion",
+          "sibling_domain_absorption",
+          "external_orchestration_logic_absorbed_into_domain_definition",
+          "record_required_field_group_mapping_failure",
+          "evaluation_dimension_alignment_failure",
+          "schema_hygiene_failure"
+        ],
+        "required_controls": [
+          "limit_review_target_to_sdagd",
+          "separate_meta_review_from_sdagd_primary_audit",
+          "separate_meta_review_from_strategic_decision",
+          "separate_meta_review_from_decision_authority_judgment",
+          "separate_meta_review_from_final_decision",
+          "preserve_sppgd_daagd_and_final_decider_boundaries",
+          "review_sdagd_audit_scope",
+          "review_sdagd_audit_criteria",
+          "review_sdagd_audit_basis",
+          "review_sdagd_result_classification",
+          "detect_sdagd_rubber_stamp_risk",
+          "detect_sdagd_overreach_risk",
+          "detect_hidden_audit_impossibility",
+          "emit_only_registered_meta_review_outputs",
+          "scope_repair_instruction_to_sdagd_audit_state",
+          "escalate_when_boundary_or_recovery_limit_is_reached",
+          "prevent_mutual_audit_with_sdagd",
+          "perform_sdmrgd_self_audit_without_self_approval",
+          "return_to_dormant_after_current_meta_review",
+          "allow_reactivation_when_new_sdagd_doubt_arises",
+          "preserve_deactivation_non_finality",
+          "preserve_parent_governance_boundary",
+          "preserve_external_orchestration_boundary",
+          "preserve_sibling_domain_boundary_when_material",
+          "preserve_record_required_field_group_mapping_when_records_are_used",
+          "preserve_evaluation_dimension_threshold_alignment_when_scoring_is_used"
+        ],
+        "runtime_constraints": {
+          "domain_only": true,
+          "does_not_redefine_parent_governance": true,
+          "does_not_reimplement_external_orchestration": true,
+          "does_not_define_registry_logic": true,
+          "does_not_define_global_domain_priority": true,
+          "does_not_replace_sdagd": true,
+          "does_not_complete_sdagd_primary_audit": true,
+          "does_not_create_strategic_decision_structure": true,
+          "does_not_determine_decision_authority": true,
+          "does_not_make_final_decision": true,
+          "does_not_self_approve": true,
+          "does_not_enter_mutual_audit_with_sdagd": true,
+          "does_not_override_human_or_runtime_authority": true
+        },
+        "schema_hygiene_constraints": {
+          "taxonomy_group_membership_must_match_requirement_level": true,
+          "record_required_fields_must_be_mapped_to_field_groups_when_records_exist": true,
+          "field_group_items_may_inherit_group_requirement_level_when_not_overridden": true,
+          "evaluation_dimensions_must_align_with_thresholds_and_audit_targets_when_scoring_exists": true,
+          "critical_invalidation_conditions_must_be_represented_in_critical_severity_rules_when_severity_model_exists": true,
+          "audit_decision_rules_must_emit_registered_action_outputs_only": true,
+          "unregistered_action_output_is_schema_hygiene_failure": true
+        },
+        "failure_aliases": {
+          "authority_overreach_failure": [
+            "decision_authority_determination_by_sdmrgd",
+            "daagd_role_intrusion",
+            "meta_review_pass_treated_as_decision_authority_clearance"
+          ],
+          "audit_replacement_failure": [
+            "sdagd_primary_audit_replacement",
+            "sdagd_result_converted_to_final_pass",
+            "direct_modification_of_sdagd_audit_target"
+          ],
+          "meta_review_loop_failure": [
+            "mutual_audit_with_sdagd",
+            "infinite_audit_regress",
+            "self_audit_used_as_self_approval"
+          ],
+          "activation_misread_failure": [
+            "one_shot_misinterpretation",
+            "deactivation_treated_as_future_non_applicability",
+            "prior_activation_treated_as_current_safety_guarantee"
+          ]
+        }
+      },
+      "capabilities": {
+        "required_capabilities": [
+          "sdagd_audit_state_interpretation",
+          "sdagd_audit_scope_review",
+          "sdagd_audit_criteria_review",
+          "sdagd_audit_basis_review",
+          "sdagd_result_classification_review",
+          "rubber_stamp_detection",
+          "overreach_detection",
+          "audit_impossibility_detection",
+          "role_boundary_review",
+          "repair_instruction_generation",
+          "escalation_need_detection",
+          "non_replacement_boundary_control",
+          "mutual_audit_prevention",
+          "dormant_activation_handling",
+          "reactivation_condition_handling",
+          "sdmrgd_self_audit",
+          "sdmrgd_self_repair"
+        ],
+        "capability_groups": {
+          "sdagd_audit_state_review": [
+            "sdagd_audit_state_interpretation",
+            "sdagd_audit_scope_review",
+            "sdagd_audit_criteria_review",
+            "sdagd_audit_basis_review",
+            "sdagd_result_classification_review"
+          ],
+          "failure_detection": [
+            "rubber_stamp_detection",
+            "overreach_detection",
+            "audit_impossibility_detection",
+            "role_boundary_review"
+          ],
+          "repair_and_escalation": [
+            "repair_instruction_generation",
+            "escalation_need_detection"
+          ],
+          "boundary_and_non_replacement": [
+            "non_replacement_boundary_control",
+            "mutual_audit_prevention"
+          ],
+          "activation_and_reactivation": [
+            "dormant_activation_handling",
+            "reactivation_condition_handling"
+          ],
+          "self_governance": [
+            "sdmrgd_self_audit",
+            "sdmrgd_self_repair"
+          ]
+        },
+        "mapping_policy": {
+          "required_capabilities_must_appear_in_capability_groups_when_groups_are_used": true,
+          "capability_groups_are_structural_not_exhaustive": true,
+          "future_extensions_should_attach_to_groups_before_adding_flat_items": true,
+          "capability_taxonomy_must_not_conflict_with_flat_required_list": true
+        }
+      },
+      "evaluation": {
+        "evaluation_policy": {
+          "domain_evaluation_required_when_sdmrgd_claim_is_made": true,
+          "scored_evaluation_is_enabled": true,
+          "severity_model_is_enabled": true,
+          "boolean_state_or_threshold_based_evaluation_allowed": true,
+          "non_applicable_dimensions_must_be_excluded_with_reason_when_reporting": true,
+          "sdmrgd_evaluation_is_not_sdagd_primary_audit": true,
+          "sdmrgd_evaluation_must_not_approve_final_decision": true
+        },
+        "audit_targets": [
+          "sdagd_target_recognition",
+          "sdagd_audit_scope_clarity",
+          "sdagd_audit_criteria_clarity",
+          "sdagd_audit_basis_sufficiency",
+          "sdagd_result_classification_validity",
+          "sdagd_rubber_stamp_risk",
+          "sdagd_overreach_risk",
+          "hidden_audit_impossibility_risk",
+          "sdagd_role_boundary_integrity",
+          "repair_instruction_scope_integrity",
+          "escalation_condition_detection",
+          "mutual_audit_absence",
+          "sdmrgd_self_audit_integrity",
+          "activation_scope_integrity",
+          "reactivation_policy_integrity"
+        ],
+        "minimum_pass_conditions": [
+          "review_target_is_sdagd_only",
+          "meta_review_does_not_replace_sdagd_audit",
+          "output_is_one_of_registered_meta_review_outputs",
+          "repair_instruction_does_not_modify_sdagd_audit_target_directly",
+          "meta_review_pass_is_not_treated_as_strategic_pass",
+          "meta_review_pass_is_not_treated_as_decision_authority_clearance",
+          "meta_review_pass_is_not_treated_as_final_decision",
+          "mutual_audit_with_sdagd_absent",
+          "escalation_required_state_not_suppressed",
+          "sdmrgd_self_audit_not_used_as_self_approval"
+        ],
+        "success_signals": [
+          "sdagd_audit_state_review_scope_is_explicit",
+          "sdagd_audit_basis_is_checked_without_replacing_audit",
+          "sdagd_result_classification_is_reviewed_as_audit_state_only",
+          "rubber_stamp_risk_is_checked",
+          "overreach_risk_is_checked",
+          "audit_impossibility_is_disclosed_when_present",
+          "repair_instruction_is_limited_to_sdagd_audit_state",
+          "escalation_target_is_identified_when_required",
+          "meta_review_pass_has_limited_non_final_meaning",
+          "sdmrgd_self_audit_detects_own_overreach_or_rubber_stamp_risk"
+        ],
+        "drift_signals": [
+          "sdmrgd_begins_reviewing_sppgd_or_daagd_directly",
+          "sdmrgd_begins_completing_sdagd_primary_audit",
+          "sdmrgd_generates_strategic_decision",
+          "sdmrgd_determines_decision_authority",
+          "sdmrgd_makes_final_decision",
+          "repair_instruction_targets_underlying_strategy_instead_of_sdagd_audit_state",
+          "meta_review_pass_wording_implies_final_pass",
+          "sdmrgd_uses_self_audit_as_self_approval",
+          "sdagd_and_sdmrgd_begin_mutual_audit",
+          "deactivation_treated_as_permanent_non_applicability",
+          "prior_sdmrgd_activation_treated_as_current_sdagd_safety_guarantee"
+        ],
+        "critical_invalidation_conditions": [
+          "strategic_decision_creation_by_sdmrgd",
+          "decision_authority_determination_by_sdmrgd",
+          "final_decision_making_by_sdmrgd",
+          "replacement_of_sdagd_primary_audit",
+          "mutual_audit_loop_with_sdagd",
+          "self_audit_used_as_self_approval",
+          "required_escalation_suppressed",
+          "meta_review_pass_treated_as_final_pass",
+          "direct_modification_of_sdagd_audit_target"
+        ],
+        "scoring_model": {
+          "enabled_when_domain_defines_scored_evaluation": true,
+          "score_range": [
+            0,
+            100
+          ],
+          "domain_dimension_scores": [
+            "sdagd_scope_review_score",
+            "sdagd_basis_review_score",
+            "sdagd_result_classification_review_score",
+            "boundary_integrity_score",
+            "repair_instruction_quality_score",
+            "escalation_detection_score",
+            "self_audit_integrity_score",
+            "activation_reactivation_integrity_score"
+          ],
+          "minimum_expected_scores": {
+            "sdagd_scope_review_score": 85,
+            "sdagd_basis_review_score": 85,
+            "sdagd_result_classification_review_score": 85,
+            "boundary_integrity_score": 95,
+            "repair_instruction_quality_score": 85,
+            "escalation_detection_score": 90,
+            "self_audit_integrity_score": 90,
+            "activation_reactivation_integrity_score": 85
+          },
+          "aggregation_policy": {
+            "equal_weight_across_applicable_dimensions": true,
+            "non_applicable_dimensions_excluded_with_reason": true,
+            "critical_invalidation_overrides_aggregate_score": true,
+            "llm_self_assessment_must_not_be_presented_as_external_validation": true,
+            "score_source_must_be_disclosed_when_score_is_reported": true
+          },
+          "alignment_policy": {
+            "domain_dimension_scores_must_have_minimum_expected_scores_when_scoring_is_enabled": true,
+            "audit_targets_must_have_corresponding_dimension_or_explicit_non_scored_reason": true,
+            "critical_invalidation_conditions_must_appear_in_severity_model_when_material_and_severity_model_exists": true
+          }
+        },
+        "severity_model": {
+          "enabled_when_domain_uses_severity": true,
+          "levels": [
+            "low",
+            "moderate",
+            "high",
+            "critical"
+          ],
+          "severity_rules": {
+            "low": [
+              "minor_wording_ambiguity",
+              "non_material_repair_instruction_clarity_gap",
+              "minor_status_reporting_gap"
+            ],
+            "moderate": [
+              "incomplete_sdagd_audit_basis_review",
+              "ambiguous_conditional_pass_review",
+              "insufficient_uncertainty_disclosure",
+              "non_material_activation_scope_blur",
+              "minor_self_audit_basis_gap_without_authority_effect"
+            ],
+            "high": [
+              "likely_sdagd_rubber_stamp_missed",
+              "likely_sdagd_overreach_missed",
+              "repair_instruction_exceeds_sdagd_audit_state",
+              "escalation_need_delayed",
+              "deactivation_misread_as_future_non_applicability",
+              "meta_review_pass_basis_materially_weak"
+            ],
+            "critical": [
+              "strategic_decision_creation_by_sdmrgd",
+              "decision_authority_determination_by_sdmrgd",
+              "final_decision_making_by_sdmrgd",
+              "replacement_of_sdagd_primary_audit",
+              "mutual_audit_loop_with_sdagd",
+              "self_audit_used_as_self_approval",
+              "required_escalation_suppressed",
+              "meta_review_pass_treated_as_final_pass",
+              "direct_modification_of_sdagd_audit_target"
+            ]
+          }
+        }
+      },
+      "repair": {
+        "purpose": "Repair SDMRGD failures by restoring SDAGD-only meta-review scope, output limitation, repair-instruction boundaries, escalation integrity, and non-mutual self-audit posture without completing SDAGD's primary audit or expanding SDMRGD authority.",
+        "core_rule": "repair_model_should_define_repair_origin_not_parent_repair_cycle",
+        "repair_origins": [
+          "review_scope_error",
+          "target_boundary_error",
+          "sdagd_audit_replacement_error",
+          "strategic_decision_intrusion_error",
+          "decision_authority_intrusion_error",
+          "final_decision_intrusion_error",
+          "repair_instruction_scope_error",
+          "repair_instruction_ambiguity",
+          "escalation_omission",
+          "self_audit_self_approval_error",
+          "self_doubt_self_approval_error",
+          "mutual_audit_loop_error",
+          "activation_policy_error",
+          "reactivation_policy_error"
+        ],
+        "repair_actions": [
+          "restrict_review_scope_to_sdagd",
+          "remove_non_sdagd_review_segments",
+          "remove_strategic_decision_content",
+          "remove_decision_authority_judgment",
+          "remove_final_decision_language",
+          "retract_sdagd_primary_audit_replacement",
+          "rescope_repair_instruction_to_sdagd_audit_state",
+          "clarify_repair_instruction",
+          "strengthen_meta_review_pass_basis",
+          "disclose_uncertainty",
+          "emit_escalation_when_unrecoverable",
+          "restore_dormant_conditional_activation_policy",
+          "restore_non_one_shot_reactivation_policy"
+        ],
+        "repair_policy": {
+          "identify_repair_origin": true,
+          "repair_affected_scope": true,
+          "revalidate_affected_axes": true,
+          "preserve_revision_lineage_when_material": true,
+          "do_not_skip_repair_and_claim_ready_without_basis": true,
+          "partial_revalidation_requires_reason": true,
+          "post_repair_review_must_cover_affected_axes": true,
+          "repair_must_not_complete_sdagd_primary_audit": true,
+          "repair_must_not_modify_sdagd_audit_target_directly": true,
+          "repair_must_not_expand_sdmrgd_authority": true,
+          "repair_must_not_create_mutual_audit_with_sdagd": true
+        },
+        "human_review_required_when": [
+          "sdagd_audit_state_unrecoverable",
+          "sdmrgd_review_state_unstable",
+          "human_approval_or_responsible_actor_confirmation_required",
+          "higher_runtime_decision_required_before_continuation",
+          "sdagd_sdmrgd_cdogd_responsibility_boundary_unresolved",
+          "critical_invalidation_condition_is_detected"
+        ]
+      },
+      "activation": {
+        "enabled": true,
+        "activation_mode": "local_domain_applicability",
+        "default_state": "dormant_or_reference_only",
+        "applies_when": [
+          "sdagd_detects_doubt_about_its_own_audit_state",
+          "sdagd_self_audit_outputs_self_repair_required",
+          "sdagd_self_audit_outputs_self_overreach_detected",
+          "sdagd_self_audit_outputs_self_audit_insufficient_information",
+          "sdagd_self_audit_outputs_self_audit_escalate",
+          "weak_basis_for_sdagd_pass_is_suspected",
+          "sdagd_conditional_pass_conditions_are_ambiguous",
+          "sdagd_return_for_repair_reason_is_ambiguous",
+          "sdagd_invalidate_is_suspected_as_excessive_stop",
+          "sdagd_rubber_stamp_is_suspected",
+          "sdagd_hidden_audit_impossibility_is_suspected",
+          "sdagd_audit_target_rewriting_is_suspected",
+          "sdagd_role_intrusion_into_sppgd_daagd_or_final_decider_is_suspected",
+          "human_or_higher_runtime_questions_sdagd_audit"
+        ],
+        "does_not_replace_argd": true,
+        "does_not_replace_dagd": true,
+        "does_not_replace_sdagd": true,
+        "does_not_reimplement_cdogd": true,
+        "does_not_define_registry_logic": true,
+        "routing_and_priority_are_external": true,
+        "activation_record_minimum_fields": [
+          "activation_reason",
+          "sdagd_audit_state_context",
+          "governed_target_context",
+          "applicable_meta_review_axes",
+          "declared_context_policy_status",
+          "reactivation_context"
+        ],
+        "local_activation_scope_policy": {
+          "domain_activation_is_context_local": true,
+          "external_orchestration_may_select_or_prioritize_domain": true,
+          "domain_definition_does_not_store_registry_or_routing_logic": true,
+          "sdmrgd_activation_does_not_create_sdagd_failure_by_itself": true,
+          "sdmrgd_activation_does_not_grant_final_decision_authority": true
+        },
+        "reactivation_policy": {
+          "domain_activation_is_not_one_shot": true,
+          "domain_may_be_reactivated_when_relevant_conditions_recur": true,
+          "reactivation_triggers": [
+            "new_doubt_about_sdagd_audit_state",
+            "recurring_sdagd_self_audit_issue",
+            "new_doubt_about_sdagd_pass",
+            "new_doubt_about_sdagd_conditional_pass",
+            "new_doubt_about_sdagd_return_for_repair",
+            "new_doubt_about_sdagd_invalidate",
+            "recurring_sdagd_rubber_stamp_suspected",
+            "recurring_sdagd_overreach_suspected",
+            "recurring_hidden_audit_impossibility_suspected",
+            "renewed_human_or_higher_runtime_doubt"
+          ],
+          "deactivation_does_not_imply_future_non_applicability": true,
+          "previous_sdmrgd_activation_does_not_certify_current_sdagd_audit_safety": true
+        },
+        "deactivation_policy": {
+          "deactivation_means_current_meta_review_target_completed": true,
+          "deactivation_returns_sdmrgd_to_dormant_or_reference_only": true,
+          "deactivation_does_not_mean_sdmrgd_is_permanently_unneeded": true,
+          "deactivation_does_not_remove_future_activation_conditions": true
+        }
+      },
+      "self_audit": {
+        "enabled": true,
+        "audit_frequency": {
+          "before_emitting_meta_review_result": true,
+          "before_emitting_meta_review_pass": true,
+          "before_emitting_repair_instruction": true,
+          "before_emitting_escalation": true,
+          "after_material_self_repair": true,
+          "when_user_or_runtime_reports_sdmrgd_boundary_failure": true
+        },
+        "audit_axes": [
+          "sdagd_only_review_scope",
+          "sdagd_primary_audit_non_replacement",
+          "strategic_decision_non_creation",
+          "decision_authority_non_determination",
+          "final_decision_non_making",
+          "repair_instruction_scope_integrity",
+          "repair_instruction_clarity",
+          "escalation_condition_detection",
+          "self_audit_non_approval",
+          "rubber_stamp_absence",
+          "overreach_absence",
+          "mutual_audit_absence"
+        ],
+        "output_policy": {
+          "compact_by_default": true,
+          "emit_detail_on_anomaly": true,
+          "emit_detail_on_user_request": true,
+          "emit_detail_on_critical_failure": true
+        },
+        "required_basis_checks": [
+          "review_target_is_sdagd_only_check",
+          "sdagd_primary_audit_non_replacement_check",
+          "strategic_decision_non_creation_check",
+          "decision_authority_non_determination_check",
+          "final_decision_non_making_check",
+          "repair_instruction_scope_check",
+          "repair_instruction_clarity_check",
+          "escalation_condition_check",
+          "self_audit_non_approval_check",
+          "mutual_audit_absence_check"
+        ],
+        "meta_review_self_doubt_check": {
+          "purpose": "Confirm that SDMRGD is in a valid SDAGD-only meta-review posture and is not overstepping into SDAGD primary audit, strategic decision creation, decision authority determination, final decision, or self-approval.",
+          "is_sdagd_primary_audit": false,
+          "is_self_approval": false,
+          "is_final_decision": false,
+          "checks": [
+            "is_this_a_sdagd_audit_state_meta_review_sdmrgd_should_handle",
+            "did_sdmrgd_review_non_sdagd_targets_directly",
+            "did_sdmrgd_replace_or_complete_sdagd_primary_audit",
+            "did_sdmrgd_create_strategic_decision_content",
+            "did_sdmrgd_determine_decision_authority",
+            "did_sdmrgd_make_or_imply_final_decision",
+            "did_sdmrgd_directly_modify_sdagd_audit_target",
+            "is_repair_instruction_limited_to_sdagd_audit_state",
+            "is_meta_review_pass_basis_sufficient_and_non_final",
+            "is_escalation_required_but_missing",
+            "did_sdmrgd_treat_self_audit_as_self_approval",
+            "did_sdmrgd_create_mutual_audit_with_sdagd"
+          ],
+          "result_values": [
+            "self_check_pass",
+            "self_repair_required",
+            "self_overreach_detected",
+            "self_audit_insufficient_information",
+            "self_audit_escalate"
+          ],
+          "loop_prevention_policy": {
+            "self_doubt_result_must_be_one_of_declared_values": true,
+            "self_doubt_must_not_generate_unbounded_recursive_questions": true,
+            "self_doubt_must_route_to_self_repair_or_escalation_when_needed": true,
+            "self_doubt_must_not_route_to_sdagd_for_mutual_audit": true
+          },
+          "prohibited_uses": [
+            "self_doubt_check_as_self_approval",
+            "self_doubt_check_as_sdagd_primary_audit",
+            "self_doubt_check_as_final_decision",
+            "self_doubt_check_as_permission_to_override_human_or_runtime_authority"
+          ]
+        },
+        "domain_specific_self_state_audit_policy": {
+          "optional_domain_local_policy": true,
+          "allowed_when_domain_requires_stronger_self_state_control": true,
+          "must_remain_domain_local": true,
+          "must_not_replace_parent_audit_or_repair_governance": true,
+          "must_not_be_treated_as_self_approval": true,
+          "must_define_overreach_detection_when_authority_sensitive": true,
+          "must_define_repair_or_escalation_when_self_state_is_unreliable": true
+        },
+        "self_repair_directions": [
+          "limit_review_scope_back_to_sdagd",
+          "remove_non_sdagd_content",
+          "remove_strategy_creation_content",
+          "remove_authority_judgment_content",
+          "remove_final_decision_content",
+          "retract_replacement_of_sdagd_audit",
+          "rescope_repair_instruction",
+          "clarify_repair_instruction",
+          "strengthen_pass_basis",
+          "disclose_uncertainty",
+          "escalate_when_unrecoverable"
+        ],
+        "prohibited_self_audit_outputs": [
+          "self_approval",
+          "sdagd_audit_pass_claim",
+          "strategic_decision_pass_claim",
+          "decision_authority_clearance",
+          "final_decision_claim",
+          "mutual_audit_request_to_sdagd"
+        ]
+      },
+      "audit_to_action": {
+        "enabled": true,
+        "decision_inputs": [
+          "sdagd_audit_state_review_result",
+          "sdagd_result_classification_review",
+          "rubber_stamp_risk",
+          "overreach_risk",
+          "hidden_audit_impossibility_risk",
+          "boundary_integrity_status",
+          "repair_instruction_quality_status",
+          "escalation_need_status",
+          "sdmrgd_self_audit_status",
+          "activation_reactivation_status",
+          "critical_invalidation_status"
+        ],
+        "action_outputs": [
+          "emit_meta_review_pass",
+          "emit_meta_review_repair_instruction",
+          "emit_meta_review_escalate",
+          "repair_sdmrgd_scope",
+          "repair_sdmrgd_output",
+          "block_sdagd_audited_claim",
+          "escalate_to_dagd",
+          "escalate_to_cdogd",
+          "escalate_to_human",
+          "escalate_to_higher_runtime",
+          "return_to_sdagd_audit_processing",
+          "return_to_dormant"
+        ],
+        "audit_to_action_consistency_policy": {
+          "decision_inputs_must_be_declared_when_used": true,
+          "action_outputs_must_be_declared_when_used": true,
+          "audit_decision_rules_must_emit_registered_action_outputs_only": true,
+          "unregistered_action_output_is_schema_hygiene_failure": true,
+          "action_precedence_must_not_override_higher_authority": true,
+          "action_outputs_are_meta_review_repair_escalation_or_dormant_return_not_final_decision": true
+        },
+        "decision_rules": {
+          "no_material_issue": {
+            "if": {
+              "sdagd_audit_state_review_result": {
+                "equals": "no_material_issue"
+              },
+              "critical_invalidation_status": {
+                "equals": false
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "emit_meta_review_pass",
+                "return_to_sdagd_audit_processing"
+              ],
+              "blocked_actions": [
+                "block_sdagd_audited_claim"
+              ]
+            }
+          },
+          "repairable_sdagd_audit_state_issue": {
+            "if": {
+              "sdagd_audit_state_review_result": {
+                "equals": "repairable_issue"
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "emit_meta_review_repair_instruction"
+              ],
+              "blocked_actions": [
+                "emit_meta_review_pass"
+              ]
+            }
+          },
+          "required_escalation": {
+            "if": {
+              "escalation_need_status": {
+                "equals": "required"
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "emit_meta_review_escalate",
+                "block_sdagd_audited_claim"
+              ],
+              "blocked_actions": [
+                "emit_meta_review_pass",
+                "return_to_sdagd_audit_processing"
+              ]
+            }
+          },
+          "domain_responsibility_conflict": {
+            "if": {
+              "boundary_integrity_status": {
+                "equals": "domain_responsibility_conflict"
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "emit_meta_review_escalate",
+                "escalate_to_cdogd"
+              ],
+              "blocked_actions": [
+                "emit_meta_review_pass"
+              ]
+            }
+          },
+          "sdmrgd_self_state_unstable": {
+            "if": {
+              "sdmrgd_self_audit_status": {
+                "equals": "unstable"
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "repair_sdmrgd_scope",
+                "repair_sdmrgd_output"
+              ],
+              "blocked_actions": [
+                "emit_meta_review_pass"
+              ]
+            }
+          },
+          "critical_self_or_boundary_failure": {
+            "if": {
+              "critical_invalidation_status": {
+                "equals": true
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "emit_meta_review_escalate",
+                "block_sdagd_audited_claim"
+              ],
+              "blocked_actions": [
+                "emit_meta_review_pass",
+                "return_to_sdagd_audit_processing"
+              ]
+            }
+          }
+        },
+        "action_precedence": {
+          "critical_failure_blocks_ready_claim_when_material": true,
+          "deduplicate_actions_after_mapping": true,
+          "required_escalation_overrides_meta_review_pass": true,
+          "self_state_unstable_blocks_meta_review_pass_until_repaired_or_escalated": true,
+          "domain_responsibility_conflict_routes_to_cdogd_not_sdmrgd_finalization": true,
+          "generic_unrecoverable_repair_failure_routes_to_dagd_or_higher_runtime": true
+        }
+      },
+      "status_reporting": {
+        "enabled": true,
+        "status_reporting_should_define_domain_delta_only": true,
+        "modes": [
+          "silent_by_default",
+          "emit_on_anomaly",
+          "emit_on_user_request",
+          "emit_on_blocking_failure",
+          "emit_after_material_repair",
+          "emit_when_meta_review_escalates"
+        ],
+        "compact_fields": [
+          "meta_review_status",
+          "sdagd_audit_state_issue_detected",
+          "result_classification_review",
+          "repair_instruction_required",
+          "escalation_required",
+          "boundary_status",
+          "self_audit_status",
+          "reactivation_context"
+        ],
+        "visibility_rules": {
+          "show_critical_failure": true,
+          "show_blocking_failure": true,
+          "show_material_repair": true,
+          "show_meta_review_escalate": true,
+          "show_repair_instruction_issued": true,
+          "show_boundary_violation_detected": true,
+          "show_self_audit_unstable": true,
+          "suppress_verbose_status_when_no_anomaly_and_no_user_request": true,
+          "suppress_verbose_status_when_meta_review_pass_without_anomaly": true
+        }
+      },
+      "record_schemas": {
+        "record_policy": {
+          "record_schemas_are_optional_unless_domain_requires_records": false,
+          "records_are_required_for_material_sdmrgd_meta_review": true,
+          "if_records_exist_required_fields_must_map_to_field_groups": true,
+          "records_must_not_redefine_parent_audit_or_repair_cycle": true,
+          "records_must_remain_domain_delta": true,
+          "records_must_not_claim_sdagd_primary_audit_completion_or_final_decision": true
+        },
+        "domain_record_templates": {
+          "sdmrgd_meta_review_record": {
+            "schema_name": "SDMRGD Meta-Review Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record SDMRGD meta-review of SDAGD audit state without claiming SDAGD primary audit completion or final decision.",
+            "required_fields": [
+              "meta_review_id",
+              "sdagd_audit_reference",
+              "activation_reason",
+              "review_scope",
+              "sdagd_audit_state_summary",
+              "reviewed_sdagd_result_classification",
+              "detected_issues",
+              "meta_review_result",
+              "basis",
+              "repair_instruction",
+              "escalation_target",
+              "uncertainty",
+              "review_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "meta_review_id",
+                "review_timestamp"
+              ],
+              "sdagd_reference": [
+                "sdagd_audit_reference",
+                "activation_reason",
+                "review_scope"
+              ],
+              "review_content": [
+                "sdagd_audit_state_summary",
+                "reviewed_sdagd_result_classification",
+                "detected_issues",
+                "basis"
+              ],
+              "result_and_action": [
+                "meta_review_result",
+                "repair_instruction",
+                "escalation_target"
+              ],
+              "uncertainty": [
+                "uncertainty"
+              ]
+            },
+            "validation_rules": [
+              "meta_review_id_required",
+              "sdagd_audit_reference_required_or_marked_unavailable",
+              "activation_reason_required",
+              "review_scope_must_be_sdagd_audit_state_only",
+              "meta_review_result_must_be_declared_output_value",
+              "repair_instruction_required_when_meta_review_result_is_meta_review_repair_instruction",
+              "escalation_target_required_when_meta_review_result_is_meta_review_escalate",
+              "basis_required_for_meta_review_pass",
+              "record_must_not_claim_sdagd_primary_audit_completion_or_final_decision"
+            ]
+          },
+          "sdmrgd_repair_instruction_record": {
+            "schema_name": "SDMRGD Repair Instruction Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record repair instructions returned to SDAGD, limited to SDAGD's own audit state.",
+            "required_fields": [
+              "repair_instruction_id",
+              "meta_review_id",
+              "repair_origin",
+              "affected_sdagd_audit_state",
+              "instruction_items",
+              "scope_limits",
+              "expected_sdagd_recheck",
+              "prohibited_interpretations",
+              "instruction_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "repair_instruction_id",
+                "meta_review_id",
+                "instruction_timestamp"
+              ],
+              "repair_scope": [
+                "repair_origin",
+                "affected_sdagd_audit_state",
+                "scope_limits"
+              ],
+              "instruction": [
+                "instruction_items",
+                "expected_sdagd_recheck",
+                "prohibited_interpretations"
+              ]
+            },
+            "validation_rules": [
+              "repair_instruction_id_required",
+              "meta_review_id_required",
+              "repair_origin_required",
+              "instruction_items_required",
+              "scope_limits_must_restrict_instruction_to_sdagd_audit_state",
+              "prohibited_interpretations_must_include_not_final_pass_when_material",
+              "repair_instruction_must_not_modify_sdagd_audit_target_directly"
+            ]
+          },
+          "sdmrgd_escalation_record": {
+            "schema_name": "SDMRGD Escalation Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record escalation when the issue is unrecoverable within SDAGD or SDMRGD, or responsibility-boundary confirmation is required.",
+            "required_fields": [
+              "escalation_id",
+              "meta_review_id",
+              "escalation_reason",
+              "escalation_target",
+              "boundary_issue",
+              "unrecoverable_state",
+              "required_higher_action",
+              "continuation_blocked",
+              "escalation_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "escalation_id",
+                "meta_review_id",
+                "escalation_timestamp"
+              ],
+              "reason_and_target": [
+                "escalation_reason",
+                "escalation_target"
+              ],
+              "state": [
+                "boundary_issue",
+                "unrecoverable_state",
+                "continuation_blocked"
+              ],
+              "required_action": [
+                "required_higher_action"
+              ]
+            },
+            "validation_rules": [
+              "escalation_id_required",
+              "meta_review_id_required",
+              "escalation_reason_required",
+              "escalation_target_must_be_declared_escalation_target",
+              "continuation_blocked_required_when_sdagd_must_not_claim_audited",
+              "escalation_record_must_not_claim_final_decision"
+            ]
+          },
+          "sdmrgd_self_audit_record": {
+            "schema_name": "SDMRGD Self-Audit Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record whether SDMRGD itself is behaving as an SDAGD-only meta-review domain and not using self-audit as self-approval.",
+            "required_fields": [
+              "self_audit_id",
+              "meta_review_id",
+              "self_audit_targets",
+              "detected_self_deviations",
+              "self_repair_applied",
+              "self_approval_risk",
+              "overreach_risk",
+              "rubber_stamp_risk",
+              "escalation_required",
+              "self_audit_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "self_audit_id",
+                "meta_review_id",
+                "self_audit_timestamp"
+              ],
+              "audit_scope": [
+                "self_audit_targets"
+              ],
+              "detected_risks": [
+                "detected_self_deviations",
+                "self_approval_risk",
+                "overreach_risk",
+                "rubber_stamp_risk"
+              ],
+              "action": [
+                "self_repair_applied",
+                "escalation_required"
+              ]
+            },
+            "validation_rules": [
+              "self_audit_id_required",
+              "meta_review_id_required",
+              "self_audit_targets_required",
+              "self_audit_must_not_be_treated_as_self_approval",
+              "overreach_risk_must_be_checked",
+              "rubber_stamp_risk_must_be_checked",
+              "escalation_required_must_be_declared_when_self_state_is_unrecoverable"
+            ]
+          }
+        },
+        "record_relationship_contract": {
+          "schema_name": "SDMRGD Record Relationship Contract",
+          "schema_version": "0.1.0",
+          "purpose": "Define relationships among meta-review, repair instruction, escalation, and self-audit records without implementing SDAGD, DAGD, CDOGD, SPPGD, or DAAGD records.",
+          "primary_keys": {
+            "sdmrgd_meta_review_record": [
+              "meta_review_id"
+            ],
+            "sdmrgd_repair_instruction_record": [
+              "repair_instruction_id"
+            ],
+            "sdmrgd_escalation_record": [
+              "escalation_id"
+            ],
+            "sdmrgd_self_audit_record": [
+              "self_audit_id"
+            ]
+          },
+          "foreign_key_expectations": {
+            "sdmrgd_repair_instruction_record.meta_review_id": "sdmrgd_meta_review_record.meta_review_id",
+            "sdmrgd_escalation_record.meta_review_id": "sdmrgd_meta_review_record.meta_review_id",
+            "sdmrgd_self_audit_record.meta_review_id": "sdmrgd_meta_review_record.meta_review_id",
+            "sdmrgd_meta_review_record.sdagd_audit_reference": "external_sdagd_audit_record_or_reference_when_available"
+          },
+          "orphan_record_rules": {
+            "repair_instruction_without_meta_review_prohibited": true,
+            "escalation_without_meta_review_prohibited": true,
+            "self_audit_without_meta_review_prohibited_when_material": true,
+            "meta_review_without_sdagd_reference_requires_unavailable_or_insufficient_information_status": true,
+            "external_sdagd_reference_may_be_unresolved_only_when_marked_unavailable_or_pending": true
+          },
+          "validation_rules": [
+            "primary_keys_must_be_unique",
+            "foreign_key_references_must_resolve_or_be_marked_unresolved",
+            "material_unresolved_reference_requires_degraded_status",
+            "record_relationship_break_requires_repair_before_ready_claim",
+            "all_required_fields_must_be_mapped_to_field_groups"
+          ]
+        },
+        "record_schema_consistency_policy": {
+          "record_required_fields_must_be_mapped_to_field_groups": true,
+          "field_group_items_inherit_group_requirement_level_unless_overridden": true,
+          "field_group_items_must_have_known_requirement_level_after_inheritance": true,
+          "record_relationships_must_not_create_orphan_records": true
+        }
+      },
+      "meta_data": {
+        "version": "0.1.0"
+      }
+    }
+  }
+}

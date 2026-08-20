@@ -34,11 +34,17 @@ def scope(value: str = "scope-private") -> ConversationScopeId:
     return ConversationScopeId(value=value)
 
 
-def snapshot(identity: str = "conversation-1", *, minute: int = 0) -> ConversationSnapshot:
+def snapshot(
+    identity: str = "conversation-1",
+    *,
+    minute: int = 0,
+    title: str | None = None,
+) -> ConversationSnapshot:
     return ConversationSnapshot(
         scope_id=scope(),
         conversation_id=ConversationId(value=identity),
         state=ConversationState.ACTIVE,
+        title=title,
         created_at=NOW,
         updated_at=NOW + timedelta(minutes=minute),
     )
@@ -157,6 +163,47 @@ def test_same_operation_with_different_command_is_not_applied(tmp_path: Path) ->
         )
     assert captured.value.code is ConversationStorageErrorCode.CONFLICT
     assert captured.value.mutation_outcome.value == "not_applied"
+
+
+def test_title_round_trips_through_commit_get_and_list(tmp_path: Path) -> None:
+    store = initialized(tmp_path)
+    store.commit(
+        CommitConversation(
+            scope_id=scope(),
+            operation_id=operation("create-titled"),
+            conversation=snapshot("conversation-titled", title="My renamed chat"),
+        )
+    )
+    store.commit(
+        CommitConversation(
+            scope_id=scope(),
+            operation_id=operation("create-untitled"),
+            conversation=snapshot("conversation-untitled"),
+        )
+    )
+    titled = store.get(scope(), ConversationId(value="conversation-titled"))
+    assert titled is not None
+    assert titled.conversation.title == "My renamed chat"
+    untitled = store.get(scope(), ConversationId(value="conversation-untitled"))
+    assert untitled is not None
+    assert untitled.conversation.title is None
+
+    page = store.list(ConversationListQuery(scope_id=scope(), limit=10))
+    titles = {item.conversation_id.value: item.title for item in page.items}
+    assert titles["conversation-titled"] == "My renamed chat"
+    assert titles["conversation-untitled"] is None
+
+    store.commit(
+        CommitConversation(
+            scope_id=scope(),
+            operation_id=operation("rename-titled"),
+            expected_revision=1,
+            conversation=snapshot("conversation-titled", minute=1, title="Renamed again"),
+        )
+    )
+    renamed = store.get(scope(), ConversationId(value="conversation-titled"))
+    assert renamed is not None
+    assert renamed.conversation.title == "Renamed again"
 
 
 def test_list_uses_stable_keyset_cursor_and_never_projects_content(tmp_path: Path) -> None:

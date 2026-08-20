@@ -250,6 +250,8 @@ class ConfigurationControlService:
             "acceleration_api",
             "max_new_tokens",
             "research_developer_mode",
+            "conversation_storage_kind",
+            "conversation_storage_version",
         }
         keys = [item.key for item in fields]
         if set(keys) != expected or len(keys) != len(set(keys)):
@@ -264,6 +266,8 @@ class ConfigurationControlService:
             "acceleration_api": ApplyDisposition.READ_ONLY,
             "max_new_tokens": ApplyDisposition.READ_ONLY,
             "research_developer_mode": ApplyDisposition.RUNTIME_APPLICABLE,
+            "conversation_storage_kind": ApplyDisposition.READ_ONLY,
+            "conversation_storage_version": ApplyDisposition.READ_ONLY,
         }
         if any(
             by_key[key].apply_disposition is not disposition
@@ -279,6 +283,8 @@ class ConfigurationControlService:
             or type(by_key["context_size"].value) is not int
             or type(by_key["max_new_tokens"].value) is not int
             or by_key["research_developer_mode"].value not in {"off", "on"}
+            or not isinstance(by_key["conversation_storage_kind"].value, str)
+            or not isinstance(by_key["conversation_storage_version"].value, str)
         ):
             raise ValueError("configuration field value is invalid")
         for key in (
@@ -287,6 +293,8 @@ class ConfigurationControlService:
             "backend_kind",
             "device_kind",
             "acceleration_api",
+            "conversation_storage_kind",
+            "conversation_storage_version",
         ):
             value = by_key[key].value
             if (

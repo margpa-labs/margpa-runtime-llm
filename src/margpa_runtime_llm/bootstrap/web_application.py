@@ -11,7 +11,10 @@ from margpa_runtime_llm.modules.conversation.adapters import (
 from margpa_runtime_llm.modules.conversation.adapters.persistence_factory import (
     start_local_conversation_persistence,
 )
-from margpa_runtime_llm.modules.conversation.domain import ConversationStorageError
+from margpa_runtime_llm.modules.conversation.domain import (
+    ConversationStorageError,
+    ConversationStorageErrorCode,
+)
 from margpa_runtime_llm.modules.conversation.public import ConversationGenerationService
 from margpa_runtime_llm.modules.documentation_rag.contracts import (
     DocumentationRagAvailability,
@@ -26,6 +29,12 @@ from margpa_runtime_llm.modules.inference.domain.errors import (
     InferenceError,
     InferenceErrorCode,
 )
+from margpa_runtime_llm.modules.runtime_composition.application import ComponentRegistryService
+from margpa_runtime_llm.modules.runtime_composition.contracts import (
+    ComponentSideEffectLevel,
+    ComponentState,
+    build_component_descriptor,
+)
 from margpa_runtime_llm.web.access_profiles import DocumentationRagEffectiveState
 from margpa_runtime_llm.web.contracts import (
     DocumentationRagRuntimeSnapshot,
@@ -39,6 +48,74 @@ from .phase1_application import Phase1Application, build_phase1_application
 
 TextTokenCounter = Callable[[str], int]
 TextTokenCounterBinder = Callable[[TextTokenCounter], None]
+
+
+def _register_runtime_components(
+    *,
+    documentation_rag_effective_state: DocumentationRagEffectiveState,
+    persistent_enabled: bool,
+    configuration_control_enabled: bool,
+) -> ComponentRegistryService:
+    """Observe and describe the 3 existing components; grant no new authority.
+
+    This registry does not replace any of the three components' own existing
+    Local/Loopback/enable gates — it only projects the state each gate already
+    resolved into a common, typed shape (Phase 2-E Runtime Composition
+    Switchboard Foundation).
+    """
+
+    registry = ComponentRegistryService()
+    registry.register(
+        build_component_descriptor(
+            component_key="documentation_rag",
+            kind="feature",
+            version="1",
+            state=ComponentState(documentation_rag_effective_state.value),
+            capabilities=(
+                ("retrieval", "citation")
+                if documentation_rag_effective_state is DocumentationRagEffectiveState.ENABLED
+                else ()
+            ),
+            degraded_reasons=(
+                ()
+                if documentation_rag_effective_state
+                in (DocumentationRagEffectiveState.ENABLED, DocumentationRagEffectiveState.DISABLED)
+                else (documentation_rag_effective_state.value,)
+            ),
+            side_effect_level=ComponentSideEffectLevel.LOCAL_WRITE,
+            restart_required=True,
+        )
+    )
+    conversation_persistence_state = (
+        ComponentState.ENABLED if persistent_enabled else ComponentState.DISABLED
+    )
+    registry.register(
+        build_component_descriptor(
+            component_key="conversation_persistence",
+            kind="persistence",
+            version="1",
+            state=conversation_persistence_state,
+            capabilities=("persistence",) if persistent_enabled else (),
+            degraded_reasons=(),
+            side_effect_level=ComponentSideEffectLevel.LOCAL_WRITE,
+            restart_required=True,
+        )
+    )
+    registry.register(
+        build_component_descriptor(
+            component_key="configuration_control",
+            kind="control-surface",
+            version="1",
+            state=(
+                ComponentState.ENABLED if configuration_control_enabled else ComponentState.DISABLED
+            ),
+            capabilities=("control",) if configuration_control_enabled else (),
+            degraded_reasons=(),
+            side_effect_level=ComponentSideEffectLevel.READ_ONLY,
+            restart_required=True,
+        )
+    )
+    return registry
 
 
 def build_phase1_web_runtime(
@@ -63,6 +140,7 @@ def build_phase1_web_runtime(
     documentation_rag_token_counter_binder: TextTokenCounterBinder | None = None,
     conversation_persistence_settings: LocalConversationPersistenceSettings | None = None,
     configuration_control_enabled: bool = False,
+    runtime_composition_inspection_enabled: bool = False,
 ) -> WebRuntime:
     application: Phase1Application | None = None
     try:
@@ -98,14 +176,13 @@ def build_phase1_web_runtime(
             thinking_control_available=thinking_control_available,
             documentation_rag=documentation_rag,
             documentation_rag_availability=documentation_rag_availability,
-            chat_prompt_token_counter=(
-                application.service.count_chat_prompt_tokens
-                if documentation_rag is not None
-                else None
-            ),
+            chat_prompt_token_counter=application.service.count_chat_prompt_tokens,
+            text_token_counter=application.service.count_text_tokens,
             effective_context_size=runtime_info.loaded_context_size,
         )
         persistent = None
+        conversation_storage_backend: str | None = None
+        conversation_storage_backend_version: str | None = None
         if conversation_persistence_settings is not None:
             try:
                 composition = start_local_conversation_persistence(
@@ -113,11 +190,18 @@ def build_phase1_web_runtime(
                     generation_service=conversation,
                 )
             except ConversationStorageError as exc:
+                safe_message = (
+                    exc.safe_message
+                    if exc.code is ConversationStorageErrorCode.MIGRATION_REQUIRED
+                    else "The persistent conversation store could not start safely."
+                )
                 raise InferenceError(
                     code=InferenceErrorCode.INVALID_CONFIGURATION,
-                    safe_message="The persistent conversation store could not start safely.",
+                    safe_message=safe_message,
                 ) from exc
             persistent = composition.service
+            conversation_storage_backend = composition.storage_backend_kind
+            conversation_storage_backend_version = composition.storage_backend_version
         snapshot = SafeRuntimeSnapshot(
             model_key=runtime_info.model_key,
             profile_key=application.config.profile_key,
@@ -146,8 +230,20 @@ def build_phase1_web_runtime(
             build_configuration_control(
                 effective=application.config,
                 documentation_rag_state=documentation_rag_effective_state,
+                conversation_persistence_enabled=persistent is not None,
+                conversation_storage_backend=conversation_storage_backend,
+                conversation_storage_backend_version=conversation_storage_backend_version,
             )
             if configuration_control_enabled
+            else None
+        )
+        runtime_composition = (
+            _register_runtime_components(
+                documentation_rag_effective_state=documentation_rag_effective_state,
+                persistent_enabled=persistent is not None,
+                configuration_control_enabled=configuration_control is not None,
+            )
+            if runtime_composition_inspection_enabled
             else None
         )
         return WebRuntime(
@@ -156,6 +252,7 @@ def build_phase1_web_runtime(
             close_callback=application.close,
             persistent_conversation=persistent,
             configuration_control=configuration_control,
+            runtime_composition=runtime_composition,
         )
     except BaseException:
         if application is not None:

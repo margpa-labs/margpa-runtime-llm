@@ -693,6 +693,8 @@ def test_cli_ctrl_c_through_llama_cpp_stream_releases_generation(
         model_key=DEFINITION.model_key,
         native_stream=native,
         on_terminal=release_generation,
+        fallback_prompt_tokens=0,
+        completion_text_token_counter=len,
     )
     application = FakeApplication(stream)
     install_fake_application(monkeypatch, application)

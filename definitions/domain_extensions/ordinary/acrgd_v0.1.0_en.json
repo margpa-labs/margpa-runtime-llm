@@ -1,0 +1,1638 @@
+{
+  "acrgd": {
+    "artifact_composition_and_review_governance_definition": {
+      "description": "acrgd defines the artifact composition and review domain governance delta. it governs artifact purpose, audience, declared context policy, source selection, composition, transformation, canonical-definition boundaries, format, layout, readability, machine readability, confidentiality, disclosure, language variants, self-review, repair origins, status reporting, revision lineage, publication or submission ready-claim boundaries, cross-domain artifact dependency visibility, and record consistency. it does not replace parent reasoning, behavior, audit, repair, activation, status, registry, orchestration, subject-matter validation, approval, or sibling-domain governance.",
+      "inheritance": {
+        "inheritance_mode": "additive_domain_extension",
+        "parent_definitions": [
+          {
+            "syntax_id": "argd",
+            "role": "general_reasoning_procedure_governance",
+            "required": true
+          },
+          {
+            "syntax_id": "dagd",
+            "role": "general_behavior_audit_repair_activation_and_status_governance",
+            "required": true
+          }
+        ],
+        "dependency_version_policy": {
+          "specific_parent_versions_are_not_hardcoded_in_domain_compatibility_labels": true,
+          "parent_version_binding_is_external_to_this_domain_definition": true,
+          "version_binding_owner": "runtime_bundle_or_release_manifest"
+        },
+        "standalone_reference_use": {
+          "allowed": true,
+          "condition": "standalone_readers_must_treat_parent_mechanisms_as_external_prerequisites_or_reference_context",
+          "does_not_grant_parent_functionality": true,
+          "runtime_conformance_requires_parent_definitions": true
+        },
+        "replaces_parent_definitions": false,
+        "duplicates_parent_rules": false,
+        "parent_rules_remain_authoritative": true,
+        "domain_delta_only": true,
+        "preserved_parent_mechanism_policy": {
+          "inherited_governance_must_be_referenced_not_reexpanded": true,
+          "silent_parent_rule_override_prohibited": true,
+          "parent_mechanism_lists_must_not_be_recreated_unless_required_by_explicit_context": true
+        },
+        "conflict_policy": {
+          "general_reasoning_conflicts": "resolve_under_parent_reasoning_governance",
+          "general_behavior_and_governance_conflicts": "resolve_under_parent_behavior_governance",
+          "domain_specific_conflicts": "resolve_under_acrgd_for_artifact_composition_and_review_matters_when_not_in_conflict_with_parent_governance_sibling_domain_authority_or_higher_authority",
+          "subject_matter_validation_conflicts": "report_external_domain_dependency_or_handoff_condition_rather_than_resolve_as_acrgd",
+          "higher_level_system_policies_remain_authoritative": true
+        }
+      },
+      "orchestration_reference": {
+        "orchestration_definition": "cdogd",
+        "relationship": "external_orchestration_reference",
+        "cdogd_is_not_reimplemented_here": true,
+        "registry_and_activation_logic_are_external": true,
+        "routing_priority_and_domain_selection_are_external": true,
+        "registered_domain_extension_storage_is_external": true
+      },
+      "domain_scope": {
+        "domain": "artifact_composition_and_review",
+        "scope_statement": "acrgd applies when an artifact is generated, composed, transformed, reviewed, repaired, prepared for publication or submission, or checked for format, layout, readability, confidentiality, disclosure, language variant integrity, or record consistency.",
+        "governed_target_categories": [
+          "machine_readable_artifact",
+          "human_readable_artifact",
+          "layout_sensitive_artifact",
+          "transformation_artifact",
+          "confidential_artifact",
+          "public_or_submission_artifact",
+          "review_or_audit_artifact",
+          "mixed_mode_artifact"
+        ],
+        "representative_artifact_examples": {
+          "non_normative": true,
+          "examples_do_not_create_format_specific_rules": true,
+          "examples": [
+            "markdown",
+            "yaml",
+            "json",
+            "csv",
+            "spreadsheet",
+            "word_processing_document",
+            "pdf",
+            "slide_deck",
+            "html_css",
+            "plain_text",
+            "email",
+            "resume_or_cv",
+            "submission_document",
+            "research_note",
+            "internal_report",
+            "confidential_document",
+            "public_documentation"
+          ]
+        },
+        "lifecycle_coverage": [
+          "artifact_intent",
+          "declared_context_policy_fixation",
+          "artifact_type_and_role_fixation",
+          "audience_and_recipient_modeling",
+          "confidentiality_boundary_fixation",
+          "source_material_classification",
+          "source_import_filtering",
+          "source_to_artifact_transformation",
+          "artifact_composition",
+          "format_layout_and_readability_review",
+          "language_variant_review",
+          "self_review_and_self_audit",
+          "publication_or_submission_readiness",
+          "repair_origin_identification",
+          "revision_lineage",
+          "status_reporting",
+          "record_consistency"
+        ],
+        "non_targets": [
+          "complete_definition_of_specific_document_formats",
+          "complete_definition_of_specific_renderers",
+          "complete_definition_of_specific_platforms",
+          "complete_definition_of_specific_submission_systems",
+          "company_specific_document_policy",
+          "customer_specific_document_policy",
+          "jurisdiction_specific_legal_advice",
+          "automatic_guarantee_of_publication_acceptance",
+          "automatic_guarantee_of_submission_acceptance",
+          "automatic_guarantee_of_ranking_or_scoring_outcome",
+          "replacement_of_human_editorial_judgment",
+          "replacement_of_parent_governance",
+          "replacement_of_external_orchestration",
+          "absorption_of_sibling_domain_definitions",
+          "model_weight_modification",
+          "training_data_modification",
+          "replacement_of_built_in_system_policies",
+          "final_subject_matter_validation",
+          "final_publication_approval",
+          "final_submission_approval",
+          "final_release_authorization",
+          "replacement_of_subject_matter_domain_judgment",
+          "replacement_of_legal_security_architecture_research_implementation_operation_project_audit_or_decision_domain_authority",
+          "global_domain_priority_definition",
+          "cross_domain_routing_decision"
+        ]
+      },
+      "abstraction_and_context_policy": {
+        "purpose": "prevent domain rules from becoming brittle case-specific prohibitions while still allowing context-local specificity when required.",
+        "rule_bodies_must_use_highest_safe_abstraction_level": true,
+        "rule_hardcoding_prohibited_by_default": true,
+        "rules_must_be_abstract_by_default": true,
+        "case_specific_constraints_must_be_contextual": true,
+        "domain_instances_must_not_be_encoded_as_general_rules": true,
+        "implementation_details_must_not_become_domain_rules": true,
+        "rule_bodies_must_not_hardcode": [
+          "specific_format",
+          "specific_renderer",
+          "specific_tool",
+          "specific_platform",
+          "specific_repository",
+          "specific_external_system",
+          "specific_language_code_system",
+          "specific_submission_system",
+          "specific_organization_policy",
+          "specific_private_system",
+          "specific_user_workflow",
+          "specific_medium_or_transport",
+          "specific_identifier_policy"
+        ],
+        "contextual_specificity_conditions": [
+          "explicit_user_instruction",
+          "identity_or_verification_requires_specific_name",
+          "hallucination_prevention_requires_specific_name",
+          "system_integrity_requires_specific_constraint",
+          "artifact_context_or_governed_target_context_would_break_without_specificity"
+        ],
+        "specificity_handling": {
+          "specificity_scope": "artifact_local_context_or_governed_target_context",
+          "specificity_must_not_be_promoted_to_general_rule_without_basis": true,
+          "specificity_must_be_traceable_to_context_or_instruction": true,
+          "specificity_must_not_override_higher_authority": true
+        },
+        "example_policy": {
+          "examples_are_non_normative": true,
+          "examples_may_illustrate_failures_but_do_not_define_the_rule": true,
+          "test_cases_must_remain_separate_from_general_domain_rules": true,
+          "examples_must_not_narrow_common_template_scope": true,
+          "representative_artifact_examples_are_domain_specific_and_non_normative": true
+        },
+        "declared_context_policy_principles": [
+          "declared_policy_must_be_fixed_when_material",
+          "declared_policy_must_not_be_mixed",
+          "declared_policy_must_not_be_silently_changed",
+          "declared_policy_must_be_applied_consistently",
+          "declared_policy_conflict_must_be_reported_or_repaired"
+        ],
+        "declared_context_policy_types": [
+          "language_code_policy",
+          "file_naming_policy",
+          "artifact_naming_policy",
+          "medium_policy",
+          "renderer_policy",
+          "platform_policy",
+          "repository_policy",
+          "publication_policy",
+          "submission_policy",
+          "confidentiality_policy",
+          "schema_policy",
+          "layout_policy",
+          "translation_policy"
+        ],
+        "rule_body_policy": {
+          "rule_bodies_define_abstract_failures_not_specific_cases": true,
+          "case_specific_detail_must_be_artifact_or_target_local_unless_promoted_by_valid_governance_basis": true,
+          "specific_names_may_be_used_for_identity_verification_or_hallucination_prevention": true,
+          "specific_constraints_may_be_used_when_omission_breaks_system_integrity_or_artifact_meaning": true
+        },
+        "contextual_specificity_exception_policy": {
+          "exception_scope": "artifact_local_context_or_governed_target_context",
+          "specificity_required_when": [
+            "explicit_user_instruction",
+            "identity_or_verification_requires_specific_name",
+            "hallucination_prevention_requires_specific_name",
+            "system_integrity_requires_specific_constraint",
+            "artifact_context_or_governed_target_context_would_break_without_specificity"
+          ],
+          "exception_must_not_become_general_domain_rule_without_basis": true,
+          "exception_must_not_override_higher_authority": true
+        }
+      },
+      "role_complete_separation": {
+        "required": true,
+        "principle": "acrgd must keep source material, domain definition, inherited governance, sibling reference, artifact composition, artifact review, subject-matter domain validation, disclosure control, format and layout control, external orchestration, decision or approval authority, records, and metadata responsibilities separated.",
+        "separation_targets": {
+          "source_material": "inputs or references used to create or review the artifact; source density and order are not copied by default",
+          "domain_definition": "acrgd-specific artifact composition and review rules, checks, failures, repair origins, and records",
+          "inherited_governance": "parent governance referenced as authoritative context and not re-expanded inside acrgd",
+          "sibling_reference": "other domain definitions referenced only when in scope and not absorbed into acrgd",
+          "artifact_composition": "the structure, density, medium, and transformation strategy of the artifact",
+          "artifact_review": "the separated checks applied to the artifact after or during generation",
+          "disclosure_control": "independent handling of confidential, sensitive, unsafe, private, or nonpublic material",
+          "format_layout_control": "medium fitness, layout integrity, readability, parseability, conversion, and rendering stability",
+          "external_orchestration": "routing, registry, priority, and activation orchestration remain external to the domain definition",
+          "metadata": "identity, authorship, license, repository, and compatibility information remain metadata, not domain rules",
+          "subject_matter_domain_validation": "validation of architecture, research, software, security, operations, project, audit, legal, or decision content remains with the relevant domain or authority; acrgd may review only the artifactization of that content",
+          "ready_claim_boundary": "acrgd may block or qualify artifact-ready, publication-ready, or submission-ready claims when artifact boundaries fail; this is not final approval, rejection, or execution blocking",
+          "decision_or_approval_authority": "final approval, rejection, release, submission, legal, security, or business authorization remains outside acrgd unless explicitly delegated by higher authority"
+        },
+        "non_absorption_rules": [
+          "inherited_governance_must_be_referenced_not_reexpanded",
+          "sibling_domain_content_must_remain_referenced_not_absorbed",
+          "source_schema_must_remain_schema_not_primary_document",
+          "external_orchestration_must_not_be_reimplemented_in_domain_definition",
+          "metadata_must_not_be_promoted_to_domain_rule_without_basis",
+          "subject_matter_domain_validation_must_not_be_absorbed_into_artifact_review",
+          "ready_claim_blocking_must_not_be_presented_as_final_approval_or_execution_blocking",
+          "external_domain_validation_must_not_be_fabricated"
+        ],
+        "review_implications": [
+          "role_separation_check_required_when_source_parent_sibling_or_orchestration_context_is_material",
+          "role_mixing_failure_is_material_when_it_changes_artifact_purpose_or_reader_obligation",
+          "leakage_quality_format_layout_and_purpose_fitness_must_not_be_collapsed_into_one_claim",
+          "artifact_review_does_not_imply_subject_matter_validation",
+          "artifact_quality_claim_must_mark_external_domain_dependencies_when_material",
+          "handoff_or_dependency_status_must_be_reported_when_issue_exceeds_acrgd_scope"
+        ]
+      },
+      "cross_domain_interference_policy": {
+        "purpose": "prevent acrgd from absorbing sibling domain responsibilities, creating implicit priority conflicts, or treating artifact review as subject-matter validation when artifacts contain architecture, research, software, security, operations, project, audit, legal, or decision content",
+        "rules": [
+          "sibling_domain_references_must_be_explicit_when_material",
+          "sibling_domain_rules_must_not_be_copied_by_default",
+          "domain_overlap_must_be_declared_when_material",
+          "cross_domain_activation_priority_is_external_to_acrgd",
+          "domain_specific_rule_conflicts_must_not_be_silently_merged",
+          "shared_terms_must_not_imply_shared_authority_without_boundary_statement",
+          "artifact_review_must_not_be_upgraded_to_subject_matter_validation",
+          "artifact_publication_readiness_must_not_be_upgraded_to_external_approval"
+        ],
+        "overlap_handling": {
+          "overlap_is_allowed": true,
+          "overlap_must_preserve_domain_responsibility_boundaries": true,
+          "overlap_resolution_owner": "external_orchestration_or_explicit_runtime_context",
+          "acrgd_reports_artifact_surface_and_dependency_status_not_cross_domain_priority": true
+        }
+      },
+      "cross_domain_boundary_policy": {
+        "purpose": "define how acrgd remains responsible for artifactization while preventing intrusion into subject-matter, orchestration, approval, security, legal, audit, project, operation, architecture, research, or implementation authority",
+        "primary_authority": [
+          "artifact_purpose_and_role_fixation",
+          "artifact_source_import_filtering",
+          "artifact_composition_and_transformation_review",
+          "artifact_format_layout_and_readability_review",
+          "canonical_definition_and_documentation_boundary_review",
+          "artifact_confidentiality_and_disclosure_boundary_review",
+          "language_variant_artifact_integrity_review",
+          "publication_or_submission_ready_claim_boundary_review",
+          "artifact_record_consistency_and_revision_lineage_review"
+        ],
+        "reference_only": [
+          "parent_reasoning_and_behavior_governance",
+          "external_cdogd_orchestration",
+          "architecture_domain_judgment",
+          "research_domain_judgment",
+          "software_implementation_domain_judgment",
+          "operation_or_reliability_domain_judgment",
+          "security_domain_judgment",
+          "project_management_domain_judgment",
+          "decision_authority_or_final_approval",
+          "audit_or_meta_audit_authority",
+          "legal_or_compliance_authority"
+        ],
+        "handoff_or_dependency_required_when": [
+          "architecture_correctness_is_material_to_artifact_claim",
+          "research_validity_is_material_to_artifact_claim",
+          "software_implementation_correctness_is_material_to_artifact_claim",
+          "operation_or_reliability_state_is_material_to_artifact_claim",
+          "security_validation_is_material_to_publication_or_submission_claim",
+          "project_dependency_or_owner_assignment_is_material_to_artifact_claim",
+          "final_decision_or_approval_authority_is_material_to_artifact_claim",
+          "audit_or_meta_audit_authority_is_material_to_artifact_claim",
+          "legal_or_compliance_review_is_material_to_publication_or_submission_claim"
+        ],
+        "rules": [
+          "artifact_review_does_not_imply_subject_matter_validation",
+          "artifact_publication_readiness_does_not_imply_external_approval",
+          "artifact_quality_claim_must_mark_external_domain_dependencies_when_material",
+          "sibling_domain_rules_must_be_referenced_not_reexpanded",
+          "external_domain_validation_must_not_be_fabricated",
+          "handoff_or_dependency_status_must_be_reported_when_issue_exceeds_acrgd_scope",
+          "ready_claim_blocking_is_not_execution_blocking",
+          "final_approval_or_release_authorization_must_not_be_claimed_by_acrgd"
+        ],
+        "allowed_acrgd_actions": [
+          "review_artifact_surface",
+          "repair_artifact_local_issue",
+          "report_external_domain_dependency",
+          "recommend_handoff_to_relevant_domain",
+          "block_artifact_ready_claim_when_artifact_boundary_fails",
+          "block_publication_or_submission_ready_claim_when_boundary_review_is_missing_or_failed"
+        ],
+        "prohibited_acrgd_actions": [
+          "final_approve_release_or_submission",
+          "final_reject_release_or_submission",
+          "validate_subject_matter_as_sibling_domain",
+          "define_global_domain_priority",
+          "reimplement_cdogd_routing",
+          "replace_human_editorial_legal_security_or_decision_authority"
+        ]
+      },
+      "confidentiality_and_disclosure_boundary": {
+        "purpose": "separate confidentiality and disclosure safety from artifact quality, format, layout, and publication readiness.",
+        "boundary_rules": [
+          "confidentiality_level_must_be_fixed_when_material",
+          "publication_boundary_must_be_checked_when_material",
+          "disclosure_boundary_must_not_become_actionable_instruction",
+          "private_or_sensitive_source_must_not_be_reconstructable_by_summary",
+          "leakage_safety_must_not_be_reported_as_document_quality",
+          "publication_ready_claim_must_not_be_conflated_with_external_approval",
+          "security_or_legal_validation_dependency_must_be_marked_when_material"
+        ],
+        "abstract_sensitive_material_classes": [
+          "private_identifier",
+          "confidential_context_material",
+          "nonpublic_operational_detail",
+          "sensitive_security_detail",
+          "restricted_access_information",
+          "dangerous_actionable_information",
+          "context_external_private_material"
+        ],
+        "review_separation": {
+          "leakage_check_is_independent_from_quality_check": true,
+          "leakage_check_is_independent_from_format_check": true,
+          "publication_readiness_requires_more_than_leakage_safety": true,
+          "publication_ready_claim_is_not_final_approval": true
+        },
+        "blocked_when": [
+          "confidentiality_boundary_failure",
+          "disclosure_boundary_becomes_actionable_instruction",
+          "private_or_sensitive_source_reconstructable_from_artifact",
+          "confidentiality_status_unknown_when_public_or_submission_boundary_is_material"
+        ]
+      },
+      "naming_conventions": {
+        "canonical_case": "lower_snake_case",
+        "code_identifier_policy": {
+          "lowercase_required_unless_display_name_or_external_proper_name": true,
+          "uppercase_acronyms_allowed_only_where_display_or_external_identity_requires_them": true,
+          "code_values_should_use_lower_snake_case": true,
+          "metadata_display_names_may_preserve_formal_capitalization": true
+        },
+        "identifier_patterns": {
+          "artifact_id": "^acr_art_[a-z0-9][a-z0-9_-]*$",
+          "source_id": "^acr_src_[a-z0-9][a-z0-9_-]*$",
+          "transformation_id": "^acr_tr_[a-z0-9][a-z0-9_-]*$",
+          "review_id": "^acr_rev_[a-z0-9][a-z0-9_-]*$",
+          "repair_id": "^acr_rep_[a-z0-9][a-z0-9_-]*$",
+          "record_id": "^acr_rec_[a-z0-9][a-z0-9_-]*$"
+        },
+        "declared_policy_conformance": {
+          "declared_naming_policy_must_be_consistent": true,
+          "declared_language_code_policy_must_be_consistent": true,
+          "canonical_file_name_and_external_download_file_name_must_not_be_confused": true,
+          "specific_language_code_system_is_not_hardcoded_as_general_rule": true
+        },
+        "versioning": "semantic_versioning_major_minor_patch",
+        "timestamp_format": "rfc3339_utc",
+        "canonical_file_names": [
+          "acrgd_v0.1.0_en.json",
+          "acrgd_v0.1.0_ja.json"
+        ],
+        "canonical_artifact_path": "domains/artifact_composition_review/acrgd_v0.1.0_en.json"
+      },
+      "policy_goal": [
+        "artifact_purpose_fitness",
+        "audience_fitness",
+        "declared_context_policy_consistency",
+        "artifact_type_role_integrity",
+        "role_complete_separation",
+        "source_material_selection_integrity",
+        "source_to_artifact_transformation_integrity",
+        "canonical_definition_boundary_integrity",
+        "documentation_non_duplication",
+        "format_layout_readability_integrity",
+        "human_readability",
+        "machine_readability",
+        "confidentiality_and_disclosure_integrity",
+        "review_axis_separation",
+        "language_variant_integrity",
+        "native_readability_for_translations",
+        "record_consistency",
+        "revision_lineage_preservation",
+        "publication_or_submission_readiness",
+        "runtime_orchestration_non_absorption",
+        "subject_matter_domain_boundary_integrity",
+        "external_domain_dependency_visibility",
+        "ready_claim_authority_safety",
+        "handoff_condition_visibility_when_out_of_scope"
+      ],
+      "constraints": {
+        "prohibited_failure_modes": [
+          "purpose_artifact_mismatch",
+          "audience_mismatch",
+          "artifact_role_unfixed",
+          "artifact_type_role_conflation",
+          "declared_context_policy_inconsistency",
+          "role_mixing_failure",
+          "inherited_mechanism_reexpansion",
+          "sibling_domain_absorption",
+          "external_orchestration_logic_absorbed_into_domain_definition",
+          "source_material_overexpansion",
+          "source_schema_reexpanded_as_primary_document",
+          "source_density_copied_by_default",
+          "canonical_definition_duplicated_in_documentation",
+          "reference_artifact_proliferation",
+          "default_checklist_appendix_added_without_purpose",
+          "main_body_overloaded_with_reference_detail",
+          "format_escape_used_as_structure_substitute",
+          "visual_density_exceeds_reviewability",
+          "layout_integrity_failure",
+          "rendering_dependency_failure",
+          "machine_readability_breakage",
+          "human_readability_breakage",
+          "conversion_breaks_meaning",
+          "confidentiality_boundary_failure",
+          "disclosure_boundary_becomes_actionable_instruction",
+          "leakage_check_quality_check_conflation",
+          "language_variant_role_unfixed",
+          "language_code_policy_mixed",
+          "translated_artifact_native_readability_failure",
+          "self_review_omission",
+          "record_required_field_group_mapping_failure",
+          "evaluation_dimension_alignment_failure",
+          "revision_lineage_loss",
+          "publication_or_submission_readiness_claim_without_boundary_review",
+          "schema_dump_as_document",
+          "duplicate_content_inflation",
+          "format_native_readability_violation",
+          "citation_or_source_trace_loss",
+          "publication_boundary_unchecked",
+          "self_review_claimed_without_check_basis",
+          "record_required_fields_unmapped_to_field_groups",
+          "taxonomy_group_membership_mismatch",
+          "evaluation_dimension_without_threshold_or_audit_target",
+          "schema_hygiene_failure",
+          "subject_matter_validation_claim_without_external_basis",
+          "external_domain_dependency_hidden",
+          "artifact_review_claim_conflated_with_subject_matter_validation",
+          "publication_readiness_claim_conflated_with_external_approval",
+          "final_approval_claim_without_authority",
+          "handoff_required_but_not_reported",
+          "ready_claim_blocking_conflated_with_execution_blocking"
+        ],
+        "required_controls": [
+          "fix_artifact_purpose_when_material",
+          "fix_artifact_role_when_material",
+          "fix_declared_context_policy_when_material",
+          "filter_source_material_by_artifact_purpose",
+          "preserve_role_complete_separation",
+          "preserve_canonical_definition_and_documentation_boundary",
+          "separate_review_axes",
+          "preserve_format_layout_and_readability_fitness",
+          "preserve_machine_readability_when_required",
+          "preserve_human_readability_when_required",
+          "check_confidentiality_boundary_when_material",
+          "declare_language_variant_role_when_material",
+          "preserve_record_required_field_group_mapping",
+          "preserve_revision_lineage_when_material",
+          "preserve_source_traceability_when_required",
+          "preserve_publication_or_submission_boundary_when_claimed",
+          "preserve_taxonomy_group_requirement_alignment",
+          "preserve_evaluation_dimension_threshold_alignment",
+          "avoid_self_review_claim_without_check_basis",
+          "preserve_subject_matter_domain_boundary_when_material",
+          "mark_external_domain_dependency_when_material",
+          "preserve_ready_claim_and_final_approval_separation",
+          "report_handoff_condition_when_issue_exceeds_acrgd_scope"
+        ],
+        "runtime_constraints": {
+          "domain_only": true,
+          "does_not_redefine_parent_governance": true,
+          "does_not_reimplement_external_orchestration": true,
+          "does_not_define_registry_logic": true,
+          "does_not_create_format_specific_general_bans": true,
+          "does_not_create_language_code_specific_general_bans": true,
+          "does_not_validate_subject_matter_domains": true,
+          "does_not_claim_final_approval_authority": true,
+          "does_not_define_global_domain_priority": true
+        },
+        "canonical_rule_index": {
+          "abstraction_rules": [
+            "rule_hardcoding_prohibited_by_default",
+            "rules_must_be_abstract_by_default",
+            "case_specific_constraints_must_be_contextual",
+            "allowed_contextual_specificity_must_remain_artifact_local"
+          ],
+          "role_and_source_rules": [
+            "role_complete_separation",
+            "source_material_must_be_selected_by_artifact_purpose",
+            "source_schema_must_not_be_reexpanded_as_primary_document",
+            "inherited_governance_must_be_referenced_not_reexpanded",
+            "sibling_domain_content_must_remain_referenced_not_absorbed"
+          ],
+          "documentation_boundary_rules": [
+            "canonical_definition_must_not_be_duplicated_in_documentation",
+            "reference_artifact_proliferation_prohibited_by_default",
+            "checklist_generation_must_be_purpose_bound",
+            "default_checklist_appendix_prohibited",
+            "main_body_and_appendix_boundary_must_be_fixed"
+          ],
+          "format_layout_rules": [
+            "format_escape_must_not_substitute_for_structure",
+            "visual_density_must_not_exceed_reviewability",
+            "machine_readability_must_not_be_broken",
+            "human_readability_must_not_be_broken",
+            "layout_dependent_meaning_requires_fallback"
+          ],
+          "language_and_context_rules": [
+            "declared_language_code_policy_must_be_consistent",
+            "language_code_policy_must_not_be_mixed",
+            "language_variant_role_must_be_explicit",
+            "translated_artifact_must_pass_native_readability_review"
+          ],
+          "schema_hygiene_rules": [
+            "taxonomy_group_membership_must_match_requirement_level",
+            "record_required_fields_must_be_mapped_to_field_groups",
+            "evaluation_dimensions_must_align_with_thresholds_and_audit_targets"
+          ],
+          "repair_and_status_rules": [
+            "repair_model_should_define_repair_origin_not_parent_repair_cycle",
+            "status_reporting_should_define_domain_delta_only"
+          ],
+          "cross_domain_boundary_rules": [
+            "artifact_review_does_not_imply_subject_matter_validation",
+            "artifact_publication_readiness_does_not_imply_external_approval",
+            "artifact_quality_claim_must_mark_external_domain_dependencies_when_material",
+            "handoff_or_dependency_status_must_be_reported_when_issue_exceeds_acrgd_scope",
+            "ready_claim_blocking_is_not_execution_blocking"
+          ]
+        },
+        "failure_aliases": {
+          "schema_dump_as_document": "source_schema_reexpanded_as_primary_document",
+          "human_readable_document_broken_by_schema_dump": "source_schema_reexpanded_as_primary_document",
+          "format_native_readability_violation": "format_layout_readability_breakage",
+          "duplicate_sections_created_without_distinct_purpose": "duplicate_content_inflation",
+          "citation_or_source_trace_loss": "source_traceability_loss",
+          "publication_boundary_unchecked": "publication_or_submission_readiness_claim_without_boundary_review",
+          "self_review_claimed_without_check_basis": "self_review_omission",
+          "record_required_fields_unmapped_to_field_groups": "record_required_field_group_mapping_failure",
+          "taxonomy_group_membership_mismatch": "schema_hygiene_failure",
+          "evaluation_dimension_without_threshold_or_audit_target": "evaluation_dimension_alignment_failure"
+        },
+        "schema_hygiene_constraints": {
+          "taxonomy_group_membership_must_match_requirement_level": true,
+          "record_required_fields_must_be_mapped_to_field_groups": true,
+          "field_group_items_may_inherit_group_requirement_level_when_not_overridden": true,
+          "evaluation_dimensions_must_align_with_thresholds_and_audit_targets": true,
+          "critical_invalidation_conditions_must_be_represented_in_critical_severity_rules": true
+        },
+        "collection_shape_policy": {
+          "flat_array_or_grouped_object_may_be_used_when_declared": true,
+          "prohibited_failure_modes_may_be_flat_array_or_grouped_object": true,
+          "required_controls_may_be_flat_array_or_grouped_object": true,
+          "same_collection_should_not_mix_shapes_within_one_domain_definition": true,
+          "grouped_object_shape_must_preserve_machine_checkable_membership": true,
+          "validation_tools_should_read_declared_collection_shape_before_assuming_flat_arrays": true,
+          "collection_shape_declarations": {
+            "constraints.prohibited_failure_modes": "flat_array",
+            "constraints.required_controls": "flat_array"
+          }
+        }
+      },
+      "capabilities": {
+        "required_capabilities": [
+          "artifact_intent_resolution",
+          "declared_context_policy_review",
+          "source_selection_control",
+          "role_separation_control",
+          "composition_transformation_review",
+          "documentation_boundary_review",
+          "review_axis_separation",
+          "format_layout_readability_review",
+          "confidentiality_disclosure_review",
+          "language_variant_review",
+          "record_consistency_review",
+          "repair_origin_identification",
+          "schema_hygiene_review",
+          "source_traceability_review",
+          "publication_submission_readiness_review",
+          "self_audit_basis_review",
+          "external_domain_dependency_review"
+        ],
+        "capability_groups": {
+          "intent_and_context": [
+            "artifact_intent_resolution",
+            "declared_context_policy_review"
+          ],
+          "source_and_role": [
+            "source_selection_control",
+            "role_separation_control"
+          ],
+          "composition_and_documentation": [
+            "composition_transformation_review",
+            "documentation_boundary_review",
+            "source_traceability_review"
+          ],
+          "review_and_disclosure": [
+            "review_axis_separation",
+            "confidentiality_disclosure_review",
+            "publication_submission_readiness_review",
+            "self_audit_basis_review"
+          ],
+          "format_layout_language": [
+            "format_layout_readability_review",
+            "language_variant_review"
+          ],
+          "records_and_repair": [
+            "record_consistency_review",
+            "repair_origin_identification",
+            "schema_hygiene_review"
+          ],
+          "cross_domain_boundary": [
+            "external_domain_dependency_review"
+          ]
+        },
+        "mapping_policy": {
+          "required_capabilities_must_appear_in_capability_groups": true,
+          "capability_groups_are_structural_not_exhaustive": true,
+          "future_extensions_should_attach_to_groups_before_adding_flat_items": true,
+          "capability_taxonomy_must_not_conflict_with_flat_required_list": true
+        }
+      },
+      "source_import_filter": {
+        "purpose": "select only source material needed for the artifact purpose, audience, declared context, confidentiality boundary, medium, role, and review requirements.",
+        "core_rules": [
+          "source_material_must_be_selected_by_artifact_purpose",
+          "source_density_must_not_be_copied_by_default",
+          "source_order_must_not_be_preserved_without_reason",
+          "source_schema_must_remain_schema",
+          "parent_governance_must_not_be_reexpanded",
+          "sibling_domain_content_must_not_be_absorbed",
+          "external_orchestration_logic_must_not_be_absorbed",
+          "confidential_or_context_external_material_must_be_filtered",
+          "preserve_source_traceability_when_required_by_artifact_role",
+          "avoid_duplicate_content_inflation",
+          "schema_dump_as_document_is_a_source_import_failure",
+          "subject_matter_domain_rules_must_not_be_absorbed",
+          "external_domain_validation_must_not_be_fabricated",
+          "external_domain_dependency_must_be_marked_when_material"
+        ],
+        "selection_basis": [
+          "artifact_purpose",
+          "artifact_role",
+          "target_audience",
+          "recipient_or_use_context",
+          "declared_context_policy",
+          "confidentiality_boundary",
+          "format_layout_readability_requirements",
+          "publication_or_submission_boundary"
+        ],
+        "filter_outputs": [
+          "included_source_scope",
+          "excluded_source_scope",
+          "source_selection_basis",
+          "source_traceability_status",
+          "confidentiality_filter_status",
+          "role_separation_status",
+          "external_domain_dependency_status"
+        ]
+      },
+      "artifact_composition_model": {
+        "purpose": "fix artifact intent, category, role, audience, success condition, composition structure, source mapping, and revision lineage before or during artifact production.",
+        "required_intent_fields_when_material": [
+          "artifact_purpose",
+          "artifact_category",
+          "artifact_role",
+          "target_audience",
+          "recipient_or_use_context",
+          "success_condition",
+          "declared_context_policy",
+          "confidentiality_boundary"
+        ],
+        "composition_controls": [
+          "artifact_type_role_must_be_fixed_before_generation",
+          "artifact_role_must_not_silently_change",
+          "artifact_role_and_format_must_not_be_conflated",
+          "artifact_success_condition_must_be_contextual",
+          "source_contains_does_not_mean_artifact_should_include",
+          "composition_structure_must_match_artifact_role",
+          "revision_lineage_must_be_preserved_when_material",
+          "main_body_and_appendix_boundary",
+          "duplicate_content_control",
+          "source_traceability_requirement_when_material",
+          "publication_or_submission_boundary_when_claimed",
+          "external_domain_dependency_must_be_marked_when_material",
+          "artifact_quality_claim_must_not_imply_subject_matter_validation",
+          "publication_or_submission_ready_claim_must_not_imply_external_approval"
+        ],
+        "transformation_controls": [
+          "transformation_intent_must_be_fixed",
+          "source_to_artifact_mapping_must_be_explicit_when_material",
+          "meaning_preservation_must_be_reviewed_when_material",
+          "traceability_must_be_preserved_when_required",
+          "conversion_must_not_destroy_meaning",
+          "post_transformation_review_required_when_material"
+        ],
+        "non_equivalence_principles": [
+          "source_contains_does_not_mean_artifact_should_include",
+          "schema_correct_does_not_mean_document_correct",
+          "format_valid_does_not_mean_content_valid",
+          "visual_alignment_does_not_mean_structural_integrity",
+          "leakage_safe_does_not_mean_publication_ready",
+          "artifact_quality_claim_does_not_mean_subject_matter_validated",
+          "publication_ready_claim_does_not_mean_external_approved"
+        ]
+      },
+      "artifact_review_model": {
+        "purpose": "keep artifact review axes separate so that safety, quality, format, layout, role, transformation, governance design, and publication or submission readiness are not collapsed into a single unsupported claim.",
+        "review_axes": [
+          "leakage_check",
+          "quality_check",
+          "format_check",
+          "layout_check",
+          "role_separation_check",
+          "transformation_check",
+          "publication_or_submission_check",
+          "governance_design_check",
+          "external_domain_dependency_check"
+        ],
+        "axis_separation_principles": [
+          "leakage_ok_does_not_mean_quality_ok",
+          "format_ok_does_not_mean_content_ok",
+          "schema_correct_does_not_mean_human_readable_ok",
+          "source_contains_does_not_mean_artifact_should_include",
+          "visual_alignment_does_not_mean_structural_integrity",
+          "artifact_review_ok_does_not_mean_subject_matter_validated",
+          "publication_ready_claim_does_not_mean_final_approval"
+        ],
+        "minimum_report_policy": {
+          "failed_axes_must_be_named_when_failure_exists": true,
+          "non_applicable_axes_may_be_excluded_with_reason": true,
+          "single_overall_quality_claim_cannot_replace_axis_results": true,
+          "external_domain_dependencies_must_be_named_when_material": true
+        },
+        "self_review_basis_policy": {
+          "self_review_claim_requires_check_basis": true,
+          "check_basis_must_identify_review_axes_or_material_exclusion_reason": true,
+          "leakage_safe_must_not_be_reported_as_quality_ready": true,
+          "subject_matter_validation_must_not_be_claimed_without_external_basis": true
+        }
+      },
+      "format_layout_and_readability_control": {
+        "purpose": "govern format, layout, readability, machine readability, conversion, rendering dependency, visual density, and reviewability through abstract failure conditions rather than format-specific bans.",
+        "core_rules": [
+          "format_escape_must_not_substitute_for_structure",
+          "visual_density_must_not_exceed_reviewability",
+          "machine_readability_must_not_be_broken",
+          "human_readability_must_not_be_broken",
+          "layout_dependent_meaning_requires_fallback",
+          "renderer_dependency_must_be_reviewed_when_material",
+          "conversion_must_not_destroy_meaning",
+          "format_native_readability_must_be_preserved",
+          "density_and_readability_must_remain_reviewable",
+          "submission_system_fitness_must_be_checked_when_claimed"
+        ],
+        "review_targets": [
+          "parseability_when_machine_consumable",
+          "reading_order_when_human_readable",
+          "visual_density_when_layout_sensitive",
+          "conversion_integrity_when_transformed",
+          "declared_medium_policy_conformance_when_material",
+          "declared_submission_policy_conformance_when_material"
+        ],
+        "failure_interpretation": {
+          "specific_format_symptom_is_not_the_general_rule": true,
+          "general_failure_is_the_loss_of_structure_readability_parseability_reviewability_or_conversion_integrity": true
+        }
+      },
+      "language_variant_control": {
+        "purpose": "control multilingual artifact variants without hardcoding a specific language-code system as a general rule.",
+        "core_rules": [
+          "language_variant_role_must_be_explicit",
+          "declared_language_code_policy_must_be_consistent",
+          "language_code_policy_must_not_be_mixed",
+          "translated_artifact_must_pass_native_readability_review",
+          "language_variant_must_not_silently_change_scope",
+          "language_variant_must_not_silently_change_granularity",
+          "language_code_consistency_required"
+        ],
+        "variant_roles": [
+          "complete_equivalent",
+          "localized_equivalent",
+          "summary",
+          "auxiliary_reference"
+        ],
+        "language_code_policy": {
+          "specific_language_codes_are_not_hardcoded_as_general_rule": true,
+          "artifact_family_must_declare_language_code_policy_when_material": true,
+          "declared_policy_must_be_used_consistently": true,
+          "specific_language_codes_are_not_hardcoded_by_acrgd": true
+        },
+        "native_readability_policy": {
+          "meaning_preservation_alone_is_not_sufficient_for_main_language_artifacts": true,
+          "strictness_depends_on_artifact_role": true,
+          "role_mismatch_must_be_disclosed_or_repaired": true
+        }
+      },
+      "canonical_definition_and_documentation_boundary": {
+        "purpose": "keep canonical definitions, overview artifacts, specifications, technical documents, schema references, appendices, and checklists role-separated.",
+        "canonical_policy": {
+          "json_is_canonical_when_declared_as_canonical_definition": true,
+          "documentation_explains_canonical_definition": true,
+          "canonical_definition_must_not_be_duplicated_in_documentation": true
+        },
+        "documentation_roles": {
+          "overview": {
+            "role": "explain_what_it_is_why_it_exists_scope_and_non_scope",
+            "full_schema_or_field_enumeration_required": false
+          },
+          "technical_specification": {
+            "role": "specification",
+            "is_technical_book_or_general_technical_document": false,
+            "explains": [
+              "major_blocks",
+              "responsibility_boundaries",
+              "reading_strategy",
+              "operational_meaning"
+            ],
+            "full_schema_or_field_enumeration_required": false,
+            "description": "specification, not a general technical book; it explains major blocks, responsibility boundaries, reading strategy, and operational meaning"
+          },
+          "technical_document": {
+            "role": "requirements_defined_case_by_case",
+            "requires_explicit_artifact_purpose_audience_medium_boundary_and_detail_level": true,
+            "description": "technical document or technical book is requirements-defined case by case"
+          },
+          "schema_reference": {
+            "created_by_default": false,
+            "allowed_when_explicitly_required": true,
+            "description": "not created by default; allowed only when explicitly required by user or requirements definition"
+          }
+        },
+        "boundary_rules": [
+          "canonical_definition_must_not_be_duplicated_in_documentation",
+          "reference_artifact_proliferation_prohibited_by_default",
+          "checklist_generation_must_be_purpose_bound",
+          "default_checklist_appendix_prohibited",
+          "main_body_and_appendix_boundary_must_be_fixed"
+        ],
+        "exception_policy": {
+          "explicit_user_or_requirements_request_may_allow_schema_reference": true,
+          "allowed_exception_must_remain_artifact_local": true,
+          "exception_must_not_reclassify_reference_as_default_output": true
+        }
+      },
+      "evaluation": {
+        "evaluation_policy": {
+          "domain_evaluation_required_when_acrgd_claim_is_made": true,
+          "scored_evaluation_is_optional": true,
+          "severity_model_is_optional_default_structure": true,
+          "boolean_state_or_threshold_based_evaluation_allowed": true,
+          "non_applicable_dimensions_must_be_excluded_with_reason_when_reporting": true,
+          "scoring_requires_domain_specific_reason": true,
+          "severity_requires_domain_specific_reason": true,
+          "do_not_enable_scoring_or_severity_for_apparent_completeness": true,
+          "acrgd_defines_scored_evaluation_because_artifact_review_axes_have_material_operational_thresholds": true
+        },
+        "audit_targets": [
+          "artifact_intent_and_role",
+          "declared_context_policy",
+          "source_import_filter",
+          "role_complete_separation",
+          "artifact_composition_and_transformation",
+          "canonical_definition_and_documentation_boundary",
+          "review_axis_separation",
+          "format_layout_and_readability",
+          "confidentiality_and_disclosure",
+          "language_variant_integrity",
+          "record_schema_consistency",
+          "revision_lineage",
+          "publication_or_submission_readiness",
+          "schema_hygiene",
+          "source_traceability",
+          "self_audit_basis",
+          "external_domain_dependency_boundary"
+        ],
+        "minimum_pass_conditions": [
+          "artifact_intent_fixed_when_material",
+          "declared_context_policy_consistent_when_material",
+          "source_import_filtered_by_artifact_purpose",
+          "role_complete_separation_preserved",
+          "canonical_documentation_boundary_preserved",
+          "review_axes_separated",
+          "confidentiality_boundary_checked_when_material",
+          "format_layout_readability_not_broken",
+          "machine_readability_preserved_when_required",
+          "language_variant_role_preserved_when_material",
+          "record_consistency_maintained_when_records_are_used",
+          "source_traceability_preserved_when_required",
+          "publication_or_submission_boundary_checked_when_claimed",
+          "self_review_claim_has_check_basis",
+          "schema_hygiene_rules_preserved",
+          "external_domain_dependencies_marked_when_material",
+          "ready_claim_and_final_approval_boundary_preserved"
+        ],
+        "drift_signals": [
+          "source_density_copied_by_default",
+          "schema_begins_to_drive_human_document_structure",
+          "documentation_turns_into_field_reference_without_requirement",
+          "default_checklist_added_without_purpose",
+          "examples_become_rules",
+          "specific_format_symptom_becomes_general_ban",
+          "external_orchestration_logic_absorbed",
+          "review_axes_collapsed",
+          "language_variant_silently_summarized",
+          "record_field_group_mapping_lost",
+          "schema_dump_as_document",
+          "duplicate_content_inflation",
+          "format_native_readability_violation",
+          "citation_or_source_trace_loss",
+          "publication_boundary_unchecked",
+          "self_review_claimed_without_check_basis",
+          "taxonomy_group_membership_mismatch",
+          "evaluation_dimension_without_threshold_or_audit_target",
+          "artifact_review_claims_subject_matter_validation",
+          "publication_ready_claim_implies_final_approval",
+          "external_domain_dependency_hidden",
+          "handoff_required_but_not_reported"
+        ],
+        "critical_invalidation_conditions": [
+          "confidentiality_boundary_failure",
+          "disclosure_boundary_becomes_actionable_instruction",
+          "machine_readability_breakage_when_machine_consumability_required",
+          "submission_fitness_failure_when_submission_readiness_claimed",
+          "canonical_definition_duplicated_in_documentation_for_public_release",
+          "role_mixing_causes_wrong_artifact_purpose",
+          "external_orchestration_logic_absorbed_into_domain_definition",
+          "material_record_required_field_group_mapping_failure",
+          "source_schema_reexpanded_as_primary_document_for_public_release",
+          "self_review_claimed_without_check_basis_for_high_stakes_release",
+          "final_approval_claim_fabricated_without_authority",
+          "publication_ready_claim_conflated_with_external_approval_for_public_release"
+        ],
+        "scoring_model": {
+          "score_range": [
+            0,
+            100
+          ],
+          "domain_dimension_scores": [
+            "artifact_intent_score",
+            "declared_context_policy_score",
+            "source_selection_score",
+            "role_separation_score",
+            "composition_transformation_score",
+            "documentation_boundary_score",
+            "review_axis_separation_score",
+            "format_layout_readability_score",
+            "confidentiality_disclosure_score",
+            "language_variant_score",
+            "record_consistency_score",
+            "publication_submission_readiness_score",
+            "schema_hygiene_score",
+            "source_traceability_score",
+            "self_audit_basis_score",
+            "revision_lineage_score",
+            "external_domain_dependency_score"
+          ],
+          "minimum_expected_scores": {
+            "artifact_intent_score": 85,
+            "declared_context_policy_score": 85,
+            "source_selection_score": 85,
+            "role_separation_score": 90,
+            "composition_transformation_score": 85,
+            "documentation_boundary_score": 90,
+            "review_axis_separation_score": 90,
+            "format_layout_readability_score": 85,
+            "confidentiality_disclosure_score": 90,
+            "language_variant_score": 85,
+            "record_consistency_score": 90,
+            "publication_submission_readiness_score": 85,
+            "schema_hygiene_score": 90,
+            "source_traceability_score": 80,
+            "self_audit_basis_score": 85,
+            "revision_lineage_score": 85,
+            "external_domain_dependency_score": 85
+          },
+          "aggregation_policy": {
+            "equal_weight_across_applicable_dimensions": true,
+            "non_applicable_dimensions_excluded_with_reason": true,
+            "critical_invalidation_overrides_aggregate_score": true,
+            "llm_self_assessment_must_not_be_presented_as_external_validation": true
+          },
+          "alignment_policy": {
+            "domain_dimension_scores_must_have_minimum_expected_scores_when_scoring_is_enabled": true,
+            "audit_targets_must_have_corresponding_dimension_or_explicit_non_scored_reason": true,
+            "critical_invalidation_conditions_must_appear_in_severity_model_when_material_and_severity_model_exists": true
+          },
+          "enabled_when_domain_defines_scored_evaluation": true
+        },
+        "severity_model": {
+          "levels": [
+            "low",
+            "moderate",
+            "high",
+            "critical"
+          ],
+          "severity_rules": {
+            "low": [
+              "minor_non_material_wording_or_metadata_issue"
+            ],
+            "moderate": [
+              "partial_audience_or_context_policy_drift",
+              "minor_traceability_gap",
+              "minor_native_readability_issue"
+            ],
+            "high": [
+              "material_source_overexpansion",
+              "schema_dump_as_document",
+              "duplicate_content_inflation",
+              "format_native_readability_violation",
+              "visual_density_exceeds_reviewability",
+              "publication_boundary_unchecked",
+              "self_review_claimed_without_check_basis",
+              "record_required_field_group_mapping_failure",
+              "evaluation_dimension_alignment_failure",
+              "external_domain_dependency_hidden",
+              "handoff_required_but_not_reported",
+              "artifact_review_claim_conflated_with_subject_matter_validation"
+            ],
+            "critical": [
+              "confidentiality_boundary_failure",
+              "disclosure_boundary_becomes_actionable_instruction",
+              "machine_readability_breakage_when_machine_consumability_required",
+              "submission_fitness_failure_when_submission_readiness_claimed",
+              "canonical_definition_duplicated_in_documentation_for_public_release",
+              "source_schema_reexpanded_as_primary_document_for_public_release",
+              "role_mixing_causes_wrong_artifact_purpose",
+              "external_orchestration_logic_absorbed_into_domain_definition",
+              "material_record_required_field_group_mapping_failure",
+              "self_review_claimed_without_check_basis_for_high_stakes_release",
+              "final_approval_claim_fabricated_without_authority",
+              "publication_ready_claim_conflated_with_external_approval_for_public_release"
+            ]
+          },
+          "enabled_when_domain_uses_severity": true
+        }
+      },
+      "repair": {
+        "purpose": "define acrgd-specific repair origins and revalidation scope without reimplementing parent repair cycles.",
+        "core_rule": "repair_model_should_define_repair_origin_not_parent_repair_cycle",
+        "repair_origins": [
+          "artifact_intent",
+          "declared_context_policy",
+          "source_import",
+          "role_separation",
+          "composition_transformation",
+          "documentation_boundary",
+          "review_axis",
+          "format_layout_readability",
+          "confidentiality_disclosure",
+          "language_variant",
+          "record_consistency",
+          "publication_or_submission_readiness",
+          "schema_hygiene",
+          "source_traceability",
+          "self_audit_basis",
+          "publication_submission_boundary",
+          "external_domain_dependency_boundary",
+          "ready_claim_authority_boundary"
+        ],
+        "repair_policy": {
+          "identify_repair_origin": true,
+          "repair_affected_scope": true,
+          "revalidate_affected_axes": true,
+          "preserve_revision_lineage_when_material": true,
+          "do_not_skip_repair_and_claim_ready_without_basis": true,
+          "partial_revalidation_requires_reason": true,
+          "repair_must_not_create_unnecessary_artifact_or_reference_proliferation": true,
+          "material_repair_must_preserve_or_record_revision_lineage": true,
+          "post_repair_review_must_cover_affected_axes": true,
+          "repair_must_not_claim_subject_matter_validation": true,
+          "ready_claim_repair_must_not_claim_final_approval": true
+        },
+        "human_or_runtime_review_condition_findings": [
+          "confidentiality_boundary_uncertain",
+          "public_release_decision_material",
+          "formal_submission_decision_material",
+          "language_variant_equivalence_disputed",
+          "record_consistency_cannot_be_restored",
+          "repeated_repair_fails",
+          "external_domain_validation_dependency_material",
+          "final_approval_authority_uncertain"
+        ],
+        "review_condition_wording_policy": {
+          "review_required_wording_requires_authority_basis": true,
+          "non_authority_domains_should_emit_review_condition_findings": true,
+          "human_or_runtime_review_conditions_do_not_themselves_create_external_review_obligations": true,
+          "authority_sensitive_review_findings_should_request_or_recommend_clarification_not_claim_final_requirement": true
+        }
+      },
+      "activation": {
+        "enabled": true,
+        "activation_mode": "local_domain_applicability",
+        "applies_when": [
+          "artifact_generation",
+          "artifact_review",
+          "artifact_transformation",
+          "documentation_generation",
+          "format_layout_readability_review",
+          "language_variant_review",
+          "confidentiality_or_disclosure_review",
+          "publication_or_submission_readiness_claim",
+          "user_reported_artifact_governance_failure"
+        ],
+        "does_not_replace_argd": true,
+        "does_not_replace_dagd": true,
+        "does_not_reimplement_cdogd": true,
+        "does_not_define_registry_logic": true,
+        "routing_and_priority_are_external": true,
+        "activation_record_minimum_fields": [
+          "activation_reason",
+          "domain_context",
+          "artifact_context",
+          "applicable_review_axes",
+          "declared_context_policy_status",
+          "external_domain_dependency_status"
+        ],
+        "local_activation_scope_policy": {
+          "domain_activation_is_artifact_context_local": true,
+          "external_orchestration_may_select_or_prioritize_domain": true,
+          "domain_definition_does_not_store_registry_or_routing_logic": true,
+          "domain_activation_is_context_local": true
+        },
+        "reactivation_policy": {
+          "domain_activation_is_not_one_shot": true,
+          "domain_may_be_reactivated_when_relevant_conditions_recur": true,
+          "reactivation_triggers": [
+            "artifact_purpose_change",
+            "source_material_change",
+            "audience_change",
+            "confidentiality_boundary_change",
+            "format_or_medium_change",
+            "publication_or_submission_boundary_change",
+            "language_variant_role_change",
+            "external_domain_dependency_change",
+            "repair_completion_requiring_revalidation"
+          ],
+          "deactivation_does_not_imply_future_non_applicability": true
+        }
+      },
+      "self_audit": {
+        "enabled": true,
+        "audit_frequency": {
+          "before_artifact_generation": true,
+          "after_artifact_generation": true,
+          "after_source_transformation": true,
+          "after_format_conversion": true,
+          "before_publication_or_submission_claim": true,
+          "on_user_reported_artifact_governance_failure": true
+        },
+        "audit_axes": [
+          "artifact_intent",
+          "declared_context_policy",
+          "source_import",
+          "role_separation",
+          "documentation_boundary",
+          "format_layout_readability",
+          "confidentiality_disclosure",
+          "language_variant",
+          "record_consistency",
+          "publication_or_submission_readiness",
+          "external_domain_dependency",
+          "ready_claim_authority_boundary"
+        ],
+        "output_policy": {
+          "compact_by_default": true,
+          "emit_detail_on_anomaly": true,
+          "emit_detail_on_user_request": true,
+          "emit_detail_on_critical_failure": true
+        },
+        "required_basis_checks": [
+          "review_axes_identified",
+          "material_exclusions_identified",
+          "source_import_filter_status_known",
+          "boundary_status_known_when_material",
+          "external_domain_dependency_status_known_when_material",
+          "ready_claim_authority_boundary_status_known_when_material"
+        ],
+        "domain_specific_self_state_audit_policy": {
+          "optional_domain_local_policy": true,
+          "allowed_when_domain_requires_stronger_self_state_control": true,
+          "must_remain_domain_local": true,
+          "must_not_replace_parent_audit_or_repair_governance": true,
+          "must_not_be_treated_as_self_approval": true,
+          "must_define_overreach_detection_when_authority_sensitive": true,
+          "must_define_repair_or_escalation_when_self_state_is_unreliable": true
+        },
+        "self_audit_result_connection_policy": {
+          "self_audit_result_values_must_be_mapped_or_marked_internal_only_when_defined": true,
+          "self_doubt_result_values_must_be_mapped_or_marked_internal_only_when_defined": true,
+          "mapping_target_should_be_audit_to_action_when_actionable": true,
+          "internal_state_only_results_must_not_be_presented_as_action_outputs": true,
+          "result_names_and_action_names_must_remain_distinct": true,
+          "unmapped_actionable_self_audit_results_are_schema_hygiene_failure": true
+        }
+      },
+      "audit_to_action": {
+        "enabled": true,
+        "decision_inputs": [
+          "detected_failure",
+          "severity",
+          "failed_review_axes",
+          "repair_origin",
+          "affected_scope",
+          "publication_or_submission_status",
+          "record_consistency_status",
+          "external_domain_dependency_status",
+          "ready_claim_type"
+        ],
+        "action_outputs": [
+          "emit_blocking_status",
+          "block_publication_ready_claim",
+          "block_publication_or_submission_ready_claim",
+          "block_machine_ingestion_ready_claim",
+          "block_record_validity_claim",
+          "repair_source_import",
+          "repair_documentation_boundary",
+          "repair_format_layout",
+          "repair_language_variant",
+          "repair_record_consistency",
+          "repair_schema_hygiene",
+          "revalidate_affected_axes",
+          "report_external_domain_dependency",
+          "recommend_handoff_to_relevant_domain"
+        ],
+        "action_precedence": {
+          "critical_confidentiality_or_disclosure_failure_blocks_publication_ready_claim": true,
+          "machine_readability_failure_blocks_machine_ingestion_ready_claim_when_required": true,
+          "submission_fitness_failure_blocks_submission_ready_claim": true,
+          "record_consistency_failure_blocks_record_validity_claim": true,
+          "external_domain_dependency_blocks_ready_claim_when_material_and_unresolved": true,
+          "ready_claim_blocking_is_not_execution_blocking": true,
+          "deduplicate_actions_after_mapping": true
+        },
+        "audit_to_action_consistency_policy": {
+          "decision_inputs_must_be_declared_when_used": true,
+          "action_outputs_must_be_declared_when_used": true,
+          "audit_decision_rules_must_emit_registered_action_outputs_only": true,
+          "unregistered_action_output_is_schema_hygiene_failure": true,
+          "action_precedence_must_not_override_higher_authority": true,
+          "unused_action_outputs_must_be_removed_or_marked_reserved": true,
+          "decision_rules_must_not_emit_unregistered_result_values_as_actions": true
+        },
+        "decision_rules": {
+          "confidentiality_boundary_failure": {
+            "when_detected": [
+              "confidentiality_boundary_failure"
+            ],
+            "outputs": [
+              "block_publication_ready_claim",
+              "emit_blocking_status",
+              "recommend_handoff_to_relevant_domain"
+            ]
+          },
+          "disclosure_boundary_becomes_actionable_instruction": {
+            "when_detected": [
+              "disclosure_boundary_becomes_actionable_instruction"
+            ],
+            "outputs": [
+              "block_publication_ready_claim",
+              "emit_blocking_status",
+              "recommend_handoff_to_relevant_domain"
+            ]
+          },
+          "machine_readability_breakage_when_required": {
+            "when_detected": [
+              "machine_readability_breakage_when_machine_consumability_required"
+            ],
+            "outputs": [
+              "block_machine_ingestion_ready_claim",
+              "repair_format_layout",
+              "revalidate_affected_axes"
+            ]
+          },
+          "schema_dump_as_document": {
+            "when_detected": [
+              "schema_dump_as_document",
+              "source_schema_reexpanded_as_primary_document"
+            ],
+            "outputs": [
+              "repair_source_import",
+              "repair_documentation_boundary",
+              "revalidate_affected_axes"
+            ]
+          },
+          "format_layout_readability_failure": {
+            "when_detected": [
+              "format_native_readability_violation",
+              "visual_density_exceeds_reviewability",
+              "human_readability_breakage"
+            ],
+            "outputs": [
+              "repair_format_layout",
+              "revalidate_affected_axes"
+            ]
+          },
+          "publication_boundary_unchecked": {
+            "when_detected": [
+              "publication_boundary_unchecked",
+              "publication_or_submission_readiness_claim_without_boundary_review"
+            ],
+            "outputs": [
+              "block_publication_or_submission_ready_claim",
+              "emit_blocking_status"
+            ]
+          },
+          "record_required_field_group_mapping_failure": {
+            "when_detected": [
+              "record_required_field_group_mapping_failure",
+              "record_required_fields_unmapped_to_field_groups"
+            ],
+            "outputs": [
+              "repair_record_consistency",
+              "block_record_validity_claim",
+              "revalidate_affected_axes"
+            ]
+          },
+          "language_variant_native_readability_failure": {
+            "when_detected": [
+              "translated_artifact_native_readability_failure",
+              "format_native_readability_violation"
+            ],
+            "outputs": [
+              "repair_language_variant",
+              "revalidate_affected_axes"
+            ]
+          },
+          "schema_hygiene_failure": {
+            "when_detected": [
+              "schema_hygiene_failure",
+              "evaluation_dimension_alignment_failure",
+              "taxonomy_group_membership_mismatch"
+            ],
+            "outputs": [
+              "repair_schema_hygiene",
+              "revalidate_affected_axes"
+            ]
+          },
+          "external_domain_validation_dependency_material": {
+            "when_detected": [
+              "external_domain_dependency_hidden",
+              "subject_matter_validation_claim_without_external_basis",
+              "handoff_required_but_not_reported"
+            ],
+            "outputs": [
+              "report_external_domain_dependency",
+              "recommend_handoff_to_relevant_domain",
+              "block_publication_or_submission_ready_claim"
+            ]
+          }
+        },
+        "action_output_registration_policy": {
+          "action_outputs_must_be_used_by_decision_rules_or_marked_reserved_or_payload_target": true,
+          "unused_unreserved_action_outputs_should_be_removed": true,
+          "reserved_action_outputs_must_be_marked_extension_reserved_or_future_reserved": true,
+          "decision_inputs_must_be_used_or_marked_reserved": true,
+          "action_names_must_not_be_confused_with_result_values": true,
+          "payload_targets_should_be_used_when_many_specific_actions_share_one_action_pattern": true
+        }
+      },
+      "status_reporting": {
+        "enabled": true,
+        "status_reporting_should_define_domain_delta_only": true,
+        "modes": [
+          "silent_by_default",
+          "emit_on_anomaly",
+          "emit_on_user_request",
+          "emit_on_publication_or_submission_block",
+          "emit_after_material_repair",
+          "emit_on_blocking_failure"
+        ],
+        "compact_fields": [
+          "artifact_role",
+          "artifact_context_status",
+          "failed_review_axes",
+          "severity",
+          "repair_origin",
+          "repair_applied",
+          "publication_or_submission_status",
+          "remaining_limitations",
+          "schema_hygiene_status",
+          "source_traceability_status",
+          "self_audit_basis_status",
+          "external_domain_dependency_status",
+          "ready_claim_boundary_status",
+          "handoff_or_dependency_status"
+        ],
+        "visibility_rules": {
+          "show_critical_failure": true,
+          "show_publication_or_submission_block": true,
+          "show_material_repair": true,
+          "suppress_verbose_status_when_no_anomaly_and_no_user_request": true,
+          "show_blocking_failure": true,
+          "show_external_domain_dependency_when_material": true,
+          "suppress_subject_matter_validation_claim_when_external_basis_missing": true
+        }
+      },
+      "record_schemas": {
+        "record_policy": {
+          "record_schemas_are_optional_unless_domain_requires_records": true,
+          "if_records_exist_required_fields_must_map_to_field_groups": true,
+          "records_must_not_redefine_parent_audit_or_repair_cycle": true,
+          "records_must_remain_domain_delta": true,
+          "records_should_be_minimal_and_material_conditioned": true,
+          "record_schemas_must_not_be_treated_as_always_required": true,
+          "record_fields_should_not_be_expanded_for_documentation_exhaustiveness": true
+        },
+        "domain_record_templates": {
+          "artifact_composition_record": {
+            "schema_name": "acrgd_artifact_composition_record",
+            "schema_version": "0.1.0",
+            "purpose": "record artifact intent, declared context policy, source scope, composition basis, review axes, boundary status, format layout readability status, and revision lineage",
+            "required_fields": [
+              "artifact_id",
+              "artifact_role",
+              "artifact_purpose",
+              "target_audience",
+              "declared_context_policy",
+              "source_material_scope",
+              "source_import_filter_status",
+              "review_axes",
+              "confidentiality_boundary_status",
+              "format_layout_readability_status",
+              "revision_lineage_status"
+            ],
+            "field_groups": {
+              "identity": {
+                "requirement_level": "required",
+                "fields": [
+                  "artifact_id",
+                  "artifact_version",
+                  "record_id",
+                  "record_version",
+                  "created_timestamp",
+                  "updated_timestamp",
+                  "owner"
+                ]
+              },
+              "intent_and_context": {
+                "requirement_level": "required",
+                "fields": [
+                  "artifact_role",
+                  "artifact_purpose",
+                  "target_audience",
+                  "recipient_or_use_context",
+                  "declared_context_policy",
+                  "success_condition"
+                ]
+              },
+              "source_and_composition": {
+                "requirement_level": "required",
+                "fields": [
+                  "source_material_scope",
+                  "source_import_filter_status",
+                  "source_selection_basis",
+                  "composition_structure",
+                  "source_to_artifact_mapping",
+                  "source_traceability_status"
+                ]
+              },
+              "review_and_boundary_status": {
+                "requirement_level": "required",
+                "fields": [
+                  "review_axes",
+                  "confidentiality_boundary_status",
+                  "format_layout_readability_status",
+                  "language_variant_status",
+                  "publication_or_submission_status",
+                  "schema_hygiene_status",
+                  "external_domain_dependency_status",
+                  "ready_claim_boundary_status"
+                ]
+              },
+              "lineage": {
+                "requirement_level": "required",
+                "fields": [
+                  "revision_lineage_status",
+                  "parent_artifact_version",
+                  "current_artifact_version",
+                  "known_limitations"
+                ]
+              }
+            },
+            "validation_rules": [
+              "required_fields_must_be_mapped_to_field_groups",
+              "field_group_items_must_have_requirement_level",
+              "artifact_id_required",
+              "artifact_role_and_purpose_required_when_material",
+              "source_import_filter_status_required_when_source_is_used",
+              "review_axes_required",
+              "record_required_fields_must_be_mapped_to_field_groups",
+              "field_group_items_must_have_known_requirement_level_after_inheritance"
+            ]
+          },
+          "artifact_review_record": {
+            "schema_name": "acrgd_artifact_review_record",
+            "schema_version": "0.1.0",
+            "purpose": "record separated artifact review results, detected failures, severity, repair origin, repair application, remaining limitations, and status",
+            "required_fields": [
+              "review_id",
+              "artifact_id",
+              "review_axes",
+              "detected_failures",
+              "severity",
+              "repair_origin",
+              "repair_applied",
+              "remaining_limitations",
+              "status"
+            ],
+            "field_groups": {
+              "identity": {
+                "requirement_level": "required",
+                "fields": [
+                  "review_id",
+                  "artifact_id",
+                  "artifact_version",
+                  "audit_timestamp",
+                  "auditor_type",
+                  "audit_mode"
+                ]
+              },
+              "review_results": {
+                "requirement_level": "required",
+                "fields": [
+                  "review_axes",
+                  "detected_failures",
+                  "failed_review_axes",
+                  "severity",
+                  "critical_invalidation_status",
+                  "status"
+                ]
+              },
+              "axis_status": {
+                "requirement_level": "required",
+                "fields": [
+                  "leakage_status",
+                  "quality_status",
+                  "format_status",
+                  "layout_status",
+                  "role_separation_status",
+                  "transformation_status",
+                  "record_consistency_status",
+                  "publication_or_submission_status",
+                  "external_domain_dependency_status",
+                  "ready_claim_boundary_status"
+                ]
+              },
+              "repair_and_limitations": {
+                "requirement_level": "required",
+                "fields": [
+                  "repair_origin",
+                  "repair_action",
+                  "repair_applied",
+                  "revalidation_axes",
+                  "remaining_limitations",
+                  "human_review_required",
+                  "recommended_next_action",
+                  "handoff_or_dependency_status"
+                ]
+              }
+            },
+            "validation_rules": [
+              "required_fields_must_be_mapped_to_field_groups",
+              "field_group_items_must_have_requirement_level",
+              "review_axes_must_remain_separated",
+              "critical_invalidation_cannot_be_cancelled_by_aggregate_score",
+              "repair_origin_required_when_repair_applied",
+              "status_must_not_claim_ready_when_blocking_failure_exists",
+              "record_required_fields_must_be_mapped_to_field_groups",
+              "field_group_items_must_have_known_requirement_level_after_inheritance"
+            ]
+          }
+        },
+        "record_relationship_contract": {
+          "composition_record_primary_keys": [
+            "artifact_id"
+          ],
+          "review_record_foreign_keys": [
+            "artifact_id"
+          ],
+          "orphan_review_record_prohibited": true,
+          "revision_lineage_required_when_material": true
+        },
+        "record_schema_consistency_policy": {
+          "record_required_fields_must_be_mapped_to_field_groups": true,
+          "field_group_items_inherit_group_requirement_level_unless_overridden": true,
+          "field_group_items_must_have_known_requirement_level_after_inheritance": true,
+          "record_relationships_must_not_create_orphan_review_or_repair_records": true,
+          "record_relationships_must_not_create_orphan_records": true
+        }
+      },
+      "meta_data": {
+        "version": "0.1.0"
+      }
+    }
+  }
+}

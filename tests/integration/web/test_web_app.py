@@ -90,7 +90,6 @@ from margpa_runtime_llm.web.contracts import (
 from margpa_runtime_llm.web.streaming import SSE_QUEUE_CAPACITY, stream_session_as_sse
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
-STATIC_ROOT = PROJECT_ROOT / "src/margpa_runtime_llm/web/static"
 PUBLIC_PROFILE = load_web_access_profile(PROJECT_ROOT / "config/web_profiles/public_demo.toml")
 
 
@@ -892,71 +891,18 @@ async def test_busy_and_stop_endpoints_use_active_request_only() -> None:
     assert policy.calls == ["check_request", "before_generation", "after_generation"]
 
 
-def test_static_assets_are_local_thinking_aware_phase_1i_ui() -> None:
-    html = (STATIC_ROOT / "index.html").read_text(encoding="utf-8")
-    script = (STATIC_ROOT / "app.js").read_text(encoding="utf-8")
-    markdown_script = (STATIC_ROOT / "safe_markdown.js").read_text(encoding="utf-8")
+def test_package_identity_naming_is_current() -> None:
+    # The frontend (React/Vite, see frontend/) now owns the UI-copy and
+    # markup contracts this used to grep out of the static app.js/index.html
+    # source; that coverage lives in the frontend's own Vitest suite
+    # (frontend/src/**/*.test.tsx) since bundled/minified output no longer
+    # contains those literal identifiers. This keeps only the one assertion
+    # here that was never about the frontend: the backend package's own
+    # product-naming string.
     package_init = (PROJECT_ROOT / "src/margpa_runtime_llm/__init__.py").read_text(encoding="utf-8")
 
-    assert "https://" not in html
-    assert "http://" not in html
-    assert "innerHTML" not in script
-    assert "innerHTML" not in markdown_script
-    assert ".textContent" in script
-    assert 'UI_LANGUAGE_KEY = "margpa.ui_language.v1"' in script
-    assert script.count("localStorage.") == 2
-    assert "要約モード" in html
-    assert 'value="post_generation"' in html
-    assert 'summary_mode: summaryMode?.value ?? "off"' in script
-    assert "document.documentElement.lang = state.uiLanguage" in script
-    assert "document.title =" in script
-    assert "knownServerMessages" in script
-    assert "要約により詳細、前提、注意事項等が省略・変形される可能性があります" in html
-    assert "details, assumptions, or cautions may be omitted or altered" in script
-    assert 'runtimeStatus: { kind: "loading"' in script
-    assert "function renderRuntimeStatus()" in script
-    assert 'kind: "known_error"' in script
-    assert 'translationKey: "runtimeLoadFailed"' in script
-    assert "runtimeText" not in script
-    assert html.count("<select") == 1
-    assert html.count('type="number"') == 1
-    assert html.count('type="checkbox"') == 2
-    assert html.count('type="radio"') == 4
-    assert 'id="thinking-mode"' in html
-    assert 'id="documentation-rag-control"' in html
-    assert 'name="documentation-rag-mode"' in html
-    assert 'name="documentation-rag-mode" value="disabled" checked' in html
-    assert '"documentation-rag-mode"][value="${' in script
-    assert 'event.type === "retrieval"' in script
-    assert "renderCitations(assistantView, data)" in script
-    assert "project_relative_path" in script
-    assert "documentationNoHit" in script
-    assert "documentationContextInsufficient" in script
-    assert "documentationSubjectCoverageInsufficient" in script
-    assert "documentationPromptMeasurementUnavailable" in script
-    assert "documentation_context_budget_insufficient" in script
-    assert "documentation_subject_coverage_insufficient" in script
-    assert "documentation_prompt_measurement_unavailable" in script
-    assert 'thinking_mode: elements.thinkingMode.checked ? "enabled" : "disabled"' in script
-    assert 'data.channel === "reasoning"' in script
-    assert 'data.channel === "final"' in script
-    assert "renderSafeMarkdown(canonical)" in script
-    assert "navigator.clipboard.writeText(canonicalText)" in script
-    assert "clipboard.read" not in script
-    assert "event.isComposing" in script
-    assert "Cmd+Enter／Ctrl+Enterで送信" in html  # noqa: RUF001
-    assert "Send with Cmd+Enter / Ctrl+Enter" in script
-    assert 'type="module"' in html
-    assert "日本語" in html
-    assert "English" in html
-    assert "Nazuna Research Governance LLM" in html
     assert "Nazuna Research Governance LLM" in package_init
-    assert "Research Preview" in html
-    assert "research preview" in script
-    assert "Basic認証は本番Account機能ではありません" not in html
-    assert "Basic authentication is not a production account system" not in script
     deprecated_name = "legacy-public-identity"
-    assert deprecated_name not in html.lower()
     assert deprecated_name not in package_init.lower()
 
 
@@ -987,14 +933,9 @@ async def test_token_limit_warning_precedes_completed_and_ui_preserves_it() -> N
     assert warning in response.text
     assert response.text.index(warning) < response.text.index("event: completed")
     assert '"content":""' in response.text
-
-    script = (STATIC_ROOT / "app.js").read_text(encoding="utf-8")
-    warning_branch = script.index('data.code === "final_answer_token_limit"')
-    terminal_status = script.index("if (state.terminalWarning !== null)", warning_branch)
-    completed_status = script.index('setStatus("completed"', terminal_status)
-    assert warning_branch < terminal_status < completed_status
-    assert 'state.messages.push({ role: "assistant", content: canonical })' in script
-    assert 'state.messages.push({ role: "assistant", content: data.message })' not in script
+    # The UI's handling of this warning (preserving it as the terminal status
+    # instead of overwriting it with "completed") is a frontend behavior now
+    # covered by frontend/src/App.test.tsx, not this backend SSE contract.
 
 
 @pytest.mark.asyncio

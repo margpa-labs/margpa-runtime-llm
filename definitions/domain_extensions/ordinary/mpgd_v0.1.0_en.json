@@ -1,0 +1,1847 @@
+{
+  "mpgd": {
+    "model_policy_governance_definition": {
+      "description": "MPGD (Model Policy Governance Definition) defines model-policy-specific governance delta for policy objects, policy and clause identity, versioning, applicability, scope, precedence, conflict, exception handling, contextual policy-decision risk, over-refusal and under-refusal, non-binary policy decision branches, decision traceability, appeal, repair, policy revision, migration, regression, and policy-decision records. MPGD does not replace parent reasoning or behavior governance, does not implement domain orchestration, does not assign final approval authority, does not govern agent execution itself, does not perform AI security threat analysis, and does not govern artifact composition quality.",
+      "inheritance": {
+        "inheritance_mode": "additive_domain_extension",
+        "parent_definitions": [
+          {
+            "syntax_id": "argd",
+            "role": "general_reasoning_procedure_governance",
+            "required": true
+          },
+          {
+            "syntax_id": "dagd",
+            "role": "general_behavior_audit_repair_activation_and_status_governance",
+            "required": true
+          }
+        ],
+        "dependency_version_policy": {
+          "specific_parent_versions_are_not_hardcoded_in_domain_compatibility_labels": true,
+          "parent_version_binding_is_external_to_this_domain_definition": true,
+          "version_binding_owner": "runtime_bundle_or_release_manifest"
+        },
+        "standalone_reference_use": {
+          "allowed": true,
+          "condition": "standalone_readers_must_treat_parent_mechanisms_as_external_prerequisites_or_reference_context",
+          "does_not_grant_parent_functionality": true,
+          "runtime_conformance_requires_parent_definitions": true
+        },
+        "replaces_parent_definitions": false,
+        "duplicates_parent_rules": false,
+        "parent_rules_remain_authoritative": true,
+        "domain_delta_only": true,
+        "preserved_parent_mechanism_policy": {
+          "inherited_governance_must_be_referenced_not_reexpanded": true,
+          "silent_parent_rule_override_prohibited": true,
+          "parent_mechanism_lists_must_not_be_recreated_unless_required_by_explicit_context": true
+        },
+        "conflict_policy": {
+          "general_reasoning_conflicts": "resolve_under_parent_reasoning_governance",
+          "general_behavior_and_governance_conflicts": "resolve_under_parent_behavior_governance",
+          "domain_specific_conflicts": "resolve_under_domain_governance_when_not_in_conflict_with_parent_governance_or_higher_authority",
+          "higher_level_system_policies_remain_authoritative": true
+        }
+      },
+      "orchestration_reference": {
+        "orchestration_definition": "cdogd",
+        "relationship": "external_orchestration_reference",
+        "cdogd_is_not_reimplemented_here": true,
+        "registry_and_activation_logic_are_external": true,
+        "routing_priority_and_domain_selection_are_external": true,
+        "registered_domain_extension_storage_is_external": true
+      },
+      "domain_scope": {
+        "domain": "model_policy_governance",
+        "scope_statement": "governance of model-policy decision basis and lineage, including policy identity, applicability, scope, precedence, conflict, exception, over-refusal, under-refusal, appeal, repair, revision, migration, and decision records",
+        "governed_target_categories": [
+          "model_policy_object",
+          "policy_clause",
+          "active_policy_set_reference",
+          "model_policy_decision",
+          "policy_decision_branch",
+          "policy_decision_record",
+          "policy_evaluation_record",
+          "appeal_re_evaluation_or_repair_record",
+          "policy_revision_or_migration_condition"
+        ],
+        "lifecycle_coverage": [
+          "policy_object_definition",
+          "policy_candidate_identification",
+          "policy_identity_and_version_validation",
+          "applicability_and_scope_assessment",
+          "precedence_and_conflict_assessment",
+          "ordinary_rule_and_exception_assessment",
+          "policy_decision_risk_and_uncertainty_assessment",
+          "model_policy_falsification",
+          "non_binary_decision_branch_selection",
+          "response_or_action_obligation_alignment",
+          "decision_recording",
+          "policy_decision_evaluation",
+          "appeal_and_re_evaluation",
+          "repair_origin_identification",
+          "policy_revision_and_migration_review",
+          "policy_regression_review",
+          "domain_delta_status_reporting"
+        ],
+        "non_targets": [
+          "replacement_of_parent_governance",
+          "replacement_of_external_orchestration",
+          "absorption_of_sibling_domain_definitions",
+          "model_weight_modification",
+          "training_data_modification",
+          "replacement_of_built_in_system_policies",
+          "final_approval_authority_assignment",
+          "reviewer_accountability_or_delegation_governance",
+          "agentic_execution_or_tool_call_governance",
+          "ai_security_threat_analysis",
+          "response_artifact_composition_or_publication_quality_governance",
+          "domain_routing_or_activation_priority",
+          "company_internal_policy_disclosure",
+          "system_prompt_or_classifier_threshold_disclosure",
+          "private_red_team_set_or_private_evaluation_set_disclosure"
+        ],
+        "sibling_boundary_map": {
+          "daagd": "authority, accountability, delegation, approval ownership, and final authority assignment remain outside MPGD",
+          "aagd": "tool execution, side effects, checkpoints, retries, handoff, and agent execution control remain outside MPGD",
+          "aisgd": "AI-mediated security risk, prompt injection, tool abuse, leakage, and attack-surface analysis remain outside MPGD",
+          "acrgd": "response artifact composition, presentation quality, and publication readiness remain outside MPGD",
+          "cdogd": "domain routing, activation priority, registry, and cross-domain precedence remain outside MPGD"
+        }
+      },
+      "abstraction_and_context_policy": {
+        "purpose": "keep MPGD as model-policy decision governance rather than case-specific policy content or product safety implementation",
+        "rule_bodies_must_use_highest_safe_abstraction_level": true,
+        "rule_hardcoding_prohibited_by_default": true,
+        "rules_must_be_abstract_by_default": true,
+        "case_specific_constraints_must_be_contextual": true,
+        "domain_instances_must_not_be_encoded_as_general_rules": true,
+        "implementation_details_must_not_become_domain_rules": true,
+        "rule_bodies_must_not_hardcode": [
+          "specific_company_policy",
+          "specific_system_prompt",
+          "specific_classifier_threshold",
+          "specific_product_defense",
+          "specific_jailbreak_detection_condition",
+          "specific_attack_success_condition",
+          "specific_private_evaluation_set",
+          "specific_tool_or_platform",
+          "specific_approval_chain"
+        ],
+        "contextual_specificity_conditions": [
+          "explicit_user_instruction",
+          "identity_or_version_validation_requires_specific_policy_or_clause_identifier",
+          "hallucination_prevention_requires_specific_source_reference",
+          "policy_decision_integrity_requires_specific_constraint",
+          "governed_policy_decision_context_would_break_without_specificity"
+        ],
+        "specificity_handling": {
+          "specificity_scope": "model_policy_decision_context",
+          "specificity_must_not_be_promoted_to_general_rule_without_basis": true,
+          "specificity_must_be_traceable_to_context_or_instruction": true,
+          "specificity_must_not_override_higher_authority": true
+        },
+        "example_policy": {
+          "examples_are_non_normative": true,
+          "examples_may_illustrate_failures_but_do_not_define_the_rule": true,
+          "test_cases_must_remain_separate_from_general_domain_rules": true,
+          "examples_must_not_disclose_private_policy_or_security_conditions": true
+        },
+        "declared_context_policy_principles": [
+          "declared_policy_set_must_be_fixed_when_material",
+          "declared_policy_version_must_not_be_mixed_without_record",
+          "declared_policy_must_not_be_silently_changed",
+          "declared_policy_must_be_applied_consistently",
+          "declared_policy_conflict_must_be_reported_or_repaired"
+        ],
+        "declared_context_policy_types": [
+          "active_policy_set_reference",
+          "policy_version_binding",
+          "clause_version_binding",
+          "exception_policy_context",
+          "migration_policy_context"
+        ],
+        "rule_body_policy": {
+          "rule_bodies_define_abstract_policy_decision_failures_not_specific_cases": true,
+          "case_specific_detail_must_be_policy_decision_local_unless_promoted_by_valid_governance_basis": true,
+          "specific_policy_or_clause_names_may_be_used_for_identity_verification_or_hallucination_prevention": true,
+          "specific_constraints_may_be_used_when_omission_breaks_policy_decision_integrity": true
+        }
+      },
+      "role_complete_separation": {
+        "required": true,
+        "principle": "MPGD governs model-policy decision basis and lineage only; inherited reasoning governance, general behavior governance, external orchestration, authority assignment, agent execution, AI security analysis, artifact-quality governance, records, and metadata remain separate",
+        "separation_targets": {
+          "source_material": "requests, policy references, context, evidence, appeals, or prior decisions used for policy-decision work; source content is not absorbed by default",
+          "domain_definition": "model-policy-specific rules, checks, failures, repair origins, records, and responsibility boundaries",
+          "inherited_governance": "parent reasoning and behavior governance referenced as authoritative context and not re-expanded inside MPGD",
+          "sibling_reference": "other domain definitions referenced only as relevance or handoff conditions and not absorbed",
+          "governed_target": "the model-policy object, clause, decision, branch, obligation, appeal, repair, revision, migration, or record being governed",
+          "domain_evaluation": "model-policy-specific evaluation axes only",
+          "domain_repair": "model-policy-specific repair origins and revalidation scopes, not the parent repair cycle itself",
+          "activation": "local applicability and reactivation signals only; routing and priority remain external",
+          "status_reporting": "model-policy delta reporting only, not broad runtime status replacement",
+          "records": "model-policy decision and evaluation lineage records, structurally separate from metadata",
+          "external_orchestration": "routing, registry, priority, and activation orchestration remain external",
+          "metadata": "identity, authorship, license, repository, and compatibility information remain metadata, not domain rules"
+        },
+        "non_absorption_rules": [
+          "inherited_governance_must_be_referenced_not_reexpanded",
+          "daagd_authority_assignment_must_not_be_absorbed",
+          "aagd_agentic_execution_must_not_be_absorbed",
+          "aisgd_security_threat_analysis_must_not_be_absorbed",
+          "acrgd_artifact_quality_governance_must_not_be_absorbed",
+          "cdogd_orchestration_must_not_be_reimplemented",
+          "metadata_must_not_be_promoted_to_domain_rule_without_basis"
+        ],
+        "review_implications": [
+          "role_separation_check_required_when_policy_decision_touches_authority_execution_security_artifact_or_orchestration",
+          "role_mixing_failure_is_material_when_it_changes_mpgd_responsibility_or_governed_target_purpose"
+        ]
+      },
+      "cross_domain_interference_policy": {
+        "purpose": "prevent MPGD from absorbing sibling governance while still reporting material cross-domain relevance conditions",
+        "rules": [
+          "sibling_domain_references_must_be_explicit_when_material",
+          "sibling_domain_rules_must_not_be_copied_by_default",
+          "domain_overlap_must_be_declared_when_material",
+          "cross_domain_activation_priority_is_external_to_this_definition",
+          "domain_specific_rule_conflicts_must_not_be_silently_merged",
+          "shared_terms_must_not_imply_shared_authority_without_boundary_statement",
+          "human_or_authority_review_conditions_are_reported_not_assigned_by_mpgd",
+          "agentic_execution_conditions_are_reported_as_policy_decision_reference_conditions_not_execution_controls",
+          "security_relevance_conditions_are_reported_without performing security threat analysis",
+          "response_obligations_are_checked_for_policy_alignment_not artifact composition quality"
+        ],
+        "overlap_handling": {
+          "overlap_is_allowed": true,
+          "overlap_must_preserve_domain_responsibility_boundaries": true,
+          "overlap_resolution_owner": "external_orchestration_or_explicit_runtime_context",
+          "preferred_cross_domain_output": "handoff_to_relevant_domain_with_payload_target"
+        },
+        "boundary_safe_output_patterns": [
+          "report_human_or_authority_review_condition",
+          "request_daagd_authority_clarification",
+          "report_agentic_execution_relevance_condition",
+          "report_aisgd_security_relevance_condition",
+          "report_acrgd_artifact_relevance_condition",
+          "handoff_to_relevant_domain"
+        ]
+      },
+      "policy_goal": [
+        "policy_identity_integrity",
+        "policy_version_traceability",
+        "policy_applicability_accuracy",
+        "scope_boundary_integrity",
+        "policy_precedence_integrity",
+        "policy_conflict_visibility",
+        "ordinary_rule_exception_separation",
+        "context_sensitive_policy_decision_basis",
+        "risk_and_uncertainty_visibility",
+        "over_refusal_detection",
+        "under_refusal_detection",
+        "non_binary_policy_decision_branching",
+        "policy_decision_falsifiability",
+        "response_or_action_obligation_alignment",
+        "policy_decision_traceability",
+        "appealability",
+        "repairability",
+        "policy_revision_migration_safety",
+        "policy_regression_reviewability",
+        "sibling_domain_boundary_preservation"
+      ],
+      "constraints": {
+        "prohibited_failure_modes": {
+          "policy_identity_and_version_failures": [
+            "unknown_policy_or_clause_identity_treated_as_known",
+            "fabricated_policy_or_clause_reference",
+            "unversioned_policy_or_clause_used_for_material_decision",
+            "deprecated_or_superseded_policy_used_without_basis_for_material_decision",
+            "active_policy_set_reference_omitted_for_material_decision"
+          ],
+          "applicability_scope_and_conflict_failures": [
+            "policy_applied_without_applicability_basis",
+            "non_applicable_policy_treated_as_applicable",
+            "scope_inclusion_without_basis",
+            "scope_exclusion_without_basis",
+            "policy_precedence_reversed_without_basis",
+            "material_policy_conflict_concealed",
+            "unresolved_material_policy_conflict_forced_into_ready_decision"
+          ],
+          "exception_and_risk_failures": [
+            "exception_treated_as_unconditional_permission",
+            "exception_scope_expanded_without_basis",
+            "exception_residual_constraints_erased",
+            "policy_decision_risk_basis_missing",
+            "material_uncertainty_suppressed",
+            "residual_risk_concealed"
+          ],
+          "decision_branch_and_refusal_failures": [
+            "binary_allow_refuse_collapse_without_basis",
+            "over_refusal_not_assessed",
+            "under_refusal_not_assessed",
+            "safe_or_partial_alternative_not_considered_when_material",
+            "decision_branch_selection_basis_missing",
+            "rejected_branch_reasons_missing"
+          ],
+          "falsification_and_lineage_failures": [
+            "material_falsification_target_missing",
+            "counter_interpretation_suppressed",
+            "overturn_condition_missing_for_material_decision",
+            "prior_decision_silently_overwritten",
+            "invalidated_policy_decision_reused_as_valid",
+            "persistent_policy_decision_lineage_break"
+          ],
+          "appeal_repair_revision_migration_failures": [
+            "appeal_record_deleted_or_fabricated",
+            "appeal_received_without_re_evaluation_scope",
+            "repair_origin_missing_for_material_repair",
+            "policy_revision_silently_applied_retroactively",
+            "material_policy_migration_misapplication",
+            "policy_regression_review_omitted_when_material"
+          ],
+          "cross_domain_overreach_failures": [
+            "final_approval_authority_assigned_by_mpgd",
+            "agentic_execution_controls_absorbed_into_mpgd",
+            "ai_security_threat_analysis_absorbed_into_mpgd",
+            "artifact_composition_quality_absorbed_into_mpgd",
+            "domain_routing_or_activation_priority_defined_by_mpgd",
+            "unauthorized_external_action_without_policy_decision_reference"
+          ]
+        },
+        "required_controls": {
+          "policy_identity_and_version_controls": [
+            "fix_policy_id_clause_id_and_versions_for_material_decisions",
+            "record_active_policy_set_reference_when_material",
+            "separate_policy_text_from_operational_metadata",
+            "record_policy_lifecycle_state_when_material"
+          ],
+          "applicability_scope_and_conflict_controls": [
+            "record_applicable_and_non_applicable_policy_candidates",
+            "record_scope_inclusions_and_scope_exclusions",
+            "record_precedence_basis",
+            "report_unresolved_policy_conflict_conditions",
+            "preserve_higher_level_system_policy_authority"
+          ],
+          "exception_risk_and_uncertainty_controls": [
+            "separate_ordinary_rule_from_exception",
+            "preserve_allowed_scope_prohibited_scope_and_residual_constraints",
+            "record_exception_basis_and_revocation_condition_when_material",
+            "record_policy_decision_risk_basis",
+            "record_uncertainty_and_residual_risk_when_material"
+          ],
+          "decision_branch_and_falsification_controls": [
+            "preserve_non_binary_decision_branches_until_selection_is_justified",
+            "assess_over_refusal_and_under_refusal_separately",
+            "apply_parent_falsification_to_model_policy_targets",
+            "record_counter_interpretations_rejected_branches_and_overturn_conditions",
+            "align_response_or_action_obligations_with_selected_policy_decision"
+          ],
+          "lineage_appeal_repair_and_migration_controls": [
+            "create_domain_minimal_decision_record_for_material_decisions",
+            "preserve_prior_policy_decisions_as_immutable",
+            "define_re_evaluation_scope_for_appeals",
+            "identify_repair_origin_for_material_repair",
+            "review_policy_revision_migration_and_regression_when_material"
+          ],
+          "boundary_controls": [
+            "report_human_or_authority_review_conditions_without_assigning_final_authority",
+            "request_daagd_authority_clarification_when_authority_boundary_is_material",
+            "require_policy_decision_reference_for_material_external_action_as_policy_alignment_condition",
+            "report_aagd_aisgd_acrgd_or_cdogd_relevance_conditions_without_absorbing_sibling_domain_governance"
+          ]
+        },
+        "runtime_constraints": {
+          "domain_only": true,
+          "does_not_redefine_parent_governance": true,
+          "does_not_reimplement_external_orchestration": true,
+          "does_not_define_registry_logic": true,
+          "does_not_assign_final_approval_authority": true,
+          "does_not_govern_agentic_execution_itself": true,
+          "does_not_perform_ai_security_threat_analysis": true,
+          "does_not_govern_artifact_composition_quality": true,
+          "does_not_define_domain_activation_priority": true
+        },
+        "failure_aliases": {
+          "human_review_required": "report_human_or_authority_review_condition",
+          "human_approval_requirement": "request_daagd_authority_clarification_when_authority_boundary_is_material",
+          "mandatory_human_review_bypassed": "mandatory_authority_review_condition_bypassed",
+          "agentic_execution_control": "policy_decision_reference_required_for_material_external_action",
+          "activation_priority": "routing_and_priority_are_external"
+        },
+        "schema_hygiene_constraints": {
+          "taxonomy_group_membership_must_match_requirement_level": true,
+          "record_required_fields_must_be_mapped_to_field_groups_when_records_exist": true,
+          "field_group_items_may_inherit_group_requirement_level_when_not_overridden": true,
+          "evaluation_dimensions_must_align_with_thresholds_and_audit_targets_when_scoring_exists": true,
+          "critical_invalidation_conditions_must_be_represented_in_critical_severity_rules_when_severity_model_exists": true,
+          "collection_shape_must_be_declared_when_using_grouped_objects": true,
+          "unused_action_outputs_must_be_removed_or_marked_reserved": true
+        },
+        "collection_shape_policy": {
+          "flat_array_or_grouped_object_may_be_used_when_declared": true,
+          "prohibited_failure_modes_may_be_flat_array_or_grouped_object": true,
+          "required_controls_may_be_flat_array_or_grouped_object": true,
+          "same_collection_should_not_mix_shapes_within_one_domain_definition": true,
+          "grouped_object_shape_must_preserve_machine_checkable_membership": true,
+          "collection_shape_declarations": {
+            "constraints.prohibited_failure_modes": "grouped_object",
+            "constraints.required_controls": "grouped_object"
+          }
+        }
+      },
+      "capabilities": {
+        "required_capabilities": [
+          "policy_object_modeling",
+          "policy_clause_identity_and_version_tracking",
+          "active_policy_set_reference_tracking",
+          "applicability_and_exclusion_assessment",
+          "scope_boundary_assessment",
+          "policy_precedence_and_conflict_analysis",
+          "ordinary_rule_and_exception_separation",
+          "contextual_policy_risk_assessment",
+          "uncertainty_basis_tracking",
+          "over_refusal_assessment",
+          "under_refusal_assessment",
+          "non_binary_policy_decision_branching",
+          "policy_decision_falsification",
+          "response_or_action_obligation_alignment",
+          "policy_decision_traceability",
+          "appeal_and_re_evaluation_tracking",
+          "policy_repair_origin_identification",
+          "policy_revision_and_migration_assessment",
+          "policy_regression_review",
+          "domain_boundary_condition_reporting"
+        ],
+        "capability_groups": {
+          "policy_identity_and_object_management": [
+            "policy_object_modeling",
+            "policy_clause_identity_and_version_tracking",
+            "active_policy_set_reference_tracking"
+          ],
+          "policy_applicability_and_conflict_management": [
+            "applicability_and_exclusion_assessment",
+            "scope_boundary_assessment",
+            "policy_precedence_and_conflict_analysis",
+            "ordinary_rule_and_exception_separation"
+          ],
+          "policy_decision_basis_management": [
+            "contextual_policy_risk_assessment",
+            "uncertainty_basis_tracking",
+            "over_refusal_assessment",
+            "under_refusal_assessment",
+            "non_binary_policy_decision_branching",
+            "policy_decision_falsification"
+          ],
+          "policy_decision_lineage_and_repair": [
+            "response_or_action_obligation_alignment",
+            "policy_decision_traceability",
+            "appeal_and_re_evaluation_tracking",
+            "policy_repair_origin_identification",
+            "policy_revision_and_migration_assessment",
+            "policy_regression_review"
+          ],
+          "cross_domain_boundary_management": [
+            "domain_boundary_condition_reporting"
+          ]
+        },
+        "mapping_policy": {
+          "required_capabilities_must_appear_in_capability_groups_when_groups_are_used": true,
+          "capability_groups_are_structural_not_exhaustive": true,
+          "future_extensions_should_attach_to_groups_before_adding_flat_items": true,
+          "capability_taxonomy_must_not_conflict_with_flat_required_list": true
+        }
+      },
+      "policy_object_model": {
+        "purpose": "define the minimum model-policy object structure needed for policy decision governance without defining private policy content",
+        "object_types": [
+          "model_policy",
+          "policy_clause",
+          "policy_exception",
+          "active_policy_set_reference",
+          "policy_revision",
+          "policy_migration"
+        ],
+        "policy_object_required_fields": [
+          "policy_id",
+          "policy_version",
+          "policy_status",
+          "source_reference",
+          "effective_state",
+          "applicability_summary",
+          "precedence_summary"
+        ],
+        "clause_required_fields": [
+          "clause_id",
+          "clause_version",
+          "clause_status",
+          "normative_type",
+          "applicability_condition",
+          "exclusion_condition",
+          "ordinary_rule_or_exception_role"
+        ],
+        "policy_status_values": [
+          "draft",
+          "under_review",
+          "active",
+          "partially_active",
+          "deprecated",
+          "superseded",
+          "suspended",
+          "invalidated",
+          "retired",
+          "unknown"
+        ],
+        "normative_type_values": [
+          "prohibited",
+          "required",
+          "allowed",
+          "conditional",
+          "exception",
+          "escalation_condition",
+          "metadata"
+        ],
+        "separation_rules": {
+          "policy_text_must_be_separate_from_operational_metadata": true,
+          "source_reference_must_not_be_fabricated": true,
+          "private_policy_content_must_not_be_disclosed_by_this_definition": true,
+          "unknown_policy_or_clause_must_not_be_treated_as_known": true
+        },
+        "exception_object_minimum": [
+          "exception_id",
+          "parent_rule_reference",
+          "purpose",
+          "eligibility_condition",
+          "exclusion_condition",
+          "evidence_requirement",
+          "risk_ceiling",
+          "allowed_scope",
+          "prohibited_scope",
+          "residual_constraints",
+          "expiration_or_revocation_condition"
+        ]
+      },
+      "decision_context_model": {
+        "purpose": "define the domain-local context needed to decide model-policy applicability and response or action obligation alignment",
+        "subject_categories": [
+          "requester",
+          "affected_person",
+          "operator",
+          "model",
+          "tool",
+          "third_party",
+          "organization",
+          "vulnerable_subject",
+          "public_audience"
+        ],
+        "purpose_categories": [
+          "informational",
+          "educational",
+          "analytical",
+          "creative",
+          "operational",
+          "persuasive",
+          "commercial",
+          "research",
+          "safety_critical",
+          "potentially_harmful",
+          "dual_use",
+          "ambiguous"
+        ],
+        "context_dimensions": [
+          "domain",
+          "jurisdiction",
+          "audience",
+          "urgency",
+          "capability",
+          "access_level",
+          "consent",
+          "authorization",
+          "public_private_status",
+          "real_or_synthetic_context",
+          "hypothetical_or_operational_context",
+          "reversibility",
+          "time_sensitivity"
+        ],
+        "risk_basis_dimensions": [
+          "likelihood",
+          "severity",
+          "reversibility",
+          "scale",
+          "immediacy",
+          "affected_population",
+          "misuse_potential",
+          "dual_use_potential",
+          "recoverability",
+          "uncertainty",
+          "residual_risk"
+        ],
+        "evidence_basis_policy": {
+          "observed_fact_inference_assumption_and_evaluation_must_be_distinguished": true,
+          "material_policy_decisions_require_evidence_or_limitation_statement": true,
+          "uncertainty_must_not_be_suppressed_when_material": true
+        }
+      },
+      "model_policy_process": {
+        "process_model": {
+          "required_stage_sequence": [
+            "policy_request_and_context_intake",
+            "policy_candidate_identification",
+            "policy_identity_and_version_validation",
+            "applicability_and_scope_assessment",
+            "precedence_and_conflict_assessment",
+            "ordinary_rule_and_exception_assessment",
+            "policy_risk_and_uncertainty_assessment",
+            "model_policy_falsification",
+            "non_binary_decision_branch_selection",
+            "response_or_action_obligation_alignment",
+            "policy_decision_recording",
+            "policy_decision_evaluation",
+            "appeal_re_evaluation_repair_or_migration",
+            "policy_decision_status_reporting"
+          ],
+          "stage_skip_policy": {
+            "skip_allowed_only_when_stage_is_explicitly_non_applicable": true,
+            "skip_reason_required": true,
+            "silent_skip_prohibited": true
+          },
+          "stage_reentry_policy": {
+            "reentry_allowed": true,
+            "reentry_reason_required": true,
+            "affected_downstream_decisions_and_records_must_be_identified": true
+          },
+          "branch_preservation": {
+            "preserve_non_binary_decision_branches": true,
+            "preserve_applicability_and_non_applicability_branches": true,
+            "preserve_exception_and_non_exception_branches": true,
+            "silent_branch_collapse_prohibited": true
+          }
+        },
+        "stage_definitions": {
+          "policy_request_and_context_intake": {
+            "purpose": "preserve the request or proposed model action and identify the initial policy-decision context without converting it into a binary allow/refuse question",
+            "required_inputs": [
+              "request_or_action_reference",
+              "available_context",
+              "available_policy_set_reference"
+            ],
+            "required_outputs": [
+              "preserved_request_structure",
+              "initial_subject_purpose_context",
+              "material_missing_information",
+              "initial_policy_decision_scope"
+            ],
+            "stop_conditions": [
+              "request_or_action_unavailable",
+              "material_context_integrity_failure"
+            ]
+          },
+          "policy_candidate_identification": {
+            "purpose": "identify candidate policies and clauses before selecting any one policy as controlling",
+            "required_inputs": [
+              "preserved_request_structure",
+              "active_policy_set_reference",
+              "initial_policy_decision_scope"
+            ],
+            "required_outputs": [
+              "candidate_policy_ids",
+              "candidate_clause_ids",
+              "candidate_selection_basis",
+              "candidate_exclusion_candidates"
+            ],
+            "stop_conditions": [
+              "active_policy_set_reference_unavailable",
+              "no_candidate_policy_and_no_explicit_no_policy_path"
+            ]
+          },
+          "policy_identity_and_version_validation": {
+            "purpose": "validate policy and clause identity, version, source reference, and lifecycle state for material decisions",
+            "required_inputs": [
+              "candidate_policy_ids",
+              "candidate_clause_ids",
+              "active_policy_set_reference"
+            ],
+            "required_outputs": [
+              "validated_policy_versions",
+              "validated_clause_versions",
+              "policy_lifecycle_state",
+              "identity_validation_failures"
+            ],
+            "stop_conditions": [
+              "unknown_policy_or_clause_identity_for_material_decision",
+              "unresolved_policy_or_clause_version_for_material_decision",
+              "fabricated_policy_or_clause_detected"
+            ]
+          },
+          "applicability_and_scope_assessment": {
+            "purpose": "assess applicability, exclusion, scope inclusion, and scope exclusion for each material candidate policy and clause",
+            "required_inputs": [
+              "validated_policy_versions",
+              "validated_clause_versions",
+              "subject_purpose_context",
+              "request_or_action_reference"
+            ],
+            "required_outputs": [
+              "applicable_policies",
+              "non_applicable_policies",
+              "scope_inclusions",
+              "scope_exclusions",
+              "applicability_basis",
+              "non_applicability_basis"
+            ],
+            "stop_conditions": [
+              "material_applicability_contradiction_unresolved",
+              "scope_boundary_missing_for_material_decision"
+            ]
+          },
+          "precedence_and_conflict_assessment": {
+            "purpose": "resolve policy-level precedence and clause-level conflict without taking over external domain routing or cross-domain priority",
+            "required_inputs": [
+              "applicable_policies",
+              "applied_clauses",
+              "policy_precedence_relations",
+              "conflict_relations"
+            ],
+            "required_outputs": [
+              "policy_precedence_basis",
+              "resolved_policy_conflicts",
+              "unresolved_policy_conflicts",
+              "rejected_policy_candidates",
+              "rejection_reasons"
+            ],
+            "stop_conditions": [
+              "unresolved_material_policy_conflict",
+              "higher_level_system_policy_conflict_unresolved"
+            ]
+          },
+          "ordinary_rule_and_exception_assessment": {
+            "purpose": "evaluate ordinary policy rules and bounded exceptions while preserving parent rules, residual constraints, and revocation conditions",
+            "required_inputs": [
+              "applicable_policies",
+              "applied_clauses",
+              "ordinary_rule_candidates",
+              "exception_candidates"
+            ],
+            "required_outputs": [
+              "ordinary_rule_result",
+              "exception_eligibility_result",
+              "allowed_scope",
+              "prohibited_scope",
+              "residual_constraints",
+              "exception_basis"
+            ],
+            "stop_conditions": [
+              "exception_basis_missing_for_material_exception",
+              "exception_scope_overbroad",
+              "residual_constraints_missing_after_exception"
+            ]
+          },
+          "policy_risk_and_uncertainty_assessment": {
+            "purpose": "assess contextual policy-decision risk and uncertainty without absorbing AI security threat analysis from AISGD",
+            "required_inputs": [
+              "subject_purpose_context",
+              "ordinary_rule_result",
+              "exception_eligibility_result",
+              "available_evidence"
+            ],
+            "required_outputs": [
+              "policy_decision_risk_basis",
+              "uncertainty_basis",
+              "residual_risk",
+              "risk_limitations",
+              "sibling_security_relevance_condition_when_material"
+            ],
+            "stop_conditions": [
+              "material_risk_basis_missing",
+              "material_uncertainty_concealed",
+              "security_threat_analysis_needed_but_not_owned_by_mpgd"
+            ]
+          },
+          "model_policy_falsification": {
+            "purpose": "apply parent falsification procedure to model-policy-specific applicability, scope, precedence, exception, risk, over-refusal, under-refusal, and branch-selection targets",
+            "required_inputs": [
+              "applicability_basis",
+              "precedence_basis",
+              "exception_basis",
+              "policy_decision_risk_basis",
+              "candidate_decision_branches"
+            ],
+            "required_outputs": [
+              "falsification_targets",
+              "counter_interpretations",
+              "contradicting_basis",
+              "rejected_decision_candidates",
+              "overturn_conditions",
+              "residual_uncertainty"
+            ],
+            "stop_conditions": [
+              "material_falsification_target_missing",
+              "counter_interpretation_suppressed",
+              "overturn_condition_missing_for_material_decision"
+            ]
+          },
+          "non_binary_decision_branch_selection": {
+            "purpose": "select among non-binary policy decision branches with explicit basis and rejected-branch reasons",
+            "required_inputs": [
+              "candidate_decision_branches",
+              "falsification_results",
+              "policy_decision_risk_basis",
+              "uncertainty_basis"
+            ],
+            "required_outputs": [
+              "selected_decision_branch",
+              "selection_basis",
+              "rejected_branch_reasons",
+              "appeal_eligibility",
+              "review_condition_findings"
+            ],
+            "stop_conditions": [
+              "binary_collapse_without_basis",
+              "selection_basis_missing",
+              "authority_review_condition_unreported"
+            ]
+          },
+          "response_or_action_obligation_alignment": {
+            "purpose": "check whether the proposed response or material external action is aligned with the selected policy decision, without governing artifact composition or agent execution",
+            "required_inputs": [
+              "selected_decision_branch",
+              "proposed_response_or_action",
+              "policy_obligations",
+              "prohibited_response_or_action_elements"
+            ],
+            "required_outputs": [
+              "response_or_action_obligations",
+              "prohibited_elements",
+              "alignment_status",
+              "policy_decision_reference_for_material_external_action",
+              "sibling_domain_relevance_conditions"
+            ],
+            "stop_conditions": [
+              "response_or_action_contradicts_policy_decision",
+              "material_external_action_missing_policy_decision_reference",
+              "artifact_quality_or_agentic_execution_issue_belongs_to_sibling_domain"
+            ]
+          },
+          "policy_decision_recording": {
+            "purpose": "create or update domain-minimal records for material model-policy decisions without overwriting prior decisions",
+            "required_inputs": [
+              "selected_decision_branch",
+              "applicable_policies",
+              "decision_basis",
+              "response_or_action_obligations"
+            ],
+            "required_outputs": [
+              "model_policy_decision_record",
+              "decision_id",
+              "lineage_references",
+              "record_validation_status"
+            ],
+            "stop_conditions": [
+              "decision_id_missing_for_material_decision",
+              "required_record_field_missing",
+              "silent_overwrite_attempted"
+            ]
+          },
+          "policy_decision_evaluation": {
+            "purpose": "evaluate the completed policy decision across domain-specific axes and report critical invalidation when present",
+            "required_inputs": [
+              "model_policy_decision_record",
+              "evaluation_criteria",
+              "score_sources"
+            ],
+            "required_outputs": [
+              "domain_dimension_scores",
+              "severity",
+              "critical_invalidation_status",
+              "evaluation_record",
+              "post_evaluation_actions"
+            ],
+            "stop_conditions": [
+              "critical_invalidation_condition_detected",
+              "score_source_missing",
+              "critical_condition_hidden_by_aggregate_score"
+            ]
+          },
+          "appeal_re_evaluation_repair_or_migration": {
+            "purpose": "track appeal, re-evaluation, repair, policy revision, migration, and regression only as model-policy decision lineage, not as final authority assignment",
+            "required_inputs": [
+              "appeal_or_repair_trigger",
+              "model_policy_decision_record",
+              "evaluation_record",
+              "policy_revision_or_migration_context"
+            ],
+            "required_outputs": [
+              "appeal_or_repair_record",
+              "re_evaluation_scope",
+              "repair_origin",
+              "migration_condition_report",
+              "regression_review_result"
+            ],
+            "stop_conditions": [
+              "appeal_record_deleted_or_fabricated",
+              "repair_origin_missing_for_material_repair",
+              "migration_scope_unclear_for_material_policy_change"
+            ]
+          },
+          "policy_decision_status_reporting": {
+            "purpose": "emit compact domain-delta status when requested or when anomaly, blocking failure, appeal, repair, or migration conditions are material",
+            "required_inputs": [
+              "policy_decision_state",
+              "evaluation_record",
+              "appeal_or_repair_record",
+              "status_request_or_anomaly"
+            ],
+            "required_outputs": [
+              "compact_policy_decision_status",
+              "extended_status_when_requested_or_material",
+              "unresolved_conditions"
+            ],
+            "stop_conditions": [
+              "critical_invalidation_status_suppressed",
+              "blocking_failure_hidden"
+            ]
+          }
+        },
+        "falsification_policy": {
+          "parent_procedure_reference": "argd_fals",
+          "general_falsification_is_not_redefined_here": true,
+          "domain_specific_targets": [
+            "policy_applies_vs_does_not_apply",
+            "scope_inclusion_vs_exclusion",
+            "alternative_policy_precedence_order",
+            "missed_policy_conflict",
+            "exception_eligible_vs_not_eligible",
+            "risk_overestimation",
+            "risk_underestimation",
+            "over_refusal_candidate",
+            "under_refusal_candidate",
+            "authority_review_condition_present_vs_absent",
+            "policy_version_or_migration_error",
+            "decision_invalidation_condition"
+          ],
+          "required_record_fields": [
+            "adopted_interpretation",
+            "counter_interpretations",
+            "supporting_basis",
+            "contradicting_basis",
+            "rejected_decision_candidates",
+            "rejection_reasons",
+            "overturn_conditions",
+            "untested_assumptions",
+            "residual_uncertainty"
+          ],
+          "boolean_falsification_flag_insufficient": true
+        },
+        "decision_result_classification": {
+          "decision_types": [
+            "allowed",
+            "allowed_with_constraints",
+            "transformed_response",
+            "partial_compliance",
+            "safe_alternative",
+            "request_for_clarification",
+            "deferred",
+            "report_human_or_authority_review_condition",
+            "refused",
+            "policy_ready_claim_blocked",
+            "invalidated_policy_decision_status"
+          ],
+          "required_decision_links": [
+            "applicable_policies",
+            "applied_clauses",
+            "rejected_policy_candidates",
+            "precedence_basis",
+            "conflict_status",
+            "exception_status",
+            "risk_basis",
+            "evidence_basis",
+            "uncertainty",
+            "limitations",
+            "response_or_action_obligations",
+            "prohibited_response_or_action_elements",
+            "appeal_eligibility",
+            "review_condition_findings",
+            "decision_state"
+          ],
+          "binary_allow_refuse_only_is_insufficient": true,
+          "response_or_action_alignment_only": {
+            "does_not_govern_artifact_composition_quality": true,
+            "does_not_govern_agent_execution_itself": true,
+            "material_external_action_requires_policy_decision_reference_as_policy_alignment_condition": true
+          }
+        }
+      },
+      "evaluation": {
+        "evaluation_policy": {
+          "domain_evaluation_required_when_model_policy_decision_claim_is_made": true,
+          "scored_evaluation_is_enabled_due_to_material_policy_decision_quality_control": true,
+          "severity_model_is_enabled_due_to_critical_invalidation_need": true,
+          "non_applicable_dimensions_must_be_excluded_with_reason_when_reporting": true,
+          "llm_self_assessment_must_not_be_presented_as_external_validation": true
+        },
+        "audit_targets": [
+          "policy_identity_integrity",
+          "policy_version_integrity",
+          "applicability_accuracy",
+          "scope_boundary_integrity",
+          "precedence_resolution",
+          "policy_conflict_visibility",
+          "ordinary_rule_exception_separation",
+          "risk_and_uncertainty_visibility",
+          "over_refusal_control",
+          "under_refusal_control",
+          "falsification_integrity",
+          "decision_branch_basis",
+          "response_or_action_obligation_alignment",
+          "decision_traceability",
+          "appealability",
+          "repair_origin_traceability",
+          "migration_and_regression_review",
+          "sibling_domain_boundary_preservation"
+        ],
+        "minimum_pass_conditions": [
+          "material_policy_decisions_have_policy_and_clause_identity",
+          "material_policy_decisions_have_policy_and_clause_versions",
+          "applicability_and_scope_basis_present",
+          "ordinary_rule_and_exception_are_separated",
+          "over_refusal_and_under_refusal_are_separately_assessed",
+          "critical_invalidation_not_hidden_by_aggregate_score",
+          "prior_decisions_not_silently_overwritten"
+        ],
+        "drift_signals": [
+          "policy_identity_or_version_disappears",
+          "applicability_basis_replaced_by_vague_policy_rationale",
+          "policy_precedence_conflict_hidden",
+          "exception_treated_as_unconditional_permission",
+          "over_refusal_and_under_refusal_merged",
+          "authority_assignment_language_expands_inside_mpgd",
+          "agentic_execution_controls_expand_inside_mpgd",
+          "security_threat_analysis_expands_inside_mpgd",
+          "domain_activation_priority_appears_inside_mpgd"
+        ],
+        "critical_invalidation_conditions": [
+          "unknown_policy_or_clause_identity_for_material_decision",
+          "fabricated_policy_or_clause",
+          "concealed_material_policy_conflict",
+          "deprecated_or_superseded_policy_used_without_basis_for_material_decision",
+          "mandatory_authority_review_condition_bypassed",
+          "invalidated_policy_decision_reused_as_valid",
+          "material_risk_or_uncertainty_concealed",
+          "critical_under_refusal",
+          "critical_over_refusal_with_material_safety_or_rights_impact",
+          "appeal_or_evaluation_record_deleted_or_fabricated",
+          "persistent_policy_decision_lineage_break",
+          "material_policy_migration_misapplication",
+          "unauthorized_external_action_without_policy_decision_reference"
+        ],
+        "scoring_model": {
+          "enabled_when_domain_defines_scored_evaluation": true,
+          "score_range": [
+            0,
+            100
+          ],
+          "domain_dimension_scores": [
+            "policy_identity_integrity_score",
+            "policy_version_integrity_score",
+            "applicability_accuracy_score",
+            "scope_boundary_integrity_score",
+            "precedence_resolution_score",
+            "policy_conflict_visibility_score",
+            "ordinary_rule_exception_separation_score",
+            "risk_uncertainty_visibility_score",
+            "over_refusal_control_score",
+            "under_refusal_control_score",
+            "falsification_integrity_score",
+            "decision_branch_basis_score",
+            "obligation_alignment_score",
+            "decision_traceability_score",
+            "appealability_score",
+            "repair_origin_traceability_score",
+            "migration_regression_review_score",
+            "sibling_boundary_preservation_score"
+          ],
+          "minimum_expected_scores": {
+            "policy_identity_integrity_score": 90,
+            "policy_version_integrity_score": 90,
+            "applicability_accuracy_score": 85,
+            "scope_boundary_integrity_score": 85,
+            "precedence_resolution_score": 85,
+            "policy_conflict_visibility_score": 90,
+            "ordinary_rule_exception_separation_score": 85,
+            "risk_uncertainty_visibility_score": 85,
+            "over_refusal_control_score": 85,
+            "under_refusal_control_score": 90,
+            "falsification_integrity_score": 85,
+            "decision_branch_basis_score": 85,
+            "obligation_alignment_score": 85,
+            "decision_traceability_score": 90,
+            "appealability_score": 80,
+            "repair_origin_traceability_score": 80,
+            "migration_regression_review_score": 80,
+            "sibling_boundary_preservation_score": 90
+          },
+          "aggregation_policy": {
+            "equal_weight_across_applicable_dimensions": true,
+            "non_applicable_dimensions_excluded_with_reason": true,
+            "critical_invalidation_overrides_aggregate_score": true,
+            "llm_self_assessment_must_not_be_presented_as_external_validation": true,
+            "score_source_required": true
+          },
+          "alignment_policy": {
+            "domain_dimension_scores_must_have_minimum_expected_scores_when_scoring_is_enabled": true,
+            "audit_targets_must_have_corresponding_dimension_or_explicit_non_scored_reason": true,
+            "critical_invalidation_conditions_must_appear_in_severity_model_when_material_and_severity_model_exists": true
+          }
+        },
+        "severity_model": {
+          "enabled_when_domain_uses_severity": true,
+          "levels": [
+            "low",
+            "moderate",
+            "high",
+            "critical"
+          ],
+          "severity_rules": {
+            "low": [
+              "minor_non_material_policy_record_omission",
+              "minor_status_reporting_ambiguity"
+            ],
+            "moderate": [
+              "non_material_applicability_basis_incomplete",
+              "non_material_decision_branch_reason_missing",
+              "non_material_score_source_label_missing"
+            ],
+            "high": [
+              "material_applicability_basis_incomplete",
+              "material_exception_basis_incomplete",
+              "material_over_refusal_or_under_refusal_assessment_incomplete",
+              "material_repair_origin_unclear",
+              "sibling_domain_boundary_blur_material_but_not_decision_changing"
+            ],
+            "critical": [
+              "unknown_policy_or_clause_identity_for_material_decision",
+              "fabricated_policy_or_clause",
+              "concealed_material_policy_conflict",
+              "deprecated_or_superseded_policy_used_without_basis_for_material_decision",
+              "mandatory_authority_review_condition_bypassed",
+              "invalidated_policy_decision_reused_as_valid",
+              "material_risk_or_uncertainty_concealed",
+              "critical_under_refusal",
+              "critical_over_refusal_with_material_safety_or_rights_impact",
+              "appeal_or_evaluation_record_deleted_or_fabricated",
+              "persistent_policy_decision_lineage_break",
+              "material_policy_migration_misapplication",
+              "unauthorized_external_action_without_policy_decision_reference"
+            ]
+          }
+        }
+      },
+      "repair": {
+        "purpose": "identify model-policy-specific repair origins and affected revalidation scopes without replacing parent repair governance",
+        "core_rule": "repair_model_should_define_repair_origin_not_parent_repair_cycle",
+        "repair_origins": [
+          "policy_identity_validation",
+          "policy_version_validation",
+          "applicability_and_scope_assessment",
+          "precedence_and_conflict_assessment",
+          "ordinary_rule_exception_assessment",
+          "risk_and_uncertainty_assessment",
+          "falsification_and_branch_selection",
+          "response_or_action_obligation_alignment",
+          "decision_recording",
+          "appeal_re_evaluation",
+          "policy_revision_migration_review",
+          "sibling_boundary_repair"
+        ],
+        "repair_policy": {
+          "identify_repair_origin": true,
+          "repair_affected_scope": true,
+          "revalidate_affected_axes": true,
+          "preserve_revision_lineage_when_material": true,
+          "do_not_skip_repair_and_claim_ready_without_basis": true,
+          "partial_revalidation_requires_reason": true,
+          "post_repair_review_must_cover_affected_axes": true,
+          "prior_decisions_must_not_be_silently_overwritten": true
+        },
+        "human_or_runtime_review_condition_findings": [
+          "report_human_or_authority_review_condition",
+          "request_daagd_authority_clarification",
+          "emit_policy_escalation_condition",
+          "report_unresolved_authority_boundary",
+          "report_material_external_action_policy_reference_condition"
+        ],
+        "review_condition_wording_policy": {
+          "review_required_wording_requires_authority_basis": true,
+          "non_authority_domains_should_emit_review_condition_findings": true,
+          "human_or_runtime_review_conditions_do_not_themselves_create_external_review_obligations": true,
+          "authority_sensitive_review_findings_should_request_or_recommend_clarification_not_claim_final_requirement": true
+        }
+      },
+      "appeal_and_re_evaluation": {
+        "purpose": "track model-policy appeal and re-evaluation scope while preserving the original decision and avoiding final authority assignment",
+        "appeal_fields": [
+          "appeal_id",
+          "appealed_decision_id",
+          "appeal_basis",
+          "challenged_policy_or_clause",
+          "challenged_applicability_or_scope",
+          "challenged_precedence_or_conflict",
+          "challenged_exception_result",
+          "challenged_risk_or_uncertainty_basis",
+          "challenged_over_refusal_or_under_refusal",
+          "submitted_evidence",
+          "requested_re_evaluation_scope",
+          "re_evaluation_result",
+          "revised_decision_id_when_material"
+        ],
+        "appeal_state_values": [
+          "submitted",
+          "screening",
+          "accepted_for_re_evaluation",
+          "rejected_as_out_of_scope",
+          "awaiting_information",
+          "under_re_evaluation",
+          "resolved_original_decision_maintained",
+          "resolved_decision_modified",
+          "resolved_policy_ready_claim_blocked",
+          "withdrawn"
+        ],
+        "rules": {
+          "appeal_submission_does_not_automatically_invalidate_original_decision": true,
+          "original_decision_must_remain_traceable": true,
+          "re_evaluation_scope_required": true,
+          "revised_material_decision_requires_new_decision_id": true,
+          "authority_assignment_remains_outside_mpgd": true
+        }
+      },
+      "policy_revision_and_migration": {
+        "purpose": "govern model-policy revision and migration as policy-decision lineage and regression-review concerns",
+        "revision_fields": [
+          "policy_revision_id",
+          "source_policy_version",
+          "target_policy_version",
+          "changed_clauses",
+          "unchanged_clauses",
+          "added_clauses",
+          "removed_clauses",
+          "modified_precedence",
+          "modified_exceptions",
+          "effective_date",
+          "deprecated_date"
+        ],
+        "migration_fields": [
+          "migration_id",
+          "source_policy_version",
+          "target_policy_version",
+          "migration_scope",
+          "affected_prior_decisions",
+          "non_target_prior_decisions",
+          "re_evaluation_requirement",
+          "regression_review_result",
+          "rollback_condition",
+          "migration_state"
+        ],
+        "migration_states": [
+          "planned",
+          "in_progress",
+          "partially_completed",
+          "completed",
+          "failed",
+          "rollback_needed",
+          "rolled_back",
+          "invalidated"
+        ],
+        "rules": {
+          "new_policy_must_not_be_silently_applied_retroactively": true,
+          "re_evaluation_targets_and_non_targets_must_be_separated": true,
+          "effective_date_required_for_material_revision": true,
+          "existing_decision_validity_must_be_explicit": true,
+          "mixed_policy_versions_must_be_detectable": true,
+          "rollback_condition_required_when_migration_is_material": true,
+          "post_migration_regression_review_required_when_material": true
+        }
+      },
+      "activation": {
+        "enabled": true,
+        "activation_mode": "local_domain_applicability",
+        "applies_when": [
+          "model_policy_decision_is_requested_or_implied",
+          "policy_or_clause_identity_is_material",
+          "applicability_or_scope_is_material",
+          "policy_precedence_or_conflict_is_material",
+          "exception_candidate_is_material",
+          "over_refusal_or_under_refusal_is_material",
+          "appeal_repair_revision_or_migration_is_material",
+          "response_or_material_external_action_requires_policy_decision_alignment"
+        ],
+        "does_not_replace_argd": true,
+        "does_not_replace_dagd": true,
+        "does_not_reimplement_cdogd": true,
+        "does_not_define_registry_logic": true,
+        "routing_and_priority_are_external": true,
+        "activation_record_minimum_fields": [
+          "activation_reason",
+          "domain_context",
+          "governed_target_context",
+          "applicable_evaluation_axes",
+          "declared_policy_context_status"
+        ],
+        "local_activation_scope_policy": {
+          "domain_activation_is_context_local": true,
+          "external_orchestration_may_select_or_prioritize_domain": true,
+          "domain_definition_does_not_store_registry_or_routing_logic": true,
+          "activation_priority_is_external": true
+        },
+        "reactivation_policy": {
+          "domain_activation_is_not_one_shot": true,
+          "domain_may_be_reactivated_when_relevant_conditions_recur": true,
+          "reactivation_triggers": [
+            "policy_set_changed",
+            "policy_or_clause_version_changed",
+            "applicability_context_changed",
+            "policy_conflict_detected",
+            "exception_candidate_detected",
+            "appeal_received",
+            "material_over_refusal_or_under_refusal_detected",
+            "policy_migration_started_or_completed",
+            "policy_repair_completed"
+          ],
+          "deactivation_does_not_imply_future_non_applicability": true
+        }
+      },
+      "self_audit": {
+        "enabled": true,
+        "audit_frequency": {
+          "before_material_policy_decision": true,
+          "after_applicability_and_scope_assessment": true,
+          "after_precedence_and_conflict_assessment": true,
+          "after_exception_assessment": true,
+          "before_response_or_action_obligation_alignment": true,
+          "after_appeal_repair_or_migration": true
+        },
+        "audit_axes": [
+          "policy_identity_integrity",
+          "applicability_basis",
+          "precedence_conflict_visibility",
+          "exception_boundary",
+          "over_refusal_under_refusal_separation",
+          "falsification_record_completeness",
+          "decision_obligation_alignment",
+          "sibling_domain_boundary_preservation"
+        ],
+        "output_policy": {
+          "compact_by_default": true,
+          "emit_detail_on_anomaly": true,
+          "emit_detail_on_user_request": true,
+          "emit_detail_on_critical_failure": true
+        },
+        "required_basis_checks": [
+          "policy_and_clause_versions_present_when_material",
+          "applicability_and_exclusion_basis_present",
+          "conflict_and_precedence_basis_present_when_material",
+          "ordinary_rule_and_exception_separated",
+          "over_refusal_and_under_refusal_separately_assessed",
+          "response_or_action_obligation_alignment_checked"
+        ],
+        "domain_specific_self_state_audit_policy": {
+          "optional_domain_local_policy": true,
+          "allowed_when_domain_requires_stronger_self_state_control": true,
+          "must_remain_domain_local": true,
+          "must_not_replace_parent_audit_or_repair_governance": true,
+          "must_not_be_treated_as_self_approval": true,
+          "must_define_overreach_detection_when_authority_sensitive": true,
+          "must_define_repair_or_escalation_when_self_state_is_unreliable": true
+        },
+        "self_audit_result_connection_policy": {
+          "self_audit_result_values_must_be_mapped_or_marked_internal_only_when_defined": true,
+          "self_doubt_result_values_must_be_mapped_or_marked_internal_only_when_defined": true,
+          "mapping_target_should_be_audit_to_action_when_actionable": true,
+          "internal_state_only_results_must_not_be_presented_as_action_outputs": true,
+          "result_names_and_action_names_must_remain_distinct": true,
+          "unmapped_actionable_self_audit_results_are_schema_hygiene_failure": true
+        }
+      },
+      "audit_to_action": {
+        "enabled": true,
+        "decision_inputs": [
+          "detected_deviations",
+          "critical_invalidation_status",
+          "policy_identity_state",
+          "applicability_state",
+          "policy_conflict_state",
+          "exception_state",
+          "risk_uncertainty_state",
+          "over_refusal_state",
+          "under_refusal_state",
+          "appeal_state",
+          "migration_state",
+          "authority_review_condition",
+          "sibling_domain_relevance"
+        ],
+        "action_outputs": [
+          "emit_policy_decision_status",
+          "report_policy_identity_failure",
+          "report_policy_applicability_failure",
+          "report_policy_conflict_condition",
+          "report_exception_condition_failure",
+          "report_material_risk_uncertainty",
+          "report_over_refusal_condition",
+          "report_under_refusal_condition",
+          "block_policy_ready_claim",
+          "report_human_or_authority_review_condition",
+          "request_daagd_authority_clarification",
+          "request_re_evaluation",
+          "create_policy_repair_record",
+          "report_policy_migration_condition",
+          "handoff_to_relevant_domain"
+        ],
+        "decision_rules": {
+          "unknown_or_invalid_policy_identity": {
+            "conditions": {
+              "policy_identity_state": [
+                "unknown",
+                "invalid",
+                "unversioned_for_material_decision"
+              ]
+            },
+            "emit_actions": [
+              "report_policy_identity_failure",
+              "block_policy_ready_claim",
+              "emit_policy_decision_status"
+            ]
+          },
+          "applicability_or_scope_failure": {
+            "conditions": {
+              "applicability_state": [
+                "unsupported",
+                "contradictory",
+                "materially_uncertain"
+              ]
+            },
+            "emit_actions": [
+              "report_policy_applicability_failure",
+              "block_policy_ready_claim",
+              "emit_policy_decision_status"
+            ]
+          },
+          "policy_conflict_condition": {
+            "conditions": {
+              "policy_conflict_state": [
+                "unresolved_material_conflict",
+                "concealed_conflict_detected"
+              ]
+            },
+            "emit_actions": [
+              "report_policy_conflict_condition",
+              "block_policy_ready_claim",
+              "request_re_evaluation",
+              "emit_policy_decision_status"
+            ]
+          },
+          "exception_condition_failure": {
+            "conditions": {
+              "exception_state": [
+                "unsupported_exception",
+                "overbroad_exception",
+                "residual_constraints_missing"
+              ]
+            },
+            "emit_actions": [
+              "report_exception_condition_failure",
+              "block_policy_ready_claim",
+              "request_re_evaluation",
+              "emit_policy_decision_status"
+            ]
+          },
+          "material_risk_or_uncertainty": {
+            "conditions": {
+              "risk_uncertainty_state": [
+                "material_uncertainty",
+                "risk_basis_missing",
+                "residual_risk_concealed"
+              ]
+            },
+            "emit_actions": [
+              "report_material_risk_uncertainty",
+              "emit_policy_decision_status"
+            ]
+          },
+          "over_refusal_condition": {
+            "conditions": {
+              "over_refusal_state": [
+                "material_over_refusal_detected",
+                "critical_over_refusal_detected"
+              ]
+            },
+            "emit_actions": [
+              "report_over_refusal_condition",
+              "request_re_evaluation",
+              "emit_policy_decision_status"
+            ]
+          },
+          "under_refusal_condition": {
+            "conditions": {
+              "under_refusal_state": [
+                "material_under_refusal_detected",
+                "critical_under_refusal_detected"
+              ]
+            },
+            "emit_actions": [
+              "report_under_refusal_condition",
+              "request_re_evaluation",
+              "emit_policy_decision_status"
+            ]
+          },
+          "critical_invalidation_condition": {
+            "conditions": {
+              "critical_invalidation_status": [
+                "true"
+              ]
+            },
+            "emit_actions": [
+              "block_policy_ready_claim",
+              "request_re_evaluation",
+              "create_policy_repair_record",
+              "emit_policy_decision_status"
+            ]
+          },
+          "appeal_received": {
+            "conditions": {
+              "appeal_state": [
+                "submitted",
+                "accepted_for_re_evaluation"
+              ]
+            },
+            "emit_actions": [
+              "request_re_evaluation",
+              "emit_policy_decision_status"
+            ]
+          },
+          "policy_migration_condition": {
+            "conditions": {
+              "migration_state": [
+                "planned",
+                "in_progress",
+                "failed",
+                "rollback_needed"
+              ]
+            },
+            "emit_actions": [
+              "report_policy_migration_condition",
+              "request_re_evaluation",
+              "emit_policy_decision_status"
+            ]
+          },
+          "authority_review_condition": {
+            "conditions": {
+              "authority_review_condition": [
+                "present",
+                "unclear_authority",
+                "approval_boundary_unclear"
+              ]
+            },
+            "emit_actions": [
+              "report_human_or_authority_review_condition",
+              "request_daagd_authority_clarification",
+              "emit_policy_decision_status"
+            ]
+          },
+          "sibling_domain_relevance": {
+            "conditions": {
+              "sibling_domain_relevance": [
+                "aagd",
+                "aisgd",
+                "acrgd",
+                "daagd",
+                "cdogd",
+                "other"
+              ]
+            },
+            "emit_actions": [
+              "handoff_to_relevant_domain",
+              "emit_policy_decision_status"
+            ]
+          },
+          "deviation_general": {
+            "conditions": {
+              "detected_deviations": [
+                "any_material_policy_decision_deviation"
+              ]
+            },
+            "emit_actions": [
+              "emit_policy_decision_status"
+            ]
+          }
+        },
+        "audit_to_action_consistency_policy": {
+          "decision_inputs_must_be_declared_when_used": true,
+          "action_outputs_must_be_declared_when_used": true,
+          "audit_decision_rules_must_emit_registered_action_outputs_only": true,
+          "unregistered_action_output_is_schema_hygiene_failure": true,
+          "action_precedence_must_not_override_higher_authority": true,
+          "unused_action_outputs_must_be_removed_or_marked_reserved": true,
+          "decision_rules_must_not_emit_unregistered_result_values_as_actions": true
+        },
+        "action_precedence": {
+          "critical_failure_blocks_ready_claim_when_material": true,
+          "deduplicate_actions_after_mapping": true,
+          "block_policy_ready_claim_precedes_ready_status": true,
+          "report_conditions_do_not_create_final_authority": true,
+          "handoff_to_relevant_domain_does_not_define_routing_priority": true
+        },
+        "action_output_registration_policy": {
+          "action_outputs_must_be_used_by_decision_rules_or_marked_reserved_or_payload_target": true,
+          "unused_unreserved_action_outputs_should_be_removed": true,
+          "reserved_action_outputs_must_be_marked_extension_reserved_or_future_reserved": true,
+          "decision_inputs_must_be_used_or_marked_reserved": true,
+          "action_names_must_not_be_confused_with_result_values": true,
+          "payload_targets_should_be_used_when_many_specific_actions_share_one_action_pattern": true
+        }
+      },
+      "status_reporting": {
+        "enabled": true,
+        "status_reporting_should_define_domain_delta_only": true,
+        "modes": [
+          "silent_by_default",
+          "emit_on_anomaly",
+          "emit_on_user_request",
+          "emit_on_blocking_failure",
+          "emit_after_material_repair"
+        ],
+        "compact_fields": [
+          "decision_id",
+          "policy_decision_state",
+          "policy_identity_state",
+          "applicability_state",
+          "conflict_state",
+          "exception_state",
+          "over_refusal_status",
+          "under_refusal_status",
+          "critical_invalidation_status",
+          "repair_or_re_evaluation_state",
+          "sibling_domain_relevance_condition"
+        ],
+        "visibility_rules": {
+          "show_critical_failure": true,
+          "show_blocking_failure": true,
+          "show_material_repair": true,
+          "show_sibling_domain_relevance_condition_when_material": true,
+          "suppress_verbose_status_when_no_anomaly_and_no_user_request": true
+        }
+      },
+      "record_schemas": {
+        "record_policy": {
+          "record_schemas_are_enabled_due_to_material_policy_decision_lineage": true,
+          "if_records_exist_required_fields_must_map_to_field_groups": true,
+          "records_must_not_redefine_parent_audit_or_repair_cycle": true,
+          "records_must_remain_domain_delta": true,
+          "records_should_be_minimal_and_material_conditioned": true,
+          "record_fields_should_not_be_expanded_for_documentation_exhaustiveness": true
+        },
+        "domain_record_templates": {
+          "model_policy_decision_record": {
+            "schema_name": "model_policy_decision_record",
+            "schema_version": "0.1.0",
+            "required_when": "material_model_policy_decision_is_made",
+            "required_fields": [
+              "decision_id",
+              "request_reference",
+              "active_policy_set_reference",
+              "policy_candidates",
+              "applicable_policy_versions",
+              "applicable_clause_versions",
+              "applicability_basis",
+              "scope_inclusions",
+              "scope_exclusions",
+              "precedence_basis",
+              "conflict_status",
+              "ordinary_rule_result",
+              "exception_result",
+              "policy_risk_basis",
+              "uncertainty_basis",
+              "falsification_summary",
+              "selected_decision_branch",
+              "response_or_action_obligations",
+              "appeal_eligibility",
+              "decision_state",
+              "lineage_references"
+            ],
+            "field_groups": {
+              "identity": [
+                "decision_id",
+                "parent_decision_id",
+                "record_version",
+                "created_timestamp"
+              ],
+              "request_and_context": [
+                "request_reference",
+                "subject_context",
+                "purpose_context",
+                "material_context_limits"
+              ],
+              "policy_candidates_and_identity": [
+                "active_policy_set_reference",
+                "policy_candidates",
+                "applicable_policy_versions",
+                "applicable_clause_versions"
+              ],
+              "applicability_scope_and_conflict": [
+                "applicability_basis",
+                "scope_inclusions",
+                "scope_exclusions",
+                "precedence_basis",
+                "conflict_status"
+              ],
+              "rules_exceptions_and_risk": [
+                "ordinary_rule_result",
+                "exception_result",
+                "policy_risk_basis",
+                "uncertainty_basis"
+              ],
+              "falsification_and_decision": [
+                "falsification_summary",
+                "selected_decision_branch",
+                "rejected_decision_branches",
+                "overturn_conditions"
+              ],
+              "obligations_appeal_and_lineage": [
+                "response_or_action_obligations",
+                "appeal_eligibility",
+                "decision_state",
+                "lineage_references"
+              ]
+            }
+          },
+          "model_policy_evaluation_appeal_repair_record": {
+            "schema_name": "model_policy_evaluation_appeal_repair_record",
+            "schema_version": "0.1.0",
+            "required_when": "material_evaluation_appeal_re_evaluation_repair_or_migration_occurs",
+            "required_fields": [
+              "evaluation_id",
+              "decision_id",
+              "audit_targets",
+              "domain_dimension_scores",
+              "score_sources",
+              "detected_deviations",
+              "severity",
+              "critical_invalidation_status",
+              "over_refusal_status",
+              "under_refusal_status",
+              "repair_origin",
+              "appeal_state",
+              "migration_state",
+              "regression_review_result",
+              "governance_status"
+            ],
+            "field_groups": {
+              "identity": [
+                "evaluation_id",
+                "decision_id",
+                "appeal_id",
+                "repair_id",
+                "migration_id",
+                "created_timestamp"
+              ],
+              "evaluation_scores": [
+                "audit_targets",
+                "domain_dimension_scores",
+                "score_sources",
+                "minimum_expected_scores"
+              ],
+              "failures_and_invalidation": [
+                "detected_deviations",
+                "severity",
+                "critical_invalidation_status",
+                "over_refusal_status",
+                "under_refusal_status"
+              ],
+              "appeal_repair_and_migration": [
+                "repair_origin",
+                "appeal_state",
+                "migration_state",
+                "regression_review_result"
+              ],
+              "status_and_lineage": [
+                "governance_status",
+                "revised_decision_id",
+                "lineage_references",
+                "unresolved_conditions"
+              ]
+            }
+          }
+        },
+        "record_relationship_contract": {
+          "decision_primary_key": "decision_id",
+          "evaluation_foreign_key": "decision_id",
+          "appeal_lineage": [
+            "appeal_id",
+            "appealed_decision_id",
+            "revised_decision_id"
+          ],
+          "repair_lineage": [
+            "parent_decision_id",
+            "repair_id",
+            "revised_decision_id"
+          ],
+          "policy_binding": [
+            "policy_id",
+            "policy_version",
+            "clause_id",
+            "clause_version"
+          ],
+          "migration_lineage": [
+            "migration_id",
+            "source_policy_version",
+            "target_policy_version"
+          ],
+          "orphan_evaluation_record_prohibited": true,
+          "orphan_appeal_record_prohibited": true,
+          "orphan_repaired_decision_prohibited": true,
+          "silent_prior_decision_overwrite_prohibited": true
+        },
+        "record_schema_consistency_policy": {
+          "record_required_fields_must_be_mapped_to_field_groups": true,
+          "field_group_items_inherit_group_requirement_level_unless_overridden": true,
+          "field_group_items_must_have_known_requirement_level_after_inheritance": true,
+          "record_relationships_must_not_create_orphan_records": true
+        }
+      },
+      "disclosure_and_threat_model": {
+        "purpose": "preserve public generic governance scope while preventing disclosure of private policy, product security",
+        "public_disclosure_scope": [
+          "generic_policy_object_structure",
+          "generic_applicability_and_scope_structure",
+          "generic_policy_precedence_and_conflict_structure",
+          "generic_exception_governance_structure",
+          "generic_over_refusal_and_under_refusal_evaluation_structure",
+          "generic_appeal_repair_revision_and_migration_lineage",
+          "generic_record_schema_structure",
+          "synthetic_or_abstract_examples"
+        ],
+        "excluded_disclosure_scope": [
+          "company_internal_policy",
+          "private_policy_clause",
+          "system_prompt",
+          "classifier_threshold",
+          "product_specific_defense_or_detection_condition",
+          "jailbreak_or_attack_success_condition",
+          "private_red_team_set",
+          "private_evaluation_set",
+          "private_escalation_or_repair_path",
+          "dangerous_turnkey_implementation"
+        ],
+        "prepublication_checks": [
+          "no_private_policy_or_clause_disclosed",
+          "no_system_prompt_disclosed",
+          "no_classifier_threshold_disclosed",
+          "no_detection_or_evasion_condition_disclosed",
+          "no_private_evaluation_set_disclosed",
+          "no_dangerous_turnkey_implementation_included"
+        ]
+      },
+      "meta_data": {
+        "version": "0.1.0"
+      }
+    }
+  }
+}

@@ -1,0 +1,1944 @@
+{
+  "airgd": {
+    "ai_research_governance_definition": {
+      "description": "AIRGD (AI Research Governance Definition) defines the AI-research-specific governance delta for research questions, prior work, novelty claims, hypotheses, counter-hypotheses, falsification, research design, evidence conditions, run lineage, evidence-to-claim linkage, negative result preservation, replication, research repair, rerun, revision, and publication-claim consistency. It references parent governance and sibling domains without reimplementing their judgment logic.",
+      "inheritance": {
+        "inheritance_mode": "additive_domain_extension",
+        "parent_definitions": [
+          {
+            "syntax_id": "argd",
+            "role": "general_reasoning_procedure_governance",
+            "required": true
+          },
+          {
+            "syntax_id": "dagd",
+            "role": "general_behavior_audit_repair_activation_and_status_governance",
+            "required": true
+          }
+        ],
+        "dependency_version_policy": {
+          "specific_parent_versions_are_not_hardcoded_in_domain_compatibility_labels": true,
+          "parent_version_binding_is_external_to_this_domain_definition": true,
+          "version_binding_owner": "runtime_bundle_or_release_manifest"
+        },
+        "standalone_reference_use": {
+          "allowed": true,
+          "condition": "standalone_readers_must_treat_parent_mechanisms_as_external_prerequisites_or_reference_context",
+          "does_not_grant_parent_functionality": true,
+          "runtime_conformance_requires_parent_definitions": true
+        },
+        "replaces_parent_definitions": false,
+        "duplicates_parent_rules": false,
+        "parent_rules_remain_authoritative": true,
+        "domain_delta_only": true,
+        "preserved_parent_mechanism_policy": {
+          "inherited_governance_must_be_referenced_not_reexpanded": true,
+          "silent_parent_rule_override_prohibited": true,
+          "parent_mechanism_lists_must_not_be_recreated_unless_required_by_explicit_context": true
+        },
+        "conflict_policy": {
+          "general_reasoning_conflicts": "resolve_under_parent_reasoning_governance",
+          "general_behavior_and_governance_conflicts": "resolve_under_parent_behavior_governance",
+          "domain_specific_conflicts": "resolve_under_ai_research_governance_when_not_in_conflict_with_parent_governance_or_higher_authority",
+          "higher_level_system_policies_remain_authoritative": true
+        }
+      },
+      "orchestration_reference": {
+        "orchestration_definition": "cdogd",
+        "relationship": "external_orchestration_reference",
+        "cdogd_is_not_reimplemented_here": true,
+        "registry_and_activation_logic_are_external": true,
+        "routing_priority_and_domain_selection_are_external": true,
+        "registered_domain_extension_storage_is_external": true
+      },
+      "domain_scope": {
+        "domain": "ai_research",
+        "scope_statement": "govern AI research claim readiness and lineage by preserving the relationship between research question, prior work, novelty, hypotheses, falsification, research design, evidence artifacts, runs, results, claims, limitations, replication, and research revision",
+        "governed_target_categories": [
+          "research_question",
+          "research_objective",
+          "prior_work_set",
+          "novelty_claim",
+          "hypothesis_set",
+          "counter_hypothesis_set",
+          "falsification_target_set",
+          "research_experiment_design",
+          "research_evidence_artifact_binding",
+          "experimental_run_lineage",
+          "research_result_interpretation",
+          "research_claim",
+          "negative_result",
+          "limitation_statement",
+          "replication_or_reproduction_record",
+          "research_repair_rerun_revision_lineage",
+          "publication_claim_consistency_condition"
+        ],
+        "lifecycle_coverage": [
+          "research_intent_and_question_intake",
+          "scope_and_objective_fixation",
+          "prior_work_mapping",
+          "gap_and_novelty_analysis",
+          "hypothesis_and_counter_hypothesis_definition",
+          "falsification_target_definition",
+          "research_experiment_design",
+          "evidence_artifact_identity_binding",
+          "run_lineage_tracking",
+          "result_interpretation",
+          "evidence_to_claim_mapping",
+          "limitation_and_negative_result_preservation",
+          "replication_condition_tracking",
+          "research_repair_rerun_revision_tracking",
+          "publication_claim_consistency_check"
+        ],
+        "non_targets": [
+          "replacement_of_parent_governance",
+          "replacement_of_external_orchestration",
+          "absorption_of_sibling_domain_definitions",
+          "agentic_execution_mechanics",
+          "tool_call_checkpoint_retry_handoff_or_side_effect_governance",
+          "statistical_data_quality_leakage_or_causal_validity_details",
+          "software_implementation_quality_or_build_deployment_governance",
+          "publication_artifact_composition_format_or_readability_governance",
+          "ai_security_attack_surface_or_tool_abuse_security_assessment",
+          "approval_authority_or_accountability_assignment",
+          "model_weight_modification",
+          "training_data_modification",
+          "replacement_of_built_in_system_policies"
+        ],
+        "reference_boundaries": {
+          "aagd": {
+            "may_reference_when": [
+              "agentic_research_execution_affects_research_lineage",
+              "tool_output_is_used_as_candidate_research_evidence",
+              "tool_failure_or_handoff_failure_may_affect_run_validity"
+            ],
+            "airgd_keeps": [
+              "research_lineage_impact",
+              "evidence_validation_requirement",
+              "tool_output_not_validated_result_distinction"
+            ],
+            "must_not_absorb": [
+              "tool_call_governance",
+              "checkpoint_governance",
+              "retry_governance",
+              "handoff_governance",
+              "side_effect_governance"
+            ]
+          },
+          "dsgd": {
+            "may_reference_when": [
+              "research_claim_depends_on_data_science_result",
+              "statistical_uncertainty_limits_claim_scope",
+              "data_quality_or_leakage_may_invalidate_research_claim"
+            ],
+            "airgd_keeps": [
+              "evidence_to_claim_boundary",
+              "claim_scope_limitation",
+              "research_claim_impact"
+            ],
+            "must_not_absorb": [
+              "statistical_validity_details",
+              "data_quality_analysis",
+              "leakage_detection_logic",
+              "causal_identification_logic",
+              "modeling_evaluation_details"
+            ]
+          },
+          "segd": {
+            "may_reference_when": [
+              "software_artifact_identity_affects_reproducibility",
+              "code_or_environment_change_affects_run_lineage"
+            ],
+            "airgd_keeps": [
+              "code_and_environment_identity_as_research_evidence_condition"
+            ],
+            "must_not_absorb": [
+              "software_implementation_quality",
+              "test_build_deploy_governance",
+              "software_artifact_quality"
+            ]
+          },
+          "acrgd": {
+            "may_reference_when": [
+              "publication_artifact_quality_or_submission_readiness_is_material",
+              "artifact_composition_or_readability_affects_release"
+            ],
+            "airgd_keeps": [
+              "publication_claim_matches_validated_research_claim",
+              "publication_claim_lineage"
+            ],
+            "must_not_absorb": [
+              "artifact_formatting",
+              "document_composition_quality",
+              "submission_readiness_quality"
+            ]
+          },
+          "aisgd": {
+            "may_reference_when": [
+              "research_disclosure_has_security_or_dual_use_risk",
+              "dangerous_reproducibility_detail_or_private_vulnerability_may_be_exposed"
+            ],
+            "airgd_keeps": [
+              "disclosure_review_condition_reporting",
+              "dangerous_detail_not_public_ready_condition"
+            ],
+            "must_not_absorb": [
+              "attack_surface_analysis",
+              "prompt_injection_security_analysis",
+              "tool_abuse_security_assessment",
+              "ai_mediated_security_risk_evaluation"
+            ]
+          },
+          "daagd": {
+            "may_reference_when": [
+              "human_or_authority_review_condition_is_detected",
+              "approval_authority_or_accountability_is_unclear"
+            ],
+            "airgd_keeps": [
+              "review_condition_finding",
+              "authority_clarification_condition"
+            ],
+            "must_not_absorb": [
+              "approval_authority_assignment",
+              "final_decision_authority",
+              "accountability_assignment"
+            ]
+          }
+        }
+      },
+      "abstraction_and_context_policy": {
+        "purpose": "keep AIRGD rules focused on abstract AI research governance rather than case-specific research topics, tools, institutions, or workflows",
+        "rule_bodies_must_use_highest_safe_abstraction_level": true,
+        "rule_hardcoding_prohibited_by_default": true,
+        "domain_instances_must_not_be_encoded_as_general_rules": true,
+        "implementation_details_must_not_become_domain_rules": true,
+        "contextual_specificity_conditions": [
+          "explicit_user_instruction",
+          "identity_or_verification_requires_specific_name",
+          "hallucination_prevention_requires_specific_name",
+          "research_artifact_integrity_requires_specific_identifier",
+          "domain_context_or_governed_target_context_would_break_without_specificity"
+        ],
+        "specificity_handling": {
+          "specificity_scope": "research_project_or_governed_target_context",
+          "specificity_must_not_be_promoted_to_general_rule_without_basis": true,
+          "specificity_must_be_traceable_to_context_or_instruction": true,
+          "specificity_must_not_override_higher_authority": true
+        },
+        "declared_context_policy_principles": [
+          "declared_research_question_must_be_fixed_when_material",
+          "declared_scope_must_not_be_silently_changed",
+          "declared_hypothesis_set_must_preserve_revision_lineage",
+          "declared_evidence_artifacts_must_remain_traceable",
+          "declared_claim_scope_must_not_expand_without_basis"
+        ]
+      },
+      "role_complete_separation": {
+        "required": true,
+        "principle": "AIRGD emits AI-research-domain findings about research claim readiness and lineage; it does not own parent governance, sibling domain logic, external orchestration, approval authority, or implementation execution authority.",
+        "separation_targets": {
+          "source_material": "prior work, observations, datasets, model references, prompts, code references, run outputs, and publication drafts used as inputs; source content is not absorbed as AIRGD rules",
+          "domain_definition": "AIRGD-specific rules for research question, prior work, novelty, hypothesis, falsification, research design, evidence-to-claim, replication, and revision",
+          "inherited_governance": "ARGD and DAGD mechanisms referenced as authoritative context and not re-expanded",
+          "sibling_reference": "other domain definitions referenced only when their specific concerns affect research claim readiness",
+          "governed_target": "AI research claim, research object, research lineage, and publication claim consistency",
+          "domain_evaluation": "AIRGD evaluation axes for research claim governance only",
+          "domain_repair": "AIRGD repair origins for research object and claim lineage failures only",
+          "activation": "local applicability signals for AI research governance only",
+          "status_reporting": "domain-local research claim and lineage status only",
+          "records": "minimal material AIRGD records for research process and evaluation/replication/repair linkage",
+          "external_orchestration": "routing, registry, priority, and domain selection remain external",
+          "metadata": "identity, authorship, license, repository, version, and consecutive information only"
+        },
+        "non_absorption_rules": [
+          "inherited_governance_must_be_referenced_not_reexpanded",
+          "sibling_domain_content_must_remain_referenced_not_absorbed",
+          "external_orchestration_must_not_be_reimplemented_in_domain_definition",
+          "metadata_must_not_be_promoted_to_domain_rule_without_basis",
+          "approval_authority_must_not_be_claimed_by_airgd",
+          "agentic_execution_mechanics_must_not_be_implemented_by_airgd",
+          "statistical_or_data_validity_details_must_not_be_reimplemented_by_airgd",
+          "software_quality_governance_must_not_be_implemented_by_airgd"
+        ],
+        "review_implications": [
+          "role_separation_check_required_when_research_claim_depends_on_adjacent_domain_findings",
+          "role_mixing_failure_is_material_when_it_changes_airgd_from_research_claim_governance_into_execution_or_approval_governance"
+        ]
+      },
+      "cross_domain_interference_policy": {
+        "purpose": "prevent AIRGD from becoming an all-in-one AI research execution, statistics, implementation, artifact-quality, security, or authority governance definition",
+        "rules": [
+          "sibling_domain_references_must_be_explicit_when_material",
+          "sibling_domain_rules_must_not_be_copied_by_default",
+          "domain_overlap_must_be_declared_when_material",
+          "cross_domain_activation_priority_is_external_to_this_definition",
+          "domain_specific_rule_conflicts_must_not_be_silently_merged",
+          "shared_terms_must_not_imply_shared_authority_without_boundary_statement",
+          "reference_to_sibling_domain_finding_does_not_grant_airgd_authority_over_that_domain"
+        ],
+        "overlap_handling": {
+          "overlap_is_allowed": true,
+          "overlap_must_preserve_domain_responsibility_boundaries": true,
+          "overlap_resolution_owner": "external_orchestration_or_explicit_runtime_context",
+          "airgd_overlap_output_shape": "research_claim_condition_or_lineage_impact_finding"
+        }
+      },
+      "policy_goal": [
+        "research_question_integrity",
+        "research_objective_traceability",
+        "scope_and_non_scope_clarity",
+        "prior_work_traceability",
+        "novelty_claim_integrity",
+        "hypothesis_clarity",
+        "counter_hypothesis_preservation",
+        "falsification_readiness",
+        "experimental_design_traceability",
+        "evidence_artifact_identity_integrity",
+        "run_lineage_traceability",
+        "negative_result_preservation",
+        "result_to_claim_separation",
+        "evidence_to_claim_integrity",
+        "limitation_transparency",
+        "replication_and_reproduction_traceability",
+        "research_repairability",
+        "research_rerun_traceability",
+        "research_revision_traceability",
+        "publication_claim_consistency",
+        "sibling_domain_boundary_preservation",
+        "authority_safe_review_condition_reporting",
+        "disclosure_boundary_condition_reporting"
+      ],
+      "constraints": {
+        "prohibited_failure_modes": {
+          "research_question_and_scope_failures": [
+            "research_question_silently_changed",
+            "research_objective_silently_changed",
+            "scope_or_non_scope_omitted_for_material_claim",
+            "exploratory_research_presented_as_confirmatory_without_record",
+            "population_or_target_system_generalized_without_basis"
+          ],
+          "prior_work_and_novelty_failures": [
+            "search_not_found_treated_as_nonexistence",
+            "unread_prior_work_treated_as_directly_read",
+            "citation_identity_fabricated_or_unverified_when_load_bearing",
+            "similar_prior_work_excluded_without_basis",
+            "novelty_claim_exceeds_comparison_set",
+            "implementation_difference_overstated_as_research_novelty"
+          ],
+          "hypothesis_and_falsification_failures": [
+            "hypothesis_counter_hypothesis_distinction_collapsed",
+            "counter_hypothesis_removed_without_basis",
+            "post_hoc_hypothesis_presented_as_predefined_without_revision_record",
+            "falsification_target_missing_for_load_bearing_claim",
+            "overturn_condition_missing_for_material_claim",
+            "inconclusive_result_converted_to_support"
+          ],
+          "research_design_and_evidence_failures": [
+            "experiment_design_not_linked_to_research_question_or_hypothesis",
+            "baseline_control_or_ablation_required_for_claim_but_missing",
+            "artifact_identity_unknown_for_load_bearing_result",
+            "run_lineage_broken_for_material_result",
+            "failed_run_hidden_or_deleted",
+            "negative_result_hidden_or_deleted"
+          ],
+          "result_and_claim_failures": [
+            "tool_output_treated_as_validated_research_result_without_validation",
+            "measured_result_treated_as_research_claim_without_scope_limit",
+            "failed_run_treated_as_negative_research_result_without_analysis",
+            "invalidated_result_treated_as_valid_result",
+            "research_claim_exceeds_evidence_type",
+            "limitation_suppressed_for_material_claim",
+            "contradicting_evidence_omitted_from_claim_basis"
+          ],
+          "replication_repair_revision_failures": [
+            "failed_replication_ignored_without_impact_analysis",
+            "partial_reproduction_reported_as_exact_reproduction",
+            "repair_applied_without_parent_run_or_repair_identifier",
+            "rerun_overwrites_prior_run_history",
+            "revision_retroactively_rewrites_prior_claims",
+            "publication_artifact_lacks_claim_lineage"
+          ],
+          "boundary_and_authority_failures": [
+            "agentic_execution_mechanics_absorbed_into_airgd",
+            "statistical_validity_logic_absorbed_into_airgd",
+            "software_quality_logic_absorbed_into_airgd",
+            "publication_artifact_quality_logic_absorbed_into_airgd",
+            "security_threat_analysis_logic_absorbed_into_airgd",
+            "approval_authority_claimed_by_airgd",
+            "routing_or_priority_logic_absorbed_into_airgd"
+          ]
+        },
+        "required_controls": {
+          "research_question_and_scope_controls": [
+            "fix_research_question_when_material",
+            "fix_research_objective_when_material",
+            "define_scope_and_non_scope",
+            "distinguish_exploratory_from_confirmatory_research",
+            "preserve_question_revision_lineage"
+          ],
+          "prior_work_and_novelty_controls": [
+            "record_prior_work_search_scope",
+            "record_prior_work_reading_status",
+            "link_novelty_claim_to_comparison_set",
+            "record_novelty_uncertainty",
+            "record_conditions_that_would_overturn_novelty_claim"
+          ],
+          "hypothesis_and_falsification_controls": [
+            "assign_hypothesis_identifiers",
+            "preserve_counter_hypotheses",
+            "define_falsification_targets",
+            "define_disconfirming_evidence_or_limitation_conditions",
+            "record_overturn_conditions_for_load_bearing_claims"
+          ],
+          "research_design_and_lineage_controls": [
+            "link_experiment_design_to_question_and_hypotheses",
+            "record_baseline_control_ablation_applicability",
+            "bind_evidence_artifact_identity_when_material",
+            "preserve_run_lineage",
+            "preserve_failed_cancelled_and_negative_results"
+          ],
+          "claim_controls": [
+            "separate_raw_output_measured_result_and_research_claim",
+            "classify_material_claim_type",
+            "link_claim_to_supporting_and_contradicting_evidence",
+            "bound_claim_by_scope_uncertainty_and_limitations",
+            "prevent_invalidated_result_from_supporting_valid_claim"
+          ],
+          "cross_domain_boundary_controls": [
+            "reference_sibling_domain_when_its_finding_is_material",
+            "report_domain_handoff_condition_without_absorbing_sibling_logic",
+            "report_human_or_authority_review_condition_without_claiming_approval_authority",
+            "keep_routing_priority_external"
+          ]
+        },
+        "runtime_constraints": {
+          "domain_only": true,
+          "does_not_redefine_parent_governance": true,
+          "does_not_reimplement_external_orchestration": true,
+          "does_not_define_registry_logic": true,
+          "does_not_define_global_domain_priority": true,
+          "does_not_own_agentic_execution_mechanics": true,
+          "does_not_own_statistical_data_quality_or_causal_validity_details": true,
+          "does_not_own_software_implementation_quality": true,
+          "does_not_own_artifact_composition_quality": true,
+          "does_not_own_security_threat_analysis_details": true,
+          "does_not_own_approval_or_accountability_assignment": true,
+          "critical_invalidation_blocks_research_claim_ready_status": true,
+          "domain_outputs_findings_not_final_authorization": true
+        },
+        "failure_aliases": {
+          "claim_overreach": [
+            "research_claim_exceeds_evidence_type",
+            "measured_result_treated_as_research_claim_without_scope_limit"
+          ],
+          "novelty_overclaim": [
+            "search_not_found_treated_as_nonexistence",
+            "novelty_claim_exceeds_comparison_set"
+          ],
+          "lineage_break": [
+            "run_lineage_broken_for_material_result",
+            "publication_artifact_lacks_claim_lineage"
+          ]
+        },
+        "schema_hygiene_constraints": {
+          "taxonomy_group_membership_must_match_requirement_level": true,
+          "record_required_fields_must_be_mapped_to_field_groups_when_records_exist": true,
+          "field_group_items_may_inherit_group_requirement_level_when_not_overridden": true,
+          "evaluation_dimensions_must_align_with_thresholds_and_audit_targets_when_scoring_exists": true,
+          "critical_invalidation_conditions_must_be_represented_in_critical_severity_rules_when_severity_model_exists": true,
+          "collection_shape_must_be_declared_when_using_grouped_objects": true,
+          "audit_action_outputs_must_be_used_or_marked_reserved": true
+        },
+        "collection_shape_policy": {
+          "flat_array_or_grouped_object_may_be_used_when_declared": true,
+          "same_collection_should_not_mix_shapes_within_one_domain_definition": true,
+          "grouped_object_shape_must_preserve_machine_checkable_membership": true,
+          "validation_tools_should_read_declared_collection_shape_before_assuming_flat_arrays": true,
+          "collection_shape_declarations": {
+            "constraints.prohibited_failure_modes": "grouped_object",
+            "constraints.required_controls": "grouped_object"
+          }
+        }
+      },
+      "capabilities": {
+        "required_capabilities": [
+          "research_question_fixation",
+          "research_objective_traceability",
+          "scope_and_non_scope_definition",
+          "research_type_distinction",
+          "prior_work_traceability",
+          "reading_status_distinction",
+          "comparison_set_management",
+          "novelty_claim_bounding",
+          "hypothesis_registration",
+          "counter_hypothesis_preservation",
+          "falsification_target_mapping",
+          "overturn_condition_tracking",
+          "experiment_design_traceability",
+          "evidence_artifact_identity_binding",
+          "run_lineage_tracking",
+          "negative_result_preservation",
+          "result_to_claim_separation",
+          "evidence_to_claim_linkage",
+          "limitation_transparency",
+          "replication_condition_tracking",
+          "research_repair_rerun_revision_lineage",
+          "publication_claim_consistency_check",
+          "sibling_domain_reference_condition_detection",
+          "authority_review_condition_reporting",
+          "disclosure_review_condition_reporting"
+        ],
+        "capability_groups": {
+          "research_question_and_scope_governance": [
+            "research_question_fixation",
+            "research_objective_traceability",
+            "scope_and_non_scope_definition",
+            "research_type_distinction"
+          ],
+          "prior_work_and_novelty_governance": [
+            "prior_work_traceability",
+            "reading_status_distinction",
+            "comparison_set_management",
+            "novelty_claim_bounding"
+          ],
+          "hypothesis_and_falsification_governance": [
+            "hypothesis_registration",
+            "counter_hypothesis_preservation",
+            "falsification_target_mapping",
+            "overturn_condition_tracking"
+          ],
+          "research_design_and_lineage_governance": [
+            "experiment_design_traceability",
+            "evidence_artifact_identity_binding",
+            "run_lineage_tracking",
+            "negative_result_preservation"
+          ],
+          "claim_and_revision_governance": [
+            "result_to_claim_separation",
+            "evidence_to_claim_linkage",
+            "limitation_transparency",
+            "replication_condition_tracking",
+            "research_repair_rerun_revision_lineage",
+            "publication_claim_consistency_check"
+          ],
+          "boundary_and_handoff_governance": [
+            "sibling_domain_reference_condition_detection",
+            "authority_review_condition_reporting",
+            "disclosure_review_condition_reporting"
+          ]
+        },
+        "mapping_policy": {
+          "required_capabilities_must_appear_in_capability_groups_when_groups_are_used": true,
+          "capability_groups_are_structural_not_exhaustive": true,
+          "future_extensions_should_attach_to_groups_before_adding_flat_items": true,
+          "capability_taxonomy_must_not_conflict_with_flat_required_list": true
+        }
+      },
+      "research_object_model": {
+        "purpose": "define AIRGD-local research objects and relationships without becoming a complete project, execution, statistics, software, security, or publication artifact model",
+        "persistent_objects": {
+          "research_project": [
+            "research_project_id",
+            "research_title",
+            "research_state",
+            "research_version"
+          ],
+          "research_question": [
+            "research_question_id",
+            "research_project_id",
+            "question_text",
+            "scope",
+            "non_scope",
+            "target_system"
+          ],
+          "prior_work_item": [
+            "prior_work_id",
+            "citation_identity",
+            "verified_reading_status",
+            "relation_to_current_work"
+          ],
+          "novelty_claim": [
+            "claim_id",
+            "comparison_set",
+            "differentiating_elements",
+            "overlapping_elements",
+            "uncertainty",
+            "overturn_conditions"
+          ],
+          "hypothesis": [
+            "hypothesis_id",
+            "research_question_id",
+            "hypothesis_text",
+            "observable_implications",
+            "falsification_conditions",
+            "hypothesis_state"
+          ],
+          "counter_hypothesis": [
+            "counter_hypothesis_id",
+            "target_hypothesis_id",
+            "counter_hypothesis_text",
+            "discriminating_evidence",
+            "counter_hypothesis_state"
+          ],
+          "research_claim": [
+            "claim_id",
+            "claim_text",
+            "claim_type",
+            "supporting_evidence",
+            "contradicting_evidence",
+            "scope",
+            "limitations",
+            "claim_state"
+          ],
+          "publication_claim_mapping": [
+            "publication_artifact_reference",
+            "claim_ids",
+            "validated_claim_match_status",
+            "lineage_status"
+          ]
+        },
+        "event_objects": {
+          "experiment_design": [
+            "experiment_id",
+            "research_question_id",
+            "hypothesis_ids",
+            "design_purpose",
+            "comparison_conditions",
+            "failure_conditions"
+          ],
+          "experimental_run": [
+            "run_id",
+            "experiment_id",
+            "parent_run_id",
+            "run_state",
+            "evidence_artifact_bindings",
+            "lineage_references"
+          ],
+          "research_evaluation": [
+            "evaluation_id",
+            "experiment_id",
+            "run_ids",
+            "evaluation_targets",
+            "score_sources",
+            "evaluation_state"
+          ],
+          "replication_record": [
+            "replication_id",
+            "source_run_ids",
+            "replication_type",
+            "preserved_conditions",
+            "changed_conditions",
+            "replication_state"
+          ],
+          "repair_record": [
+            "repair_id",
+            "repair_origin",
+            "affected_objects",
+            "changed_components",
+            "unchanged_components",
+            "post_repair_review_status"
+          ],
+          "revision_record": [
+            "revision_id",
+            "source_research_version",
+            "target_research_version",
+            "changed_elements",
+            "unchanged_elements",
+            "affected_claims"
+          ]
+        },
+        "state_models": {
+          "research_state": [
+            "draft",
+            "scoped",
+            "prior_work_reviewing",
+            "gap_defined",
+            "hypotheses_defined",
+            "designed",
+            "executing",
+            "evaluating",
+            "claiming",
+            "replicating",
+            "repairing",
+            "revising",
+            "publication_claim_checking",
+            "completed",
+            "published",
+            "inconclusive",
+            "failed",
+            "invalidated",
+            "withdrawn"
+          ],
+          "hypothesis_state": [
+            "draft",
+            "active",
+            "supported_under_scope",
+            "partially_supported",
+            "not_supported",
+            "falsified",
+            "inconclusive",
+            "superseded",
+            "invalidated"
+          ],
+          "run_state": [
+            "planned",
+            "executing",
+            "completed",
+            "failed",
+            "cancelled",
+            "invalidated"
+          ],
+          "claim_state": [
+            "draft",
+            "provisional",
+            "supported_under_scope",
+            "partially_supported",
+            "contested",
+            "not_supported",
+            "requalified",
+            "invalidated",
+            "superseded",
+            "withdrawn"
+          ],
+          "replication_state": [
+            "planned",
+            "executing",
+            "completed_consistent",
+            "completed_partially_consistent",
+            "completed_inconsistent",
+            "failed_environment",
+            "failed_artifact",
+            "failed_method",
+            "inconclusive",
+            "invalidated"
+          ],
+          "publication_claim_consistency_state": [
+            "not_checked",
+            "consistent_with_validated_claims",
+            "requires_requalification",
+            "inconsistent",
+            "blocked_as_ready_claim",
+            "withdrawn_or_corrected"
+          ],
+          "governance_binding_state": [
+            "active",
+            "degraded",
+            "inactive",
+            "uncertain",
+            "rebinding"
+          ]
+        },
+        "state_separation_policy": {
+          "published_does_not_equal_completed": true,
+          "inconclusive_does_not_equal_failed_or_supported": true,
+          "failed_run_does_not_equal_negative_research_result": true,
+          "invalidated_result_does_not_equal_valid_result": true,
+          "state_models_must_not_be_collapsed_into_single_status": true
+        },
+        "relationship_rules": [
+          "research_claim_must_trace_to_research_question_and_evidence_basis",
+          "hypothesis_must_trace_to_research_question",
+          "counter_hypothesis_must_trace_to_target_hypothesis",
+          "run_must_trace_to_experiment_design",
+          "repair_must_trace_to_affected_object_or_failure_origin",
+          "revision_must_trace_to_source_version",
+          "publication_claim_mapping_must_trace_to_validated_research_claims"
+        ]
+      },
+      "prior_work_and_novelty": {
+        "reading_status_values": [
+          "directly_read",
+          "partially_read",
+          "secondary_source_only",
+          "metadata_only",
+          "unverified"
+        ],
+        "novelty_types": [
+          "new_research_question",
+          "new_method_or_governance_structure",
+          "new_empirical_result",
+          "new_failure_analysis",
+          "new_replication_result",
+          "new_integration",
+          "new_theoretical_interpretation",
+          "new_operationalization"
+        ],
+        "novelty_state_values": [
+          "unassessed",
+          "under_review",
+          "provisional",
+          "supported_under_search_scope",
+          "contested",
+          "not_supported",
+          "superseded",
+          "invalidated"
+        ],
+        "novelty_claim_requirements": [
+          "comparison_set",
+          "known_prior_work",
+          "search_scope",
+          "search_limitations",
+          "differentiating_elements",
+          "overlapping_elements",
+          "uncertainty",
+          "conditions_that_would_overturn_novelty_claim"
+        ],
+        "rules": [
+          "search_not_found_must_not_be_reported_as_nonexistence",
+          "unread_or_secondary_source_only_work_must_not_be_reported_as_directly_read",
+          "novelty_claim_scope_must_not_exceed_search_scope",
+          "implementation_difference_must_not_be_overstated_as_research_novelty_without_basis",
+          "similar_work_must_not_be_excluded_to_protect_novelty_claim"
+        ]
+      },
+      "research_process": {
+        "process_policy": {
+          "stage_model_is_domain_local": true,
+          "stage_skip_allowed_only_with_non_applicability_reason": true,
+          "stage_reentry_requires_reason_and_downstream_impact_identification": true,
+          "branch_preservation_required_until_selection_basis_is_recorded": true,
+          "process_does_not_own_external_project_or_agent_execution_orchestration": true
+        },
+        "required_stage_sequence": [
+          "research_intent_and_question_intake",
+          "scope_objective_and_significance_definition",
+          "prior_work_collection_and_mapping",
+          "gap_and_novelty_analysis",
+          "hypothesis_and_counter_hypothesis_definition",
+          "falsification_and_overturn_condition_definition",
+          "research_experiment_design",
+          "evidence_artifact_identity_binding",
+          "baseline_control_and_ablation_applicability_definition",
+          "evaluation_plan_and_metric_binding",
+          "experiment_execution_lineage_capture",
+          "run_validation_and_artifact_verification",
+          "result_interpretation_and_uncertainty_bounding",
+          "hypothesis_evaluation",
+          "research_claim_construction",
+          "limitation_and_failure_analysis",
+          "reproduction_or_replication_condition_tracking",
+          "research_governance_audit",
+          "research_repair_rerun_or_revision",
+          "publication_claim_consistency_and_status_reporting"
+        ],
+        "stage_definitions": {
+          "research_intent_and_question_intake": {
+            "purpose": "fix the research intent and candidate research question without collapsing materially different questions",
+            "required_inputs": [
+              "originating_request_or_research_intent"
+            ],
+            "required_outputs": [
+              "research_question_candidates",
+              "research_objective",
+              "exploratory_or_confirmatory_status"
+            ],
+            "stop_conditions": [
+              "research_intent_unresolved",
+              "material_objective_conflict_unresolved"
+            ]
+          },
+          "scope_objective_and_significance_definition": {
+            "purpose": "define research scope, non-scope, target system, population, and significance",
+            "required_inputs": [
+              "research_question_candidates",
+              "research_objective"
+            ],
+            "required_outputs": [
+              "fixed_research_question",
+              "scope_statement",
+              "non_scope_statement",
+              "target_system",
+              "significance_basis"
+            ],
+            "stop_conditions": [
+              "material_scope_conflict_unresolved",
+              "unsupported_generalization_required_for_claim"
+            ]
+          },
+          "prior_work_collection_and_mapping": {
+            "purpose": "map prior work with citation identity, reading status, relation, and limitations",
+            "required_inputs": [
+              "fixed_research_question",
+              "scope_statement"
+            ],
+            "required_outputs": [
+              "prior_work_set",
+              "reading_statuses",
+              "comparison_candidates",
+              "prior_work_limitations"
+            ],
+            "stop_conditions": [
+              "load_bearing_citation_unverified",
+              "comparison_set_insufficient_for_novelty_claim"
+            ]
+          },
+          "gap_and_novelty_analysis": {
+            "purpose": "define known work, gap, novelty type, overlap, difference, uncertainty, and overturn conditions",
+            "required_inputs": [
+              "prior_work_set",
+              "comparison_candidates"
+            ],
+            "required_outputs": [
+              "gap_statement",
+              "novelty_claim",
+              "novelty_uncertainty",
+              "novelty_overturn_conditions"
+            ],
+            "stop_conditions": [
+              "novelty_claim_without_comparison_set",
+              "search_scope_unrecorded"
+            ]
+          },
+          "hypothesis_and_counter_hypothesis_definition": {
+            "purpose": "define hypotheses, counter-hypotheses, observable implications, and discriminating evidence",
+            "required_inputs": [
+              "fixed_research_question",
+              "gap_statement"
+            ],
+            "required_outputs": [
+              "hypothesis_set",
+              "counter_hypothesis_set",
+              "observable_implications",
+              "discriminating_evidence"
+            ],
+            "stop_conditions": [
+              "load_bearing_hypothesis_without_counter_hypothesis_or_reason",
+              "hypothesis_not_traceable_to_research_question"
+            ]
+          },
+          "falsification_and_overturn_condition_definition": {
+            "purpose": "bind falsification targets, disconfirming evidence, alternative interpretations, and overturn conditions",
+            "required_inputs": [
+              "hypothesis_set",
+              "counter_hypothesis_set"
+            ],
+            "required_outputs": [
+              "falsification_targets",
+              "disconfirming_evidence",
+              "alternative_interpretations",
+              "overturn_conditions"
+            ],
+            "stop_conditions": [
+              "load_bearing_claim_path_without_falsification_or_limitation_condition"
+            ]
+          },
+          "research_experiment_design": {
+            "purpose": "define research design sufficient to test or probe the hypotheses without taking ownership of statistical or software implementation details",
+            "required_inputs": [
+              "hypothesis_set",
+              "falsification_targets"
+            ],
+            "required_outputs": [
+              "experiment_design",
+              "research_design_variables",
+              "comparison_conditions",
+              "failure_conditions"
+            ],
+            "stop_conditions": [
+              "design_not_linked_to_hypothesis",
+              "material_variable_not_observable_or_operationalized"
+            ]
+          },
+          "evidence_artifact_identity_binding": {
+            "purpose": "bind data, model, prompt, code, environment, or other artifacts as research evidence conditions without governing their detailed quality",
+            "required_inputs": [
+              "experiment_design"
+            ],
+            "required_outputs": [
+              "evidence_artifact_references",
+              "artifact_identity_status",
+              "sibling_domain_reference_conditions"
+            ],
+            "stop_conditions": [
+              "load_bearing_artifact_identity_unknown",
+              "sibling_domain_finding_needed_but_unreferenced"
+            ]
+          },
+          "baseline_control_and_ablation_applicability_definition": {
+            "purpose": "record whether baseline, control, or ablation is required for the intended claim and how missing comparison affects claim scope",
+            "required_inputs": [
+              "experiment_design",
+              "intended_claim_type"
+            ],
+            "required_outputs": [
+              "baseline_applicability",
+              "control_applicability",
+              "ablation_applicability",
+              "claim_scope_impact"
+            ],
+            "stop_conditions": [
+              "comparative_claim_without_required_baseline_or_reason",
+              "mechanism_claim_without_required_ablation_or_reason"
+            ]
+          },
+          "evaluation_plan_and_metric_binding": {
+            "purpose": "bind evaluation targets and metrics as research evidence conditions while referencing sibling domains for detailed statistical or modeling validity",
+            "required_inputs": [
+              "experiment_design",
+              "intended_claim_type"
+            ],
+            "required_outputs": [
+              "evaluation_plan",
+              "metric_bindings",
+              "score_source_expectations",
+              "dsgd_reference_condition_if_material"
+            ],
+            "stop_conditions": [
+              "material_claim_without_evaluation_target",
+              "metric_changed_without_revision_record"
+            ]
+          },
+          "experiment_execution_lineage_capture": {
+            "purpose": "capture run lineage and execution outcome needed for research evidence without implementing agentic or software execution governance",
+            "required_inputs": [
+              "experiment_design",
+              "evidence_artifact_references"
+            ],
+            "required_outputs": [
+              "run_id",
+              "parent_run_id_if_any",
+              "run_state",
+              "lineage_references",
+              "execution_boundary_findings"
+            ],
+            "stop_conditions": [
+              "run_id_missing",
+              "execution_failure_affects_research_lineage_without_record"
+            ]
+          },
+          "run_validation_and_artifact_verification": {
+            "purpose": "verify that the run corresponds to the declared evidence artifacts and design conditions",
+            "required_inputs": [
+              "run_id",
+              "evidence_artifact_references"
+            ],
+            "required_outputs": [
+              "run_validity_status",
+              "artifact_binding_status",
+              "invalidated_result_markers"
+            ],
+            "stop_conditions": [
+              "artifact_binding_mismatch",
+              "failed_or_invalidated_run_reported_as_valid"
+            ]
+          },
+          "result_interpretation_and_uncertainty_bounding": {
+            "purpose": "separate raw output, measured result, interpretation, uncertainty, failed run, and negative result",
+            "required_inputs": [
+              "run_validity_status",
+              "run_outputs"
+            ],
+            "required_outputs": [
+              "raw_outputs",
+              "measured_results",
+              "negative_results",
+              "uncertainty_bounds",
+              "interpretation_candidates"
+            ],
+            "stop_conditions": [
+              "tool_output_treated_as_validated_result",
+              "invalidated_result_included_as_valid"
+            ]
+          },
+          "hypothesis_evaluation": {
+            "purpose": "evaluate hypotheses and counter-hypotheses under the bounded results without collapsing inconclusive outcomes",
+            "required_inputs": [
+              "measured_results",
+              "negative_results",
+              "hypothesis_set",
+              "counter_hypothesis_set"
+            ],
+            "required_outputs": [
+              "hypothesis_state_updates",
+              "counter_hypothesis_status",
+              "contradicting_evidence",
+              "residual_uncertainty"
+            ],
+            "stop_conditions": [
+              "contradicting_evidence_unprocessed",
+              "inconclusive_result_converted_to_support"
+            ]
+          },
+          "research_claim_construction": {
+            "purpose": "construct research claims from bounded evidence, scope, uncertainty, and limitations",
+            "required_inputs": [
+              "hypothesis_state_updates",
+              "measured_results",
+              "uncertainty_bounds"
+            ],
+            "required_outputs": [
+              "research_claims",
+              "claim_types",
+              "evidence_links",
+              "limitations",
+              "overturn_conditions"
+            ],
+            "stop_conditions": [
+              "claim_exceeds_evidence_type",
+              "load_bearing_claim_without_evidence_link"
+            ]
+          },
+          "limitation_and_failure_analysis": {
+            "purpose": "preserve limitations, negative results, failed runs, untested assumptions, and failure modes",
+            "required_inputs": [
+              "research_claims",
+              "run_states",
+              "contradicting_evidence"
+            ],
+            "required_outputs": [
+              "limitation_set",
+              "negative_result_record",
+              "failed_run_impact",
+              "untested_assumptions"
+            ],
+            "stop_conditions": [
+              "material_limitation_omitted",
+              "failed_or_negative_result_hidden"
+            ]
+          },
+          "reproduction_or_replication_condition_tracking": {
+            "purpose": "track reproduction or replication state and impact on claim confidence without treating failure as automatic refutation",
+            "required_inputs": [
+              "research_claims",
+              "evidence_artifact_references",
+              "run_ids"
+            ],
+            "required_outputs": [
+              "replication_applicability",
+              "replication_state",
+              "replication_difference_or_limitation"
+            ],
+            "stop_conditions": [
+              "failed_replication_ignored",
+              "partial_reproduction_reported_as_exact"
+            ]
+          },
+          "research_governance_audit": {
+            "purpose": "audit AIRGD-specific research claim governance, boundary preservation, and critical invalidation conditions",
+            "required_inputs": [
+              "research_process_record",
+              "research_claims",
+              "lineage_references"
+            ],
+            "required_outputs": [
+              "audit_findings",
+              "dimension_scores",
+              "critical_invalidation_status",
+              "boundary_findings"
+            ],
+            "stop_conditions": [
+              "critical_invalidation_unresolved",
+              "score_source_missing_for_reported_score"
+            ]
+          },
+          "research_repair_rerun_or_revision": {
+            "purpose": "identify the earliest valid AIRGD repair origin and preserve parent lineage through repair, rerun, or revision",
+            "required_inputs": [
+              "audit_findings",
+              "affected_objects"
+            ],
+            "required_outputs": [
+              "repair_origin",
+              "repair_record",
+              "rerun_or_revision_scope",
+              "before_after_comparison"
+            ],
+            "stop_conditions": [
+              "repair_origin_unknown",
+              "parent_run_or_revision_reference_missing"
+            ]
+          },
+          "publication_claim_consistency_and_status_reporting": {
+            "purpose": "report whether publication claims match validated research claims and whether review or handoff conditions exist",
+            "required_inputs": [
+              "research_claims",
+              "publication_claim_mapping",
+              "audit_findings"
+            ],
+            "required_outputs": [
+              "publication_claim_consistency_state",
+              "status_report",
+              "review_condition_findings"
+            ],
+            "stop_conditions": [
+              "publication_claim_without_research_claim_lineage",
+              "review_condition_hidden_as_final_approval"
+            ]
+          }
+        }
+      },
+      "evaluation": {
+        "evaluation_policy": {
+          "domain_evaluation_required_when_domain_claim_is_made": true,
+          "scored_evaluation_is_enabled_for_airgd": true,
+          "severity_model_is_enabled_for_airgd": true,
+          "scoring_reason": "AI research claim governance requires dimension-level readiness and invalidation checks to prevent claim overreach and lineage loss.",
+          "severity_reason": "AI research failures can invalidate specific claims or publication readiness even when other dimensions are stable.",
+          "non_applicable_dimensions_must_be_excluded_with_reason_when_reporting": true,
+          "do_not_enable_scoring_or_severity_for_apparent_completeness": true
+        },
+        "audit_targets": [
+          "research_question_integrity",
+          "scope_and_non_scope_clarity",
+          "prior_work_traceability",
+          "novelty_claim_integrity",
+          "hypothesis_and_counter_hypothesis_integrity",
+          "falsification_readiness",
+          "research_design_traceability",
+          "evidence_artifact_identity",
+          "run_lineage",
+          "negative_result_preservation",
+          "result_to_claim_separation",
+          "evidence_to_claim_linkage",
+          "limitation_transparency",
+          "replication_traceability",
+          "repair_rerun_revision_lineage",
+          "publication_claim_consistency",
+          "sibling_domain_boundary_preservation",
+          "authority_safe_review_condition_reporting",
+          "disclosure_condition_reporting"
+        ],
+        "minimum_pass_conditions": [
+          "research_claim_has_traceable_question_scope_and_evidence",
+          "material_novelty_claim_has_comparison_set_and_uncertainty",
+          "load_bearing_hypothesis_has_counter_hypothesis_or_recorded_non_applicability_reason",
+          "load_bearing_claim_has_falsification_or_limitation_condition",
+          "run_lineage_supports_material_result",
+          "invalidated_results_are_not_used_as_valid_evidence",
+          "publication_claims_match_validated_research_claims_or_are_reported_inconsistent"
+        ],
+        "drift_signals": [
+          "research_question_or_scope_drift",
+          "novelty_scope_expansion_without_prior_work_update",
+          "hypothesis_revision_without_revision_record",
+          "counter_hypothesis_disappears_from_claim_basis",
+          "metric_or_evidence_artifact_change_without_lineage_update",
+          "measured_result_drifts_into_general_claim",
+          "failed_run_or_negative_result_disappears",
+          "publication_claim_expands_beyond_validated_research_claim",
+          "sibling_domain_logic_reimplemented_inside_airgd",
+          "approval_authority_wording_appears_in_airgd_output"
+        ],
+        "critical_invalidation_conditions": [
+          "fabricated_or_unperformed_research_result_reported_as_valid",
+          "fabricated_or_unverified_load_bearing_citation_used_for_novelty_or_support",
+          "deliberately_false_or_materially_unsupported_novelty_claim",
+          "post_hoc_hypothesis_presented_as_predefined_without_revision_record",
+          "load_bearing_counter_hypothesis_removed_or_suppressed_without_basis",
+          "load_bearing_falsification_target_missing_for_material_research_claim",
+          "fabricated_baseline_control_or_ablation_result",
+          "load_bearing_artifact_identity_unknown_for_reported_result",
+          "invalidated_or_failed_run_reused_as_valid_research_evidence",
+          "material_negative_result_or_failed_replication_intentionally_hidden",
+          "research_claim_materially_exceeds_validated_evidence_scope",
+          "measured_result_treated_as_general_research_claim_without_scope_limit",
+          "tool_output_treated_as_validated_research_result_without_validation",
+          "statistical_or_data_validity_failure_reported_by_referenced_domain_invalidates_claim_basis",
+          "software_artifact_identity_or_environment_change_breaks_research_lineage",
+          "publication_claim_materially_diverges_from_validated_research_claim",
+          "dangerous_or_restricted_research_detail_marked_public_without_review_condition",
+          "authority_or_approval_condition_detected_but_reported_as_airgd_final_approval",
+          "persistent_research_lineage_break_prevents_claim_traceability",
+          "research_revision_retroactively_rewrites_prior_runs_claims_or_publications"
+        ],
+        "scoring_model": {
+          "enabled_when_domain_defines_scored_evaluation": true,
+          "score_range": [
+            0,
+            100
+          ],
+          "domain_dimension_scores": [
+            "research_question_integrity_score",
+            "scope_and_non_scope_clarity_score",
+            "prior_work_traceability_score",
+            "novelty_claim_integrity_score",
+            "hypothesis_and_counter_hypothesis_score",
+            "falsification_readiness_score",
+            "research_design_traceability_score",
+            "evidence_artifact_identity_score",
+            "run_lineage_score",
+            "negative_result_preservation_score",
+            "result_to_claim_separation_score",
+            "evidence_to_claim_integrity_score",
+            "limitation_transparency_score",
+            "replication_traceability_score",
+            "repair_rerun_revision_lineage_score",
+            "publication_claim_consistency_score",
+            "sibling_domain_boundary_preservation_score",
+            "authority_safe_review_condition_reporting_score",
+            "disclosure_boundary_condition_reporting_score"
+          ],
+          "minimum_expected_scores": {
+            "research_question_integrity_score": 85,
+            "scope_and_non_scope_clarity_score": 85,
+            "prior_work_traceability_score": 85,
+            "novelty_claim_integrity_score": 90,
+            "hypothesis_and_counter_hypothesis_score": 85,
+            "falsification_readiness_score": 90,
+            "research_design_traceability_score": 85,
+            "evidence_artifact_identity_score": 85,
+            "run_lineage_score": 90,
+            "negative_result_preservation_score": 85,
+            "result_to_claim_separation_score": 90,
+            "evidence_to_claim_integrity_score": 90,
+            "limitation_transparency_score": 85,
+            "replication_traceability_score": 85,
+            "repair_rerun_revision_lineage_score": 90,
+            "publication_claim_consistency_score": 90,
+            "sibling_domain_boundary_preservation_score": 90,
+            "authority_safe_review_condition_reporting_score": 85,
+            "disclosure_boundary_condition_reporting_score": 90
+          },
+          "aggregation_policy": {
+            "equal_weight_across_applicable_dimensions": true,
+            "non_applicable_dimensions_excluded_with_reason": true,
+            "critical_invalidation_overrides_aggregate_score": true,
+            "llm_self_assessment_must_not_be_presented_as_external_validation": true
+          },
+          "alignment_policy": {
+            "domain_dimension_scores_must_have_minimum_expected_scores_when_scoring_is_enabled": true,
+            "audit_targets_must_have_corresponding_dimension_or_explicit_non_scored_reason": true,
+            "critical_invalidation_conditions_must_appear_in_severity_model_when_material_and_severity_model_exists": true
+          }
+        },
+        "severity_model": {
+          "enabled_when_domain_uses_severity": true,
+          "levels": [
+            "low",
+            "moderate",
+            "high",
+            "critical"
+          ],
+          "severity_rules": {
+            "low": [
+              "minor_non_material_research_record_detail_missing",
+              "single_non_material_status_label_ambiguity"
+            ],
+            "moderate": [
+              "non_load_bearing_prior_work_metadata_incomplete",
+              "partial_scope_detail_missing_with_low_claim_impact",
+              "repairable_traceability_gap_without_claim_impact"
+            ],
+            "high": [
+              "material_claim_lacks_limitation_statement",
+              "material_counter_hypothesis_missing_without_reason",
+              "research_claim_scope_exceeds_evidence_but_is_repairable",
+              "replication_difference_unanalyzed_for_material_claim",
+              "sibling_domain_reference_condition_ignored_when_material"
+            ],
+            "critical": [
+              "fabricated_or_unperformed_research_result_reported_as_valid",
+              "fabricated_or_unverified_load_bearing_citation_used_for_novelty_or_support",
+              "deliberately_false_or_materially_unsupported_novelty_claim",
+              "post_hoc_hypothesis_presented_as_predefined_without_revision_record",
+              "load_bearing_counter_hypothesis_removed_or_suppressed_without_basis",
+              "load_bearing_falsification_target_missing_for_material_research_claim",
+              "fabricated_baseline_control_or_ablation_result",
+              "load_bearing_artifact_identity_unknown_for_reported_result",
+              "invalidated_or_failed_run_reused_as_valid_research_evidence",
+              "material_negative_result_or_failed_replication_intentionally_hidden",
+              "research_claim_materially_exceeds_validated_evidence_scope",
+              "measured_result_treated_as_general_research_claim_without_scope_limit",
+              "tool_output_treated_as_validated_research_result_without_validation",
+              "statistical_or_data_validity_failure_reported_by_referenced_domain_invalidates_claim_basis",
+              "software_artifact_identity_or_environment_change_breaks_research_lineage",
+              "publication_claim_materially_diverges_from_validated_research_claim",
+              "dangerous_or_restricted_research_detail_marked_public_without_review_condition",
+              "authority_or_approval_condition_detected_but_reported_as_airgd_final_approval",
+              "persistent_research_lineage_break_prevents_claim_traceability",
+              "research_revision_retroactively_rewrites_prior_runs_claims_or_publications"
+            ]
+          }
+        }
+      },
+      "repair": {
+        "purpose": "define AIRGD-local repair origins and affected-scope revalidation for AI research claim governance without replacing parent repair governance",
+        "core_rule": "repair_model_should_define_repair_origin_not_parent_repair_cycle",
+        "repair_origins": [
+          "research_question_or_scope_origin",
+          "prior_work_origin",
+          "novelty_claim_origin",
+          "hypothesis_or_counter_hypothesis_origin",
+          "falsification_origin",
+          "research_experiment_design_origin",
+          "evidence_artifact_identity_origin",
+          "baseline_control_or_ablation_applicability_origin",
+          "evaluation_plan_or_metric_binding_origin",
+          "run_lineage_origin",
+          "result_interpretation_origin",
+          "research_claim_origin",
+          "limitation_or_negative_result_origin",
+          "replication_condition_origin",
+          "publication_claim_consistency_origin",
+          "cross_domain_boundary_origin"
+        ],
+        "repair_policy": {
+          "identify_repair_origin": true,
+          "repair_affected_scope": true,
+          "revalidate_affected_axes": true,
+          "preserve_revision_lineage_when_material": true,
+          "do_not_skip_repair_and_claim_ready_without_basis": true,
+          "partial_revalidation_requires_reason": true,
+          "post_repair_review_must_cover_affected_axes": true,
+          "prior_research_history_immutable": true,
+          "prior_run_history_immutable": true,
+          "prior_claim_history_immutable": true,
+          "new_run_or_revision_record_required_when_material": true,
+          "before_after_comparison_required_when_claim_impact_exists": true
+        },
+        "human_or_runtime_review_condition_findings": [
+          "high_impact_or_public_research_claim_condition",
+          "dangerous_or_dual_use_disclosure_condition",
+          "authority_or_accountability_unclear_condition",
+          "critical_invalidation_condition",
+          "failed_replication_with_material_claim_impact_condition",
+          "sibling_domain_finding_needed_but_unavailable_condition"
+        ],
+        "review_condition_wording_policy": {
+          "review_required_wording_requires_authority_basis": true,
+          "airgd_reports_review_condition_findings_not_final_review_requirements": true,
+          "human_or_runtime_review_conditions_do_not_themselves_create_external_review_obligations": true,
+          "authority_sensitive_review_findings_should_request_or_recommend_clarification_not_claim_final_requirement": true
+        }
+      },
+      "replication_and_reproduction": {
+        "purpose": "track reproduction and replication only as they affect research claim confidence and lineage",
+        "types": [
+          "exact_reproduction",
+          "computational_reproduction",
+          "partial_reproduction",
+          "conceptual_replication",
+          "independent_replication",
+          "robustness_replication",
+          "cross_model_replication",
+          "cross_dataset_replication",
+          "cross_environment_replication"
+        ],
+        "required_fields_when_applicable": [
+          "replication_id",
+          "source_research_project_id",
+          "source_experiment_id",
+          "source_run_ids",
+          "source_artifacts",
+          "reproduction_or_replication_type",
+          "preserved_conditions",
+          "changed_conditions",
+          "expected_result",
+          "observed_result",
+          "result_difference",
+          "failure_reason",
+          "replication_state",
+          "claim_impact",
+          "limitations"
+        ],
+        "interpretation_rules": [
+          "replication_failure_is_not_automatic_refutation",
+          "replication_failure_must_not_be_ignored",
+          "partial_reproduction_must_not_be_reported_as_exact_reproduction",
+          "replication_claim_must_not_exceed_replicated_scope",
+          "failed_or_inconclusive_replication_must_be_preserved"
+        ]
+      },
+      "research_revision": {
+        "purpose": "preserve research version lineage when questions, hypotheses, experiments, metrics, claims, or publication mappings change",
+        "required_fields_when_material": [
+          "revision_id",
+          "source_research_version",
+          "target_research_version",
+          "changed_questions",
+          "changed_hypotheses",
+          "changed_experiments",
+          "changed_metrics",
+          "changed_claims",
+          "unchanged_elements",
+          "affected_runs",
+          "affected_publication_claims",
+          "revision_reason",
+          "re_evaluation_scope",
+          "replication_condition",
+          "rollback_condition"
+        ],
+        "revision_policy": {
+          "new_version_must_not_be_retroactively_applied_to_old_runs": true,
+          "old_questions_must_be_preserved": true,
+          "old_hypotheses_must_be_preserved": true,
+          "old_claims_must_be_preserved": true,
+          "old_publication_claim_mappings_must_be_preserved": true,
+          "revision_parent_child_relationship_required": true,
+          "affected_downstream_objects_must_be_identified": true
+        }
+      },
+      "activation": {
+        "enabled": true,
+        "activation_mode": "local_domain_applicability",
+        "applies_when": [
+          "ai_research_question_or_claim_is_being_created_or_evaluated",
+          "novelty_or_prior_work_claim_is_material",
+          "hypothesis_falsification_or_experiment_design_is_material",
+          "research_result_is_being_used_to_support_claim",
+          "negative_result_failed_run_replication_repair_or_revision_affects_claim",
+          "publication_claim_consistency_is_material"
+        ],
+        "does_not_replace_argd": true,
+        "does_not_replace_dagd": true,
+        "does_not_reimplement_cdogd": true,
+        "does_not_define_registry_logic": true,
+        "routing_and_priority_are_external": true,
+        "activation_record_minimum_fields": [
+          "activation_reason",
+          "domain_context",
+          "governed_target_context",
+          "applicable_evaluation_axes",
+          "declared_context_policy_status"
+        ],
+        "local_activation_scope_policy": {
+          "domain_activation_is_context_local": true,
+          "external_orchestration_may_select_or_prioritize_domain": true,
+          "domain_definition_does_not_store_registry_or_routing_logic": true
+        },
+        "reactivation_policy": {
+          "domain_activation_is_not_one_shot": true,
+          "domain_may_be_reactivated_when_relevant_conditions_recur": true,
+          "reactivation_triggers": [
+            "research_question_change",
+            "scope_change",
+            "prior_work_change",
+            "novelty_claim_change",
+            "hypothesis_or_counter_hypothesis_change",
+            "falsification_condition_change",
+            "evidence_artifact_change",
+            "run_state_change",
+            "claim_scope_change",
+            "replication_or_repair_state_change",
+            "publication_claim_change",
+            "authority_or_disclosure_context_change"
+          ],
+          "deactivation_does_not_imply_future_non_applicability": true
+        }
+      },
+      "self_audit": {
+        "enabled": true,
+        "audit_frequency": {
+          "before_material_research_claim": true,
+          "after_prior_work_or_novelty_change": true,
+          "after_hypothesis_or_falsification_change": true,
+          "after_run_or_artifact_identity_change": true,
+          "after_negative_result_or_failed_replication": true,
+          "after_repair_rerun_or_revision": true,
+          "before_publication_claim_status": true
+        },
+        "audit_axes": [
+          "question_scope_stability",
+          "prior_work_and_novelty_traceability",
+          "hypothesis_counter_hypothesis_falsification",
+          "evidence_artifact_identity",
+          "run_and_result_lineage",
+          "evidence_to_claim_integrity",
+          "negative_result_and_limitation_visibility",
+          "replication_and_revision_lineage",
+          "boundary_non_absorption",
+          "authority_safe_wording"
+        ],
+        "output_policy": {
+          "compact_by_default": true,
+          "emit_detail_on_anomaly": true,
+          "emit_detail_on_user_request": true,
+          "emit_detail_on_critical_failure": true
+        },
+        "required_basis_checks": [
+          "claim_ready_status_has_evidence_basis",
+          "critical_invalidation_checked_before_claim_ready",
+          "sibling_domain_reference_condition_reported_when_material",
+          "approval_or_authority_wording_not_overclaimed"
+        ],
+        "domain_specific_self_state_audit_policy": {
+          "optional_domain_local_policy": true,
+          "allowed_when_domain_requires_stronger_self_state_control": true,
+          "must_remain_domain_local": true,
+          "must_not_replace_parent_audit_or_repair_governance": true,
+          "must_not_be_treated_as_self_approval": true,
+          "must_define_overreach_detection_when_authority_sensitive": true,
+          "must_define_repair_or_escalation_when_self_state_is_unreliable": true
+        },
+        "self_audit_result_connection_policy": {
+          "self_audit_result_values_must_be_mapped_or_marked_internal_only_when_defined": true,
+          "self_doubt_result_values_must_be_mapped_or_marked_internal_only_when_defined": true,
+          "mapping_target_should_be_audit_to_action_when_actionable": true,
+          "internal_state_only_results_must_not_be_presented_as_action_outputs": true,
+          "result_names_and_action_names_must_remain_distinct": true,
+          "unmapped_actionable_self_audit_results_are_schema_hygiene_failure": true
+        }
+      },
+      "audit_to_action": {
+        "enabled": true,
+        "decision_inputs": [
+          "research_claim_ready_status",
+          "critical_invalidation_status",
+          "prior_work_traceability_status",
+          "novelty_claim_status",
+          "hypothesis_falsification_status",
+          "evidence_artifact_identity_status",
+          "run_lineage_status",
+          "negative_result_visibility_status",
+          "replication_impact_status",
+          "publication_claim_consistency_status",
+          "sibling_domain_reference_condition_status",
+          "authority_review_condition_status",
+          "disclosure_review_condition_status"
+        ],
+        "action_outputs": [
+          "emit_research_claim_condition_status",
+          "block_research_claim_ready_claim",
+          "expand_prior_work_review",
+          "revise_novelty_claim",
+          "add_or_restore_counter_hypothesis",
+          "define_falsification_targets",
+          "redesign_research_experiment",
+          "refix_research_evidence_artifacts",
+          "rerun_experiment_with_lineage",
+          "re_evaluate_research_results",
+          "requalify_or_withdraw_claim",
+          "run_replication_or_report_replication_condition",
+          "report_human_or_authority_review_condition",
+          "recommend_handoff_to_relevant_domain",
+          "report_disclosure_or_security_review_condition",
+          "report_publication_claim_inconsistency",
+          "report_critical_research_invalidation"
+        ],
+        "decision_rules": {
+          "no_material_issue": {
+            "when": [
+              "research_claim_ready_status_is_stable",
+              "critical_invalidation_status_is_false"
+            ],
+            "emit": [
+              "emit_research_claim_condition_status"
+            ]
+          },
+          "critical_invalidation_detected": {
+            "when": [
+              "critical_invalidation_status_is_true"
+            ],
+            "emit": [
+              "report_critical_research_invalidation",
+              "block_research_claim_ready_claim",
+              "emit_research_claim_condition_status"
+            ]
+          },
+          "prior_work_or_novelty_gap": {
+            "when": [
+              "prior_work_traceability_status_is_degraded",
+              "novelty_claim_status_is_overextended"
+            ],
+            "emit": [
+              "expand_prior_work_review",
+              "revise_novelty_claim",
+              "emit_research_claim_condition_status"
+            ]
+          },
+          "hypothesis_or_falsification_gap": {
+            "when": [
+              "hypothesis_falsification_status_is_degraded"
+            ],
+            "emit": [
+              "add_or_restore_counter_hypothesis",
+              "define_falsification_targets",
+              "block_research_claim_ready_claim"
+            ]
+          },
+          "research_design_or_artifact_gap": {
+            "when": [
+              "evidence_artifact_identity_status_is_unknown",
+              "run_lineage_status_is_broken"
+            ],
+            "emit": [
+              "redesign_research_experiment",
+              "refix_research_evidence_artifacts",
+              "rerun_experiment_with_lineage"
+            ]
+          },
+          "claim_overreach_or_uncertainty_gap": {
+            "when": [
+              "research_claim_ready_status_is_overextended",
+              "negative_result_visibility_status_is_incomplete"
+            ],
+            "emit": [
+              "re_evaluate_research_results",
+              "requalify_or_withdraw_claim",
+              "emit_research_claim_condition_status"
+            ]
+          },
+          "replication_or_revision_impact": {
+            "when": [
+              "replication_impact_status_is_material_or_unresolved"
+            ],
+            "emit": [
+              "run_replication_or_report_replication_condition",
+              "requalify_or_withdraw_claim"
+            ]
+          },
+          "publication_claim_mismatch": {
+            "when": [
+              "publication_claim_consistency_status_is_inconsistent"
+            ],
+            "emit": [
+              "report_publication_claim_inconsistency",
+              "block_research_claim_ready_claim",
+              "emit_research_claim_condition_status"
+            ]
+          },
+          "sibling_domain_condition_detected": {
+            "when": [
+              "sibling_domain_reference_condition_status_is_material"
+            ],
+            "emit": [
+              "recommend_handoff_to_relevant_domain",
+              "emit_research_claim_condition_status"
+            ]
+          },
+          "authority_or_disclosure_condition_detected": {
+            "when": [
+              "authority_review_condition_status_is_material",
+              "disclosure_review_condition_status_is_material"
+            ],
+            "emit": [
+              "report_human_or_authority_review_condition",
+              "report_disclosure_or_security_review_condition",
+              "emit_research_claim_condition_status"
+            ]
+          }
+        },
+        "audit_to_action_consistency_policy": {
+          "decision_inputs_must_be_declared_when_used": true,
+          "action_outputs_must_be_declared_when_used": true,
+          "audit_decision_rules_must_emit_registered_action_outputs_only": true,
+          "unregistered_action_output_is_schema_hygiene_failure": true,
+          "action_precedence_must_not_override_higher_authority": true,
+          "unused_action_outputs_must_be_removed_or_marked_reserved": true,
+          "decision_rules_must_not_emit_unregistered_result_values_as_actions": true
+        },
+        "action_precedence": {
+          "critical_failure_blocks_ready_claim_when_material": true,
+          "deduplicate_actions_after_mapping": true,
+          "domain_actions_emit_findings_not_final_authorizations": true
+        },
+        "action_output_registration_policy": {
+          "action_outputs_must_be_used_by_decision_rules_or_marked_reserved_or_payload_target": true,
+          "unused_unreserved_action_outputs_should_be_removed": true,
+          "reserved_action_outputs_must_be_marked_extension_reserved_or_future_reserved": true,
+          "decision_inputs_must_be_used_or_marked_reserved": true,
+          "action_names_must_not_be_confused_with_result_values": true,
+          "payload_targets_should_be_used_when_many_specific_actions_share_one_action_pattern": true
+        }
+      },
+      "status_reporting": {
+        "enabled": true,
+        "status_reporting_should_define_domain_delta_only": true,
+        "modes": [
+          "silent_by_default",
+          "emit_on_anomaly",
+          "emit_on_user_request",
+          "emit_on_blocking_failure",
+          "emit_after_material_repair"
+        ],
+        "compact_fields": [
+          "research_project_id",
+          "research_claim_ready_status",
+          "critical_invalidation_status",
+          "prior_work_and_novelty_status",
+          "hypothesis_and_falsification_status",
+          "evidence_artifact_identity_status",
+          "run_lineage_status",
+          "negative_result_visibility_status",
+          "replication_impact_status",
+          "publication_claim_consistency_status",
+          "boundary_or_review_condition_findings"
+        ],
+        "visibility_rules": {
+          "show_critical_failure": true,
+          "show_blocking_failure": true,
+          "show_material_repair": true,
+          "show_boundary_or_review_condition_when_material": true,
+          "suppress_verbose_status_when_no_anomaly_and_no_user_request": true
+        }
+      },
+      "record_schemas": {
+        "record_policy": {
+          "record_schemas_are_optional_unless_domain_requires_records": false,
+          "if_records_exist_required_fields_must_map_to_field_groups": true,
+          "records_must_not_redefine_parent_audit_or_repair_cycle": true,
+          "records_must_remain_domain_delta": true,
+          "records_should_be_minimal_and_material_conditioned": true,
+          "record_schemas_must_not_be_treated_as_always_required_outside_material_research_claim_context": true,
+          "record_fields_should_not_be_expanded_for_documentation_exhaustiveness": true
+        },
+        "domain_record_templates": {
+          "ai_research_process_record": {
+            "record_name": "ai_research_process_record",
+            "record_version": "0.1.0",
+            "purpose": "record the minimum AIRGD material chain from research question through claim and lineage",
+            "required_when": "material_ai_research_claim_is_created_or_evaluated",
+            "required_fields": [
+              "research_project_id",
+              "research_question_id",
+              "research_objective",
+              "scope_statement",
+              "non_scope_statement",
+              "prior_work_references",
+              "novelty_claim",
+              "hypothesis_ids",
+              "counter_hypothesis_ids",
+              "falsification_targets",
+              "experiment_design_reference",
+              "evidence_artifact_references",
+              "run_ids",
+              "measured_results",
+              "negative_results",
+              "research_claims",
+              "limitations",
+              "research_state",
+              "lineage_references"
+            ],
+            "field_groups": {
+              "identity": [
+                "research_project_id",
+                "research_question_id",
+                "research_state"
+              ],
+              "question_and_scope": [
+                "research_objective",
+                "scope_statement",
+                "non_scope_statement"
+              ],
+              "prior_work_and_novelty": [
+                "prior_work_references",
+                "novelty_claim"
+              ],
+              "hypothesis_and_falsification": [
+                "hypothesis_ids",
+                "counter_hypothesis_ids",
+                "falsification_targets"
+              ],
+              "research_design_and_artifacts": [
+                "experiment_design_reference",
+                "evidence_artifact_references"
+              ],
+              "runs_and_results": [
+                "run_ids",
+                "measured_results",
+                "negative_results"
+              ],
+              "claims_and_limits": [
+                "research_claims",
+                "limitations"
+              ],
+              "lineage": [
+                "lineage_references"
+              ]
+            },
+            "validation_rules": [
+              "required_fields_must_appear_in_field_groups",
+              "object_references_must_resolve_or_be_marked_external_reference",
+              "invalidated_objects_must_not_be_reported_as_valid",
+              "material_claims_must_link_to_supporting_evidence_and_limitations",
+              "repair_or_revision_records_must_preserve_parent_lineage_when_applicable"
+            ]
+          },
+          "research_evaluation_replication_and_repair_record": {
+            "record_name": "research_evaluation_replication_and_repair_record",
+            "record_version": "0.1.0",
+            "purpose": "record AIRGD evaluation findings, replication impact, repair conditions, and governance state",
+            "required_when": "material_ai_research_claim_is_created_or_evaluated",
+            "required_fields": [
+              "audit_id",
+              "evaluation_id",
+              "research_project_id",
+              "run_ids",
+              "audit_targets",
+              "domain_dimension_scores",
+              "score_sources",
+              "detected_deviations",
+              "severity",
+              "critical_invalidation_status",
+              "affected_claims",
+              "repair_condition_findings",
+              "replication_condition_findings",
+              "authority_review_condition_findings",
+              "governance_state"
+            ],
+            "field_groups": {
+              "identity": [
+                "audit_id",
+                "evaluation_id",
+                "research_project_id",
+                "run_ids"
+              ],
+              "criteria_and_scores": [
+                "audit_targets",
+                "domain_dimension_scores",
+                "score_sources"
+              ],
+              "findings": [
+                "detected_deviations",
+                "severity",
+                "critical_invalidation_status"
+              ],
+              "claim_impact": [
+                "affected_claims"
+              ],
+              "repair_replication_and_review": [
+                "repair_condition_findings",
+                "replication_condition_findings",
+                "authority_review_condition_findings"
+              ],
+              "state": [
+                "governance_state"
+              ]
+            },
+            "validation_rules": [
+              "required_fields_must_appear_in_field_groups",
+              "object_references_must_resolve_or_be_marked_external_reference",
+              "invalidated_objects_must_not_be_reported_as_valid",
+              "material_claims_must_link_to_supporting_evidence_and_limitations",
+              "repair_or_revision_records_must_preserve_parent_lineage_when_applicable"
+            ]
+          }
+        },
+        "record_relationship_contract": {
+          "primary_relationships": [
+            "research_project_id_to_research_question_id",
+            "research_question_id_to_prior_work_references",
+            "research_question_id_to_hypothesis_ids",
+            "hypothesis_id_to_counter_hypothesis_ids",
+            "hypothesis_id_to_falsification_targets",
+            "research_question_id_to_experiment_design_reference",
+            "experiment_design_reference_to_run_ids",
+            "run_ids_to_evidence_artifact_references",
+            "research_claims_to_supporting_evidence_and_limitations",
+            "repair_record_to_affected_objects",
+            "revision_record_to_source_research_version",
+            "publication_claim_mapping_to_validated_research_claims"
+          ],
+          "prohibited_orphans": [
+            "orphan_run",
+            "orphan_claim",
+            "orphan_evaluation",
+            "orphan_replication",
+            "orphan_repair",
+            "orphan_revision",
+            "publication_claim_without_research_claim_lineage"
+          ]
+        },
+        "record_schema_consistency_policy": {
+          "record_required_fields_must_be_mapped_to_field_groups": true,
+          "field_group_items_inherit_group_requirement_level_unless_overridden": true,
+          "field_group_items_must_have_known_requirement_level_after_inheritance": true,
+          "record_relationships_must_not_create_orphan_records": true
+        }
+      },
+      "meta_data": {
+        "version": "0.1.0"
+      }
+    }
+  }
+}

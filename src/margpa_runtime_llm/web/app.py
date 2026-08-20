@@ -46,6 +46,11 @@ from .persistent_routes import (
     create_persistent_router,
     persistent_error_response,
 )
+from .runtime_composition_routes import (
+    RuntimeCompositionWebError,
+    create_runtime_composition_router,
+    runtime_composition_error_response,
+)
 from .streaming import stream_session_as_sse
 
 MAX_CHAT_REQUEST_BYTES = 262_144
@@ -202,6 +207,14 @@ def create_web_app(
         del request
         return configuration_error_response(exc)
 
+    @app.exception_handler(RuntimeCompositionWebError)
+    async def runtime_composition_web_error(
+        request: Request,
+        exc: RuntimeCompositionWebError,
+    ) -> JSONResponse:
+        del request
+        return runtime_composition_error_response(exc)
+
     @app.exception_handler(PersistentWebError)
     async def persistent_web_error(
         request: Request,
@@ -314,6 +327,7 @@ def create_web_app(
 
     app.include_router(create_persistent_router())
     app.include_router(create_configuration_router())
+    app.include_router(create_runtime_composition_router())
 
     app.mount("/assets", StaticFiles(directory=STATIC_ROOT), name="assets")
     return app

@@ -10,9 +10,15 @@ from pathlib import Path
 import pytest
 
 from margpa_runtime_llm.modules.conversation.adapters.sqlite_conversation_store import (
+    STORAGE_SCHEMA_VERSION,
     SQLiteConversationStore,
 )
 from margpa_runtime_llm.modules.conversation.adapters.sqlite_migration import (
+    CONVERSATION_TITLE_MIGRATION_STEP,
+    LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_1,
+    LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_2,
+    TURN_CITATIONS_MIGRATION_STEP,
+    SQLiteConversationMaintenance,
     SQLiteMigrationEngine,
     SQLiteMigrationStep,
     _artifact_key,
@@ -26,7 +32,11 @@ from margpa_runtime_llm.modules.conversation.domain import (
     ConversationStorageError,
     ConversationStorageErrorCode,
 )
-from margpa_runtime_llm.modules.conversation.ports import CommitConversation, MigrationPlan
+from margpa_runtime_llm.modules.conversation.ports import (
+    CommitConversation,
+    MigrationPlan,
+    StorageReadiness,
+)
 
 
 def digest(path: Path) -> str:
@@ -47,7 +57,10 @@ def legacy_store(tmp_path: Path) -> tuple[SQLiteConversationStore, str]:
 
 def promote(path: Path) -> None:
     with sqlite3.connect(path) as connection:
-        connection.execute("UPDATE store_metadata SET storage_schema_version = 'sqlite-1'")
+        connection.execute(
+            "UPDATE store_metadata SET storage_schema_version = ?",
+            (STORAGE_SCHEMA_VERSION,),
+        )
 
 
 def engine(tmp_path: Path, store: SQLiteConversationStore) -> SQLiteMigrationEngine:
@@ -59,7 +72,7 @@ def engine(tmp_path: Path, store: SQLiteConversationStore) -> SQLiteMigrationEng
             SQLiteMigrationStep(
                 step_id="fixture-promote",
                 source_version="legacy-fixture-1",
-                target_version="sqlite-1",
+                target_version=STORAGE_SCHEMA_VERSION,
                 transform=promote,
             ),
         ),
@@ -71,7 +84,7 @@ def test_explicit_migration_preserves_checkpoint_and_supports_exact_rollback(
 ) -> None:
     store, source_digest = legacy_store(tmp_path)
     migration = engine(tmp_path, store)
-    plan = migration.plan_migration("sqlite-1")
+    plan = migration.plan_migration(STORAGE_SCHEMA_VERSION)
     receipt = migration.migrate(
         plan,
         migration_id="migration-1",
@@ -107,12 +120,12 @@ def test_transform_failure_leaves_source_unchanged_and_incomplete_marker(
             SQLiteMigrationStep(
                 step_id="fixture-fail",
                 source_version="legacy-fixture-1",
-                target_version="sqlite-1",
+                target_version=STORAGE_SCHEMA_VERSION,
                 transform=fail,
             ),
         ),
     )
-    plan = migration.plan_migration("sqlite-1")
+    plan = migration.plan_migration(STORAGE_SCHEMA_VERSION)
     with pytest.raises(RuntimeError, match="fixture failure"):
         migration.migrate(
             plan,
@@ -137,7 +150,7 @@ def test_rollback_rejects_post_migration_write(tmp_path: Path) -> None:
     store, _ = legacy_store(tmp_path)
     migration = engine(tmp_path, store)
     receipt = migration.migrate(
-        migration.plan_migration("sqlite-1"),
+        migration.plan_migration(STORAGE_SCHEMA_VERSION),
         migration_id="migration-1",
         checkpoint_id="checkpoint-1",
     )
@@ -156,8 +169,105 @@ def test_production_registry_starts_without_invented_legacy_steps(tmp_path: Path
         marker_directory=tmp_path / "markers",
     )
     with pytest.raises(ConversationStorageError) as captured:
-        migration.plan_migration("sqlite-1")
+        migration.plan_migration(STORAGE_SCHEMA_VERSION)
     assert captured.value.code is ConversationStorageErrorCode.UNSUPPORTED_SCHEMA
+
+
+def test_turn_citations_migration_step_adds_the_table_additively(tmp_path: Path) -> None:
+    """Phase 2-E: a real `sqlite-1` store gains `turn_citations` and stays readable."""
+
+    store = SQLiteConversationStore(
+        runtime_data_root=tmp_path / "runtime-data",
+        bound_scope_id=ConversationScopeId(value="scope-private"),
+        known_legacy_versions=(LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_1,),
+    )
+    store.initialize_new_store()
+    store.commit(
+        CommitConversation(
+            scope_id=ConversationScopeId(value="scope-private"),
+            operation_id=ConversationOperationId(value="pre-migration-write"),
+            conversation=empty_snapshot(),
+        )
+    )
+    with sqlite3.connect(store.database_path) as connection:
+        connection.execute("DROP TABLE turn_citations")
+        connection.execute("ALTER TABLE conversations DROP COLUMN title")
+        connection.execute(
+            "UPDATE store_metadata SET storage_schema_version = ?",
+            (LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_1,),
+        )
+    assert store.inspect_schema().readiness is StorageReadiness.MIGRATION_REQUIRED
+
+    maintenance = SQLiteConversationMaintenance(
+        store=store,
+        steps=(TURN_CITATIONS_MIGRATION_STEP, CONVERSATION_TITLE_MIGRATION_STEP),
+    )
+    plan = maintenance.plan_migration(STORAGE_SCHEMA_VERSION)
+    receipt = maintenance.migrate(plan, checkpoint_id="turn-citations-checkpoint")
+    assert receipt.record_count == 1
+
+    status = store.inspect_schema()
+    assert status.readiness is StorageReadiness.READY
+    with sqlite3.connect(store.database_path) as connection:
+        tables = {
+            row[0]
+            for row in connection.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
+        }
+        columns = {row[1] for row in connection.execute("PRAGMA table_info(conversations)")}
+    assert "turn_citations" in tables
+    assert "title" in columns
+    assert (
+        store.get(
+            ConversationScopeId(value="scope-private"),
+            ConversationId(value="conversation-race"),
+        )
+        is not None
+    )
+
+
+def test_conversation_title_migration_step_adds_the_column_additively(tmp_path: Path) -> None:
+    """Phase 2-E-H: a real `sqlite-2` store gains `title` and stays readable."""
+
+    store = SQLiteConversationStore(
+        runtime_data_root=tmp_path / "runtime-data",
+        bound_scope_id=ConversationScopeId(value="scope-private"),
+        known_legacy_versions=(LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_2,),
+    )
+    store.initialize_new_store()
+    store.commit(
+        CommitConversation(
+            scope_id=ConversationScopeId(value="scope-private"),
+            operation_id=ConversationOperationId(value="pre-migration-write"),
+            conversation=empty_snapshot(),
+        )
+    )
+    with sqlite3.connect(store.database_path) as connection:
+        connection.execute("ALTER TABLE conversations DROP COLUMN title")
+        connection.execute(
+            "UPDATE store_metadata SET storage_schema_version = ?",
+            (LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_2,),
+        )
+    assert store.inspect_schema().readiness is StorageReadiness.MIGRATION_REQUIRED
+
+    maintenance = SQLiteConversationMaintenance(
+        store=store,
+        steps=(CONVERSATION_TITLE_MIGRATION_STEP,),
+    )
+    plan = maintenance.plan_migration(STORAGE_SCHEMA_VERSION)
+    receipt = maintenance.migrate(plan, checkpoint_id="title-column-checkpoint")
+    assert receipt.record_count == 1
+
+    status = store.inspect_schema()
+    assert status.readiness is StorageReadiness.READY
+    with sqlite3.connect(store.database_path) as connection:
+        columns = {row[1] for row in connection.execute("PRAGMA table_info(conversations)")}
+    assert "title" in columns
+    stored = store.get(
+        ConversationScopeId(value="scope-private"),
+        ConversationId(value="conversation-race"),
+    )
+    assert stored is not None
+    assert stored.conversation.title is None
 
 
 def current_migration_engine(
@@ -173,7 +283,7 @@ def current_migration_engine(
         steps=(
             SQLiteMigrationStep(
                 step_id="current-to-fixture-2",
-                source_version="sqlite-1",
+                source_version=STORAGE_SCHEMA_VERSION,
                 target_version="fixture-2",
                 transform=transform,
             ),
@@ -331,7 +441,7 @@ def test_external_identities_are_digest_mapped_inside_recovery_roots(
     store, _ = legacy_store(tmp_path)
     migration = engine(tmp_path, store)
     migration.migrate(
-        migration.plan_migration("sqlite-1"),
+        migration.plan_migration(STORAGE_SCHEMA_VERSION),
         migration_id=migration_id,
         checkpoint_id=checkpoint_id,
     )
@@ -354,7 +464,7 @@ def test_symlink_unsafe_mode_and_outside_root_are_rejected_without_write(tmp_pat
         authorized_root=tmp_path,
     )
     with pytest.raises(ConversationStorageError) as linked:
-        linked_engine.plan_migration("sqlite-1")
+        linked_engine.plan_migration(STORAGE_SCHEMA_VERSION)
     assert linked.value.code is ConversationStorageErrorCode.PERMISSION_DENIED
 
     unsafe = tmp_path / "unsafe"
@@ -367,7 +477,7 @@ def test_symlink_unsafe_mode_and_outside_root_are_rejected_without_write(tmp_pat
         authorized_root=tmp_path,
     )
     with pytest.raises(ConversationStorageError) as mode:
-        unsafe_engine.plan_migration("sqlite-1")
+        unsafe_engine.plan_migration(STORAGE_SCHEMA_VERSION)
     assert mode.value.code is ConversationStorageErrorCode.PERMISSION_DENIED
     assert unsafe.stat().st_mode & 0o777 == 0o777
 
@@ -379,7 +489,7 @@ def test_symlink_unsafe_mode_and_outside_root_are_rejected_without_write(tmp_pat
         authorized_root=tmp_path,
     )
     with pytest.raises(ConversationStorageError) as escaped:
-        escaped_engine.plan_migration("sqlite-1")
+        escaped_engine.plan_migration(STORAGE_SCHEMA_VERSION)
     assert escaped.value.code is ConversationStorageErrorCode.PERMISSION_DENIED
     assert not external.exists()
 
@@ -394,7 +504,7 @@ def test_existing_unsafe_checkpoint_artifact_is_not_repaired(tmp_path: Path) -> 
     unsafe.chmod(0o644)
     with pytest.raises(ConversationStorageError) as captured:
         migration.migrate(
-            migration.plan_migration("sqlite-1"),
+            migration.plan_migration(STORAGE_SCHEMA_VERSION),
             "checkpoint-unsafe",
             migration_id="migration-unsafe",
         )

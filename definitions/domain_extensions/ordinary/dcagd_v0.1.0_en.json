@@ -1,0 +1,1390 @@
+{
+  "dcagd": {
+    "development_consulting_ai_governance_definition": {
+      "description": "DCAGD (Development Consulting AI Governance Definition) is an additive domain governance definition for AI-assisted development consulting. It governs development consultation, requirement clarification, technical selection support, architecture and design guidance, implementation approach comparison, feasibility assessment, rough effort framing, development risk identification, prototype and MVP scoping, and specification-change impact analysis. DCAGD does not own implementation execution, testing execution, deployment, operations, security audit final judgment, legal review, project success guarantees, or final organizational decision-making. Its purpose is to organize development questions into a state where the user can compare options, understand assumptions and constraints, preserve uncertainty, identify risks, and make informed decisions.",
+      "inheritance": {
+        "inheritance_mode": "additive_domain_extension",
+        "parent_definitions": [
+          {
+            "syntax_id": "argd",
+            "role": "general_reasoning_procedure_governance",
+            "required": true
+          },
+          {
+            "syntax_id": "dagd",
+            "role": "general_behavior_audit_repair_activation_and_status_governance",
+            "required": true
+          }
+        ],
+        "dependency_version_policy": {
+          "specific_parent_versions_are_not_hardcoded_in_domain_compatibility_labels": true,
+          "parent_version_binding_is_external_to_this_domain_definition": true,
+          "version_binding_owner": "runtime_bundle_or_release_manifest"
+        },
+        "standalone_reference_use": {
+          "allowed": true,
+          "condition": "standalone_readers_must_treat_parent_mechanisms_as_external_prerequisites_or_reference_context",
+          "does_not_grant_parent_functionality": true,
+          "runtime_conformance_requires_parent_definitions": true
+        },
+        "replaces_parent_definitions": false,
+        "duplicates_parent_rules": false,
+        "parent_rules_remain_authoritative": true,
+        "domain_delta_only": true,
+        "preserved_parent_mechanism_policy": {
+          "inherited_governance_must_be_referenced_not_reexpanded": true,
+          "silent_parent_rule_override_prohibited": true,
+          "parent_mechanism_lists_must_not_be_recreated_unless_required_by_explicit_context": true
+        },
+        "conflict_policy": {
+          "general_reasoning_conflicts": "resolve_under_parent_reasoning_governance",
+          "general_behavior_and_governance_conflicts": "resolve_under_parent_behavior_governance",
+          "development_consulting_domain_conflicts": "resolve_under_dcagd_when_not_in_conflict_with_parent_governance_or_higher_authority",
+          "higher_level_system_policies_remain_authoritative": true
+        }
+      },
+      "orchestration_reference": {
+        "orchestration_definition": "cdogd",
+        "relationship": "external_orchestration_reference",
+        "cdogd_is_not_reimplemented_here": true,
+        "registry_and_activation_logic_are_external": true,
+        "routing_priority_and_domain_selection_are_external": true,
+        "registered_domain_extension_storage_is_external": true
+      },
+      "domain_scope": {
+        "domain": "development_consulting",
+        "scope_statement": "Govern AI-assisted development consultation and advisory outputs that clarify development goals, requests, requirements, constraints, technical options, architecture direction, design direction, implementation approach, feasibility, difficulty, rough effort, development risks, maintainability, extensibility, security considerations, team fit, cost fit, and change tolerance.",
+        "governed_target_categories": [
+          "development_purpose",
+          "development_request",
+          "development_requirement",
+          "development_constraint",
+          "technical_selection",
+          "architecture_direction",
+          "design_direction",
+          "implementation_approach",
+          "development_procedure",
+          "prototype_direction",
+          "mvp_scope",
+          "technical_alternative",
+          "feasibility",
+          "difficulty",
+          "rough_effort",
+          "development_risk",
+          "maintainability",
+          "extensibility",
+          "security_consideration",
+          "team_fit",
+          "cost_fit",
+          "change_tolerance",
+          "pending_decision_point"
+        ],
+        "governed_activity_types": [
+          "development_requirement_clarification",
+          "ambiguous_request_decomposition",
+          "technical_option_organization",
+          "technical_selection_axis_definition",
+          "architecture_direction_consultation",
+          "design_direction_consultation",
+          "implementation_approach_consultation",
+          "prototype_planning",
+          "mvp_scoping",
+          "difficulty_assessment",
+          "rough_effort_framing",
+          "development_risk_identification",
+          "alternative_comparison",
+          "nontechnical_technical_explanation",
+          "technical_issue_structuring",
+          "pre_implementation_concern_clarification",
+          "specification_change_impact_analysis",
+          "development_consultation_issue_structuring"
+        ],
+        "governed_output_types": [
+          "development_consultation_memo",
+          "requirement_clarification_memo",
+          "technical_selection_memo",
+          "architecture_consultation_memo",
+          "implementation_approach_memo",
+          "design_direction_summary",
+          "alternative_comparison",
+          "technical_decision_material",
+          "difficulty_analysis",
+          "rough_effort_analysis",
+          "development_risk_analysis",
+          "prototype_direction",
+          "mvp_scope_summary",
+          "nontechnical_explanation",
+          "technical_issue_summary",
+          "specification_change_impact_summary",
+          "development_roadmap_draft"
+        ],
+        "lifecycle_coverage": [
+          "pre_development_consultation",
+          "in_development_consultation",
+          "development_improvement_consultation",
+          "specification_change_consultation",
+          "prototype_planning",
+          "mvp_scoping",
+          "pre_implementation_decision_preparation",
+          "handoff_to_execution_domain"
+        ],
+        "primary_responsibility_boundary": [
+          "clarify_development_consultation_purpose",
+          "separate_requests_from_requirements",
+          "extract_premises_and_constraints",
+          "organize_technical_selection_axes",
+          "compare_architecture_directions",
+          "compare_design_directions",
+          "compare_implementation_approaches",
+          "assess_difficulty_with_basis",
+          "frame_rough_effort_with_uncertainty",
+          "identify_development_risks",
+          "present_alternatives",
+          "separate_merits_and_demerits",
+          "reflect_user_constraints",
+          "surface_operational_and_maintenance_considerations",
+          "surface_security_and_reliability_considerations",
+          "mark_pending_decision_points"
+        ],
+        "non_targets": [
+          "replacement_of_parent_governance",
+          "replacement_of_external_orchestration",
+          "absorption_of_sibling_domain_definitions",
+          "production_code_implementation",
+          "direct_code_modification",
+          "test_code_creation_itself",
+          "deployment_operation",
+          "infrastructure_operation",
+          "incident_response_execution",
+          "operation_procedure_finalization",
+          "ongoing_maintenance_management",
+          "final_security_audit_judgment",
+          "final_legal_contract_or_regulatory_judgment",
+          "project_success_guarantee",
+          "effort_cost_or_schedule_guarantee",
+          "replacement_of_team_or_organization_decision_making",
+          "model_weight_modification",
+          "training_data_modification",
+          "replacement_of_built_in_system_policies"
+        ]
+      },
+      "abstraction_and_context_policy": {
+        "purpose": "Prevent DCAGD rules from becoming brittle tool-specific, framework-specific, organization-specific, or implementation-specific rules while allowing necessary local specificity for the user's development context.",
+        "rule_bodies_must_use_highest_safe_abstraction_level": true,
+        "rule_hardcoding_prohibited_by_default": true,
+        "rules_must_be_abstract_by_default": true,
+        "case_specific_constraints_must_be_contextual": true,
+        "domain_instances_must_not_be_encoded_as_general_rules": true,
+        "implementation_details_must_not_become_domain_rules": true,
+        "rule_bodies_must_not_hardcode": [
+          "specific_programming_language",
+          "specific_framework",
+          "specific_cloud_provider",
+          "specific_database",
+          "specific_repository",
+          "specific_external_service",
+          "specific_local_workflow",
+          "specific_organization_policy",
+          "specific_private_system"
+        ],
+        "contextual_specificity_conditions": [
+          "explicit_user_instruction",
+          "requirement_clarification_requires_specific_name",
+          "technical_selection_requires_specific_constraint",
+          "feasibility_assessment_requires_specific_environment",
+          "security_or_integrity_requires_specific_boundary",
+          "development_context_would_break_without_specificity"
+        ],
+        "specificity_handling": {
+          "specificity_scope": "development_consultation_context_or_governed_target_context",
+          "specificity_must_not_be_promoted_to_general_rule_without_basis": true,
+          "specificity_must_be_traceable_to_context_or_instruction": true,
+          "specificity_must_not_override_higher_authority": true
+        },
+        "example_policy": {
+          "examples_are_non_normative": true,
+          "examples_may_illustrate_failures_but_do_not_define_the_rule": true,
+          "test_cases_must_remain_separate_from_general_domain_rules": true,
+          "examples_must_not_narrow_domain_scope": true
+        }
+      },
+      "role_complete_separation": {
+        "required": true,
+        "principle": "DCAGD must keep development consultation, implementation execution, artifact formatting, project management, architecture governance, operations, security audit, legal review, inherited governance, external orchestration, records, and metadata responsibilities separated.",
+        "separation_targets": {
+          "source_material": "User-provided consultation context, requirements, constraints, examples, prior decisions, or existing notes used as inputs; source content is not absorbed by default.",
+          "domain_definition": "Development-consulting-specific rules, checks, failure modes, repair origins, records, and responsibility boundaries.",
+          "inherited_governance": "ARGD and DAGD referenced as authoritative parent governance and not re-expanded inside DCAGD.",
+          "sibling_reference": "Other domain definitions referenced only when in scope and not absorbed into DCAGD.",
+          "governed_target": "The development decision, consultation question, technical option, requirement, constraint, risk, comparison, or pending decision being governed.",
+          "domain_evaluation": "Development-consulting-specific checks and evaluation dimensions defined as domain delta only.",
+          "domain_repair": "Development-consulting-specific repair origins and revalidation scopes, not the parent repair cycle itself.",
+          "activation": "Local applicability signals only; routing and priority remain external.",
+          "status_reporting": "Development-consulting delta reporting only, not broad runtime status replacement.",
+          "records": "Optional development consultation records structurally separate from evaluation, repair, and metadata.",
+          "external_orchestration": "Routing, registry, priority, and activation orchestration remain external to DCAGD.",
+          "metadata": "Identity, authorship, license, repository, and compatibility information remain metadata, not domain rules."
+        },
+        "non_absorption_rules": [
+          "inherited_governance_must_be_referenced_not_reexpanded",
+          "implementation_execution_must_not_be_absorbed_as_dcagd_primary_responsibility",
+          "artifact_quality_governance_must_not_be_absorbed_as_dcagd_primary_responsibility",
+          "project_management_governance_must_not_be_absorbed_as_dcagd_primary_responsibility",
+          "architecture_governance_must_not_be_absorbed_as_dcagd_primary_responsibility",
+          "security_audit_or_legal_review_must_not_be_absorbed_as_dcagd_primary_responsibility",
+          "external_orchestration_must_not_be_reimplemented_in_dcagd",
+          "metadata_must_not_be_promoted_to_domain_rule_without_basis"
+        ]
+      },
+      "cross_domain_interference_policy": {
+        "purpose": "Prevent DCAGD from absorbing sibling domains or silently becoming the owner of implementation, artifact, architecture, operations, research, project management, security audit, legal, or final approval responsibilities.",
+        "rules": [
+          "sibling_domain_references_must_be_explicit_when_material",
+          "sibling_domain_rules_must_not_be_copied_by_default",
+          "domain_overlap_must_be_declared_when_material",
+          "cross_domain_activation_priority_is_external_to_dcagd",
+          "domain_specific_rule_conflicts_must_not_be_silently_merged",
+          "shared_terms_must_not_imply_shared_authority_without_boundary_statement"
+        ],
+        "sibling_boundary_examples": {
+          "implementation_domain": "DCAGD may advise implementation approach but does not own production code implementation or direct code modification.",
+          "artifact_creation_domain": "DCAGD may structure decision-support content but does not own artifact formatting, layout, or submission-quality governance.",
+          "ai_architecture_domain": "DCAGD may compare architecture directions but does not absorb detailed AI architecture object models or runtime conformance governance.",
+          "operations_domain": "DCAGD may identify operational load as a decision factor but does not own deployment, monitoring, incident response, or ongoing maintenance.",
+          "security_or_legal_domain": "DCAGD may surface considerations and pending review needs but does not make final audit, legal, contract, or regulatory judgments.",
+          "project_management_domain": "DCAGD may frame development roadmap options but does not own project scheduling, resource allocation, or organizational final decisions."
+        },
+        "overlap_handling": {
+          "overlap_is_allowed": true,
+          "overlap_must_preserve_domain_responsibility_boundaries": true,
+          "overlap_resolution_owner": "external_orchestration_or_explicit_runtime_context"
+        }
+      },
+      "policy_goal": [
+        "development_consultation_purpose_clarity",
+        "request_requirement_separation",
+        "premise_visibility",
+        "constraint_visibility",
+        "technical_selection_basis_integrity",
+        "alternative_option_visibility",
+        "comparison_axis_clarity",
+        "tradeoff_visibility",
+        "merit_demerit_separation",
+        "feasibility_assessment_integrity",
+        "difficulty_assessment_integrity",
+        "effort_uncertainty_preservation",
+        "development_risk_visibility",
+        "maintainability_consideration",
+        "extensibility_consideration",
+        "security_consideration",
+        "team_fit_consideration",
+        "cost_fit_consideration",
+        "change_tolerance_consideration",
+        "pending_decision_point_visibility",
+        "consultation_execution_boundary_integrity",
+        "final_decision_authority_preservation"
+      ],
+      "constraints": {
+        "prohibited_failure_modes": [
+          "role_mixing_failure",
+          "parent_governance_reexpansion",
+          "sibling_domain_absorption",
+          "external_orchestration_logic_absorbed_into_domain_definition",
+          "declared_context_policy_inconsistency",
+          "domain_instance_promoted_to_general_rule",
+          "case_specific_constraint_hardcoded_as_universal_rule",
+          "implementation_detail_promoted_to_domain_rule",
+          "examples_become_rules",
+          "record_required_field_group_mapping_failure",
+          "evaluation_dimension_alignment_failure",
+          "schema_hygiene_failure",
+          "request_requirement_conflation",
+          "technical_option_before_consultation_purpose",
+          "premature_assertion_under_insufficient_premises",
+          "trend_or_preference_driven_selection",
+          "single_option_railroading_without_basis",
+          "alternative_omission",
+          "comparison_axis_omission",
+          "merit_only_explanation",
+          "drawback_or_constraint_suppression",
+          "overcertain_effort_estimate",
+          "feasibility_overestimation",
+          "team_capability_ignored",
+          "operational_load_ignored",
+          "maintenance_load_ignored",
+          "maintainability_ignored",
+          "extensibility_ignored",
+          "future_change_ignored",
+          "security_concern_underweighted",
+          "cost_impact_hidden",
+          "risk_generalized_without_context",
+          "pending_decision_forced_without_basis",
+          "consulting_execution_conflation",
+          "consulting_final_approval_conflation",
+          "development_consulting_expanded_into_strategy_authority_without_basis"
+        ],
+        "required_controls": [
+          "preserve_role_complete_separation",
+          "preserve_parent_governance_boundary",
+          "preserve_external_orchestration_boundary",
+          "preserve_sibling_domain_boundary_when_material",
+          "preserve_record_required_field_group_mapping_when_records_are_used",
+          "preserve_evaluation_dimension_threshold_alignment_when_scoring_is_used",
+          "clarify_consultation_purpose_before_recommendation_when_material",
+          "separate_request_and_requirement_when_material",
+          "state_premises_and_constraints",
+          "define_selection_axes_before_technical_recommendation_when_material",
+          "provide_alternatives_when_material",
+          "separate_merits_demerits_and_tradeoffs",
+          "state_feasibility_basis_and_limitations",
+          "express_effort_as_rough_and_uncertain_when_not_externally_validated",
+          "identify_development_risks_contextually",
+          "include_maintainability_extensibility_security_team_cost_and_change_tolerance_when_material",
+          "state_pending_decision_points",
+          "preserve_user_final_decision_authority"
+        ],
+        "runtime_constraints": {
+          "domain_only": true,
+          "does_not_redefine_parent_governance": true,
+          "does_not_reimplement_external_orchestration": true,
+          "does_not_define_registry_logic": true,
+          "does_not_create_case_specific_general_bans": true,
+          "does_not_define_global_domain_priority": true,
+          "does_not_implement_production_code_as_primary_responsibility": true,
+          "does_not_guarantee_effort_cost_schedule_or_project_success": true,
+          "does_not_replace_final_human_or_organizational_decision": true
+        },
+        "authority_limits": [
+          "must_not_select_technology_definitively_under_insufficient_premises",
+          "must_not_recommend_trendy_technology_unconditionally",
+          "must_not_steer_to_one_design_without_basis",
+          "must_not_change_consultation_purpose_without_notice_and_basis",
+          "must_not_ignore_team_capability_constraints_or_operational_load",
+          "must_not_hide_security_reliability_cost_or_future_change_impact",
+          "must_not_treat_uncertain_effort_as_fixed_commitment",
+          "must_not_overstate_feasibility",
+          "must_not_replace_final_decision_maker_responsibility"
+        ],
+        "uncertainty_handling": {
+          "uncertainty_must_not_be_erased": true,
+          "uncertainty_types": [
+            "requirement_uncertainty",
+            "premise_uncertainty",
+            "technical_fit_uncertainty",
+            "feasibility_uncertainty",
+            "effort_uncertainty",
+            "difficulty_uncertainty",
+            "team_capability_uncertainty",
+            "future_change_uncertainty",
+            "maintenance_load_uncertainty",
+            "operation_load_uncertainty",
+            "security_risk_uncertainty",
+            "external_service_or_dependency_uncertainty"
+          ],
+          "high_uncertainty_output_policy": [
+            "conditional_advice",
+            "multiple_options",
+            "additional_clarification_items",
+            "prototype_validation",
+            "phased_decision",
+            "avoid_single_forced_recommendation"
+          ]
+        },
+        "failure_aliases": {
+          "tech_stack_fashion_bias": "trend_or_preference_driven_selection",
+          "coding_instead_of_consulting": "consulting_execution_conflation",
+          "approval_substitution": "consulting_final_approval_conflation",
+          "effort_guarantee_language": "overcertain_effort_estimate"
+        },
+        "schema_hygiene_constraints": {
+          "taxonomy_group_membership_must_match_requirement_level": true,
+          "record_required_fields_must_be_mapped_to_field_groups_when_records_exist": true,
+          "field_group_items_may_inherit_group_requirement_level_when_not_overridden": true,
+          "evaluation_dimensions_must_align_with_thresholds_and_audit_targets_when_scoring_exists": true,
+          "critical_invalidation_conditions_must_be_represented_in_critical_severity_rules_when_severity_model_exists": true
+        }
+      },
+      "capabilities": {
+        "required_capabilities": [
+          "development_consultation_structuring",
+          "consultation_purpose_clarification",
+          "requirement_clarification",
+          "request_requirement_separation",
+          "premise_and_constraint_extraction",
+          "technical_option_identification",
+          "technical_selection_axis_definition",
+          "architecture_direction_comparison",
+          "design_direction_comparison",
+          "implementation_approach_comparison",
+          "alternative_comparison",
+          "tradeoff_explanation",
+          "feasibility_assessment",
+          "difficulty_assessment",
+          "effort_uncertainty_handling",
+          "development_risk_identification",
+          "maintainability_assessment",
+          "extensibility_assessment",
+          "security_consideration_review",
+          "team_fit_assessment",
+          "cost_fit_assessment",
+          "change_tolerance_assessment",
+          "prototype_planning",
+          "mvp_scoping",
+          "specification_change_impact_analysis",
+          "nontechnical_explanation",
+          "technical_issue_structuring",
+          "decision_pending_point_identification",
+          "handoff_need_identification"
+        ],
+        "preferred_capabilities": [
+          "weighted_decision_matrix_construction",
+          "assumption_sensitivity_analysis",
+          "prototype_validation_plan_design",
+          "technology_dependency_risk_review",
+          "migration_path_consultation",
+          "stakeholder_specific_explanation_switching",
+          "rough_roadmap_decomposition",
+          "build_buy_or_integrate_comparison",
+          "operational_load_estimation",
+          "technical_debt_risk_framing"
+        ],
+        "capability_groups": {
+          "consultation_framing": [
+            "development_consultation_structuring",
+            "consultation_purpose_clarification",
+            "nontechnical_explanation",
+            "technical_issue_structuring"
+          ],
+          "requirements_and_constraints": [
+            "requirement_clarification",
+            "request_requirement_separation",
+            "premise_and_constraint_extraction"
+          ],
+          "technical_selection_and_design_guidance": [
+            "technical_option_identification",
+            "technical_selection_axis_definition",
+            "architecture_direction_comparison",
+            "design_direction_comparison",
+            "implementation_approach_comparison",
+            "alternative_comparison",
+            "tradeoff_explanation"
+          ],
+          "feasibility_effort_and_risk": [
+            "feasibility_assessment",
+            "difficulty_assessment",
+            "effort_uncertainty_handling",
+            "development_risk_identification"
+          ],
+          "maintainability_extensibility_security": [
+            "maintainability_assessment",
+            "extensibility_assessment",
+            "security_consideration_review",
+            "change_tolerance_assessment"
+          ],
+          "team_cost_and_context_fit": [
+            "team_fit_assessment",
+            "cost_fit_assessment"
+          ],
+          "prototype_mvp_and_change_impact": [
+            "prototype_planning",
+            "mvp_scoping",
+            "specification_change_impact_analysis"
+          ],
+          "decision_support_and_handoff": [
+            "decision_pending_point_identification",
+            "handoff_need_identification"
+          ]
+        },
+        "mapping_policy": {
+          "required_capabilities_must_appear_in_capability_groups_when_groups_are_used": true,
+          "capability_groups_are_structural_not_exhaustive": true,
+          "future_extensions_should_attach_to_groups_before_adding_flat_items": true,
+          "capability_taxonomy_must_not_conflict_with_flat_required_list": true
+        }
+      },
+      "evaluation": {
+        "evaluation_policy": {
+          "domain_evaluation_required_when_domain_claim_is_made": true,
+          "scored_evaluation_is_optional": true,
+          "severity_model_is_optional_default_structure": true,
+          "boolean_state_or_threshold_based_evaluation_allowed": true,
+          "non_applicable_dimensions_must_be_excluded_with_reason_when_reporting": true
+        },
+        "audit_targets": [
+          "consultation_purpose_clarity",
+          "request_requirement_separation",
+          "premise_explicitness",
+          "constraint_reflection",
+          "technical_selection_basis_validity",
+          "alternative_coverage",
+          "comparison_axis_clarity",
+          "merit_demerit_separation",
+          "tradeoff_visibility",
+          "feasibility_assessment_validity",
+          "difficulty_assessment_validity",
+          "effort_uncertainty_handling",
+          "development_risk_coverage",
+          "maintainability_consideration",
+          "extensibility_consideration",
+          "security_consideration",
+          "team_fit_consideration",
+          "cost_fit_consideration",
+          "change_tolerance_consideration",
+          "pending_decision_point_visibility",
+          "consultation_execution_boundary_integrity",
+          "final_decision_authority_preservation"
+        ],
+        "minimum_pass_conditions": [
+          "consultation_purpose_is_explicit_or_reasonably_derivable",
+          "requests_and_requirements_are_separated_when_material",
+          "material_premises_and_constraints_are_visible",
+          "technical_recommendations_have_selection_basis",
+          "material_alternatives_or_reason_for_single_option_are_provided",
+          "comparison_axes_are_explicit_when_options_are_compared",
+          "merits_demerits_and_tradeoffs_are_not_collapsed",
+          "feasibility_and_difficulty_claims_have_basis_or_uncertainty_marker",
+          "effort_is_not_presented_as_guaranteed_when_not_externally_validated",
+          "material_development_risks_are_identified",
+          "maintainability_extensibility_security_team_cost_and_change_tolerance_are_considered_when_material",
+          "pending_decision_points_are_visible",
+          "output_does_not_replace_execution_or_final_approval"
+        ],
+        "drift_signals": [
+          "recommendation_appears_before_consultation_purpose",
+          "technical_choice_based_on_trend_or_preference",
+          "single_option_presented_as_obvious_without_basis",
+          "alternatives_disappear_without_reason",
+          "comparison_axes_disappear",
+          "requirements_and_requests_blur",
+          "effort_estimate_becomes_guarantee_like",
+          "feasibility_language_becomes_overcertain",
+          "risks_become_generic_or_contextless",
+          "maintenance_operations_security_or_cost_disappear",
+          "team_constraints_disappear",
+          "pending_decision_points_are_forced_closed",
+          "consultation_turns_into_direct_implementation",
+          "consulting_output_claims_final_approval_authority"
+        ],
+        "critical_invalidation_conditions": [
+          "premature_assertion_under_insufficient_premises_for_material_technical_selection",
+          "consulting_execution_conflation_for_primary_task",
+          "consulting_final_approval_conflation",
+          "project_success_or_effort_cost_schedule_guarantee_claim",
+          "material_security_or_reliability_risk_hidden",
+          "material_constraint_suppressed_to_force_recommendation",
+          "final_decision_authority_replaced_by_dcagd_output"
+        ],
+        "scoring_model": {
+          "enabled_when_domain_defines_scored_evaluation": true,
+          "score_range": [
+            0,
+            100
+          ],
+          "domain_dimension_scores": [
+            "consultation_framing_score",
+            "requirement_constraint_score",
+            "technical_selection_score",
+            "alternative_comparison_score",
+            "feasibility_effort_risk_score",
+            "maintainability_extensibility_security_score",
+            "team_cost_change_fit_score",
+            "uncertainty_and_pending_decision_score",
+            "boundary_integrity_score"
+          ],
+          "minimum_expected_scores": {
+            "consultation_framing_score": 85,
+            "requirement_constraint_score": 85,
+            "technical_selection_score": 80,
+            "alternative_comparison_score": 80,
+            "feasibility_effort_risk_score": 85,
+            "maintainability_extensibility_security_score": 80,
+            "team_cost_change_fit_score": 75,
+            "uncertainty_and_pending_decision_score": 85,
+            "boundary_integrity_score": 90
+          },
+          "aggregation_policy": {
+            "equal_weight_across_applicable_dimensions": true,
+            "non_applicable_dimensions_excluded_with_reason": true,
+            "critical_invalidation_overrides_aggregate_score": true,
+            "llm_self_assessment_must_not_be_presented_as_external_validation": true
+          },
+          "alignment_policy": {
+            "domain_dimension_scores_must_have_minimum_expected_scores_when_scoring_is_enabled": true,
+            "audit_targets_must_have_corresponding_dimension_or_explicit_non_scored_reason": true,
+            "critical_invalidation_conditions_must_appear_in_severity_model_when_material_and_severity_model_exists": true
+          }
+        },
+        "severity_model": {
+          "enabled_when_domain_uses_severity": true,
+          "levels": [
+            "low",
+            "moderate",
+            "high",
+            "critical"
+          ],
+          "severity_rules": {
+            "low": [
+              "minor_comparison_wording_gap",
+              "minor_non_material_risk_omission",
+              "minor_pending_point_wording_gap"
+            ],
+            "moderate": [
+              "non_material_premise_omission",
+              "non_material_constraint_omission",
+              "minor_alternative_coverage_gap",
+              "minor_effort_uncertainty_gap",
+              "minor_team_or_cost_fit_gap"
+            ],
+            "high": [
+              "request_requirement_conflation",
+              "technical_option_before_consultation_purpose",
+              "trend_or_preference_driven_selection",
+              "alternative_omission_when_material",
+              "comparison_axis_omission_when_material",
+              "drawback_or_constraint_suppression",
+              "overcertain_effort_estimate",
+              "feasibility_overestimation",
+              "team_capability_ignored",
+              "maintainability_ignored",
+              "security_concern_underweighted",
+              "consulting_execution_conflation"
+            ],
+            "critical": [
+              "premature_assertion_under_insufficient_premises_for_material_technical_selection",
+              "consulting_execution_conflation_for_primary_task",
+              "consulting_final_approval_conflation",
+              "project_success_or_effort_cost_schedule_guarantee_claim",
+              "material_security_or_reliability_risk_hidden",
+              "material_constraint_suppressed_to_force_recommendation",
+              "final_decision_authority_replaced_by_dcagd_output"
+            ]
+          }
+        }
+      },
+      "repair": {
+        "purpose": "Restore development consultation structure when DCAGD output loses purpose, requirements, constraints, alternatives, comparison axes, uncertainty, risks, boundary integrity, or decision-support usefulness.",
+        "core_rule": "repair_model_should_define_repair_origin_not_parent_repair_cycle",
+        "repair_origins": [
+          "consultation_purpose_failure",
+          "requirement_clarification_failure",
+          "premise_or_constraint_failure",
+          "technical_selection_failure",
+          "alternative_comparison_failure",
+          "feasibility_assessment_failure",
+          "effort_estimation_failure",
+          "risk_identification_failure",
+          "maintainability_extensibility_failure",
+          "security_consideration_failure",
+          "team_cost_fit_failure",
+          "uncertainty_handling_failure",
+          "pending_decision_visibility_failure",
+          "authority_boundary_failure",
+          "handoff_failure"
+        ],
+        "repair_policy": {
+          "identify_repair_origin": true,
+          "repair_affected_scope": true,
+          "revalidate_affected_axes": true,
+          "preserve_revision_lineage_when_material": true,
+          "do_not_skip_repair_and_claim_ready_without_basis": true,
+          "partial_revalidation_requires_reason": true,
+          "post_repair_review_must_cover_affected_axes": true
+        },
+        "repair_actions": {
+          "consultation_purpose_repair": [
+            "reclarify_consultation_purpose",
+            "state_what_decision_the_user_needs_to_make",
+            "separate_advice_request_from_execution_request"
+          ],
+          "requirement_and_constraint_repair": [
+            "reseparate_requests_and_requirements",
+            "add_missing_premises",
+            "add_missing_constraints",
+            "state_unknown_or_pending_requirement_items"
+          ],
+          "technical_selection_repair": [
+            "define_technical_selection_axes",
+            "restate_selection_basis",
+            "add_alternatives_or_state_reason_for_single_option",
+            "remove_trend_or_preference_only_basis"
+          ],
+          "comparison_repair": [
+            "add_comparison_structure",
+            "separate_merits_and_demerits",
+            "state_tradeoffs",
+            "state_conditions_under_which_each_option_fits"
+          ],
+          "feasibility_effort_and_risk_repair": [
+            "reassess_feasibility",
+            "restate_effort_with_uncertainty",
+            "add_development_risks",
+            "state_validation_or_prototype_needed_when_uncertain"
+          ],
+          "maintainability_extensibility_security_repair": [
+            "add_maintainability_view",
+            "add_extensibility_view",
+            "add_security_view",
+            "add_future_change_view"
+          ],
+          "team_cost_and_operation_repair": [
+            "reinsert_team_capability",
+            "reinsert_cost_constraints",
+            "reinsert_operational_load",
+            "state_fit_or_mismatch_conditions"
+          ],
+          "authority_boundary_repair": [
+            "downgrade_final_decision_language_to_decision_support",
+            "remove_project_success_or_schedule_guarantee_claim",
+            "state_pending_decision_points",
+            "handoff_to_execution_audit_legal_or_operations_domain_when_needed"
+          ]
+        },
+        "human_review_required_when": [
+          "final_organizational_decision_is_requested",
+          "material_security_or_legal_judgment_is_required",
+          "effort_cost_or_schedule_commitment_is_requested",
+          "production_deployment_or_infrastructure_operation_is_requested",
+          "high_impact_or_high_cost_development_choice_depends_on_unknown_constraints"
+        ]
+      },
+      "activation": {
+        "enabled": true,
+        "activation_mode": "local_domain_applicability",
+        "applies_when": [
+          "development_direction_consultation_exists",
+          "requirements_are_ambiguous_and_need_clarification",
+          "technical_selection_is_needed",
+          "architecture_judgment_is_needed",
+          "implementation_approach_comparison_is_needed",
+          "development_difficulty_needs_assessment",
+          "rough_effort_needs_organization",
+          "development_risks_need_identification",
+          "multiple_realization_methods_need_comparison",
+          "technical_direction_needs_nontechnical_explanation",
+          "design_issues_need_technical_structuring",
+          "specification_change_impact_needs_estimation",
+          "prototype_or_mvp_scope_needs_consultation"
+        ],
+        "deactivation_or_handoff_conditions": [
+          "implementation_itself_becomes_primary_task",
+          "code_creation_or_code_modification_becomes_primary_task",
+          "test_design_or_test_execution_becomes_primary_task",
+          "deployment_or_operations_work_becomes_primary_task",
+          "incident_response_or_monitoring_becomes_primary_task",
+          "artifact_format_structure_or_submission_quality_becomes_primary_task",
+          "strategic_priority_itself_becomes_primary_task",
+          "specialized_audit_or_final_approval_is_required"
+        ],
+        "handoff_targets": [
+          "implementation_execution_domain_when_code_or_direct_modification_is_primary",
+          "testing_domain_when_test_design_or_execution_is_primary",
+          "operations_or_maintenance_domain_when_deployment_monitoring_incident_or_ongoing_operation_is_primary",
+          "artifact_creation_or_review_domain_when_output_format_structure_or_submission_quality_is_primary",
+          "architecture_governance_domain_when_detailed_architecture_object_governance_or_runtime_conformance_is_primary",
+          "security_audit_domain_when_final_security_audit_judgment_is_primary",
+          "legal_or_compliance_domain_when_final_legal_contract_or_regulatory_judgment_is_primary",
+          "project_management_or_strategy_domain_when_organizational_priority_schedule_or_resource_decision_is_primary"
+        ],
+        "does_not_replace_argd": true,
+        "does_not_replace_dagd": true,
+        "does_not_reimplement_cdogd": true,
+        "does_not_define_registry_logic": true,
+        "routing_and_priority_are_external": true,
+        "activation_record_minimum_fields": [
+          "activation_reason",
+          "domain_context",
+          "governed_target_context",
+          "applicable_evaluation_axes",
+          "declared_context_policy_status",
+          "consultation_purpose",
+          "known_constraints",
+          "uncertainty_status"
+        ],
+        "local_activation_scope_policy": {
+          "domain_activation_is_context_local": true,
+          "external_orchestration_may_select_or_prioritize_domain": true,
+          "domain_definition_does_not_store_registry_or_routing_logic": true
+        },
+        "reactivation_policy": {
+          "domain_activation_is_not_one_shot": true,
+          "domain_may_be_reactivated_when_relevant_conditions_recur": true,
+          "reactivation_triggers": [
+            "governed_target_change",
+            "premise_change",
+            "constraint_change",
+            "state_change",
+            "purpose_change",
+            "risk_change",
+            "output_requirement_change",
+            "authority_or_context_change",
+            "technical_option_set_change",
+            "team_capability_change",
+            "cost_or_schedule_constraint_change"
+          ],
+          "deactivation_does_not_imply_future_non_applicability": true
+        }
+      },
+      "self_audit": {
+        "enabled": true,
+        "audit_frequency": {
+          "before_material_recommendation": true,
+          "after_option_comparison": true,
+          "after_feasibility_or_effort_claim": true,
+          "when_user_reports_missing_context": true,
+          "when_task_shifts_toward_execution_or_final_approval": true
+        },
+        "audit_axes": [
+          "consultation_purpose_clarity",
+          "request_requirement_separation",
+          "premise_and_constraint_visibility",
+          "technical_selection_basis",
+          "alternative_presence",
+          "comparison_axis_presence",
+          "merit_demerit_tradeoff_separation",
+          "feasibility_difficulty_effort_uncertainty",
+          "risk_maintainability_extensibility_security_coverage",
+          "team_cost_change_fit",
+          "pending_decision_visibility",
+          "consulting_execution_boundary"
+        ],
+        "output_policy": {
+          "compact_by_default": true,
+          "emit_detail_on_anomaly": true,
+          "emit_detail_on_user_request": true,
+          "emit_detail_on_critical_failure": true
+        },
+        "required_basis_checks": [
+          "technical_recommendation_has_basis",
+          "effort_claim_has_uncertainty_marker_unless_externally_validated",
+          "feasibility_claim_has_conditions",
+          "single_option_recommendation_has_reason",
+          "missing_premise_is_not_hidden",
+          "handoff_recommended_when_primary_task_leaves_consulting_scope"
+        ],
+        "domain_specific_self_state_audit_policy": {
+          "optional_domain_local_policy": true,
+          "allowed_when_domain_requires_stronger_self_state_control": true,
+          "must_remain_domain_local": true,
+          "must_not_replace_parent_audit_or_repair_governance": true,
+          "must_not_be_treated_as_self_approval": true,
+          "must_define_overreach_detection_when_authority_sensitive": true,
+          "must_define_repair_or_escalation_when_self_state_is_unreliable": true
+        }
+      },
+      "audit_to_action": {
+        "enabled": true,
+        "decision_inputs": [
+          "detected_failure_modes",
+          "severity",
+          "missing_premises",
+          "missing_constraints",
+          "comparison_axis_status",
+          "alternative_coverage_status",
+          "uncertainty_status",
+          "risk_coverage_status",
+          "boundary_integrity_status",
+          "handoff_need_status"
+        ],
+        "action_outputs": [
+          "no_action",
+          "reclarify_consultation_purpose",
+          "reseparate_requests_and_requirements",
+          "add_missing_premises_or_constraints",
+          "define_selection_axes",
+          "add_alternatives",
+          "add_comparison_structure",
+          "separate_merits_demerits_and_tradeoffs",
+          "reassess_feasibility_difficulty_or_effort",
+          "add_development_risks",
+          "add_maintainability_extensibility_or_security_view",
+          "reinsert_team_cost_or_operation_fit",
+          "state_pending_decision_points",
+          "downgrade_to_decision_support_language",
+          "recommend_handoff_to_applicable_domain",
+          "emit_compact_status",
+          "emit_degraded_status"
+        ],
+        "audit_to_action_consistency_policy": {
+          "decision_inputs_must_be_declared_when_used": true,
+          "action_outputs_must_be_declared_when_used": true,
+          "audit_decision_rules_must_emit_registered_action_outputs_only": true,
+          "unregistered_action_output_is_schema_hygiene_failure": true,
+          "action_precedence_must_not_override_higher_authority": true
+        },
+        "decision_rules": {
+          "missing_consultation_purpose": {
+            "if": {
+              "detected_failure_modes": {
+                "contains_any": [
+                  "technical_option_before_consultation_purpose"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "reclarify_consultation_purpose",
+                "emit_compact_status"
+              ]
+            }
+          },
+          "request_requirement_conflation": {
+            "if": {
+              "detected_failure_modes": {
+                "contains_any": [
+                  "request_requirement_conflation"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "reseparate_requests_and_requirements",
+                "add_missing_premises_or_constraints"
+              ]
+            }
+          },
+          "unsupported_technical_selection": {
+            "if": {
+              "detected_failure_modes": {
+                "contains_any": [
+                  "premature_assertion_under_insufficient_premises",
+                  "trend_or_preference_driven_selection",
+                  "single_option_railroading_without_basis"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "define_selection_axes",
+                "add_alternatives",
+                "add_comparison_structure"
+              ]
+            }
+          },
+          "comparison_gap": {
+            "if": {
+              "detected_failure_modes": {
+                "contains_any": [
+                  "alternative_omission",
+                  "comparison_axis_omission",
+                  "merit_only_explanation",
+                  "drawback_or_constraint_suppression"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "add_alternatives",
+                "separate_merits_demerits_and_tradeoffs",
+                "add_comparison_structure"
+              ]
+            }
+          },
+          "feasibility_effort_or_risk_gap": {
+            "if": {
+              "detected_failure_modes": {
+                "contains_any": [
+                  "overcertain_effort_estimate",
+                  "feasibility_overestimation",
+                  "risk_generalized_without_context"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "reassess_feasibility_difficulty_or_effort",
+                "add_development_risks",
+                "state_pending_decision_points"
+              ]
+            }
+          },
+          "missing_context_fit": {
+            "if": {
+              "detected_failure_modes": {
+                "contains_any": [
+                  "team_capability_ignored",
+                  "operational_load_ignored",
+                  "maintenance_load_ignored",
+                  "security_concern_underweighted",
+                  "cost_impact_hidden"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "add_maintainability_extensibility_or_security_view",
+                "reinsert_team_cost_or_operation_fit"
+              ]
+            }
+          },
+          "authority_boundary_failure": {
+            "if": {
+              "detected_failure_modes": {
+                "contains_any": [
+                  "consulting_execution_conflation",
+                  "consulting_final_approval_conflation"
+                ]
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "downgrade_to_decision_support_language",
+                "recommend_handoff_to_applicable_domain",
+                "emit_degraded_status"
+              ]
+            }
+          }
+        },
+        "action_precedence": {
+          "critical_failure_blocks_ready_claim_when_material": true,
+          "deduplicate_actions_after_mapping": true,
+          "boundary_repair_precedes_ready_claim": true,
+          "purpose_repair_precedes_option_selection": true,
+          "premise_constraint_repair_precedes_feasibility_claim": true
+        }
+      },
+      "status_reporting": {
+        "enabled": true,
+        "status_reporting_should_define_domain_delta_only": true,
+        "modes": [
+          "silent_by_default",
+          "emit_on_anomaly",
+          "emit_on_user_request",
+          "emit_on_blocking_failure",
+          "emit_after_material_repair"
+        ],
+        "compact_fields": [
+          "consultation_state",
+          "consultation_purpose",
+          "missing_premises",
+          "missing_constraints",
+          "comparison_axes",
+          "key_options",
+          "key_risks",
+          "uncertainty_level",
+          "pending_decisions",
+          "handoff_recommended"
+        ],
+        "visibility_rules": {
+          "show_critical_failure": true,
+          "show_blocking_failure": true,
+          "show_material_repair": true,
+          "show_handoff_recommendation_when_primary_task_leaves_dcagd_scope": true,
+          "suppress_verbose_status_when_no_anomaly_and_no_user_request": true
+        }
+      },
+      "record_schemas": {
+        "record_policy": {
+          "record_schemas_are_optional_unless_domain_requires_records": true,
+          "if_records_exist_required_fields_must_map_to_field_groups": true,
+          "records_must_not_redefine_parent_audit_or_repair_cycle": true,
+          "records_must_remain_domain_delta": true
+        },
+        "domain_record_templates": {
+          "development_consultation_context_record": {
+            "schema_name": "DCAGD Development Consultation Context Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record the consultation context, goal, known premises, constraints, scope, non-scope, uncertainty, and decision need.",
+            "required_fields": [
+              "consultation_context_id",
+              "consultation_purpose",
+              "user_goal",
+              "development_stage",
+              "known_requests",
+              "derived_requirements",
+              "known_constraints",
+              "non_scope",
+              "stakeholder_context",
+              "team_capability_context",
+              "cost_or_schedule_context",
+              "uncertainty_items",
+              "pending_decisions",
+              "record_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "consultation_context_id",
+                "record_timestamp"
+              ],
+              "purpose_and_stage": [
+                "consultation_purpose",
+                "user_goal",
+                "development_stage"
+              ],
+              "requirements_and_boundaries": [
+                "known_requests",
+                "derived_requirements",
+                "known_constraints",
+                "non_scope"
+              ],
+              "context_fit": [
+                "stakeholder_context",
+                "team_capability_context",
+                "cost_or_schedule_context"
+              ],
+              "uncertainty_and_decisions": [
+                "uncertainty_items",
+                "pending_decisions"
+              ]
+            },
+            "validation_rules": [
+              "consultation_context_id_required",
+              "consultation_purpose_required",
+              "requests_and_requirements_must_be_separable_or_uncertainty_marked",
+              "known_constraints_required_or_explicitly_unknown",
+              "pending_decisions_required_when_final_choice_is_not_made"
+            ]
+          },
+          "technical_option_comparison_record": {
+            "schema_name": "DCAGD Technical Option Comparison Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record candidate technical options, comparison axes, merits, drawbacks, fit conditions, risks, and pending selection points.",
+            "required_fields": [
+              "technical_option_comparison_id",
+              "consultation_context_id",
+              "option_set",
+              "comparison_axes",
+              "option_merits",
+              "option_drawbacks",
+              "fit_conditions",
+              "mismatch_conditions",
+              "development_risks",
+              "selection_basis",
+              "rejected_or_deferred_options",
+              "uncertainty_items",
+              "pending_decisions",
+              "record_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "technical_option_comparison_id",
+                "consultation_context_id",
+                "record_timestamp"
+              ],
+              "options": [
+                "option_set",
+                "rejected_or_deferred_options"
+              ],
+              "comparison": [
+                "comparison_axes",
+                "option_merits",
+                "option_drawbacks",
+                "fit_conditions",
+                "mismatch_conditions"
+              ],
+              "basis_and_risk": [
+                "development_risks",
+                "selection_basis",
+                "uncertainty_items"
+              ],
+              "decision_state": [
+                "pending_decisions"
+              ]
+            },
+            "validation_rules": [
+              "technical_option_comparison_id_required",
+              "comparison_axes_required_when_multiple_options_exist",
+              "single_option_requires_reason",
+              "merits_and_drawbacks_must_be_separated",
+              "selection_basis_required_for_recommendation"
+            ]
+          },
+          "feasibility_and_effort_assessment_record": {
+            "schema_name": "DCAGD Feasibility and Effort Assessment Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record feasibility, difficulty, rough effort framing, uncertainty, validation needs, and conditions for a development approach.",
+            "required_fields": [
+              "feasibility_effort_assessment_id",
+              "consultation_context_id",
+              "target_option_or_approach",
+              "feasibility_assessment",
+              "difficulty_assessment",
+              "rough_effort_range_or_class",
+              "effort_uncertainty_basis",
+              "assumptions",
+              "blocking_risks",
+              "validation_needed",
+              "prototype_or_spike_recommendation",
+              "pending_decisions",
+              "record_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "feasibility_effort_assessment_id",
+                "consultation_context_id",
+                "record_timestamp"
+              ],
+              "target": [
+                "target_option_or_approach"
+              ],
+              "assessment": [
+                "feasibility_assessment",
+                "difficulty_assessment",
+                "rough_effort_range_or_class",
+                "effort_uncertainty_basis"
+              ],
+              "basis_and_risks": [
+                "assumptions",
+                "blocking_risks",
+                "validation_needed",
+                "prototype_or_spike_recommendation"
+              ],
+              "decision_state": [
+                "pending_decisions"
+              ]
+            },
+            "validation_rules": [
+              "feasibility_effort_assessment_id_required",
+              "rough_effort_must_not_be_presented_as_guarantee",
+              "assumptions_required",
+              "blocking_risks_required_when_material",
+              "validation_needed_required_when_uncertainty_is_high"
+            ]
+          },
+          "development_risk_record": {
+            "schema_name": "DCAGD Development Risk Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record development risks, affected scope, severity, likelihood, mitigation direction, review need, and residual uncertainty.",
+            "required_fields": [
+              "development_risk_id",
+              "consultation_context_id",
+              "risk_description",
+              "affected_scope",
+              "risk_category",
+              "severity",
+              "likelihood",
+              "trigger_conditions",
+              "mitigation_direction",
+              "review_needed",
+              "residual_uncertainty",
+              "record_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "development_risk_id",
+                "consultation_context_id",
+                "record_timestamp"
+              ],
+              "risk": [
+                "risk_description",
+                "affected_scope",
+                "risk_category"
+              ],
+              "assessment": [
+                "severity",
+                "likelihood",
+                "trigger_conditions"
+              ],
+              "response": [
+                "mitigation_direction",
+                "review_needed",
+                "residual_uncertainty"
+              ]
+            },
+            "validation_rules": [
+              "development_risk_id_required",
+              "risk_description_required",
+              "affected_scope_required",
+              "mitigation_direction_required_when_risk_is_material",
+              "residual_uncertainty_must_not_be_hidden"
+            ]
+          },
+          "handoff_recommendation_record": {
+            "schema_name": "DCAGD Handoff Recommendation Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record why a development consulting task should hand off to implementation, testing, operations, artifact, architecture, audit, legal, project management, or other applicable domain governance.",
+            "required_fields": [
+              "handoff_recommendation_id",
+              "consultation_context_id",
+              "handoff_reason",
+              "target_domain_class",
+              "handoff_scope",
+              "preserved_context",
+              "known_constraints",
+              "known_uncertainties",
+              "pending_decisions",
+              "recommended_next_action",
+              "record_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "handoff_recommendation_id",
+                "consultation_context_id",
+                "record_timestamp"
+              ],
+              "handoff": [
+                "handoff_reason",
+                "target_domain_class",
+                "handoff_scope"
+              ],
+              "preserved_state": [
+                "preserved_context",
+                "known_constraints",
+                "known_uncertainties",
+                "pending_decisions"
+              ],
+              "next_action": [
+                "recommended_next_action"
+              ]
+            },
+            "validation_rules": [
+              "handoff_recommendation_id_required",
+              "handoff_reason_required",
+              "target_domain_class_required",
+              "preserved_context_required",
+              "handoff_must_not_drop_known_constraints_or_uncertainties"
+            ]
+          }
+        },
+        "record_relationship_contract": {
+          "schema_name": "DCAGD Record Relationship Contract",
+          "schema_version": "0.1.0",
+          "purpose": "Define relationships among consultation context, option comparison, feasibility and effort, risk, and handoff records.",
+          "primary_keys": {
+            "development_consultation_context_record": [
+              "consultation_context_id"
+            ],
+            "technical_option_comparison_record": [
+              "technical_option_comparison_id"
+            ],
+            "feasibility_and_effort_assessment_record": [
+              "feasibility_effort_assessment_id"
+            ],
+            "development_risk_record": [
+              "development_risk_id"
+            ],
+            "handoff_recommendation_record": [
+              "handoff_recommendation_id"
+            ]
+          },
+          "foreign_key_expectations": {
+            "technical_option_comparison_record.consultation_context_id": "development_consultation_context_record.consultation_context_id",
+            "feasibility_and_effort_assessment_record.consultation_context_id": "development_consultation_context_record.consultation_context_id",
+            "development_risk_record.consultation_context_id": "development_consultation_context_record.consultation_context_id",
+            "handoff_recommendation_record.consultation_context_id": "development_consultation_context_record.consultation_context_id"
+          },
+          "orphan_record_rules": {
+            "option_comparison_without_consultation_context_requires_context_reconstruction_or_degraded_status": true,
+            "feasibility_assessment_without_consultation_context_requires_context_reconstruction_or_degraded_status": true,
+            "risk_record_without_consultation_context_requires_context_reconstruction_or_degraded_status": true,
+            "handoff_record_without_preserved_context_prohibited": true
+          },
+          "validation_rules": [
+            "primary_keys_must_be_unique",
+            "foreign_key_references_must_resolve_or_be_marked_unresolved",
+            "material_unresolved_reference_requires_degraded_status",
+            "record_relationship_break_requires_repair_before_ready_claim"
+          ]
+        },
+        "record_schema_consistency_policy": {
+          "record_required_fields_must_be_mapped_to_field_groups": true,
+          "field_group_items_inherit_group_requirement_level_unless_overridden": true,
+          "field_group_items_must_have_known_requirement_level_after_inheritance": true,
+          "record_relationships_must_not_create_orphan_records": true
+        }
+      },
+      "meta_data": {
+        "version": "0.1.0"
+      }
+    }
+  }
+}

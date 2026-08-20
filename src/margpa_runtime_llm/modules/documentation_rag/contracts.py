@@ -422,6 +422,70 @@ class DocumentationAugmentation(ImmutableContract):
         return self
 
 
+CITATION_EVIDENCE_SCHEMA_VERSION = 1
+
+
+class PersistedTurnCitationEvidence(ImmutableContract):
+    """Safe, allowlisted citation evidence for one completed conversation turn.
+
+    Reuses `DocumentationCitation` (already an allowlist type with a validated
+    `project_relative_path`) rather than redefining overlapping fields. Carries
+    no free-text content field, so absolute paths, secrets, raw thinking,
+    system prompts, tool-internal state, hidden originals, unconfirmed partial
+    output, raw exceptions, and unbounded raw retrieved chunks are all
+    structurally impossible to persist through this type.
+    """
+
+    conversation_id: str = Field(min_length=1)
+    turn_id: str = Field(min_length=1)
+    citation_schema_version: int = Field(ge=1)
+    corpus_revision: str = Field(pattern=SHA512_PATTERN)
+    retrieval_state: DocumentationRetrievalState
+    grounding_state: DocumentationGroundingState
+    warning_codes: tuple[str, ...] = ()
+    citations: tuple[DocumentationCitation, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_state_consistency(self) -> PersistedTurnCitationEvidence:
+        if self.retrieval_state is not DocumentationRetrievalState.ENABLED and self.citations:
+            raise ValueError("only an enabled retrieval state may carry citations")
+        return self
+
+
+class CitationUnavailable(ImmutableContract):
+    """Fail-closed placeholder returned instead of raising on a bad record."""
+
+    turn_id: str = Field(min_length=1)
+    reason: Literal["unsupported_schema_version", "corrupt_record", "not_present"]
+
+
+def build_turn_citation_evidence(
+    augmentation: DocumentationAugmentation,
+    *,
+    conversation_id: str,
+    turn_id: str,
+) -> PersistedTurnCitationEvidence | None:
+    """Project a live `DocumentationAugmentation` into persistable evidence.
+
+    Returns `None` when there is nothing to persist (RAG disabled/unavailable/
+    denied, or no citations were produced) so the caller writes zero rows for
+    that turn, matching the "RAG OFF => Citation Write 0" requirement.
+    """
+
+    if augmentation.state is not DocumentationRetrievalState.ENABLED or not augmentation.citations:
+        return None
+    return PersistedTurnCitationEvidence(
+        conversation_id=conversation_id,
+        turn_id=turn_id,
+        citation_schema_version=CITATION_EVIDENCE_SCHEMA_VERSION,
+        corpus_revision=augmentation.evidence.corpus_manifest_digest,
+        retrieval_state=augmentation.state,
+        grounding_state=augmentation.evidence.grounding_state,
+        warning_codes=tuple(warning.code for warning in augmentation.warnings),
+        citations=augmentation.citations,
+    )
+
+
 class DocumentationRagDefaultsConfig(ImmutableContract):
     schema_version: Literal["1"] = "1"
     profile_key: Literal["documentation-rag.defaults"] = "documentation-rag.defaults"

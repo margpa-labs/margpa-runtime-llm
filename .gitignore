@@ -79,6 +79,11 @@ pytestdebug.log
 /temp/
 *.log
 
+# Private persistent conversation history and its recovery artifacts
+/runtime_data/persistent/**/conversations/
+/runtime_data/recovery/checkpoints/**/conversations/
+/runtime_data/recovery/migrations/**/conversations/
+
 # Local databases
 *.db
 *.sqlite

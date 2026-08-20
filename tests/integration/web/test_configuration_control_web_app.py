@@ -42,6 +42,8 @@ def configuration_service() -> ConfigurationControlService:
         ("acceleration_api", "metal", ApplyDisposition.READ_ONLY),
         ("max_new_tokens", 2048, ApplyDisposition.READ_ONLY),
         ("research_developer_mode", "off", ApplyDisposition.RUNTIME_APPLICABLE),
+        ("conversation_storage_kind", "sqlite", ApplyDisposition.READ_ONLY),
+        ("conversation_storage_version", "3.45.1", ApplyDisposition.READ_ONLY),
     )
     return ConfigurationControlService(
         fields=tuple(
@@ -152,6 +154,8 @@ async def test_local_bound_runtime_projects_safe_state_and_applies_live_mode() -
         "acceleration_api",
         "max_new_tokens",
         "research_developer_mode",
+        "conversation_storage_kind",
+        "conversation_storage_version",
     }
     assert preview.json()["outcome"] == "restart_required"
     assert apply.json()["outcome"] == "applied"

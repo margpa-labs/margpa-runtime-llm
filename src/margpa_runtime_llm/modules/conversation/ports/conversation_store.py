@@ -7,6 +7,9 @@ from typing import Protocol, runtime_checkable
 
 from pydantic import Field, field_validator, model_validator
 
+from margpa_runtime_llm.modules.documentation_rag.contracts import (
+    PersistedTurnCitationEvidence,
+)
 from margpa_runtime_llm.modules.inference.contracts.base import ImmutableContract
 
 from ..domain.identity import (
@@ -18,6 +21,7 @@ from ..domain.models import (
     ConversationSnapshot,
     ConversationState,
     ConversationSummary,
+    ConversationTurnState,
 )
 
 VERSION_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
@@ -39,11 +43,25 @@ class CommitConversation(ImmutableContract):
     operation_id: ConversationOperationId
     expected_revision: int | None = Field(default=None, strict=True, ge=1)
     conversation: ConversationSnapshot
+    citation_evidence: PersistedTurnCitationEvidence | None = None
 
     @model_validator(mode="after")
     def validate_scope(self) -> CommitConversation:
         if self.scope_id != self.conversation.scope_id:
             raise ValueError("commit scope does not match the conversation scope")
+        if self.citation_evidence is not None:
+            if self.citation_evidence.conversation_id != self.conversation.conversation_id.value:
+                raise ValueError("citation evidence conversation id does not match the commit")
+            matching_turn = next(
+                (
+                    turn
+                    for turn in self.conversation.turns
+                    if turn.turn_id.value == self.citation_evidence.turn_id
+                ),
+                None,
+            )
+            if matching_turn is None or matching_turn.state is not ConversationTurnState.COMPLETED:
+                raise ValueError("citation evidence must reference a completed turn in the commit")
         return self
 
 

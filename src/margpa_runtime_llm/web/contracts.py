@@ -14,6 +14,7 @@ from margpa_runtime_llm.modules.inference.contracts.base import ImmutableContrac
 from margpa_runtime_llm.modules.inference.contracts.generation import ThinkingMode
 from margpa_runtime_llm.modules.inference.contracts.response import ResponseLanguage
 from margpa_runtime_llm.modules.presentation.contracts.thinking import ThinkingVisibility
+from margpa_runtime_llm.modules.runtime_composition.application import ComponentRegistryService
 from margpa_runtime_llm.modules.summarization.public import SummaryMode
 
 from .access_profiles import DocumentationRagEffectiveState
@@ -67,6 +68,7 @@ class WebRuntime:
     close_callback: Callable[[], None]
     persistent_conversation: PersistentConversationService | None = None
     configuration_control: ConfigurationControlService | None = None
+    runtime_composition: ComponentRegistryService | None = None
     _close_lock: threading.Lock = field(default_factory=threading.Lock, init=False, repr=False)
     _closed: bool = field(default=False, init=False, repr=False)
 

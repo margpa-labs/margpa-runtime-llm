@@ -1,0 +1,1692 @@
+{
+  "daagd": {
+    "decision_authority_and_accountability_governance_definition": {
+      "description": "DAAGD (Decision Authority and Accountability Governance Definition) is an additive domain governance definition for governing decision authority, accountability, approval, delegation, responsibility boundaries, and record requirements. DAAGD determines who may decide, under what authority, under what accountability, under what approval conditions, and with what decision-record obligations. DAAGD does not create judgment content, does not create strategic decision structures, does not substitute target-specific expert judgment, does not execute work, does not audit strategic decisions, does not approve itself, and does not treat pre-audit authority assessment as a final decision.",
+      "inheritance": {
+        "inheritance_mode": "additive_domain_extension",
+        "parent_definitions": [
+          {
+            "syntax_id": "argd",
+            "role": "general_reasoning_procedure_governance",
+            "required": true
+          },
+          {
+            "syntax_id": "dagd",
+            "role": "general_behavior_audit_repair_activation_and_status_governance",
+            "required": true
+          }
+        ],
+        "dependency_version_policy": {
+          "specific_parent_versions_are_not_hardcoded_in_domain_compatibility_labels": true,
+          "parent_version_binding_is_external_to_this_domain_definition": true,
+          "version_binding_owner": "runtime_bundle_or_release_manifest"
+        },
+        "standalone_reference_use": {
+          "allowed": true,
+          "condition": "standalone_readers_must_treat_parent_mechanisms_as_external_prerequisites_or_reference_context",
+          "does_not_grant_parent_functionality": true,
+          "runtime_conformance_requires_parent_definitions": true
+        },
+        "replaces_parent_definitions": false,
+        "duplicates_parent_rules": false,
+        "parent_rules_remain_authoritative": true,
+        "domain_delta_only": true,
+        "preserved_parent_mechanism_policy": {
+          "inherited_governance_must_be_referenced_not_reexpanded": true,
+          "silent_parent_rule_override_prohibited": true,
+          "parent_mechanism_lists_must_not_be_recreated_unless_required_by_explicit_context": true
+        },
+        "conflict_policy": {
+          "general_reasoning_conflicts": "resolve_under_parent_reasoning_governance",
+          "general_behavior_and_governance_conflicts": "resolve_under_parent_behavior_governance",
+          "decision_authority_and_accountability_domain_conflicts": "resolve_under_daagd_when_not_in_conflict_with_parent_governance_or_higher_authority",
+          "higher_level_system_policies_remain_authoritative": true,
+          "silent_parent_rule_override_prohibited": true
+        }
+      },
+      "orchestration_reference": {
+        "orchestration_definition": "cdogd",
+        "relationship": "external_orchestration_reference",
+        "cdogd_is_not_reimplemented_here": true,
+        "registry_and_activation_logic_are_external": true,
+        "routing_priority_and_domain_selection_are_external": true,
+        "registered_domain_extension_storage_is_external": true,
+        "loaded_or_registered_state_does_not_activate_daagd_by_itself": true,
+        "function_authority_assignment_is_task_local_and_external_when_cross_domain": true
+      },
+      "domain_scope": {
+        "domain": "decision_authority_and_accountability",
+        "scope_statement": "Govern authority, accountability, approval, delegation, final responsibility, owner separation, escalation, and decision-record obligations for decisions across any subject, theme, target, workflow, artifact, or runtime context without deciding the target-specific judgment content itself.",
+        "governed_target_categories": [
+          "decision_candidate",
+          "decision_structure",
+          "strategic_judgment_structure",
+          "domain_proposal_requiring_decision",
+          "AI_recommendation",
+          "AI_decision_support_output",
+          "provisional_AI_judgment",
+          "conditional_AI_judgment",
+          "delegated_AI_decision",
+          "autonomous_execution_decision",
+          "human_approval_requirement",
+          "accountability_assignment",
+          "authority_boundary",
+          "responsibility_boundary",
+          "decision_owner_assignment",
+          "execution_owner_assignment",
+          "escalation_condition",
+          "approval_condition",
+          "decision_record_requirement",
+          "SDAGD_handoff_issue"
+        ],
+        "lifecycle_coverage": [
+          "decision_candidate_received",
+          "decision_structure_received",
+          "authority_basis_identified",
+          "accountable_entity_identified",
+          "accountable_owner_identified",
+          "decision_owner_identified",
+          "execution_owner_identified",
+          "AI_judgment_classified",
+          "human_approval_requirement_assessed",
+          "delegation_boundary_checked",
+          "autonomous_decision_condition_checked",
+          "reversibility_assessed",
+          "irreversibility_assessed",
+          "external_impact_assessed",
+          "escalation_condition_defined",
+          "approval_condition_defined",
+          "authority_gap_detected",
+          "decision_record_requirement_defined",
+          "authority_self_doubt_check_executed",
+          "SDAGD_handoff_prepared",
+          "SDAGD_return_received",
+          "authority_assessment_repaired",
+          "reactivation_triggered"
+        ],
+        "non_targets": [
+          "judgment_content_generation",
+          "judgment_structure_creation",
+          "target_specific_judgment_substitution",
+          "target_specific_expert_judgment_finalization",
+          "target_specific_execution_policy_generation",
+          "priority_creation",
+          "selection_or_non_selection_reason_generation",
+          "continue_stop_withdraw_hold_reevaluate_judgment_generation",
+          "execution_plan_creation",
+          "execution_work_substitution",
+          "operation_maintenance_improvement_judgment_substitution",
+          "artifact_quality_judgment_substitution",
+          "progress_management_substitution",
+          "audit_target_rewriting",
+          "strategic_decision_audit_pass_authority",
+          "self_audit_approval_authority",
+          "audit_return_override_authority",
+          "replacement_of_parent_governance",
+          "replacement_of_external_orchestration",
+          "absorption_of_sibling_domain_definitions",
+          "model_weight_modification",
+          "training_data_modification",
+          "replacement_of_built_in_system_policies"
+        ]
+      },
+      "abstraction_and_context_policy": {
+        "purpose": "Keep DAAGD general across all decision contexts while preventing specific domains, professional fields, implementation workflows, or organizational cases from becoming universal authority rules.",
+        "rule_bodies_must_use_highest_safe_abstraction_level": true,
+        "rule_hardcoding_prohibited_by_default": true,
+        "rules_must_be_abstract_by_default": true,
+        "case_specific_constraints_must_be_contextual": true,
+        "domain_instances_must_not_be_encoded_as_general_rules": true,
+        "implementation_details_must_not_become_domain_rules": true,
+        "rule_bodies_must_not_hardcode": [
+          "specific_tool",
+          "specific_platform",
+          "specific_repository",
+          "specific_external_system",
+          "specific_local_workflow",
+          "specific_professional_field",
+          "specific_creative_style",
+          "specific_organization_policy",
+          "specific_private_system",
+          "specific_user_workflow",
+          "specific_medium_or_transport",
+          "specific_identifier_policy",
+          "specific_role_title_as_global_authority"
+        ],
+        "contextual_specificity_conditions": [
+          "explicit_user_instruction",
+          "identity_or_verification_requires_specific_name",
+          "hallucination_prevention_requires_specific_name",
+          "system_integrity_requires_specific_constraint",
+          "decision_authority_context_would_break_without_specificity",
+          "accountability_assignment_requires_named_entity_or_role",
+          "approval_policy_requires_specific_authority_reference"
+        ],
+        "specificity_handling": {
+          "specificity_scope": "decision_context_or_governed_target_context",
+          "specificity_must_not_be_promoted_to_general_rule_without_basis": true,
+          "specificity_must_be_traceable_to_context_or_instruction": true,
+          "specificity_must_not_override_higher_authority": true
+        },
+        "declared_context_policy_types": [
+          "decision_authority_policy",
+          "delegation_policy",
+          "human_approval_policy",
+          "accountability_policy",
+          "runtime_authority_policy",
+          "escalation_policy",
+          "record_retention_policy"
+        ],
+        "example_policy": {
+          "examples_are_non_normative": true,
+          "examples_may_illustrate_failures_but_do_not_define_the_rule": true,
+          "test_cases_must_remain_separate_from_general_domain_rules": true,
+          "examples_must_not_narrow_domain_scope": true
+        }
+      },
+      "role_complete_separation": {
+        "required": true,
+        "principle": "DAAGD must keep decision content, strategic structure, authority assessment, accountability assignment, approval requirement, delegation boundary, source-domain judgment, strategic audit, external orchestration, human authority, runtime policy, records, and metadata responsibilities separated.",
+        "separation_targets": {
+          "source_material": "inputs, proposals, constraints, risks, or prior materials used for DAAGD authority assessment; source content is not absorbed by default",
+          "target_specific_domain_judgment": "subject-specific expert judgment remains owned by the relevant source domain or human expert context",
+          "SPPGD_strategic_structure": "strategy, options, priority, selection, non-selection, continuation, stop, withdrawal, hold, and reevaluation structure remains owned by SPPGD",
+          "DAAGD_authority_assessment": "decision authority, accountability, approval, delegation, and responsibility-boundary assessment",
+          "SDAGD_audit": "external pre-final-decision audit of strategic structure and DAAGD authority assessment",
+          "human_or_runtime_authority": "final responsibility and approval authority assigned by human, runtime, system owner, delegated authority, or defined accountable entity",
+          "inherited_governance": "parent ARGD and DAGD governance referenced as authoritative context and not re-expanded inside DAAGD",
+          "sibling_reference": "other domain definitions referenced only when in scope and not absorbed into DAAGD",
+          "external_orchestration": "CDOGD routing, registry, priority, activation, and function assignment remain external to DAAGD",
+          "records": "DAAGD-local records remain structurally separate from evaluation, repair, and metadata",
+          "metadata": "identity, authorship, license, repository, and compatibility information remain metadata, not authority rules"
+        },
+        "non_absorption_rules": [
+          "DAAGD_must_not_absorb_SPPGD_judgment_structure",
+          "DAAGD_must_not_absorb_SDAGD_audit",
+          "DAAGD_must_not_absorb_target_specific_domain_judgment",
+          "DAAGD_must_not_absorb_execution_management",
+          "DAAGD_must_not_absorb_artifact_quality_judgment",
+          "inherited_governance_must_be_referenced_not_reexpanded",
+          "sibling_domain_content_must_remain_referenced_not_absorbed",
+          "external_orchestration_must_not_be_reimplemented_in_domain_definition",
+          "metadata_must_not_be_promoted_to_domain_rule_without_basis",
+          "source_material_must_not_be_absorbed_without_authority_reason"
+        ]
+      },
+      "cross_domain_interference_policy": {
+        "purpose": "Prevent DAAGD from absorbing sibling domain functions, creating implicit priority, bypassing orchestration, or treating authority assessment as a substitute for strategic structure or audit.",
+        "rules": [
+          "sibling_domain_references_must_be_explicit_when_material",
+          "sibling_domain_rules_must_not_be_copied_by_default",
+          "domain_overlap_must_be_declared_when_material",
+          "cross_domain_activation_priority_is_external_to_DAAGD",
+          "decision_authority_conflicts_must_not_be_silently_merged",
+          "shared_terms_must_not_imply_shared_authority_without_boundary_statement",
+          "SPPGD_outputs_must_not_be_rewritten_by_DAAGD",
+          "SDAGD_audit_must_not_be_self_substituted_by_DAAGD",
+          "source_domain_judgment_must_not_be_finalized_by_DAAGD"
+        ],
+        "overlap_handling": {
+          "overlap_is_allowed": true,
+          "overlap_must_preserve_domain_responsibility_boundaries": true,
+          "overlap_resolution_owner": "external_orchestration_or_explicit_runtime_context",
+          "DAAGD_may_flag_authority_overlap_but_must_not_create_global_domain_priority": true
+        }
+      },
+      "decision_authority_model": {
+        "purpose": "Classify and govern how a decision candidate may proceed from proposal or structure to authority assessment, approval, audit handoff, and final decision path.",
+        "decision_authority_questions": [
+          "who_may_decide",
+          "under_what_authority",
+          "under_what_accountability",
+          "whether_human_approval_is_required",
+          "whether_AI_output_is_advice_support_provisional_conditional_delegated_or_autonomous",
+          "whether_delegated_authority_is_defined_and_sufficient",
+          "whether_the_decision_is_reversible_or_irreversible",
+          "whether_external_impact_is_material",
+          "whether_escalation_is_required",
+          "what_record_is_required",
+          "what_must_be_handed_to_SDAGD"
+        ],
+        "authority_basis_sources": [
+          "runtime_policy",
+          "delegation_policy",
+          "human_approval_policy",
+          "accountability_policy",
+          "system_owner_definition",
+          "accountable_entity_definition",
+          "accountable_owner_definition",
+          "source_domain_boundary",
+          "SPPGD_decision_structure",
+          "CDOGD_orchestration_context_when_available",
+          "explicit_user_or_human_authority_instruction",
+          "higher_level_system_policy"
+        ],
+        "authority_states": [
+          "authority_defined",
+          "authority_conditionally_defined",
+          "authority_ambiguous",
+          "authority_missing",
+          "authority_exceeded",
+          "authority_requires_human_clarification",
+          "authority_requires_SDAGD_audit_before_finalization"
+        ],
+        "responsibility_entities": [
+          "accountable_entity",
+          "accountable_owner",
+          "decision_owner",
+          "execution_owner",
+          "approval_owner",
+          "escalation_owner",
+          "runtime_authority",
+          "system_owner",
+          "delegated_authority_holder",
+          "human_accountable_owner"
+        ],
+        "responsibility_separation_rules": [
+          "accountable_entity_must_be_defined_for_material_decisions",
+          "accountable_owner_must_be_defined_or_marked_unresolved_for_material_decisions",
+          "decision_owner_and_execution_owner_must_be_separated_or_explicitly_same_with_reason",
+          "AI_output_must_not_be_treated_as_human_decision",
+          "AI_must_not_be_treated_as_final_accountable_entity_without_defined_external_authority",
+          "delegated_authority_holder_must_have_explicit_scope",
+          "final_responsibility_location_must_not_be_hidden",
+          "execution_responsibility_must_not_be_confused_with_decision_responsibility"
+        ],
+        "approval_requirement_values": [
+          "human_approval_required",
+          "human_approval_not_required",
+          "approval_conditionally_required",
+          "human_authority_clarification_required",
+          "runtime_authority_clarification_required",
+          "approval_status_unknown"
+        ],
+        "approval_rules": [
+          "human_approval_required_when_material_authority_is_unclear",
+          "human_approval_required_when_delegation_scope_is_exceeded",
+          "human_approval_required_when_irreversible_or_external_impact_is_material_and_no_delegation_covers_it",
+          "human_or_runtime_clarification_required_when_accountable_entity_is_missing",
+          "approval_condition_must_be_recorded_when_approval_is_required",
+          "approval_absence_must_have_basis_when_decision_is_material"
+        ],
+        "delegation_rules": [
+          "delegated_authority_must_be_explicit",
+          "delegated_scope_must_define_permitted_decision_types",
+          "delegated_scope_must_define_prohibited_decision_types_when_material",
+          "delegation_must_define_escalation_triggers",
+          "delegation_must_define_record_requirements",
+          "delegation_must_not_cover_irreversible_or_external_impact_decisions_unless_explicitly_authorized",
+          "delegation_scope_exceeded_requires_return_or_human_authority_clarification"
+        ],
+        "autonomous_decision_rules": [
+          "autonomous_execution_decision_requires_explicit_authority",
+          "autonomous_execution_decision_requires_stop_or_rollback_conditions_when_action_side_effects_are_material",
+          "autonomous_execution_decision_requires_monitoring_or_record_requirement",
+          "autonomous_execution_decision_requires_escalation_route",
+          "autonomous_execution_decision_must_not_bypass_SDAGD_when_material_strategic_decision_is_in_scope"
+        ]
+      },
+      "ai_judgment_classification_model": {
+        "purpose": "Classify AI output by authority level rather than by correctness of judgment content.",
+        "classification_values": {
+          "advice_only": {
+            "decision_authority_granted": false,
+            "requires_accountable_entity": true,
+            "description": "AI gives advice only; decision responsibility remains with human or external accountable entity."
+          },
+          "decision_support": {
+            "decision_authority_granted": false,
+            "requires_accountable_entity": true,
+            "description": "AI organizes decision materials but does not make the decision itself."
+          },
+          "provisional_recommendation": {
+            "decision_authority_granted": false,
+            "requires_accountable_entity": true,
+            "description": "AI gives provisional recommendation; adoption requires approval or further confirmation."
+          },
+          "conditional_decision": {
+            "decision_authority_granted": "conditional",
+            "requires_accountable_entity": true,
+            "description": "AI judgment may be adopted only when explicit conditions are satisfied."
+          },
+          "delegated_decision": {
+            "decision_authority_granted": "within_delegated_scope",
+            "requires_accountable_entity": true,
+            "description": "AI judgment may be adopted within explicitly delegated scope with audit, record, and accountability requirements."
+          },
+          "autonomous_execution_decision": {
+            "decision_authority_granted": "only_under_strict_explicit_authority",
+            "requires_accountable_entity": true,
+            "description": "AI judgment includes autonomous execution or action selection and requires strong constraints, escalation, stop or rollback, and record requirements."
+          }
+        },
+        "separation_policy": {
+          "human_approval_required_is_not_an_AI_judgment_classification_by_default": true,
+          "human_approval_required_belongs_to_approval_requirement": true,
+          "classification_must_not_assert_judgment_correctness": true,
+          "classification_must_not_create_authority_without_external_basis": true
+        },
+        "classification_rules": [
+          "classify_as_advice_only_when_AI_has_no_decision_authority",
+          "classify_as_decision_support_when_AI_only_structures_materials",
+          "classify_as_provisional_recommendation_when_AI_recommends_but_adoption_requires_confirmation",
+          "classify_as_conditional_decision_only_when_conditions_for_adoption_are_explicit",
+          "classify_as_delegated_decision_only_when_delegation_scope_is_explicit_and_satisfied",
+          "classify_as_autonomous_execution_decision_only_when_execution_side_effect_or_action_authority_is_material",
+          "downgrade_or_return_when_accountable_entity_is_missing",
+          "downgrade_or_require_human_authority_clarification_when_delegation_scope_is_unclear"
+        ],
+        "prohibited_classification_shortcuts": [
+          "AI_recommendation_treated_as_human_decision",
+          "AI_confidence_treated_as_authority",
+          "AI_completion_treated_as_approval",
+          "AI_self_audit_treated_as_authority",
+          "absence_of_objection_treated_as_human_approval",
+          "delegation_implied_from_task_execution_without_scope"
+        ]
+      },
+      "SPPGD_DAAGD_SDAGD_boundary_model": {
+        "fixed_principle": {
+          "SPPGD": "judgment_structure",
+          "DAAGD": "judgment_authority",
+          "SDAGD": "judgment_audit"
+        },
+        "SPPGD_receivable_inputs": [
+          "decision_target",
+          "decision_purpose",
+          "options",
+          "recommended_option",
+          "non_selected_options",
+          "selection_reasons",
+          "non_selection_reasons",
+          "priority",
+          "continuation_conditions",
+          "stop_conditions",
+          "withdrawal_conditions",
+          "hold_conditions",
+          "reevaluation_conditions",
+          "uncertainty",
+          "impact_scope",
+          "reversibility",
+          "unresolved_decision_points"
+        ],
+        "DAAGD_outputs_for_SDAGD": [
+          "authority_basis",
+          "accountable_entity_clarity",
+          "accountable_owner_clarity",
+          "human_approval_requirement",
+          "AI_judgment_classification",
+          "delegation_scope",
+          "autonomous_decision_conditions",
+          "escalation_conditions",
+          "approval_conditions",
+          "decision_owner_execution_owner_separation",
+          "authority_gaps",
+          "unresolved_decision_points",
+          "uncertainty",
+          "record_requirements"
+        ],
+        "flow": [
+          "source_domains_produce_proposals_constraints_risks_and_candidates",
+          "CDOGD_resolves_cross_domain_responsibility_conflict_priority_routing_and_activation_when_material",
+          "SPPGD_organizes_proposals_into_strategic_decision_structure",
+          "DAAGD_assesses_decision_authority_accountability_approval_requirement_and_delegation_boundary",
+          "DAAGD_performs_authority_self_doubt_check",
+          "DAAGD_sends_auditable_authority_assessment_to_SDAGD",
+          "SDAGD_audits_strategic_decision_structure_and_DAAGD_authority_assessment_before_final_decision",
+          "if_SDAGD_pass_or_conditional_pass_decision_proceeds_under_DAAGD_authority_assessment",
+          "if_SDAGD_return_for_repair_or_invalidate_return_to_SPPGD_source_domain_DAAGD_or_human_authority_clarification_based_on_failure_origin"
+        ],
+        "boundary_rules": [
+          "DAAGD_must_not_rewrite_SPPGD_judgment_structure",
+          "DAAGD_must_not_generate_selection_or_non_selection_reasons",
+          "DAAGD_must_not_decide_continue_stop_withdraw_hold_or_reevaluate_content",
+          "DAAGD_must_not_self_substitute_SDAGD_audit",
+          "DAAGD_must_not_release_audit_return",
+          "DAAGD_must_not_treat_pre_SDAGD_state_as_final_decision"
+        ]
+      },
+      "policy_goal": [
+        "decision_authority_clarity",
+        "accountability_clarity",
+        "accountable_entity_identification",
+        "accountable_owner_identification",
+        "decision_owner_execution_owner_separation",
+        "human_approval_integrity",
+        "AI_judgment_classification_integrity",
+        "delegated_authority_boundary_integrity",
+        "autonomous_decision_condition_integrity",
+        "reversibility_authority_reflection",
+        "external_impact_authority_reflection",
+        "escalation_path_clarity",
+        "approval_condition_clarity",
+        "authority_gap_visibility",
+        "decision_record_integrity",
+        "pre_audit_non_finality",
+        "SDAGD_handoff_readiness",
+        "authority_self_doubt_integrity",
+        "non_absorption_of_strategy_generation",
+        "non_absorption_of_strategic_audit",
+        "non_substitution_of_target_specific_judgment"
+      ],
+      "constraints": {
+        "prohibited_failure_modes": [
+          "authority_assessment_treated_as_final_decision",
+          "judgment_content_generated_by_DAAGD",
+          "judgment_structure_created_by_DAAGD",
+          "SPPGD_judgment_structure_rewritten_by_DAAGD",
+          "target_specific_judgment_substituted_by_DAAGD",
+          "domain_specific_expert_judgment_finalized_by_DAAGD",
+          "target_specific_execution_policy_generated_by_DAAGD",
+          "priority_created_by_DAAGD",
+          "selection_or_non_selection_reason_generated_by_DAAGD",
+          "continue_stop_withdraw_hold_reevaluate_judgment_generated_by_DAAGD",
+          "execution_plan_generated_by_DAAGD",
+          "execution_work_substituted_by_DAAGD",
+          "operation_maintenance_improvement_judgment_substituted_by_DAAGD",
+          "artifact_quality_judgment_substituted_by_DAAGD",
+          "progress_management_substituted_by_DAAGD",
+          "audit_target_rewritten_by_DAAGD",
+          "SDAGD_audit_substituted_by_DAAGD",
+          "self_doubt_check_used_as_self_approval",
+          "self_audit_used_as_approval",
+          "audit_return_overridden_by_DAAGD",
+          "accountable_entity_ambiguous_but_treated_as_decidable",
+          "accountable_owner_ambiguous_but_treated_as_decidable",
+          "human_approval_required_but_treated_as_delegated_AI_decision",
+          "human_approval_required_but_omitted",
+          "delegation_scope_exceeded",
+          "autonomous_execution_allowed_without_conditions",
+          "irreversible_decision_treated_as_low_authority",
+          "external_impact_decision_treated_as_internal_only",
+          "authority_gap_hidden",
+          "decision_owner_execution_owner_conflated",
+          "SDAGD_pre_audit_state_treated_as_final",
+          "AI_recommendation_treated_as_human_decision",
+          "AI_confidence_treated_as_decision_authority",
+          "AI_completion_treated_as_approval",
+          "runtime_policy_ignored_when_authority_is_material",
+          "record_requirement_omitted_for_material_decision"
+        ],
+        "required_controls": [
+          "identify_decision_authority",
+          "identify_final_responsibility",
+          "identify_accountable_entity",
+          "identify_accountable_owner",
+          "separate_decision_owner_and_execution_owner",
+          "classify_AI_judgment_authority_level",
+          "assess_human_approval_requirement",
+          "assess_delegated_authority_scope",
+          "assess_autonomous_decision_conditions",
+          "assess_reversibility_and_irreversibility",
+          "assess_external_impact",
+          "define_escalation_conditions",
+          "define_approval_conditions",
+          "define_record_requirements",
+          "surface_authority_gaps",
+          "preserve_SPPGD_judgment_content",
+          "preserve_source_domain_judgment_boundary",
+          "prepare_SDAGD_handoff",
+          "run_authority_self_doubt_check_before_handoff"
+        ],
+        "runtime_constraints": {
+          "domain_only": true,
+          "does_not_redefine_parent_governance": true,
+          "does_not_reimplement_external_orchestration": true,
+          "does_not_define_registry_logic": true,
+          "does_not_define_global_domain_priority": true,
+          "does_not_generate_judgment_content": true,
+          "does_not_create_strategy_structure": true,
+          "does_not_replace_SDAGD_audit": true,
+          "does_not_self_approve": true,
+          "does_not_override_human_or_runtime_authority": true
+        },
+        "schema_hygiene_constraints": {
+          "taxonomy_group_membership_must_match_requirement_level": true,
+          "record_required_fields_must_be_mapped_to_field_groups_when_records_exist": true,
+          "field_group_items_may_inherit_group_requirement_level_when_not_overridden": true,
+          "evaluation_dimensions_must_align_with_thresholds_and_audit_targets_when_scoring_exists": true,
+          "critical_invalidation_conditions_must_be_represented_in_critical_severity_rules_when_severity_model_exists": true,
+          "audit_decision_rules_must_emit_registered_action_outputs_only": true
+        }
+      },
+      "capabilities": {
+        "required_capabilities": [
+          "decision_authority_identification",
+          "responsibility_boundary_modeling",
+          "accountability_assignment",
+          "accountable_entity_resolution",
+          "accountable_owner_resolution",
+          "decision_owner_execution_owner_separation",
+          "human_approval_requirement_assessment",
+          "AI_judgment_classification",
+          "AI_output_validity_level_assessment",
+          "delegated_authority_scope_assessment",
+          "autonomous_decision_condition_assessment",
+          "reversibility_assessment_for_authority",
+          "external_impact_assessment_for_authority",
+          "escalation_condition_definition",
+          "approval_condition_definition",
+          "authority_gap_detection",
+          "decision_record_requirement_definition",
+          "SDAGD_handoff_preparation",
+          "authority_self_doubt_check",
+          "authority_assessment_repair"
+        ],
+        "preferred_capabilities": [
+          "authority_policy_diff_detection",
+          "delegation_scope_simulation",
+          "approval_condition_traceability",
+          "accountability_graph_generation",
+          "decision_record_relationship_validation",
+          "SDAGD_return_reason_classification",
+          "human_authority_clarification_routing",
+          "autonomous_decision_stop_condition_review",
+          "authority_gap_heatmap",
+          "pre_audit_finality_violation_detection"
+        ],
+        "capability_groups": {
+          "authority_and_responsibility": [
+            "decision_authority_identification",
+            "responsibility_boundary_modeling",
+            "accountability_assignment",
+            "accountable_entity_resolution",
+            "accountable_owner_resolution",
+            "decision_owner_execution_owner_separation"
+          ],
+          "approval_and_delegation": [
+            "human_approval_requirement_assessment",
+            "delegated_authority_scope_assessment",
+            "autonomous_decision_condition_assessment",
+            "approval_condition_definition"
+          ],
+          "AI_judgment_governance": [
+            "AI_judgment_classification",
+            "AI_output_validity_level_assessment"
+          ],
+          "risk_and_impact_for_authority": [
+            "reversibility_assessment_for_authority",
+            "external_impact_assessment_for_authority"
+          ],
+          "handoff_and_record": [
+            "escalation_condition_definition",
+            "decision_record_requirement_definition",
+            "SDAGD_handoff_preparation"
+          ],
+          "self_doubt_and_repair": [
+            "authority_self_doubt_check",
+            "authority_gap_detection",
+            "authority_assessment_repair"
+          ]
+        },
+        "mapping_policy": {
+          "required_capabilities_must_appear_in_capability_groups_when_groups_are_used": true,
+          "capability_groups_are_structural_not_exhaustive": true,
+          "future_extensions_should_attach_to_groups_before_adding_flat_items": true,
+          "capability_taxonomy_must_not_conflict_with_flat_required_list": true
+        }
+      },
+      "evaluation": {
+        "evaluation_policy": {
+          "domain_evaluation_required_when_domain_claim_is_made": true,
+          "scored_evaluation_is_enabled": true,
+          "severity_model_is_enabled": true,
+          "DAAGD_evaluation_is_not_SDAGD_audit": true,
+          "DAAGD_evaluation_must_not_approve_final_decision": true,
+          "non_applicable_dimensions_must_be_excluded_with_reason_when_reporting": true
+        },
+        "audit_targets": [
+          "decision_authority_clarity",
+          "accountable_entity_clarity",
+          "accountable_owner_clarity",
+          "decision_owner_execution_owner_separation",
+          "human_approval_requirement_clarity",
+          "AI_judgment_classification_correctness_as_authority_level",
+          "delegated_authority_scope_clarity",
+          "autonomous_decision_condition_clarity",
+          "reversibility_authority_reflection",
+          "external_impact_authority_reflection",
+          "escalation_condition_clarity",
+          "approval_condition_clarity",
+          "decision_record_requirement_clarity",
+          "authority_gap_visibility",
+          "SPPGD_boundary_preservation",
+          "source_domain_boundary_preservation",
+          "SDAGD_audit_non_substitution",
+          "pre_audit_non_finality",
+          "authority_self_doubt_check_execution"
+        ],
+        "minimum_pass_conditions": [
+          "decision_authority_identified_or_marked_unresolved",
+          "accountable_entity_defined_or_human_authority_clarification_required",
+          "AI_judgment_classification_present_when_AI_output_is_material",
+          "human_approval_requirement_assessed",
+          "delegation_scope_defined_when_delegated_authority_is_claimed",
+          "decision_owner_execution_owner_separation_checked",
+          "reversibility_and_external_impact_reflected_when_material",
+          "SDAGD_handoff_prepared_for_material_strategic_decision",
+          "authority_self_doubt_check_completed_before_handoff",
+          "authority_assessment_not_claimed_as_final_decision"
+        ],
+        "drift_signals": [
+          "DAAGD_begins_generating_judgment_content",
+          "DAAGD_rewrites_SPPGD_strategic_structure",
+          "DAAGD_treats_authority_assessment_as_final_decision",
+          "DAAGD_treats_self_doubt_check_as_approval",
+          "DAAGD_suppresses_human_approval_requirement",
+          "DAAGD_expands_AI_delegated_authority_without_basis",
+          "DAAGD_hides_unclear_accountable_entity",
+          "DAAGD_conflates_decision_owner_and_execution_owner",
+          "DAAGD_treats_irreversible_decision_as_low_authority",
+          "DAAGD_ignores_external_impact",
+          "DAAGD_bypasses_SDAGD_audit",
+          "DAAGD_overrides_audit_return"
+        ],
+        "critical_invalidation_conditions": [
+          "authority_assessment_used_as_final_decision",
+          "human_approval_required_but_omitted",
+          "accountable_entity_missing_for_material_decision",
+          "delegated_authority_exceeded",
+          "autonomous_execution_allowed_without_conditions",
+          "irreversible_or_external_impact_decision_treated_as_internal_low_risk",
+          "SDAGD_audit_bypassed_for_material_decision",
+          "audit_return_overridden_by_DAAGD",
+          "SPPGD_judgment_rewritten_by_DAAGD",
+          "target_specific_judgment_substituted_by_DAAGD"
+        ],
+        "scoring_model": {
+          "enabled_when_domain_defines_scored_evaluation": true,
+          "score_range": [
+            0,
+            100
+          ],
+          "domain_dimension_scores": [
+            "authority_clarity_score",
+            "accountability_clarity_score",
+            "approval_integrity_score",
+            "delegation_boundary_score",
+            "AI_judgment_classification_score",
+            "owner_separation_score",
+            "impact_and_reversibility_reflection_score",
+            "escalation_and_record_score",
+            "boundary_preservation_score",
+            "self_doubt_integrity_score"
+          ],
+          "minimum_expected_scores": {
+            "authority_clarity_score": 90,
+            "accountability_clarity_score": 90,
+            "approval_integrity_score": 90,
+            "delegation_boundary_score": 90,
+            "AI_judgment_classification_score": 85,
+            "owner_separation_score": 85,
+            "impact_and_reversibility_reflection_score": 85,
+            "escalation_and_record_score": 80,
+            "boundary_preservation_score": 90,
+            "self_doubt_integrity_score": 85
+          },
+          "aggregation_policy": {
+            "equal_weight_across_applicable_dimensions": true,
+            "non_applicable_dimensions_excluded_with_reason": true,
+            "critical_invalidation_overrides_aggregate_score": true,
+            "llm_self_assessment_must_not_be_presented_as_external_validation": true,
+            "score_source_must_be_disclosed_when_reporting": true
+          },
+          "alignment_policy": {
+            "domain_dimension_scores_must_have_minimum_expected_scores_when_scoring_is_enabled": true,
+            "audit_targets_must_have_corresponding_dimension_or_explicit_non_scored_reason": true,
+            "critical_invalidation_conditions_must_appear_in_severity_model_when_material_and_severity_model_exists": true
+          }
+        },
+        "severity_model": {
+          "enabled_when_domain_uses_severity": true,
+          "levels": [
+            "low",
+            "moderate",
+            "high",
+            "critical"
+          ],
+          "severity_rules": {
+            "low": [
+              "minor_record_wording_issue",
+              "single_non_material_status_field_omission",
+              "non_blocking_approval_condition_wording_gap"
+            ],
+            "moderate": [
+              "authority_basis_ambiguous_but_non_material",
+              "minor_accountable_owner_ambiguity",
+              "approval_condition_incomplete_for_reversible_low_impact_decision",
+              "record_requirement_incomplete_but_recoverable",
+              "self_doubt_check_item_omitted_without_material_authority_effect"
+            ],
+            "high": [
+              "material_authority_gap",
+              "human_approval_requirement_unclear_for_material_decision",
+              "delegation_scope_unclear_for_material_decision",
+              "decision_owner_execution_owner_conflated",
+              "external_impact_under_reflected",
+              "irreversibility_under_reflected",
+              "SDAGD_handoff_missing_for_material_strategic_decision"
+            ],
+            "critical": [
+              "authority_assessment_used_as_final_decision",
+              "human_approval_required_but_omitted",
+              "accountable_entity_missing_for_material_decision",
+              "delegated_authority_exceeded",
+              "autonomous_execution_allowed_without_conditions",
+              "irreversible_or_external_impact_decision_treated_as_internal_low_risk",
+              "SDAGD_audit_bypassed_for_material_decision",
+              "audit_return_overridden_by_DAAGD",
+              "SPPGD_judgment_rewritten_by_DAAGD",
+              "target_specific_judgment_substituted_by_DAAGD"
+            ]
+          }
+        }
+      },
+      "repair": {
+        "purpose": "Repair DAAGD authority assessments by restoring authority clarity, accountability clarity, approval integrity, delegation boundaries, owner separation, escalation, record requirements, and SDAGD handoff readiness without changing judgment content or substituting strategic audit.",
+        "core_rule": "repair_model_should_define_repair_origin_not_parent_repair_cycle",
+        "repair_origins": [
+          "unclear_decision_authority",
+          "unclear_accountable_entity",
+          "unclear_accountable_owner",
+          "decision_owner_execution_owner_conflation",
+          "missing_human_approval_requirement",
+          "incorrect_AI_judgment_classification",
+          "unclear_delegated_authority_scope",
+          "exceeded_delegated_authority",
+          "missing_autonomous_decision_conditions",
+          "ignored_reversibility",
+          "ignored_external_impact",
+          "hidden_authority_gap",
+          "missing_escalation_condition",
+          "missing_approval_condition",
+          "missing_decision_record_requirement",
+          "SPPGD_boundary_violation",
+          "source_domain_boundary_violation",
+          "SDAGD_audit_substitution",
+          "audit_return_override",
+          "self_doubt_check_failure"
+        ],
+        "repair_actions": {
+          "authority_clarity_repair": [
+            "identify_missing_or_ambiguous_decision_authority",
+            "state_whether_authority_is_defined_conditional_ambiguous_missing_or_exceeded",
+            "clarify_authority_basis_or_mark_human_authority_clarification_required",
+            "preserve_decision_content_without_rewriting_it"
+          ],
+          "accountability_repair": [
+            "clarify_accountable_entity",
+            "clarify_accountable_owner",
+            "state_final_responsibility_location",
+            "separate_decision_owner_and_execution_owner",
+            "mark_unresolved_accountability_as_blocking_when_material"
+          ],
+          "approval_repair": [
+            "reassess_human_approval_requirement",
+            "define_approval_conditions",
+            "identify_approval_owner_or_required_clarification",
+            "prevent_AI_recommendation_from_being_treated_as_approval"
+          ],
+          "delegation_repair": [
+            "reclassify_AI_judgment_level",
+            "define_delegated_authority_scope",
+            "identify_permitted_and_prohibited_decision_types_when_material",
+            "define_autonomous_decision_conditions",
+            "add_escalation_stop_or_rollback_conditions_when_autonomous_execution_is_material"
+          ],
+          "impact_and_reversibility_repair": [
+            "reassess_reversibility",
+            "reassess_irreversibility",
+            "reassess_external_impact",
+            "raise_authority_requirement_when_irreversibility_or_external_impact_is_material"
+          ],
+          "boundary_repair": [
+            "return_target_specific_judgment_to_source_domain",
+            "return_strategy_structure_to_SPPGD",
+            "preserve_SDAGD_audit_requirement",
+            "remove_final_decision_claim_before_SDAGD_audit",
+            "prepare_uncertainty_for_SDAGD"
+          ],
+          "record_and_handoff_repair": [
+            "add_decision_record_requirement",
+            "add_authority_gap_record",
+            "add_SDAGD_handoff_issues",
+            "record_before_after_authority_assessment_change",
+            "mark_remaining_uncertainty"
+          ]
+        },
+        "repair_policy": {
+          "identify_repair_origin": true,
+          "repair_affected_scope": true,
+          "revalidate_affected_axes": true,
+          "preserve_revision_lineage_when_material": true,
+          "do_not_skip_repair_and_claim_ready_without_basis": true,
+          "partial_revalidation_requires_reason": true,
+          "post_repair_review_must_cover_affected_axes": true,
+          "repair_must_not_generate_judgment_content": true,
+          "repair_must_not_replace_SDAGD_audit": true,
+          "repair_must_not_override_audit_return": true
+        },
+        "human_review_required_when": [
+          "accountable_entity_missing_for_material_decision",
+          "human_approval_requirement_unclear_for_material_decision",
+          "delegated_authority_scope_unclear_for_material_decision",
+          "delegated_authority_exceeded",
+          "autonomous_execution_decision_conditions_missing",
+          "irreversible_or_external_impact_decision_has_no_explicit_authority",
+          "runtime_policy_or_higher_authority_conflict_detected",
+          "SDAGD_return_requires_human_authority_clarification"
+        ]
+      },
+      "activation": {
+        "enabled": true,
+        "activation_mode": "local_domain_applicability",
+        "applies_when": [
+          "decision_authority_is_material",
+          "accountability_assignment_is_required",
+          "human_approval_requirement_is_material",
+          "AI_judgment_may_be_used_for_decision",
+          "delegated_authority_is_claimed",
+          "autonomous_execution_decision_is_possible",
+          "final_responsibility_must_be_identified",
+          "decision_owner_and_execution_owner_may_differ",
+          "irreversible_decision_or_external_impact_exists",
+          "escalation_condition_is_needed",
+          "SDAGD_handoff_requires_authority_assessment"
+        ],
+        "does_not_replace_argd": true,
+        "does_not_replace_dagd": true,
+        "does_not_reimplement_cdogd": true,
+        "does_not_define_registry_logic": true,
+        "routing_and_priority_are_external": true,
+        "activation_record_minimum_fields": [
+          "activation_reason",
+          "decision_context",
+          "governed_target_context",
+          "applicable_authority_axes",
+          "declared_context_policy_status",
+          "accountability_status",
+          "approval_status"
+        ],
+        "local_activation_scope_policy": {
+          "domain_activation_is_context_local": true,
+          "external_orchestration_may_select_or_prioritize_domain": true,
+          "domain_definition_does_not_store_registry_or_routing_logic": true,
+          "DAAGD_activation_does_not_create_decision_authority": true,
+          "DAAGD_activation_does_not_make_pre_audit_assessment_final": true
+        },
+        "reactivation_policy": {
+          "domain_activation_is_not_one_shot": true,
+          "domain_may_be_reactivated_when_relevant_conditions_recur": true,
+          "reactivation_triggers": [
+            "governed_target_change",
+            "premise_change",
+            "constraint_change",
+            "state_change",
+            "purpose_change",
+            "risk_change",
+            "output_requirement_change",
+            "authority_or_context_change",
+            "delegation_scope_change",
+            "accountable_entity_change",
+            "approval_policy_change",
+            "reversibility_change",
+            "external_impact_change",
+            "SDAGD_return_for_repair"
+          ],
+          "deactivation_does_not_imply_future_non_applicability": true,
+          "leaving_primary_role_does_not_mean_DAAGD_is_no_longer_applicable": true
+        }
+      },
+      "self_audit": {
+        "enabled": true,
+        "audit_frequency": {
+          "before_authority_assessment_output": true,
+          "before_SDAGD_handoff": true,
+          "after_SDAGD_return": true,
+          "after_material_repair": true,
+          "extra_when_autonomous_execution_or_external_impact_is_material": true
+        },
+        "audit_axes": [
+          "authority_self_doubt",
+          "boundary_preservation",
+          "approval_requirement_visibility",
+          "accountability_clarity",
+          "delegation_scope_integrity",
+          "pre_audit_non_finality"
+        ],
+        "output_policy": {
+          "compact_by_default": true,
+          "emit_detail_on_anomaly": true,
+          "emit_detail_on_user_request": true,
+          "emit_detail_on_critical_failure": true
+        },
+        "required_basis_checks": [
+          "decision_authority_basis_check",
+          "accountable_entity_basis_check",
+          "human_approval_basis_check",
+          "AI_judgment_classification_basis_check",
+          "delegated_authority_scope_basis_check",
+          "reversibility_and_external_impact_basis_check",
+          "SDAGD_handoff_basis_check"
+        ],
+        "authority_self_doubt_check": {
+          "purpose": "Confirm that DAAGD is in a valid authority-assessment posture and is not overstepping into judgment generation, target-specific judgment substitution, self-approval, or SDAGD audit substitution.",
+          "is_SDAGD_audit": false,
+          "is_self_approval": false,
+          "is_final_decision": false,
+          "checks": [
+            "is_this_an_authority_assessment_DAAGD_should_handle",
+            "did_DAAGD_rewrite_the_judgment_content",
+            "did_DAAGD_absorb_target_specific_domain_judgment",
+            "did_DAAGD_decide_a_strategic_judgment_that_should_return_to_SPPGD",
+            "did_DAAGD_treat_an_issue_for_SDAGD_as_passed",
+            "did_DAAGD_underestimate_need_for_human_approval",
+            "is_accountable_entity_clear",
+            "are_decision_owner_and_execution_owner_separated",
+            "is_delegated_authority_explicit",
+            "if_irreversible_or_externally_impactful_is_that_reflected_in_authority_level"
+          ],
+          "result_values": [
+            "authority_check_pass",
+            "authority_check_conditional_pass",
+            "return_to_source_domain",
+            "return_to_sppgd",
+            "requires_human_authority_clarification",
+            "send_to_sdagd_with_uncertainty"
+          ],
+          "loop_prevention_policy": {
+            "self_doubt_result_must_be_one_of_declared_values": true,
+            "self_doubt_must_not_generate_unbounded_recursive_questions": true,
+            "self_doubt_must_route_to_repair_return_clarification_or_SDAGD": true
+          },
+          "prohibited_uses": [
+            "self_doubt_check_as_self_approval",
+            "self_doubt_check_as_SDAGD_audit",
+            "self_doubt_check_as_final_decision",
+            "self_doubt_check_as_permission_to_override_human_authority"
+          ]
+        },
+        "domain_specific_self_state_audit_policy": {
+          "optional_domain_local_policy": true,
+          "allowed_when_domain_requires_stronger_self_state_control": true,
+          "must_remain_domain_local": true,
+          "must_not_replace_parent_audit_or_repair_governance": true,
+          "must_not_be_treated_as_self_approval": true,
+          "must_define_overreach_detection_when_authority_sensitive": true,
+          "must_define_repair_or_escalation_when_self_state_is_unreliable": true
+        }
+      },
+      "audit_to_action": {
+        "enabled": true,
+        "decision_inputs": [
+          "authority_self_doubt_result",
+          "authority_gap_status",
+          "accountable_entity_status",
+          "accountable_owner_status",
+          "human_approval_requirement_status",
+          "delegated_authority_status",
+          "autonomous_decision_condition_status",
+          "reversibility_status",
+          "external_impact_status",
+          "SPPGD_boundary_status",
+          "source_domain_boundary_status",
+          "SDAGD_handoff_readiness",
+          "critical_invalidation_status"
+        ],
+        "action_outputs": [
+          "send_to_sdagd",
+          "send_to_sdagd_with_uncertainty",
+          "send_to_sdagd_with_conditions",
+          "return_to_source_domain",
+          "return_to_sppgd",
+          "require_human_authority_clarification",
+          "require_runtime_authority_clarification",
+          "repair_authority_assessment",
+          "block_final_decision_claim",
+          "emit_authority_gap_status",
+          "emit_critical_authority_failure_status"
+        ],
+        "audit_to_action_consistency_policy": {
+          "decision_inputs_must_be_declared_when_used": true,
+          "action_outputs_must_be_declared_when_used": true,
+          "audit_decision_rules_must_emit_registered_action_outputs_only": true,
+          "unregistered_action_output_is_schema_hygiene_failure": true,
+          "action_precedence_must_not_override_higher_authority": true
+        },
+        "decision_rules": {
+          "authority_check_pass": {
+            "if": {
+              "authority_self_doubt_result": {
+                "equals": "authority_check_pass"
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "send_to_sdagd"
+              ],
+              "blocked_actions": [
+                "block_final_decision_claim"
+              ]
+            }
+          },
+          "authority_check_conditional_pass": {
+            "if": {
+              "authority_self_doubt_result": {
+                "equals": "authority_check_conditional_pass"
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "send_to_sdagd_with_conditions"
+              ],
+              "blocked_actions": [
+                "block_final_decision_claim"
+              ]
+            }
+          },
+          "return_to_source_domain": {
+            "if": {
+              "authority_self_doubt_result": {
+                "equals": "return_to_source_domain"
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "return_to_source_domain",
+                "emit_authority_gap_status"
+              ],
+              "blocked_actions": [
+                "send_to_sdagd"
+              ]
+            }
+          },
+          "return_to_sppgd": {
+            "if": {
+              "authority_self_doubt_result": {
+                "equals": "return_to_sppgd"
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "return_to_sppgd",
+                "emit_authority_gap_status"
+              ],
+              "blocked_actions": [
+                "send_to_sdagd"
+              ]
+            }
+          },
+          "requires_human_authority_clarification": {
+            "if": {
+              "authority_self_doubt_result": {
+                "equals": "requires_human_authority_clarification"
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "require_human_authority_clarification",
+                "emit_authority_gap_status"
+              ],
+              "blocked_actions": [
+                "send_to_sdagd"
+              ]
+            }
+          },
+          "send_to_sdagd_with_uncertainty": {
+            "if": {
+              "authority_self_doubt_result": {
+                "equals": "send_to_sdagd_with_uncertainty"
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "send_to_sdagd_with_uncertainty"
+              ],
+              "blocked_actions": [
+                "block_final_decision_claim"
+              ]
+            }
+          },
+          "critical_authority_failure": {
+            "if": {
+              "critical_invalidation_status": {
+                "equals": true
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "block_final_decision_claim",
+                "emit_critical_authority_failure_status",
+                "repair_authority_assessment"
+              ],
+              "blocked_actions": [
+                "send_to_sdagd"
+              ]
+            }
+          },
+          "accountable_entity_missing": {
+            "if": {
+              "accountable_entity_status": {
+                "equals": "missing_for_material_decision"
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "require_human_authority_clarification",
+                "emit_authority_gap_status"
+              ],
+              "blocked_actions": [
+                "send_to_sdagd"
+              ]
+            }
+          },
+          "delegated_authority_exceeded": {
+            "if": {
+              "delegated_authority_status": {
+                "equals": "exceeded"
+              }
+            },
+            "then": {
+              "automatic_actions": [
+                "block_final_decision_claim",
+                "require_human_authority_clarification",
+                "repair_authority_assessment"
+              ],
+              "blocked_actions": [
+                "send_to_sdagd"
+              ]
+            }
+          }
+        },
+        "action_precedence": {
+          "critical_failure_blocks_ready_claim_when_material": true,
+          "deduplicate_actions_after_mapping": true,
+          "human_or_runtime_authority_clarification_overrides_SDAGD_handoff_when_authority_basis_is_missing": true,
+          "return_to_source_domain_overrides_DAAGD_repair_when_target_specific_judgment_is_missing": true,
+          "return_to_SPPGD_overrides_DAAGD_repair_when_strategy_structure_is_missing": true,
+          "block_final_decision_claim_overrides_all_progress_actions_when_pre_audit_finality_violation_detected": true
+        }
+      },
+      "status_reporting": {
+        "enabled": true,
+        "status_reporting_should_define_domain_delta_only": true,
+        "modes": [
+          "silent_by_default",
+          "emit_on_anomaly",
+          "emit_on_user_request",
+          "emit_on_blocking_failure",
+          "emit_after_material_repair",
+          "emit_before_SDAGD_handoff_when_requested"
+        ],
+        "compact_fields": [
+          "authority_assessment_status",
+          "AI_judgment_classification",
+          "human_approval_required",
+          "accountable_entity_status",
+          "accountable_owner_status",
+          "delegated_authority_status",
+          "authority_gaps",
+          "escalation_required",
+          "SDAGD_handoff_status"
+        ],
+        "extended_fields": [
+          "decision_target",
+          "decision_candidate",
+          "authority_basis",
+          "AI_judgment_classification",
+          "approval_requirement",
+          "delegated_authority_scope",
+          "accountable_entity",
+          "accountable_owner",
+          "decision_owner",
+          "execution_owner",
+          "reversibility",
+          "external_impact",
+          "escalation_conditions",
+          "approval_conditions",
+          "record_requirements",
+          "authority_self_doubt_result",
+          "issues_for_SDAGD_audit",
+          "remaining_uncertainty"
+        ],
+        "visibility_rules": {
+          "show_critical_failure": true,
+          "show_blocking_failure": true,
+          "show_material_repair": true,
+          "suppress_verbose_status_when_no_anomaly_and_no_user_request": true,
+          "always_show_when": [
+            "accountable_entity_missing",
+            "human_approval_required_but_missing",
+            "delegated_authority_exceeded",
+            "autonomous_execution_conditions_missing",
+            "authority_gap_material",
+            "SDAGD_audit_required_but_not_ready",
+            "DAAGD_boundary_violation_detected",
+            "pre_audit_finality_violation_detected"
+          ]
+        }
+      },
+      "record_schemas": {
+        "record_policy": {
+          "record_schemas_are_optional_unless_domain_requires_records": false,
+          "if_records_exist_required_fields_must_map_to_field_groups": true,
+          "records_must_not_redefine_parent_audit_or_repair_cycle": true,
+          "records_must_remain_domain_delta": true,
+          "records_are_required_for_material_DAAGD_authority_assessment": true
+        },
+        "domain_record_templates": {
+          "decision_authority_assessment_record": {
+            "schema_name": "DAAGD Decision Authority Assessment Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record who may decide, under what authority, with what accountability, approval, delegation, and record conditions.",
+            "required_fields": [
+              "authority_assessment_id",
+              "decision_target",
+              "decision_candidate",
+              "decision_context",
+              "authority_basis",
+              "AI_judgment_classification",
+              "approval_requirement",
+              "human_approval_required",
+              "delegated_authority_present",
+              "delegated_authority_scope",
+              "accountable_entity",
+              "accountable_owner",
+              "decision_owner",
+              "execution_owner",
+              "reversibility",
+              "irreversibility",
+              "external_impact",
+              "escalation_conditions",
+              "approval_conditions",
+              "authority_gaps",
+              "record_requirements",
+              "sdagd_handoff_required",
+              "assessment_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "authority_assessment_id",
+                "assessment_timestamp"
+              ],
+              "decision_context": [
+                "decision_target",
+                "decision_candidate",
+                "decision_context"
+              ],
+              "authority_and_approval": [
+                "authority_basis",
+                "AI_judgment_classification",
+                "approval_requirement",
+                "human_approval_required",
+                "delegated_authority_present",
+                "delegated_authority_scope"
+              ],
+              "accountability": [
+                "accountable_entity",
+                "accountable_owner",
+                "decision_owner",
+                "execution_owner"
+              ],
+              "impact_and_conditions": [
+                "reversibility",
+                "irreversibility",
+                "external_impact",
+                "escalation_conditions",
+                "approval_conditions"
+              ],
+              "gaps_records_and_handoff": [
+                "authority_gaps",
+                "record_requirements",
+                "sdagd_handoff_required"
+              ]
+            },
+            "validation_rules": [
+              "authority_assessment_id_required",
+              "decision_target_required",
+              "authority_basis_required_or_marked_unresolved",
+              "AI_judgment_classification_required_when_AI_output_is_material",
+              "accountable_entity_required_or_human_authority_clarification_required",
+              "decision_owner_execution_owner_separation_required",
+              "delegated_authority_scope_required_when_delegated_authority_present",
+              "reversibility_external_impact_and_irreversibility_must_be_checked_when_material",
+              "sdagd_handoff_required_for_material_strategic_decision"
+            ]
+          },
+          "AI_judgment_classification_record": {
+            "schema_name": "DAAGD AI Judgment Classification Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record the authority-level classification of AI output without asserting correctness of the judgment content.",
+            "required_fields": [
+              "AI_judgment_classification_id",
+              "decision_target",
+              "AI_output_reference",
+              "classification",
+              "classification_basis",
+              "human_approval_required",
+              "delegation_scope",
+              "conditions_for_use",
+              "prohibited_use",
+              "uncertainty",
+              "record_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "AI_judgment_classification_id",
+                "record_timestamp"
+              ],
+              "target_and_output": [
+                "decision_target",
+                "AI_output_reference"
+              ],
+              "classification": [
+                "classification",
+                "classification_basis",
+                "human_approval_required",
+                "delegation_scope"
+              ],
+              "use_conditions": [
+                "conditions_for_use",
+                "prohibited_use",
+                "uncertainty"
+              ]
+            },
+            "validation_rules": [
+              "classification_must_be_declared_AI_judgment_classification_value",
+              "classification_basis_required",
+              "AI_confidence_must_not_be_treated_as_authority",
+              "human_approval_required_must_not_be_hidden_when_material",
+              "delegation_scope_required_for_delegated_decision"
+            ]
+          },
+          "accountability_assignment_record": {
+            "schema_name": "DAAGD Accountability Assignment Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record accountable entity, accountable owner, decision owner, execution owner, and final responsibility location.",
+            "required_fields": [
+              "accountability_assignment_id",
+              "decision_target",
+              "accountable_entity",
+              "accountable_owner",
+              "decision_owner",
+              "execution_owner",
+              "responsibility_boundary",
+              "final_responsibility_location",
+              "escalation_owner",
+              "record_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "accountability_assignment_id",
+                "record_timestamp"
+              ],
+              "target": [
+                "decision_target"
+              ],
+              "accountability": [
+                "accountable_entity",
+                "accountable_owner",
+                "final_responsibility_location"
+              ],
+              "ownership": [
+                "decision_owner",
+                "execution_owner",
+                "escalation_owner"
+              ],
+              "boundary": [
+                "responsibility_boundary"
+              ]
+            },
+            "validation_rules": [
+              "accountable_entity_required_for_material_decision",
+              "accountable_owner_required_or_marked_unresolved",
+              "decision_owner_and_execution_owner_must_be_separated_or_explicitly_same_with_reason",
+              "final_responsibility_location_required",
+              "escalation_owner_required_when_escalation_condition_exists"
+            ]
+          },
+          "approval_requirement_record": {
+            "schema_name": "DAAGD Approval Requirement Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record whether approval is required, who must approve, under what conditions, and what remains unresolved.",
+            "required_fields": [
+              "approval_requirement_id",
+              "decision_target",
+              "approval_required",
+              "approval_type",
+              "approval_conditions",
+              "approver_role_or_entity",
+              "approval_basis",
+              "unresolved_approval_questions",
+              "approval_status",
+              "record_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "approval_requirement_id",
+                "record_timestamp"
+              ],
+              "target": [
+                "decision_target"
+              ],
+              "approval_requirement": [
+                "approval_required",
+                "approval_type",
+                "approval_conditions",
+                "approver_role_or_entity",
+                "approval_status"
+              ],
+              "basis_and_open_questions": [
+                "approval_basis",
+                "unresolved_approval_questions"
+              ]
+            },
+            "validation_rules": [
+              "approval_required_must_be_boolean_or_declared_unknown_state",
+              "approval_type_required_when_approval_required",
+              "approval_conditions_required_when_approval_required",
+              "approver_role_or_entity_required_or_clarification_required",
+              "approval_basis_required"
+            ]
+          },
+          "delegation_boundary_record": {
+            "schema_name": "DAAGD Delegation Boundary Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record delegated authority scope, permitted and prohibited decision types, autonomy conditions, escalation, rollback or stop, and monitoring or record requirements.",
+            "required_fields": [
+              "delegation_boundary_id",
+              "decision_target",
+              "delegated_authority_holder",
+              "delegated_scope",
+              "permitted_decision_types",
+              "prohibited_decision_types",
+              "autonomous_decision_conditions",
+              "escalation_triggers",
+              "rollback_or_stop_conditions",
+              "monitoring_or_record_requirement",
+              "record_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "delegation_boundary_id",
+                "record_timestamp"
+              ],
+              "target_and_holder": [
+                "decision_target",
+                "delegated_authority_holder"
+              ],
+              "scope": [
+                "delegated_scope",
+                "permitted_decision_types",
+                "prohibited_decision_types"
+              ],
+              "autonomy_and_controls": [
+                "autonomous_decision_conditions",
+                "escalation_triggers",
+                "rollback_or_stop_conditions",
+                "monitoring_or_record_requirement"
+              ]
+            },
+            "validation_rules": [
+              "delegated_authority_holder_required",
+              "delegated_scope_required",
+              "permitted_decision_types_required",
+              "prohibited_decision_types_required_when_material",
+              "autonomous_decision_conditions_required_when_autonomy_is_claimed",
+              "escalation_triggers_required_when_delegation_scope_is_material",
+              "rollback_or_stop_conditions_required_when_autonomous_execution_has_material_side_effects"
+            ]
+          },
+          "authority_self_doubt_check_record": {
+            "schema_name": "DAAGD Authority Self-Doubt Check Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record DAAGD's internal authority self-doubt check before SDAGD handoff or return for repair.",
+            "required_fields": [
+              "self_doubt_check_id",
+              "authority_assessment_id",
+              "checked_items",
+              "detected_concerns",
+              "result",
+              "return_target",
+              "uncertainty",
+              "required_action",
+              "check_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "self_doubt_check_id",
+                "authority_assessment_id",
+                "check_timestamp"
+              ],
+              "check_content": [
+                "checked_items",
+                "detected_concerns",
+                "uncertainty"
+              ],
+              "result_and_action": [
+                "result",
+                "return_target",
+                "required_action"
+              ]
+            },
+            "validation_rules": [
+              "result_must_be_declared_authority_self_doubt_result",
+              "self_doubt_check_must_not_be_treated_as_self_approval",
+              "self_doubt_check_must_not_replace_SDAGD_audit",
+              "required_action_must_be_registered_audit_to_action_output",
+              "return_target_required_when_result_is_return_to_source_domain_or_return_to_sppgd"
+            ]
+          },
+          "sdagd_handoff_record": {
+            "schema_name": "DAAGD SDAGD Handoff Record",
+            "schema_version": "0.1.0",
+            "purpose": "Record the authority-assessment package DAAGD passes to SDAGD for pre-final-decision audit.",
+            "required_fields": [
+              "sdagd_handoff_id",
+              "authority_assessment_id",
+              "SPPGD_decision_structure_reference",
+              "authority_basis",
+              "accountability_basis",
+              "approval_requirement_basis",
+              "delegation_scope_basis",
+              "unresolved_authority_gaps",
+              "uncertainty",
+              "issues_for_SDAGD_audit",
+              "handoff_timestamp"
+            ],
+            "field_groups": {
+              "identity": [
+                "sdagd_handoff_id",
+                "authority_assessment_id",
+                "handoff_timestamp"
+              ],
+              "source_references": [
+                "SPPGD_decision_structure_reference"
+              ],
+              "basis": [
+                "authority_basis",
+                "accountability_basis",
+                "approval_requirement_basis",
+                "delegation_scope_basis"
+              ],
+              "audit_payload": [
+                "unresolved_authority_gaps",
+                "uncertainty",
+                "issues_for_SDAGD_audit"
+              ]
+            },
+            "validation_rules": [
+              "authority_assessment_id_required",
+              "SPPGD_decision_structure_reference_required_when_strategic_decision_structure_is_material",
+              "basis_fields_required_or_marked_unresolved",
+              "issues_for_SDAGD_audit_required",
+              "handoff_must_not_claim_SDAGD_pass"
+            ]
+          }
+        },
+        "record_relationship_contract": {
+          "schema_name": "DAAGD Record Relationship Contract",
+          "schema_version": "0.1.0",
+          "purpose": "Define relationships among authority assessment, AI classification, accountability, approval, delegation, self-doubt, and SDAGD handoff records.",
+          "primary_keys": {
+            "decision_authority_assessment_record": [
+              "authority_assessment_id"
+            ],
+            "AI_judgment_classification_record": [
+              "AI_judgment_classification_id"
+            ],
+            "accountability_assignment_record": [
+              "accountability_assignment_id"
+            ],
+            "approval_requirement_record": [
+              "approval_requirement_id"
+            ],
+            "delegation_boundary_record": [
+              "delegation_boundary_id"
+            ],
+            "authority_self_doubt_check_record": [
+              "self_doubt_check_id"
+            ],
+            "sdagd_handoff_record": [
+              "sdagd_handoff_id"
+            ]
+          },
+          "foreign_key_expectations": {
+            "authority_self_doubt_check_record.authority_assessment_id": "decision_authority_assessment_record.authority_assessment_id",
+            "sdagd_handoff_record.authority_assessment_id": "decision_authority_assessment_record.authority_assessment_id",
+            "decision_authority_assessment_record.AI_judgment_classification": "AI_judgment_classification_record.classification_when_AI_output_is_material",
+            "decision_authority_assessment_record.accountable_entity": "accountability_assignment_record.accountable_entity_when_accountability_record_exists",
+            "decision_authority_assessment_record.human_approval_required": "approval_requirement_record.approval_required_when_approval_record_exists",
+            "decision_authority_assessment_record.delegated_authority_scope": "delegation_boundary_record.delegated_scope_when_delegation_record_exists"
+          },
+          "orphan_record_rules": {
+            "self_doubt_check_without_authority_assessment_prohibited": true,
+            "sdagd_handoff_without_authority_assessment_prohibited": true,
+            "delegation_boundary_without_decision_target_prohibited": true,
+            "approval_requirement_without_decision_target_prohibited": true,
+            "accountability_assignment_without_decision_target_prohibited": true,
+            "material_authority_assessment_without_self_doubt_check_requires_degraded_status": true,
+            "material_strategic_decision_without_sdagd_handoff_requires_degraded_status_or_explicit_non_applicability_reason": true
+          },
+          "validation_rules": [
+            "primary_keys_must_be_unique",
+            "foreign_key_references_must_resolve_or_be_marked_unresolved",
+            "material_unresolved_reference_requires_degraded_status",
+            "record_relationship_break_requires_repair_before_ready_claim",
+            "all_required_fields_must_be_mapped_to_field_groups"
+          ]
+        },
+        "record_schema_consistency_policy": {
+          "record_required_fields_must_be_mapped_to_field_groups": true,
+          "field_group_items_inherit_group_requirement_level_unless_overridden": true,
+          "field_group_items_must_have_known_requirement_level_after_inheritance": true,
+          "record_relationships_must_not_create_orphan_records": true
+        }
+      },
+      "meta_data": {
+        "version": "0.1.0"
+      }
+    }
+  }
+}

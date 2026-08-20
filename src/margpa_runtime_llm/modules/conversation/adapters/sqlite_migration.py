@@ -24,6 +24,9 @@ from .sqlite_conversation_store import (
     _updated_at_us,
 )
 
+LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_1 = "sqlite-1"
+LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_2 = "sqlite-2"
+
 MigrationTransform = Callable[[Path], None]
 MigrationValidator = Callable[[Path], int]
 _ARTIFACT_DOMAIN = b"margpa-conversation-migration-artifact-v1\0"
@@ -297,7 +300,7 @@ class SQLiteMigrationEngine:
                 rows = connection.execute(
                     "SELECT scope_id, conversation_id, storage_format_version, snapshot_json, "
                     "snapshot_sha512, state, head_turn_id, created_at_utc, updated_at_utc, "
-                    "updated_at_us FROM conversations"
+                    "updated_at_us, title FROM conversations"
                 ).fetchall()
         except sqlite3.Error:
             raise ConversationStorageError(
@@ -320,6 +323,7 @@ class SQLiteMigrationEngine:
                 or snapshot.created_at.isoformat() != row[7]
                 or snapshot.updated_at.isoformat() != row[8]
                 or _updated_at_us(snapshot.updated_at) != row[9]
+                or snapshot.title != row[10]
             ):
                 raise ConversationStorageError(
                     code=ConversationStorageErrorCode.INVALID_RECORD,
@@ -490,6 +494,58 @@ class SQLiteMigrationEngine:
             code=ConversationStorageErrorCode.UNSUPPORTED_SCHEMA,
             safe_message="No supported migration path is available.",
         )
+
+
+def _add_turn_citations_table(path: Path) -> None:
+    """Phase 2-E: add the (initially empty) persistent citation evidence table."""
+
+    with sqlite3.connect(path) as connection:
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS turn_citations (
+                scope_id TEXT NOT NULL,
+                conversation_id TEXT NOT NULL,
+                turn_id TEXT NOT NULL,
+                citation_schema_version INTEGER NOT NULL,
+                citations_json BLOB NOT NULL,
+                citations_sha512 TEXT NOT NULL,
+                operation_id TEXT NOT NULL,
+                committed_at_utc TEXT NOT NULL,
+                PRIMARY KEY (scope_id, conversation_id, turn_id)
+            )
+            """
+        )
+        connection.execute(
+            "UPDATE store_metadata SET storage_schema_version = ? WHERE singleton = 1",
+            (LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_2,),
+        )
+
+
+TURN_CITATIONS_MIGRATION_STEP = SQLiteMigrationStep(
+    step_id="sqlite-1-to-sqlite-2-turn-citations",
+    source_version=LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_1,
+    target_version=LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_2,
+    transform=_add_turn_citations_table,
+)
+
+
+def _add_conversation_title_column(path: Path) -> None:
+    """Phase 2-E-H: add the (initially NULL) conversation title column."""
+
+    with sqlite3.connect(path) as connection:
+        connection.execute("ALTER TABLE conversations ADD COLUMN title TEXT")
+        connection.execute(
+            "UPDATE store_metadata SET storage_schema_version = ? WHERE singleton = 1",
+            (STORAGE_SCHEMA_VERSION,),
+        )
+
+
+CONVERSATION_TITLE_MIGRATION_STEP = SQLiteMigrationStep(
+    step_id="sqlite-2-to-sqlite-3-conversation-title",
+    source_version=LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_2,
+    target_version=STORAGE_SCHEMA_VERSION,
+    transform=_add_conversation_title_column,
+)
 
 
 class SQLiteConversationMaintenance:

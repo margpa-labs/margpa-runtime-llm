@@ -1,0 +1,2210 @@
+{
+  "segd": {
+    "software_engineering_governance_definition": {
+      "description": "SEGD (Software Engineering Governance Definition) is an additive domain governance definition for software engineering execution, validation, change control, artifact identity, deployment-result traceability, repair, rollback, rerun, and engineering lineage. SEGD does not replace parent reasoning governance, parent behavior governance, or external orchestration; it defines software-engineering-specific domain delta only.",
+      "inheritance": {
+        "inheritance_mode": "additive_domain_extension",
+        "parent_definitions": [
+          {
+            "syntax_id": "argd",
+            "role": "general_reasoning_procedure_governance",
+            "required": true
+          },
+          {
+            "syntax_id": "dagd",
+            "role": "general_behavior_audit_repair_activation_and_status_governance",
+            "required": true
+          }
+        ],
+        "dependency_version_policy": {
+          "specific_parent_versions_are_not_hardcoded_in_domain_compatibility_labels": true,
+          "parent_version_binding_is_external_to_this_domain_definition": true,
+          "version_binding_owner": "runtime_bundle_or_release_manifest"
+        },
+        "standalone_reference_use": {
+          "allowed": true,
+          "condition": "standalone_readers_must_treat_parent_mechanisms_as_external_prerequisites_or_reference_context",
+          "does_not_grant_parent_functionality": true,
+          "runtime_conformance_requires_parent_definitions": true
+        },
+        "replaces_parent_definitions": false,
+        "duplicates_parent_rules": false,
+        "parent_rules_remain_authoritative": true,
+        "domain_delta_only": true,
+        "preserved_parent_mechanism_policy": {
+          "inherited_governance_must_be_referenced_not_reexpanded": true,
+          "silent_parent_rule_override_prohibited": true,
+          "parent_mechanism_lists_must_not_be_recreated_unless_required_by_explicit_context": true
+        },
+        "conflict_policy": {
+          "general_reasoning_conflicts": "resolve_under_parent_reasoning_governance",
+          "general_behavior_and_governance_conflicts": "resolve_under_parent_behavior_governance",
+          "domain_specific_conflicts": "resolve_under_domain_governance_when_not_in_conflict_with_parent_governance_or_higher_authority",
+          "higher_level_system_policies_remain_authoritative": true
+        }
+      },
+      "orchestration_reference": {
+        "orchestration_definition": "cdogd",
+        "relationship": "external_orchestration_reference",
+        "cdogd_is_not_reimplemented_here": true,
+        "registry_and_activation_logic_are_external": true,
+        "routing_priority_and_domain_selection_are_external": true,
+        "registered_domain_extension_storage_is_external": true
+      },
+      "domain_scope": {
+        "domain": "software_engineering",
+        "scope_statement": "govern software engineering execution and validation from development objective through requirements, specification, repository-bound changes, tests, build, artifact identity, deployment-result capture, repair, rollback, rerun, and lineage records",
+        "governed_target_categories": [
+          "development_objective",
+          "requirement",
+          "acceptance_criteria",
+          "specification",
+          "design_trace",
+          "repository",
+          "branch",
+          "base_revision",
+          "source_code_change",
+          "configuration_change",
+          "dependency_change",
+          "migration_change",
+          "test_result",
+          "build_result",
+          "artifact_identity",
+          "deployment_readiness",
+          "deployment_result",
+          "engineering_claim",
+          "incident_or_failure_signal_linked_to_change",
+          "repair_origin",
+          "rollback_scope",
+          "rerun_scope",
+          "software_artifact_agent_action",
+          "engineering_lineage_record"
+        ],
+        "lifecycle_coverage": [
+          "development_objective_intake",
+          "requirement_and_acceptance_criteria_binding",
+          "specification_binding",
+          "engineering_scope_and_impact_analysis",
+          "design_trace_binding",
+          "repository_and_base_revision_binding",
+          "implementation_plan",
+          "source_config_dependency_change",
+          "local_static_validation",
+          "unit_test_validation",
+          "integration_and_regression_validation",
+          "security_dependency_and_supply_chain_check",
+          "review_and_authority_reference_check",
+          "build_and_artifact_identity",
+          "deployment_readiness_check",
+          "deployment_result_capture",
+          "incident_or_failure_signal_capture",
+          "repair_or_rollback_origin_selection",
+          "retest_rebuild_redeploy_rerun",
+          "audit_and_status_emission"
+        ],
+        "non_targets": [
+          "replacement_of_parent_governance",
+          "replacement_of_external_orchestration",
+          "absorption_of_sibling_domain_definitions",
+          "model_weight_modification",
+          "training_data_modification",
+          "replacement_of_built_in_system_policies",
+          "development_consulting_or_technical_option_selection_authority",
+          "ai_system_architecture_governance",
+          "generic_agentic_execution_governance",
+          "continuous_operations_or_reliability_improvement_ownership",
+          "authority_approval_accountability_or_delegation_decision_ownership",
+          "ai_mediated_security_risk_governance",
+          "project_coordination_ownership",
+          "artifact_publication_quality_governance"
+        ]
+      },
+      "domain_responsibility_boundary": {
+        "primary_responsibility": [
+          "software_engineering_execution_validation",
+          "engineering_artifact_lineage",
+          "change_run_build_artifact_deployment_traceability",
+          "engineering_claim_evidence_boundary",
+          "repair_rollback_rerun_origin_and_scope"
+        ],
+        "secondary_reference_allowed": [
+          "development_consulting_context_from_dcagd",
+          "ai_architecture_context_from_aiagd",
+          "generic_agentic_execution_context_from_aagd",
+          "operations_context_from_omrgd",
+          "authority_context_from_daagd",
+          "ai_mediated_security_context_from_aisgd",
+          "project_coordination_context_from_pmogd",
+          "artifact_quality_context_from_acrgd"
+        ],
+        "handoff_condition_findings": [
+          "report_dcagd_development_consultation_condition",
+          "report_aiagd_architecture_condition",
+          "report_aagd_agentic_execution_condition",
+          "report_omrgd_operational_followup_condition",
+          "request_daagd_authority_clarification",
+          "report_aisgd_ai_mediated_security_condition",
+          "report_pmogd_coordination_condition",
+          "report_acrgd_artifact_quality_condition"
+        ],
+        "must_not_absorb": [
+          "development_consulting_decision_authority",
+          "generic_agentic_execution_governance",
+          "continuous_operations_governance",
+          "authority_or_approval_ownership",
+          "ai_system_architecture_governance",
+          "ai_mediated_security_governance",
+          "project_coordination_governance",
+          "artifact_publication_quality_governance",
+          "external_orchestration_or_registry_logic"
+        ],
+        "authority_limit": "SEGD may report engineering readiness, evidence gaps, invalidation conditions, and authority-reference gaps; it does not grant approval, assign accountability, delegate authority, or route domains.",
+        "sibling_domain_reference_policy": {
+          "reference_allowed": true,
+          "absorption_prohibited": true,
+          "handoff_condition_reporting_allowed": true,
+          "sibling_domain_final_decision_prohibited": true
+        }
+      },
+      "abstraction_and_context_policy": {
+        "purpose": "keep SEGD rules abstract enough for software engineering across languages, repositories, tools, platforms, and deployment environments while allowing context-local specificity when needed to preserve engineering meaning",
+        "rule_bodies_must_use_highest_safe_abstraction_level": true,
+        "rule_hardcoding_prohibited_by_default": true,
+        "domain_instances_must_not_be_encoded_as_general_rules": true,
+        "implementation_details_must_not_become_domain_rules": true,
+        "rule_bodies_must_not_hardcode": [
+          "specific_programming_language",
+          "specific_framework",
+          "specific_repository",
+          "specific_ci_cd_product",
+          "specific_cloud_platform",
+          "specific_local_workflow",
+          "specific_organization_policy",
+          "specific_private_system",
+          "specific_identifier_policy"
+        ],
+        "contextual_specificity_conditions": [
+          "explicit_user_instruction",
+          "identity_or_verification_requires_specific_name",
+          "hallucination_prevention_requires_specific_name",
+          "system_integrity_requires_specific_constraint",
+          "governed_target_context_would_break_without_specificity"
+        ],
+        "specificity_handling": {
+          "specificity_scope": "domain_local_context_or_governed_target_context",
+          "specificity_must_not_be_promoted_to_general_rule_without_basis": true,
+          "specificity_must_be_traceable_to_context_or_instruction": true,
+          "specificity_must_not_override_higher_authority": true
+        }
+      },
+      "role_complete_separation": {
+        "required": true,
+        "principle": "SEGD must keep software engineering execution and validation separate from consulting, architecture ownership, generic agentic execution, continuous operations, authority ownership, project coordination, artifact publication quality, external orchestration, and parent governance.",
+        "separation_targets": {
+          "domain_definition": "software engineering execution, validation, artifact identity, repair origins, rerun scope, and lineage",
+          "inherited_governance": "parent reasoning and behavior governance referenced as authoritative context and not reexpanded",
+          "external_orchestration": "routing, registry, domain priority, and activation orchestration remain external",
+          "sibling_reference": "sibling domains may be referenced for handoff conditions but their rules are not absorbed",
+          "governed_target": "repository-bound software engineering object, process, change, artifact, state, or claim",
+          "records": "domain-local records for engineering process and evaluation incident repair only",
+          "metadata": "identity, compatibility, authorship, license, and repository information only"
+        },
+        "non_absorption_rules": [
+          "inherited_governance_must_be_referenced_not_reexpanded",
+          "sibling_domain_content_must_remain_referenced_not_absorbed",
+          "external_orchestration_must_not_be_reimplemented_in_domain_definition",
+          "metadata_must_not_be_promoted_to_domain_rule_without_basis",
+          "source_material_must_not_be_absorbed_without_domain_reason"
+        ]
+      },
+      "cross_domain_interference_policy": {
+        "purpose": "prevent SEGD from absorbing neighboring domains while preserving useful handoff condition findings",
+        "rules": [
+          "sibling_domain_references_must_be_explicit_when_material",
+          "sibling_domain_rules_must_not_be_copied_by_default",
+          "domain_overlap_must_be_declared_when_material",
+          "cross_domain_activation_priority_is_external_to_this_domain_definition",
+          "domain_specific_rule_conflicts_must_not_be_silently_merged",
+          "shared_terms_must_not_imply_shared_authority_without_boundary_statement"
+        ],
+        "overlap_handling": {
+          "overlap_is_allowed": true,
+          "overlap_must_preserve_domain_responsibility_boundaries": true,
+          "overlap_resolution_owner": "external_orchestration_or_explicit_runtime_context"
+        },
+        "declared_sibling_boundaries": {
+          "dcagd": "development consulting, technical option comparison, design direction discussion, feasibility, and rough effort remain outside SEGD",
+          "aiagd": "AI system architecture object and model retrieval memory tool agent placement remain outside SEGD",
+          "aagd": "generic agentic execution, tool call, checkpoint, handoff, retry, and side effect governance remain outside SEGD",
+          "omrgd": "continuous operations, maintenance, reliability improvement, and incident response lifecycle remain outside SEGD",
+          "daagd": "approval ownership, accountability, delegation, and authority decision remain outside SEGD",
+          "aisgd": "AI-mediated security risk remains outside SEGD",
+          "pmogd": "work item, owner, deadline, blocker, milestone, and delivery coordination remain outside SEGD",
+          "acrgd": "artifact structure, document quality, and publication-output governance remain outside SEGD"
+        }
+      },
+      "policy_goal": [
+        "requirement_traceability",
+        "specification_integrity",
+        "design_to_implementation_traceability",
+        "repository_scope_integrity",
+        "change_scope_control",
+        "implementation_validation",
+        "test_and_regression_adequacy",
+        "dependency_and_supply_chain_integrity",
+        "build_reproducibility",
+        "artifact_identity_integrity",
+        "deployment_readiness",
+        "deployment_result_traceability",
+        "rollback_repair_and_rerun_traceability",
+        "software_claim_evidence_integrity",
+        "agentic_software_artifact_execution_safety",
+        "authority_reference_integrity",
+        "cross_domain_boundary_preservation",
+        "operational_reexecutability"
+      ],
+      "constraints": {
+        "prohibited_failure_modes": {
+          "requirement_and_specification_failures": [
+            "requirement_trace_missing",
+            "acceptance_criteria_missing_when_claiming_completion",
+            "specification_trace_missing",
+            "unresolved_requirement_reported_resolved",
+            "scope_exclusion_hidden",
+            "specification_gap_hidden"
+          ],
+          "design_and_impact_trace_failures": [
+            "design_to_implementation_trace_missing",
+            "impact_scope_materially_unknown",
+            "design_assumption_overclaimed",
+            "technical_option_consulting_absorbed_into_execution_governance",
+            "ai_architecture_object_absorbed_into_segd"
+          ],
+          "repository_and_change_failures": [
+            "repository_scope_unknown",
+            "base_revision_missing",
+            "base_revision_changed_without_rebind",
+            "out_of_scope_file_change_detected",
+            "unrelated_refactor_mixed_into_claimed_change",
+            "protected_branch_condition_ignored"
+          ],
+          "implementation_and_configuration_failures": [
+            "generated_code_reported_verified_without_validation",
+            "nonexistent_api_or_dependency_assumed",
+            "silent_behavior_change",
+            "configuration_change_hidden",
+            "migration_change_hidden",
+            "data_loss_risk_hidden"
+          ],
+          "test_and_validation_failures": [
+            "fabricated_test_result",
+            "unexecuted_validation_reported_successful",
+            "failed_test_hidden",
+            "mock_success_overclaimed_as_production_validity",
+            "unit_test_success_overclaimed_as_integration_correctness",
+            "regression_scope_unjustified"
+          ],
+          "security_dependency_and_supply_chain_failures": [
+            "secret_or_credential_exposure",
+            "critical_known_vulnerability_intentionally_undisclosed",
+            "dependency_or_artifact_provenance_fabrication",
+            "unapproved_dependency_added",
+            "lockfile_or_dependency_state_inconsistent",
+            "software_security_check_overclaimed_as_ai_mediated_security_review"
+          ],
+          "build_and_artifact_failures": [
+            "hidden_failing_build",
+            "build_result_missing",
+            "artifact_identity_unknown",
+            "invalid_artifact_reported_valid",
+            "build_success_overclaimed_as_runtime_correctness",
+            "artifact_provenance_missing_when_material"
+          ],
+          "deployment_readiness_and_result_failures": [
+            "deployment_target_uncertain",
+            "deployment_readiness_overclaimed",
+            "hidden_deployment_failure",
+            "partial_deployment_reported_complete",
+            "deployment_completion_overclaimed_as_operational_success",
+            "production_write_authority_reference_missing"
+          ],
+          "repair_rollback_and_rerun_failures": [
+            "repair_origin_unknown",
+            "symptom_disappearance_reported_as_root_cause_removal",
+            "rollback_path_required_but_missing",
+            "prior_state_not_preserved",
+            "partial_rerun_scope_unjustified",
+            "repair_success_overclaimed"
+          ],
+          "agentic_software_artifact_execution_failures": [
+            "software_artifact_agent_scope_unknown",
+            "agent_changes_file_outside_allowed_scope",
+            "agent_uses_tool_outside_artifact_authority",
+            "tool_failure_reported_successful",
+            "non_idempotent_retry_without_side_effect_check",
+            "generic_agentic_execution_governance_absorbed"
+          ],
+          "authority_reference_and_boundary_failures": [
+            "mandatory_approval_or_authority_reference_bypass",
+            "authority_decision_made_by_segd",
+            "human_review_requirement_claimed_without_authority_basis",
+            "approval_state_overclaimed",
+            "accountability_or_delegation_ownership_absorbed"
+          ],
+          "cross_domain_boundary_failures": [
+            "continuous_operations_governance_absorbed",
+            "project_coordination_ownership_absorbed",
+            "artifact_publication_quality_governance_absorbed",
+            "external_orchestration_logic_absorbed",
+            "sibling_domain_rule_copied_without_boundary"
+          ]
+        },
+        "required_controls": {
+          "requirement_specification_and_scope_control": [
+            "bind_development_objective",
+            "bind_requirement_references",
+            "bind_acceptance_criteria",
+            "bind_specification_references",
+            "declare_scope_exclusions",
+            "preserve_open_questions"
+          ],
+          "repository_change_and_lineage_control": [
+            "bind_repository_branch_and_base_revision",
+            "assign_change_id",
+            "track_changed_files_and_components",
+            "separate_non_goal_changes",
+            "preserve_change_lineage",
+            "rebind_when_base_revision_changes"
+          ],
+          "validation_and_claim_control": [
+            "map_tests_to_claims",
+            "separate_executed_failed_skipped_and_unexecuted_checks",
+            "prevent_local_success_overclaim",
+            "record_validation_limitations",
+            "classify_engineering_claims"
+          ],
+          "build_deployment_and_artifact_control": [
+            "record_build_result",
+            "record_artifact_identity",
+            "capture_deployment_readiness",
+            "capture_deployment_result",
+            "separate_deployment_completion_from_operational_success"
+          ],
+          "repair_rollback_and_rerun_control": [
+            "identify_repair_origin",
+            "preserve_prior_state",
+            "assign_new_run_or_repair_id",
+            "record_parent_run_or_change",
+            "define_rerun_scope",
+            "perform_before_after_comparison"
+          ],
+          "authority_and_agentic_boundary_control": [
+            "check_authority_reference_without_deciding_authority",
+            "report_authority_clarification_condition_when_needed",
+            "limit_agent_controls_to_software_artifact_scope",
+            "reference_aagd_for_generic_agentic_execution",
+            "record_tool_side_effect_status_when_software_artifact_is_touched"
+          ],
+          "cross_domain_boundary_control": [
+            "report_development_consultation_condition_without_absorbing_dcagd",
+            "report_ai_architecture_condition_without_absorbing_aiagd",
+            "report_operations_followup_condition_without_absorbing_omrgd",
+            "report_project_coordination_condition_without_absorbing_pmogd",
+            "report_artifact_quality_condition_without_absorbing_acrgd"
+          ]
+        },
+        "runtime_constraints": {
+          "domain_only": true,
+          "does_not_redefine_parent_governance": true,
+          "does_not_reimplement_external_orchestration": true,
+          "does_not_define_registry_logic": true,
+          "does_not_create_case_specific_general_bans": true,
+          "does_not_define_global_domain_priority": true,
+          "critical_invalidation_overrides_aggregate_score": true,
+          "ready_or_success_claim_blocking_is_allowed_only_for_claim_status_not_external_execution_control": true,
+          "authority_decision_is_external": true,
+          "continuous_operations_ownership_is_external": true,
+          "generic_agentic_execution_governance_is_external": true
+        },
+        "failure_aliases": {
+          "code_done_but_unverified": "generated_code_reported_verified_without_validation",
+          "tests_not_run_but_claimed_green": "unexecuted_validation_reported_successful",
+          "deploy_command_finished_but_state_unknown": "deployment_completion_overclaimed_as_operational_success",
+          "fixed_symptom_only": "symptom_disappearance_reported_as_root_cause_removal"
+        },
+        "schema_hygiene_constraints": {
+          "taxonomy_group_membership_must_match_requirement_level": true,
+          "record_required_fields_must_be_mapped_to_field_groups_when_records_exist": true,
+          "field_group_items_may_inherit_group_requirement_level_when_not_overridden": true,
+          "evaluation_dimensions_must_align_with_thresholds_and_audit_targets_when_scoring_exists": true,
+          "critical_invalidation_conditions_must_be_represented_in_critical_severity_rules_when_severity_model_exists": true,
+          "collection_shape_must_be_declared_when_using_grouped_objects": true
+        },
+        "collection_shape_policy": {
+          "flat_array_or_grouped_object_may_be_used_when_declared": true,
+          "same_collection_should_not_mix_shapes_within_one_domain_definition": true,
+          "grouped_object_shape_must_preserve_machine_checkable_membership": true,
+          "collection_shape_declarations": {
+            "constraints.prohibited_failure_modes": "grouped_object",
+            "constraints.required_controls": "grouped_object"
+          }
+        }
+      },
+      "capabilities": {
+        "required_capabilities": [
+          "development_objective_interpretation",
+          "requirement_and_acceptance_criteria_binding",
+          "specification_trace_binding",
+          "design_to_implementation_trace_mapping",
+          "impact_scope_identification",
+          "repository_scope_identification",
+          "base_revision_binding",
+          "branch_and_change_scope_control",
+          "source_code_change_tracking",
+          "configuration_change_tracking",
+          "dependency_change_tracking",
+          "migration_change_tracking_when_applicable",
+          "static_validation_tracking",
+          "test_plan_mapping",
+          "test_result_classification",
+          "regression_scope_validation",
+          "security_and_secret_exposure_checking",
+          "dependency_and_supply_chain_checking",
+          "build_result_tracking",
+          "artifact_identity_tracking",
+          "deployment_readiness_checking",
+          "deployment_result_capture",
+          "engineering_claim_classification",
+          "change_lineage_tracking",
+          "run_lineage_tracking",
+          "repair_origin_identification",
+          "rollback_and_rerun_scope_mapping",
+          "software_artifact_agent_boundary_checking",
+          "authority_reference_checking",
+          "cross_domain_handoff_condition_reporting"
+        ],
+        "capability_groups": {
+          "objective_requirement_and_specification_control": [
+            "development_objective_interpretation",
+            "requirement_and_acceptance_criteria_binding",
+            "specification_trace_binding"
+          ],
+          "design_scope_and_repository_control": [
+            "design_to_implementation_trace_mapping",
+            "impact_scope_identification",
+            "repository_scope_identification",
+            "base_revision_binding",
+            "branch_and_change_scope_control"
+          ],
+          "implementation_and_change_tracking": [
+            "source_code_change_tracking",
+            "configuration_change_tracking",
+            "dependency_change_tracking",
+            "migration_change_tracking_when_applicable"
+          ],
+          "validation_and_security_checks": [
+            "static_validation_tracking",
+            "test_plan_mapping",
+            "test_result_classification",
+            "regression_scope_validation",
+            "security_and_secret_exposure_checking",
+            "dependency_and_supply_chain_checking"
+          ],
+          "build_deployment_and_artifact_control": [
+            "build_result_tracking",
+            "artifact_identity_tracking",
+            "deployment_readiness_checking",
+            "deployment_result_capture"
+          ],
+          "claim_lineage_repair_and_rerun": [
+            "engineering_claim_classification",
+            "change_lineage_tracking",
+            "run_lineage_tracking",
+            "repair_origin_identification",
+            "rollback_and_rerun_scope_mapping"
+          ],
+          "agentic_authority_and_cross_domain_boundary": [
+            "software_artifact_agent_boundary_checking",
+            "authority_reference_checking",
+            "cross_domain_handoff_condition_reporting"
+          ]
+        },
+        "preferred_capabilities": [
+          "impact_graph_generation",
+          "dependency_graph_based_rerun_scoping",
+          "artifact_hash_or_signature_tracking",
+          "build_environment_capture",
+          "automated_regression_selection",
+          "mutation_or_property_based_test_support",
+          "software_bill_of_materials_reference_tracking",
+          "protected_branch_policy_reference_checking",
+          "deployment_canary_or_smoke_result_capture",
+          "repair_before_after_diff_generation",
+          "tool_side_effect_detection",
+          "agent_checkpoint_restore_validation",
+          "cross_domain_boundary_drift_detection",
+          "release_manifest_alignment_checking"
+        ],
+        "preferred_capability_groups": {
+          "advanced_impact_and_rerun_scope": [
+            "impact_graph_generation",
+            "dependency_graph_based_rerun_scoping",
+            "automated_regression_selection"
+          ],
+          "advanced_artifact_and_supply_chain_integrity": [
+            "artifact_hash_or_signature_tracking",
+            "build_environment_capture",
+            "software_bill_of_materials_reference_tracking",
+            "release_manifest_alignment_checking"
+          ],
+          "advanced_validation_and_repair": [
+            "mutation_or_property_based_test_support",
+            "deployment_canary_or_smoke_result_capture",
+            "repair_before_after_diff_generation"
+          ],
+          "advanced_agentic_and_boundary_control": [
+            "tool_side_effect_detection",
+            "agent_checkpoint_restore_validation",
+            "protected_branch_policy_reference_checking",
+            "cross_domain_boundary_drift_detection"
+          ]
+        },
+        "mapping_policy": {
+          "required_capabilities_must_appear_in_capability_groups_when_groups_are_used": true,
+          "preferred_capabilities_must_appear_in_preferred_capability_groups_when_groups_are_used": true,
+          "capability_groups_are_structural_not_exhaustive": true,
+          "future_extensions_should_attach_to_groups_before_adding_flat_items": true,
+          "capability_taxonomy_must_not_conflict_with_flat_required_list": true
+        }
+      },
+      "engineering_process": {
+        "process_model": {
+          "required_stage_sequence": [
+            "development_objective_intake",
+            "requirement_and_acceptance_criteria_binding",
+            "specification_binding",
+            "engineering_scope_and_impact_analysis",
+            "design_trace_binding",
+            "repository_and_base_revision_binding",
+            "implementation_plan",
+            "source_config_dependency_change",
+            "local_static_validation",
+            "unit_test_validation",
+            "integration_and_regression_validation",
+            "security_dependency_and_supply_chain_check",
+            "review_and_authority_reference_check",
+            "build_and_artifact_identity",
+            "deployment_readiness_check",
+            "deployment_result_capture",
+            "incident_or_failure_signal_capture",
+            "repair_or_rollback_origin_selection",
+            "retest_rebuild_redeploy_rerun",
+            "audit_and_status_emission"
+          ],
+          "stage_skip_policy": {
+            "skip_allowed_only_when_not_applicable_and_explicitly_marked": true,
+            "skip_reason_required": true,
+            "silent_skip_prohibited": true
+          },
+          "stage_reentry_policy": {
+            "reentry_allowed": true,
+            "reentry_reason_required": true,
+            "affected_downstream_artifacts_must_be_identified": true
+          },
+          "branch_preservation": {
+            "multiple_valid_engineering_paths_must_be_preserved_until_selection_basis_is_available": true,
+            "implementation_path_selection_must_not_absorb_development_consulting_authority": true,
+            "repair_path_selection_must_preserve_rollback_and_forward_fix_alternatives_when_material": true
+          }
+        },
+        "stage_definitions": {
+          "development_objective_intake": {
+            "purpose": "bind the originating development request to a concrete software engineering objective without converting consultation, authority, or operations ownership into SEGD responsibility",
+            "required_inputs": [
+              "originating_request",
+              "known_constraints",
+              "available_context"
+            ],
+            "required_outputs": [
+              "development_objective",
+              "initial_scope_statement",
+              "open_questions",
+              "cross_domain_handoff_conditions_if_any"
+            ],
+            "stop_conditions": [
+              "objective_conflict_unresolved",
+              "authority_reference_required_but_missing",
+              "request_is_primarily_development_consulting_without_execution_context"
+            ]
+          },
+          "requirement_and_acceptance_criteria_binding": {
+            "purpose": "bind requirements and acceptance criteria that the engineering change will claim to satisfy",
+            "required_inputs": [
+              "development_objective",
+              "user_or_product_requirements",
+              "known_constraints"
+            ],
+            "required_outputs": [
+              "requirement_references",
+              "acceptance_criteria",
+              "scope_exclusions",
+              "unresolved_requirement_questions"
+            ],
+            "stop_conditions": [
+              "material_requirement_conflict_unresolved",
+              "acceptance_criteria_required_but_absent",
+              "scope_change_not_acknowledged"
+            ]
+          },
+          "specification_binding": {
+            "purpose": "connect requirements to a concrete specification or explicitly mark specification gaps",
+            "required_inputs": [
+              "requirement_references",
+              "acceptance_criteria",
+              "existing_specification_if_any"
+            ],
+            "required_outputs": [
+              "specification_references",
+              "specification_gap_conditions",
+              "claimable_behavior_boundaries"
+            ],
+            "stop_conditions": [
+              "material_specification_gap_blocks_ready_claim",
+              "specification_conflict_unresolved"
+            ]
+          },
+          "engineering_scope_and_impact_analysis": {
+            "purpose": "identify files, components, interfaces, dependencies, tests, build targets, and deployment surfaces affected by the change",
+            "required_inputs": [
+              "specification_references",
+              "repository_context",
+              "base_revision"
+            ],
+            "required_outputs": [
+              "affected_files",
+              "affected_components",
+              "affected_interfaces",
+              "affected_tests",
+              "affected_build_targets",
+              "affected_deployment_surfaces"
+            ],
+            "stop_conditions": [
+              "affected_scope_materially_unknown",
+              "base_revision_missing",
+              "impact_scope_conflict_unresolved"
+            ]
+          },
+          "design_trace_binding": {
+            "purpose": "bind design decisions to implementation effects without absorbing development consulting or AI architecture governance",
+            "required_inputs": [
+              "affected_scope",
+              "design_references",
+              "architecture_context_if_applicable"
+            ],
+            "required_outputs": [
+              "design_to_implementation_trace",
+              "design_assumptions",
+              "handoff_conditions_for_dcagd_or_aiagd_if_needed"
+            ],
+            "stop_conditions": [
+              "design_decision_needed_but_not_available",
+              "ai_system_architecture_question_blocks_trace_binding",
+              "design_assumption_unvalidated_for_material_change"
+            ]
+          },
+          "repository_and_base_revision_binding": {
+            "purpose": "bind repository, branch, base revision, and change boundary before modifying software artifacts",
+            "required_inputs": [
+              "repository_reference",
+              "branch_reference",
+              "base_revision",
+              "authority_reference_if_needed"
+            ],
+            "required_outputs": [
+              "repository_id",
+              "branch_name",
+              "base_revision_id",
+              "change_id",
+              "allowed_change_scope"
+            ],
+            "stop_conditions": [
+              "repository_scope_unknown",
+              "base_revision_changed_without_rebind",
+              "protected_branch_or_external_write_authority_missing"
+            ]
+          },
+          "implementation_plan": {
+            "purpose": "define the implementation approach and validation plan for the selected engineering change without taking over technical option consulting",
+            "required_inputs": [
+              "requirements",
+              "specification",
+              "impact_scope",
+              "repository_binding"
+            ],
+            "required_outputs": [
+              "implementation_plan",
+              "validation_plan",
+              "rollback_or_repair_expectation",
+              "non_goal_changes"
+            ],
+            "stop_conditions": [
+              "implementation_plan_requires_unresolved_design_consultation",
+              "validation_plan_absent_for_claimed_completion"
+            ]
+          },
+          "source_config_dependency_change": {
+            "purpose": "track source code, configuration, dependency, and migration changes within the bound scope",
+            "required_inputs": [
+              "implementation_plan",
+              "allowed_change_scope",
+              "base_revision_id"
+            ],
+            "required_outputs": [
+              "changed_files",
+              "changed_components",
+              "dependency_changes",
+              "configuration_changes",
+              "migration_changes_if_any",
+              "change_summary"
+            ],
+            "stop_conditions": [
+              "out_of_scope_file_change_detected",
+              "unapproved_dependency_or_migration_change",
+              "secret_or_credential_exposure_detected"
+            ]
+          },
+          "local_static_validation": {
+            "purpose": "capture static, local, or pre-test validation evidence and prevent local checks from being overclaimed",
+            "required_inputs": [
+              "changed_files",
+              "validation_plan"
+            ],
+            "required_outputs": [
+              "static_analysis_results",
+              "local_validation_results",
+              "unexecuted_local_checks",
+              "validation_limitations"
+            ],
+            "stop_conditions": [
+              "static_failure_hidden",
+              "local_validation_not_executed_but_reported_successful"
+            ]
+          },
+          "unit_test_validation": {
+            "purpose": "map unit tests to requirements, specifications, changed components, and regression claims",
+            "required_inputs": [
+              "changed_components",
+              "test_plan",
+              "acceptance_criteria"
+            ],
+            "required_outputs": [
+              "unit_test_results",
+              "unit_test_coverage_notes",
+              "failed_or_skipped_unit_tests",
+              "unit_test_claim_boundaries"
+            ],
+            "stop_conditions": [
+              "unit_test_failure_hidden",
+              "unexecuted_unit_tests_reported_successful",
+              "unit_tests_overclaimed_as_integration_validity"
+            ]
+          },
+          "integration_and_regression_validation": {
+            "purpose": "validate integration and regression scope without treating narrower evidence as broader system correctness",
+            "required_inputs": [
+              "affected_interfaces",
+              "affected_tests",
+              "unit_test_results"
+            ],
+            "required_outputs": [
+              "integration_test_results",
+              "regression_results",
+              "unexecuted_regression_scope",
+              "compatibility_status"
+            ],
+            "stop_conditions": [
+              "integration_failure_hidden",
+              "regression_scope_unjustified",
+              "mock_result_overclaimed_as_runtime_validity"
+            ]
+          },
+          "security_dependency_and_supply_chain_check": {
+            "purpose": "check software security engineering concerns such as secrets, dependency integrity, branch protection, and artifact provenance without absorbing AI-mediated security governance",
+            "required_inputs": [
+              "changed_files",
+              "dependency_changes",
+              "repository_binding",
+              "build_inputs_if_available"
+            ],
+            "required_outputs": [
+              "secret_scan_status",
+              "dependency_status",
+              "known_vulnerability_status",
+              "permission_boundary_status",
+              "supply_chain_notes",
+              "aisgd_handoff_condition_if_ai_mediated_security_risk"
+            ],
+            "stop_conditions": [
+              "secret_exposure_detected",
+              "critical_vulnerability_intentionally_undisclosed",
+              "dependency_or_provenance_fabrication_detected"
+            ]
+          },
+          "review_and_authority_reference_check": {
+            "purpose": "record engineering review state and authority references without deciding approval ownership or delegation authority",
+            "required_inputs": [
+              "change_summary",
+              "validation_results",
+              "authority_reference_if_needed"
+            ],
+            "required_outputs": [
+              "review_state",
+              "approval_reference_status",
+              "daagd_authority_clarification_condition_if_needed",
+              "remaining_review_risks"
+            ],
+            "stop_conditions": [
+              "mandatory_authority_reference_missing",
+              "approval_bypass_condition_detected",
+              "review_state_overclaimed"
+            ]
+          },
+          "build_and_artifact_identity": {
+            "purpose": "bind build results, build environment, and artifact identity to the validated change",
+            "required_inputs": [
+              "change_id",
+              "build_configuration",
+              "validation_results"
+            ],
+            "required_outputs": [
+              "build_id",
+              "build_result",
+              "artifact_id",
+              "artifact_identity_evidence",
+              "build_limitations"
+            ],
+            "stop_conditions": [
+              "failed_build_hidden",
+              "artifact_identity_unknown",
+              "invalid_artifact_reported_valid"
+            ]
+          },
+          "deployment_readiness_check": {
+            "purpose": "check readiness for deployment as an engineering run state without claiming continuous operational ownership",
+            "required_inputs": [
+              "artifact_id",
+              "deployment_target",
+              "rollback_or_repair_plan",
+              "authority_reference_if_needed"
+            ],
+            "required_outputs": [
+              "deployment_readiness_state",
+              "rollback_readiness_state",
+              "pre_deployment_risks",
+              "omrgd_followup_condition_if_continuous_operations_needed"
+            ],
+            "stop_conditions": [
+              "rollback_path_required_but_missing",
+              "production_write_authority_reference_missing",
+              "deployment_target_uncertain"
+            ]
+          },
+          "deployment_result_capture": {
+            "purpose": "capture the immediate deployment result and prevent deployment completion from being overclaimed as operational success",
+            "required_inputs": [
+              "deployment_plan",
+              "artifact_id",
+              "deployment_target"
+            ],
+            "required_outputs": [
+              "deployment_id",
+              "deployment_result_state",
+              "initial_health_or_smoke_result_if_available",
+              "deployment_claim_boundaries"
+            ],
+            "stop_conditions": [
+              "deployment_failure_hidden",
+              "partial_deployment_reported_complete",
+              "deployment_result_unknown_but_reported_successful"
+            ]
+          },
+          "incident_or_failure_signal_capture": {
+            "purpose": "capture incident or failure signals linked to the engineering change without taking ownership of continuous incident response lifecycle",
+            "required_inputs": [
+              "deployment_result_state",
+              "runtime_signal_if_available",
+              "user_or_monitoring_report_if_available"
+            ],
+            "required_outputs": [
+              "incident_or_failure_signal",
+              "affected_engineering_artifacts",
+              "omrgd_followup_condition_if_continuing_operations_response_needed"
+            ],
+            "stop_conditions": [
+              "production_incident_unrecorded",
+              "material_failure_signal_ignored",
+              "root_cause_overclaimed_without_evidence"
+            ]
+          },
+          "repair_or_rollback_origin_selection": {
+            "purpose": "select the earliest valid engineering repair or rollback origin and preserve prior state",
+            "required_inputs": [
+              "failure_signal",
+              "lineage_record",
+              "affected_artifacts",
+              "validation_evidence"
+            ],
+            "required_outputs": [
+              "repair_origin",
+              "rollback_scope_if_applicable",
+              "affected_downstream_artifacts",
+              "prior_state_preservation_reference"
+            ],
+            "stop_conditions": [
+              "repair_origin_unknown_for_material_failure",
+              "prior_state_not_preserved",
+              "destructive_change_without_recovery_path"
+            ]
+          },
+          "retest_rebuild_redeploy_rerun": {
+            "purpose": "execute or record the necessary validation, build, deployment, and rerun scope after repair or rollback",
+            "required_inputs": [
+              "repair_origin",
+              "rerun_scope",
+              "changed_and_unchanged_components"
+            ],
+            "required_outputs": [
+              "post_repair_test_results",
+              "post_repair_build_result",
+              "post_repair_deployment_result_if_applicable",
+              "before_after_comparison",
+              "new_run_id"
+            ],
+            "stop_conditions": [
+              "partial_rerun_scope_unjustified",
+              "post_repair_validation_absent",
+              "repair_success_overclaimed"
+            ]
+          },
+          "audit_and_status_emission": {
+            "purpose": "emit domain-local status, evidence gaps, invalidation conditions, repair state, and handoff condition findings without taking external routing or approval authority",
+            "required_inputs": [
+              "engineering_process_record",
+              "evaluation_record",
+              "run_state",
+              "critical_invalidation_status"
+            ],
+            "required_outputs": [
+              "compact_or_extended_status",
+              "ready_or_success_claim_state",
+              "handoff_condition_findings",
+              "remaining_risks"
+            ],
+            "stop_conditions": [
+              "critical_invalidation_not_visible",
+              "status_claim_exceeds_evidence",
+              "record_relationships_inconsistent"
+            ]
+          }
+        },
+        "engineering_claim_classification": {
+          "claim_types": [
+            "requirement_satisfaction_claim",
+            "specification_conformance_claim",
+            "design_assumption_claim",
+            "implementation_correctness_claim",
+            "test_pass_claim",
+            "regression_absence_claim",
+            "security_check_claim",
+            "build_validity_claim",
+            "artifact_identity_claim",
+            "deployment_readiness_claim",
+            "deployment_success_claim",
+            "rollback_capability_claim",
+            "root_cause_claim",
+            "repair_effectiveness_claim",
+            "operational_stability_claim"
+          ],
+          "false_equivalence_guards": [
+            "generated_code_is_not_verified_without_validation",
+            "build_success_does_not_establish_runtime_correctness",
+            "unit_test_success_does_not_establish_integration_correctness",
+            "mock_success_does_not_establish_production_validity",
+            "deployment_completion_does_not_establish_operational_success",
+            "symptom_disappearance_does_not_establish_root_cause_removal"
+          ],
+          "claim_rules": {
+            "claim_type_required_for_material_engineering_claims": true,
+            "claim_must_not_exceed_evidence_scope": true,
+            "unexecuted_validation_must_be_disclosed": true,
+            "runtime_or_operational_claims_require_runtime_or_operations_evidence_or_omrgd_condition": true,
+            "approval_or_authority_claims_require_external_authority_reference": true
+          }
+        },
+        "change_and_artifact_relationships": {
+          "core_identifiers": [
+            "project_id",
+            "repository_id",
+            "requirement_id",
+            "specification_id",
+            "design_id",
+            "change_id",
+            "parent_change_id",
+            "run_id",
+            "parent_run_id",
+            "build_id",
+            "artifact_id",
+            "deployment_id",
+            "rollback_id",
+            "incident_id",
+            "repair_id",
+            "agent_id",
+            "tool_call_id",
+            "handoff_id",
+            "checkpoint_id"
+          ],
+          "relationship_rules": [
+            "change_id_must_reference_repository_id_and_base_revision_when_material",
+            "run_id_must_reference_change_id_when_execution_or_validation_occurs",
+            "build_id_must_reference_change_id_or_run_id_when_material",
+            "artifact_id_must_reference_build_id_when_build_generates_artifact",
+            "deployment_id_must_reference_artifact_id_when_deploying_generated_artifact",
+            "repair_id_must_reference_repair_origin_and_parent_change_or_run",
+            "rollback_id_must_reference_deployment_or_change_scope",
+            "agent_trace_records_must_reference_software_artifact_scope_when_artifacts_are_touched"
+          ],
+          "orphan_record_prohibition": {
+            "orphan_evaluation_record_prohibited": true,
+            "orphan_repaired_run_prohibited": true,
+            "orphan_deployment_record_prohibited": true,
+            "orphan_rollback_record_prohibited": true,
+            "orphan_agent_trace_record_prohibited_when_artifact_side_effect_exists": true
+          }
+        }
+      },
+      "evaluation": {
+        "evaluation_policy": {
+          "domain_evaluation_required_when_domain_claim_is_made": true,
+          "scored_evaluation_is_optional": false,
+          "severity_model_is_optional_default_structure": false,
+          "boolean_state_or_threshold_based_evaluation_allowed": true,
+          "non_applicable_dimensions_must_be_excluded_with_reason_when_reporting": true,
+          "scoring_requires_domain_specific_reason": true,
+          "severity_requires_domain_specific_reason": true,
+          "do_not_enable_scoring_or_severity_for_apparent_completeness": true,
+          "enabled_reason": "software engineering readiness and success claims require explicit evidence, severity, and invalidation handling across artifacts, tests, builds, deployments, repair, and lineage"
+        },
+        "audit_targets": [
+          "development_objective",
+          "requirement_references",
+          "acceptance_criteria",
+          "specification_references",
+          "design_to_implementation_trace",
+          "impact_scope",
+          "repository_id",
+          "branch_name",
+          "base_revision_id",
+          "change_id",
+          "changed_files",
+          "changed_components",
+          "dependency_changes",
+          "configuration_changes",
+          "migration_changes_if_any",
+          "static_analysis_results",
+          "unit_test_results",
+          "integration_test_results",
+          "regression_results",
+          "security_and_secret_scan_status",
+          "dependency_and_supply_chain_status",
+          "review_state",
+          "authority_reference_status",
+          "build_result",
+          "artifact_identity",
+          "deployment_readiness_state",
+          "deployment_result_state",
+          "incident_or_failure_signal",
+          "repair_origin",
+          "rollback_scope",
+          "rerun_scope",
+          "before_after_comparison",
+          "engineering_claim_type",
+          "claim_evidence_scope",
+          "lineage_integrity",
+          "agentic_artifact_scope",
+          "cross_domain_handoff_conditions"
+        ],
+        "minimum_pass_conditions": [
+          "material_requirements_have_trace_or_reported_gap",
+          "material_specifications_have_trace_or_reported_gap",
+          "repository_branch_and_base_revision_are_bound",
+          "material_changes_are_within_declared_scope",
+          "validation_results_are_separated_by_executed_failed_skipped_and_unexecuted_state",
+          "build_and_artifact_identity_are_recorded_when_artifact_claim_is_made",
+          "deployment_result_is_not_overclaimed_as_operational_success",
+          "critical_invalidation_is_visible_when_present",
+          "repair_or_rerun_preserves_parent_lineage_when_applied",
+          "authority_reference_gap_is_reported_when_material",
+          "sibling_domain_handoff_conditions_are_reported_not_absorbed"
+        ],
+        "drift_signals": [
+          "requirements_or_acceptance_criteria_disappear",
+          "base_revision_or_repository_scope_becomes_implicit",
+          "validation_results_become_summary_only",
+          "failed_or_skipped_tests_are_hidden",
+          "build_or_artifact_identity_drops_out",
+          "deployment_completion_becomes_operational_success_claim",
+          "repair_origin_becomes_unspecified",
+          "lineage_reference_breaks",
+          "authority_reference_gap_becomes_implicit_approval",
+          "generic_agentic_execution_rules_expand_inside_segd",
+          "continuous_operations_ownership_expands_inside_segd",
+          "development_consulting_content_becomes_segd_decision"
+        ],
+        "critical_invalidation_conditions": [
+          "secret_or_credential_exposure",
+          "unauthorized_repository_or_external_write",
+          "unauthorized_production_write",
+          "fabricated_test_result",
+          "unexecuted_validation_reported_successful",
+          "hidden_failing_build",
+          "hidden_deployment_failure",
+          "invalid_artifact_reported_valid",
+          "dependency_or_artifact_provenance_fabrication",
+          "critical_known_vulnerability_intentionally_undisclosed",
+          "destructive_change_without_recovery_path",
+          "unauthorized_data_loss_migration",
+          "mandatory_approval_or_authority_reference_bypass",
+          "persistent_change_run_or_artifact_lineage_break",
+          "critical_tool_failure_hidden",
+          "production_incident_unrecorded_when_linked_to_change"
+        ],
+        "scoring_model": {
+          "enabled_when_domain_defines_scored_evaluation": true,
+          "score_range": [
+            0,
+            100
+          ],
+          "domain_dimension_scores": [
+            "requirement_traceability_score",
+            "specification_integrity_score",
+            "design_to_implementation_trace_score",
+            "repository_and_change_scope_score",
+            "implementation_validation_score",
+            "test_and_regression_adequacy_score",
+            "dependency_and_supply_chain_integrity_score",
+            "build_and_artifact_identity_score",
+            "deployment_readiness_and_result_score",
+            "rollback_repair_and_rerun_score",
+            "lineage_integrity_score",
+            "agentic_artifact_execution_boundary_score",
+            "authority_reference_integrity_score",
+            "cross_domain_boundary_preservation_score",
+            "status_claim_integrity_score"
+          ],
+          "minimum_expected_scores": {
+            "requirement_traceability_score": 85,
+            "specification_integrity_score": 85,
+            "design_to_implementation_trace_score": 80,
+            "repository_and_change_scope_score": 90,
+            "implementation_validation_score": 85,
+            "test_and_regression_adequacy_score": 85,
+            "dependency_and_supply_chain_integrity_score": 85,
+            "build_and_artifact_identity_score": 90,
+            "deployment_readiness_and_result_score": 85,
+            "rollback_repair_and_rerun_score": 85,
+            "lineage_integrity_score": 90,
+            "agentic_artifact_execution_boundary_score": 85,
+            "authority_reference_integrity_score": 85,
+            "cross_domain_boundary_preservation_score": 85,
+            "status_claim_integrity_score": 90
+          },
+          "score_source_taxonomy": [
+            "automated_test",
+            "static_analysis",
+            "security_scanner",
+            "dependency_scanner",
+            "build_result",
+            "artifact_identity_check",
+            "runtime_observation",
+            "rule_based_audit",
+            "llm_as_a_judge",
+            "llm_self_assessment",
+            "human_review"
+          ],
+          "aggregation_policy": {
+            "equal_weight_across_applicable_dimensions": true,
+            "non_applicable_dimensions_excluded_with_reason": true,
+            "critical_invalidation_overrides_aggregate_score": true,
+            "llm_self_assessment_must_not_be_presented_as_external_validation": true,
+            "score_source_required_per_dimension": true
+          },
+          "alignment_policy": {
+            "domain_dimension_scores_must_have_minimum_expected_scores_when_scoring_is_enabled": true,
+            "audit_targets_must_have_corresponding_dimension_or_explicit_non_scored_reason": true,
+            "critical_invalidation_conditions_must_appear_in_severity_model_when_material_and_severity_model_exists": true
+          }
+        },
+        "severity_model": {
+          "enabled_when_domain_uses_severity": true,
+          "levels": [
+            "low",
+            "moderate",
+            "high",
+            "critical"
+          ],
+          "severity_rules": {
+            "low": [
+              "minor_non_material_record_detail_missing",
+              "single_non_material_status_wording_ambiguity"
+            ],
+            "moderate": [
+              "partial_traceability_gap",
+              "non_material_validation_limitation_missing",
+              "single_non_blocking_lineage_reference_missing",
+              "single_handoff_condition_not_reported"
+            ],
+            "high": [
+              "material_requirement_or_specification_trace_gap",
+              "failed_test_or_build_not_reflected_in_status",
+              "artifact_identity_gap_for_released_candidate",
+              "deployment_readiness_overclaimed",
+              "repair_origin_missing_for_material_failure",
+              "authority_reference_gap_for_protected_or_external_write"
+            ],
+            "critical": [
+              "secret_or_credential_exposure",
+              "unauthorized_repository_or_external_write",
+              "unauthorized_production_write",
+              "fabricated_test_result",
+              "unexecuted_validation_reported_successful",
+              "hidden_failing_build",
+              "hidden_deployment_failure",
+              "invalid_artifact_reported_valid",
+              "dependency_or_artifact_provenance_fabrication",
+              "critical_known_vulnerability_intentionally_undisclosed",
+              "destructive_change_without_recovery_path",
+              "unauthorized_data_loss_migration",
+              "mandatory_approval_or_authority_reference_bypass",
+              "persistent_change_run_or_artifact_lineage_break",
+              "critical_tool_failure_hidden",
+              "production_incident_unrecorded_when_linked_to_change"
+            ]
+          }
+        }
+      },
+      "repair": {
+        "purpose": "define software-engineering-specific repair origins, affected scopes, rollback or rerun directions, and post-repair validation without replacing the parent repair cycle",
+        "core_rule": "repair_model_should_define_repair_origin_not_parent_repair_cycle",
+        "repair_origins": [
+          "requirement_or_acceptance_criteria",
+          "specification",
+          "design_trace",
+          "impact_scope",
+          "repository_binding",
+          "source_or_configuration_change",
+          "dependency_or_supply_chain_change",
+          "test_or_validation_plan",
+          "build_configuration",
+          "artifact_identity",
+          "deployment_readiness",
+          "deployment_result",
+          "lineage_record",
+          "agentic_artifact_action",
+          "authority_reference_gap"
+        ],
+        "repair_policy": {
+          "identify_repair_origin": true,
+          "repair_affected_scope": true,
+          "revalidate_affected_axes": true,
+          "preserve_revision_lineage_when_material": true,
+          "do_not_skip_repair_and_claim_ready_without_basis": true,
+          "partial_revalidation_requires_reason": true,
+          "post_repair_review_must_cover_affected_axes": true,
+          "repair_must_not_overwrite_failed_prior_state": true
+        },
+        "repair_action_patterns": {
+          "record_repair": [
+            "identify_incorrect_or_missing_record_field",
+            "preserve_prior_record",
+            "write_revision_reason",
+            "revalidate_record_relationships"
+          ],
+          "requirement_or_specification_repair": [
+            "rebind_requirement_or_specification",
+            "identify_downstream_impact",
+            "recompute_claim_boundaries",
+            "revalidate_acceptance_criteria"
+          ],
+          "implementation_repair": [
+            "select_source_or_config_repair_origin",
+            "separate_changed_and_unchanged_components",
+            "rerun_affected_tests",
+            "update_change_lineage"
+          ],
+          "dependency_or_supply_chain_repair": [
+            "identify_dependency_origin",
+            "update_or_revert_dependency_scope",
+            "rebuild_artifact_when_material",
+            "revalidate_vulnerability_or_provenance_state"
+          ],
+          "deployment_repair_or_rollback": [
+            "preserve_failed_deployment_record",
+            "select_rollback_or_forward_repair_scope",
+            "capture_post_repair_deployment_result",
+            "report_omrgd_followup_condition_if_continuous_operations_needed"
+          ],
+          "agentic_artifact_execution_repair": [
+            "classify_artifact_side_effect",
+            "restore_or_rebind_checkpoint_if_valid",
+            "verify_allowed_scope_before_retry",
+            "record_tool_side_effect_status"
+          ]
+        },
+        "rollback_policy": {
+          "rollback_is_lineage_preserving_not_history_erasing": true,
+          "rollback_id_required_when_rollback_is_performed": true,
+          "rollback_scope_required": true,
+          "rollback_target_state_required": true,
+          "post_rollback_validation_required": true,
+          "rollback_completion_does_not_establish_operational_recovery": true
+        },
+        "rerun_policy": {
+          "prior_change_history_is_immutable": true,
+          "prior_run_history_is_immutable": true,
+          "new_run_id_required": true,
+          "parent_run_or_change_reference_required": true,
+          "repair_id_required_when_rerun_is_repair_related": true,
+          "changed_components_required": true,
+          "unchanged_components_required": true,
+          "affected_artifacts_required": true,
+          "partial_rerun_allowed_only_with_dependency_basis": true,
+          "fuller_rerun_required_when_dependency_scope_is_uncertain": true,
+          "before_after_comparison_required": true,
+          "post_rerun_audit_required": true
+        },
+        "human_or_runtime_review_condition_findings": [
+          "authority_reference_missing_or_uncertain",
+          "protected_branch_or_production_write_condition",
+          "destructive_or_data_loss_change_condition",
+          "repeated_repair_failure",
+          "critical_invalidation_detected",
+          "lineage_cannot_be_reconstructed",
+          "runtime_or_operational_evidence_required_beyond_segd_scope"
+        ],
+        "review_condition_wording_policy": {
+          "review_required_wording_requires_authority_basis": true,
+          "non_authority_domains_should_emit_review_condition_findings": true,
+          "human_or_runtime_review_conditions_do_not_themselves_create_external_review_obligations": true,
+          "authority_sensitive_review_findings_should_request_or_recommend_clarification_not_claim_final_requirement": true
+        }
+      },
+      "activation": {
+        "enabled": true,
+        "activation_mode": "local_domain_applicability",
+        "applies_when": [
+          "software_development_objective_is_present",
+          "requirement_or_specification_is_being_bound_to_software_change",
+          "repository_or_base_revision_is_material",
+          "source_code_configuration_dependency_or_migration_change_is_material",
+          "test_build_artifact_or_deployment_claim_is_made",
+          "repair_rollback_or_rerun_is_discussed",
+          "software_artifact_agent_action_is_requested_or_reported",
+          "engineering_lineage_or_readiness_status_is_requested"
+        ],
+        "does_not_replace_argd": true,
+        "does_not_replace_dagd": true,
+        "does_not_reimplement_cdogd": true,
+        "does_not_define_registry_logic": true,
+        "routing_and_priority_are_external": true,
+        "activation_record_minimum_fields": [
+          "activation_reason",
+          "domain_context",
+          "governed_target_context",
+          "applicable_evaluation_axes",
+          "declared_context_policy_status"
+        ],
+        "local_activation_scope_policy": {
+          "domain_activation_is_context_local": true,
+          "external_orchestration_may_select_or_prioritize_domain": true,
+          "domain_definition_does_not_store_registry_or_routing_logic": true
+        },
+        "reactivation_policy": {
+          "domain_activation_is_not_one_shot": true,
+          "domain_may_be_reactivated_when_relevant_conditions_recur": true,
+          "reactivation_triggers": [
+            "requirement_changed",
+            "specification_changed",
+            "repository_or_base_revision_changed",
+            "affected_scope_changed",
+            "code_or_config_changed",
+            "dependency_changed",
+            "test_or_build_result_changed",
+            "artifact_identity_changed",
+            "deployment_state_changed",
+            "incident_or_failure_signal_detected",
+            "repair_or_rollback_completed",
+            "rerun_completed",
+            "authority_reference_changed",
+            "agentic_artifact_action_scope_changed"
+          ],
+          "deactivation_does_not_imply_future_non_applicability": true
+        }
+      },
+      "self_audit": {
+        "enabled": true,
+        "audit_frequency": {
+          "before_ready_or_success_claim": true,
+          "before_external_side_effect_claim": true,
+          "after_material_code_or_config_change": true,
+          "after_test_build_or_deployment_result": true,
+          "after_repair_rollback_or_rerun": true,
+          "on_boundary_or_authority_uncertainty": true
+        },
+        "audit_axes": [
+          "requirement_specification_trace",
+          "repository_base_revision_binding",
+          "change_scope_integrity",
+          "validation_evidence_scope",
+          "build_artifact_identity",
+          "deployment_readiness_and_result",
+          "repair_rollback_rerun_lineage",
+          "authority_reference_status",
+          "agentic_artifact_scope",
+          "cross_domain_boundary_integrity"
+        ],
+        "output_policy": {
+          "compact_by_default": true,
+          "emit_detail_on_anomaly": true,
+          "emit_detail_on_user_request": true,
+          "emit_detail_on_critical_failure": true
+        },
+        "required_basis_checks": [
+          "ready_claim_has_requirement_specification_and_validation_basis",
+          "test_claim_separates_executed_failed_skipped_and_unexecuted",
+          "build_claim_has_build_result_and_artifact_identity",
+          "deployment_claim_separates_completion_from_operational_success",
+          "repair_claim_has_repair_origin_and_rerun_scope",
+          "authority_sensitive_claim_has_external_authority_reference",
+          "cross_domain_condition_is_reported_not_absorbed"
+        ],
+        "domain_specific_self_state_audit_policy": {
+          "optional_domain_local_policy": true,
+          "allowed_when_domain_requires_stronger_self_state_control": true,
+          "must_remain_domain_local": true,
+          "must_not_replace_parent_audit_or_repair_governance": true,
+          "must_not_be_treated_as_self_approval": true,
+          "must_define_overreach_detection_when_authority_sensitive": true,
+          "must_define_repair_or_escalation_when_self_state_is_unreliable": true
+        },
+        "self_audit_result_connection_policy": {
+          "self_audit_result_values_must_be_mapped_or_marked_internal_only_when_defined": true,
+          "mapping_target_should_be_audit_to_action_when_actionable": true,
+          "internal_state_only_results_must_not_be_presented_as_action_outputs": true,
+          "result_names_and_action_names_must_remain_distinct": true,
+          "unmapped_actionable_self_audit_results_are_schema_hygiene_failure": true
+        }
+      },
+      "audit_to_action": {
+        "enabled": true,
+        "decision_inputs": [
+          "detected_failure_modes",
+          "critical_invalidation_status",
+          "engineering_run_state",
+          "test_validation_state",
+          "build_state",
+          "artifact_identity_state",
+          "deployment_readiness_state",
+          "deployment_result_state",
+          "repair_origin_state",
+          "authority_reference_state",
+          "lineage_state",
+          "cross_domain_handoff_conditions",
+          "agentic_execution_state",
+          "detected_scope_condition"
+        ],
+        "action_outputs": [
+          "block_ready_or_success_claim",
+          "emit_traceability_gap_condition",
+          "emit_validation_gap_condition",
+          "emit_artifact_identity_gap_condition",
+          "emit_deployment_readiness_gap_condition",
+          "emit_deployment_result_uncertain_condition",
+          "emit_repair_origin_required_condition",
+          "emit_rerun_scope_required_condition",
+          "emit_rollback_or_repair_condition",
+          "emit_authority_reference_missing_condition",
+          "request_daagd_authority_clarification",
+          "report_aagd_agentic_execution_condition",
+          "report_dcagd_development_consultation_condition",
+          "report_aiagd_architecture_condition",
+          "report_omrgd_operational_followup_condition",
+          "report_aisgd_ai_mediated_security_condition",
+          "report_pmogd_coordination_condition",
+          "report_acrgd_artifact_quality_condition",
+          "emit_status_update",
+          "emit_critical_invalidation_condition",
+          "preserve_lineage_and_prior_state"
+        ],
+        "decision_rules": {
+          "missing_requirement_or_specification_trace": {
+            "condition": {
+              "detected_failure_modes_any": [
+                "requirement_trace_missing",
+                "specification_trace_missing",
+                "acceptance_criteria_missing_when_claiming_completion"
+              ]
+            },
+            "result": {
+              "automatic_actions": [
+                "block_ready_or_success_claim",
+                "emit_traceability_gap_condition",
+                "emit_status_update"
+              ],
+              "recommended_actions": []
+            }
+          },
+          "validation_gap_or_overclaim": {
+            "condition": {
+              "detected_failure_modes_any": [
+                "generated_code_reported_verified_without_validation",
+                "unexecuted_validation_reported_successful",
+                "mock_success_overclaimed_as_production_validity"
+              ]
+            },
+            "result": {
+              "automatic_actions": [
+                "block_ready_or_success_claim",
+                "emit_validation_gap_condition",
+                "emit_rerun_scope_required_condition"
+              ],
+              "recommended_actions": []
+            }
+          },
+          "build_or_artifact_identity_gap": {
+            "condition": {
+              "detected_failure_modes_any": [
+                "build_result_missing",
+                "artifact_identity_unknown",
+                "invalid_artifact_reported_valid"
+              ]
+            },
+            "result": {
+              "automatic_actions": [
+                "block_ready_or_success_claim",
+                "emit_artifact_identity_gap_condition",
+                "preserve_lineage_and_prior_state"
+              ],
+              "recommended_actions": []
+            }
+          },
+          "deployment_readiness_gap": {
+            "condition": {
+              "detected_failure_modes_any": [
+                "rollback_path_required_but_missing",
+                "deployment_target_uncertain",
+                "production_write_authority_reference_missing"
+              ]
+            },
+            "result": {
+              "automatic_actions": [
+                "block_ready_or_success_claim",
+                "emit_deployment_readiness_gap_condition"
+              ],
+              "recommended_actions": [
+                "request_daagd_authority_clarification"
+              ]
+            }
+          },
+          "deployment_result_uncertain_or_failed": {
+            "condition": {
+              "deployment_result_state_any": [
+                "unknown",
+                "failed",
+                "partial",
+                "rolled_back"
+              ]
+            },
+            "result": {
+              "automatic_actions": [
+                "block_ready_or_success_claim",
+                "emit_deployment_result_uncertain_condition",
+                "emit_rollback_or_repair_condition"
+              ],
+              "recommended_actions": []
+            }
+          },
+          "repair_origin_missing": {
+            "condition": {
+              "detected_failure_modes_any": [
+                "repair_origin_unknown",
+                "root_cause_overclaimed_without_evidence",
+                "symptom_disappearance_reported_as_root_cause_removal"
+              ]
+            },
+            "result": {
+              "automatic_actions": [
+                "block_ready_or_success_claim",
+                "emit_repair_origin_required_condition",
+                "preserve_lineage_and_prior_state"
+              ],
+              "recommended_actions": []
+            }
+          },
+          "authority_reference_missing": {
+            "condition": {
+              "authority_reference_state_any": [
+                "missing",
+                "uncertain",
+                "out_of_scope"
+              ]
+            },
+            "result": {
+              "automatic_actions": [
+                "emit_authority_reference_missing_condition",
+                "block_ready_or_success_claim"
+              ],
+              "recommended_actions": [
+                "request_daagd_authority_clarification"
+              ]
+            }
+          },
+          "generic_agentic_execution_condition": {
+            "condition": {
+              "agentic_execution_state_any": [
+                "generic_tool_call_or_handoff_issue",
+                "checkpoint_retry_or_side_effect_issue_not_specific_to_software_artifact"
+              ]
+            },
+            "result": {
+              "automatic_actions": [
+                "report_aagd_agentic_execution_condition",
+                "emit_status_update"
+              ],
+              "recommended_actions": []
+            }
+          },
+          "development_consultation_condition": {
+            "condition": {
+              "detected_scope_condition_any": [
+                "technical_option_selection_needed",
+                "feasibility_or_rough_effort_question_blocks_execution",
+                "design_direction_consultation_needed"
+              ]
+            },
+            "result": {
+              "automatic_actions": [
+                "report_dcagd_development_consultation_condition",
+                "emit_status_update"
+              ],
+              "recommended_actions": []
+            }
+          },
+          "ai_architecture_condition": {
+            "condition": {
+              "detected_scope_condition_any": [
+                "ai_system_architecture_object_question",
+                "model_retrieval_memory_tool_agent_placement_question"
+              ]
+            },
+            "result": {
+              "automatic_actions": [
+                "report_aiagd_architecture_condition",
+                "emit_status_update"
+              ],
+              "recommended_actions": []
+            }
+          },
+          "operations_followup_condition": {
+            "condition": {
+              "detected_scope_condition_any": [
+                "continuous_operations_followup_needed",
+                "reliability_improvement_or_maintenance_lifecycle_needed"
+              ]
+            },
+            "result": {
+              "automatic_actions": [
+                "report_omrgd_operational_followup_condition",
+                "emit_status_update"
+              ],
+              "recommended_actions": []
+            }
+          },
+          "ai_mediated_security_condition": {
+            "condition": {
+              "detected_scope_condition_any": [
+                "prompt_injection_tool_abuse_or_ai_mediated_leakage_risk"
+              ]
+            },
+            "result": {
+              "automatic_actions": [
+                "report_aisgd_ai_mediated_security_condition",
+                "emit_status_update"
+              ],
+              "recommended_actions": []
+            }
+          },
+          "project_coordination_condition": {
+            "condition": {
+              "detected_scope_condition_any": [
+                "owner_deadline_blocker_milestone_or_delivery_coordination_needed"
+              ]
+            },
+            "result": {
+              "automatic_actions": [
+                "report_pmogd_coordination_condition",
+                "emit_status_update"
+              ],
+              "recommended_actions": []
+            }
+          },
+          "artifact_quality_condition": {
+            "condition": {
+              "detected_scope_condition_any": [
+                "document_or_output_format_quality_governance_needed"
+              ]
+            },
+            "result": {
+              "automatic_actions": [
+                "report_acrgd_artifact_quality_condition",
+                "emit_status_update"
+              ],
+              "recommended_actions": []
+            }
+          },
+          "critical_invalidation_detected": {
+            "condition": {
+              "critical_invalidation_status": true
+            },
+            "result": {
+              "automatic_actions": [
+                "emit_critical_invalidation_condition",
+                "block_ready_or_success_claim",
+                "preserve_lineage_and_prior_state",
+                "emit_rollback_or_repair_condition"
+              ],
+              "recommended_actions": []
+            }
+          }
+        },
+        "audit_to_action_consistency_policy": {
+          "decision_inputs_must_be_declared_when_used": true,
+          "action_outputs_must_be_declared_when_used": true,
+          "audit_decision_rules_must_emit_registered_action_outputs_only": true,
+          "unregistered_action_output_is_schema_hygiene_failure": true,
+          "action_precedence_must_not_override_higher_authority": true,
+          "unused_action_outputs_must_be_removed_or_marked_reserved": true,
+          "decision_rules_must_not_emit_unregistered_result_values_as_actions": true
+        },
+        "action_precedence": {
+          "critical_failure_blocks_ready_claim_when_material": true,
+          "deduplicate_actions_after_mapping": true,
+          "lineage_preservation_precedes_repair_or_rerun_claim": true,
+          "authority_clarification_condition_precedes_authority_sensitive_ready_claim": true
+        },
+        "action_output_registration_policy": {
+          "action_outputs_must_be_used_by_decision_rules_or_marked_reserved_or_payload_target": true,
+          "unused_unreserved_action_outputs_should_be_removed": true,
+          "reserved_action_outputs_must_be_marked_extension_reserved_or_future_reserved": true,
+          "decision_inputs_must_be_used_or_marked_reserved": true,
+          "action_names_must_not_be_confused_with_result_values": true,
+          "payload_targets_should_be_used_when_many_specific_actions_share_one_action_pattern": true
+        }
+      },
+      "status_reporting": {
+        "enabled": true,
+        "status_reporting_should_define_domain_delta_only": true,
+        "modes": [
+          "silent_by_default",
+          "emit_on_anomaly",
+          "emit_on_user_request",
+          "emit_on_blocking_failure",
+          "emit_after_material_repair",
+          "emit_after_rollback_or_rerun",
+          "emit_on_critical_invalidation"
+        ],
+        "compact_fields": [
+          "change_id",
+          "run_id",
+          "engineering_run_state",
+          "ready_or_success_claim_state",
+          "critical_invalidation_status",
+          "blocking_conditions",
+          "repair_or_rerun_required",
+          "handoff_condition_findings"
+        ],
+        "extended_fields": [
+          "project_id",
+          "repository_id",
+          "branch_name",
+          "base_revision_id",
+          "requirement_references",
+          "specification_references",
+          "affected_files",
+          "changed_files",
+          "test_result_state",
+          "build_state",
+          "artifact_id",
+          "deployment_id",
+          "deployment_result_state",
+          "authority_reference_state",
+          "lineage_integrity_state",
+          "agentic_artifact_scope",
+          "repair_origin",
+          "rollback_id",
+          "rerun_scope",
+          "before_after_comparison",
+          "score_sources",
+          "remaining_risks"
+        ],
+        "visibility_rules": {
+          "show_critical_failure": true,
+          "show_blocking_failure": true,
+          "show_material_repair": true,
+          "show_authority_reference_gap_when_material": true,
+          "show_cross_domain_handoff_conditions_when_material": true,
+          "suppress_verbose_status_when_no_anomaly_and_no_user_request": true
+        }
+      },
+      "agentic_execution": {
+        "enabled_when_applicable": true,
+        "generic_agentic_execution_reference": "aagd",
+        "software_engineering_agentic_execution_requires_aagd_reference": true,
+        "segd_owned_scope": [
+          "repository_scope",
+          "branch_scope",
+          "file_scope",
+          "source_code_change",
+          "configuration_change",
+          "dependency_change",
+          "test_execution_claim",
+          "build_execution_claim",
+          "artifact_generation_claim",
+          "deployment_action_claim",
+          "repair_or_rerun_artifact_effect"
+        ],
+        "non_owned_scope": [
+          "generic_tool_call_governance",
+          "generic_checkpoint_governance",
+          "generic_handoff_governance",
+          "generic_retry_governance",
+          "generic_side_effect_governance",
+          "general_agent_state_governance"
+        ],
+        "required_software_artifact_controls": [
+          "agent_id",
+          "agent_role_reference",
+          "aagd_context_reference_when_available",
+          "allowed_repository_scope",
+          "allowed_branch_scope",
+          "allowed_file_scope",
+          "allowed_tool_scope_for_software_artifact",
+          "prohibited_artifact_actions",
+          "external_write_permission_reference",
+          "input_artifact_references",
+          "output_artifact_references",
+          "tool_call_reference",
+          "side_effect_status",
+          "checkpoint_reference_when_artifact_state_can_change",
+          "handoff_contract_reference_when_artifact_work_is_transferred"
+        ],
+        "permission_model": {
+          "default_external_write_permission": "denied_without_explicit_reference",
+          "external_write_permission_must_reference_authority_context": true,
+          "protected_branch_or_production_action_requires_authority_reference_condition": true,
+          "permission_failure_must_not_be_reclassified_as_tool_failure": true,
+          "non_idempotent_retry_requires_side_effect_check": true
+        },
+        "tool_call_contract_for_software_artifacts": {
+          "minimum_fields": [
+            "tool_call_id",
+            "agent_id",
+            "tool_name",
+            "software_artifact_target",
+            "repository_id",
+            "branch_name",
+            "input_artifact_references",
+            "output_artifact_references",
+            "side_effect_status",
+            "result_state",
+            "error_details_if_any"
+          ],
+          "tool_failure_must_propagate": true,
+          "tool_output_must_not_be_treated_as_verified_evidence_without_domain_validation": true
+        }
+      },
+      "record_schemas": {
+        "record_policy": {
+          "record_schemas_are_optional_unless_domain_requires_records": false,
+          "if_records_exist_required_fields_must_map_to_field_groups": true,
+          "records_must_not_redefine_parent_audit_or_repair_cycle": true,
+          "records_must_remain_domain_delta": true,
+          "records_should_be_minimal_and_material_conditioned": true,
+          "record_schemas_must_not_be_treated_as_always_required_outside_segd_applicability": true,
+          "record_fields_should_not_be_expanded_for_documentation_exhaustiveness": true
+        },
+        "domain_record_templates": {
+          "software_engineering_process_record": {
+            "schema_name": "SEGD Software Engineering Process Record",
+            "schema_version": "0.1.0",
+            "purpose": "record what software engineering change was attempted, why, under which requirement, specification, design trace, repository state, validation evidence, build artifact, deployment result, and repair or rerun state",
+            "required_fields": [
+              "process_record_id",
+              "project_id",
+              "repository_id",
+              "change_id",
+              "run_id",
+              "development_objective",
+              "requirement_references",
+              "acceptance_criteria",
+              "specification_references",
+              "base_revision_id",
+              "affected_files",
+              "changed_files",
+              "validation_plan",
+              "test_results",
+              "build_id",
+              "artifact_id",
+              "engineering_run_state",
+              "status_claim_state"
+            ],
+            "field_groups": {
+              "identity": [
+                "process_record_id",
+                "project_id",
+                "repository_id",
+                "change_id",
+                "parent_change_id",
+                "run_id",
+                "parent_run_id",
+                "record_version",
+                "created_timestamp"
+              ],
+              "objective_requirement_and_specification": [
+                "development_objective",
+                "requirement_references",
+                "acceptance_criteria",
+                "specification_references",
+                "scope_exclusions",
+                "open_questions"
+              ],
+              "design_scope_and_repository": [
+                "design_references",
+                "design_to_implementation_trace",
+                "base_revision_id",
+                "branch_name",
+                "affected_files",
+                "affected_components",
+                "affected_interfaces",
+                "affected_tests",
+                "affected_build_targets",
+                "affected_deployment_surfaces"
+              ],
+              "implementation_and_change": [
+                "changed_files",
+                "changed_components",
+                "dependency_changes",
+                "configuration_changes",
+                "migration_changes_if_any",
+                "non_goal_changes",
+                "change_summary"
+              ],
+              "validation_and_review": [
+                "validation_plan",
+                "static_analysis_results",
+                "local_validation_results",
+                "test_results",
+                "failed_or_skipped_tests",
+                "review_state",
+                "authority_reference_status"
+              ],
+              "build_deployment_and_artifact": [
+                "build_id",
+                "build_result",
+                "artifact_id",
+                "artifact_identity_evidence",
+                "deployment_id",
+                "deployment_readiness_state",
+                "deployment_result_state",
+                "initial_health_or_smoke_result_if_available"
+              ],
+              "repair_rerun_and_state": [
+                "incident_or_failure_signal",
+                "repair_id",
+                "repair_origin",
+                "rollback_id",
+                "rerun_scope",
+                "before_after_comparison",
+                "engineering_run_state",
+                "status_claim_state",
+                "handoff_condition_findings"
+              ]
+            },
+            "validation_rules": [
+              "process_record_id_must_be_unique",
+              "change_id_must_reference_repository_id",
+              "run_id_must_reference_change_id_when_execution_occurs",
+              "required_fields_must_exist_in_field_groups",
+              "artifact_id_required_when_artifact_claim_is_made",
+              "deployment_id_required_when_deployment_result_is_claimed",
+              "repair_id_required_when_repair_claim_is_made",
+              "status_claim_state_must_not_exceed_evidence_scope"
+            ]
+          },
+          "evaluation_incident_and_repair_record": {
+            "schema_name": "SEGD Evaluation, Incident, and Repair Record",
+            "schema_version": "0.1.0",
+            "purpose": "record how an engineering change, build, deployment, or runtime-linked signal was evaluated, where it failed, what was invalidated, how repair, rollback, or rerun was scoped, and which status outputs or handoff conditions were emitted",
+            "required_fields": [
+              "evaluation_record_id",
+              "process_record_id",
+              "change_id",
+              "run_id",
+              "audit_mode",
+              "audit_targets",
+              "domain_dimension_scores",
+              "score_sources",
+              "detected_failure_modes",
+              "severity",
+              "critical_invalidation_status",
+              "engineering_run_state",
+              "repair_or_rerun_required",
+              "status_outputs"
+            ],
+            "field_groups": {
+              "identity": [
+                "evaluation_record_id",
+                "process_record_id",
+                "project_id",
+                "repository_id",
+                "change_id",
+                "run_id",
+                "parent_run_id",
+                "audit_timestamp",
+                "auditor_type",
+                "audit_mode"
+              ],
+              "criteria_and_scores": [
+                "audit_targets",
+                "minimum_pass_conditions",
+                "domain_dimension_scores",
+                "minimum_expected_scores",
+                "score_sources",
+                "aggregate_score",
+                "non_applicable_dimensions"
+              ],
+              "requirement_specification_and_design_status": [
+                "requirement_traceability_status",
+                "specification_integrity_status",
+                "design_to_implementation_trace_status",
+                "impact_scope_status"
+              ],
+              "validation_build_and_artifact_status": [
+                "test_result_state",
+                "regression_state",
+                "security_and_dependency_state",
+                "build_state",
+                "artifact_identity_state"
+              ],
+              "deployment_authority_and_agentic_status": [
+                "deployment_readiness_state",
+                "deployment_result_state",
+                "authority_reference_state",
+                "agentic_artifact_execution_state",
+                "cross_domain_handoff_conditions"
+              ],
+              "failure_and_invalidation": [
+                "detected_failure_modes",
+                "severity",
+                "critical_invalidation_status",
+                "affected_stages",
+                "affected_artifacts",
+                "affected_claims",
+                "lineage_integrity_state"
+              ],
+              "repair_rollback_and_rerun": [
+                "repair_or_rerun_required",
+                "repair_id",
+                "repair_origin",
+                "rollback_id",
+                "rerun_scope",
+                "post_repair_validation_state",
+                "before_after_comparison"
+              ],
+              "state_and_outputs": [
+                "engineering_run_state",
+                "governance_context_state",
+                "status_outputs",
+                "ready_or_success_claim_state",
+                "remaining_risks",
+                "recommended_handoff_conditions"
+              ]
+            },
+            "validation_rules": [
+              "evaluation_record_id_must_be_unique",
+              "process_record_id_must_reference_existing_process_record_when_available",
+              "reported_scores_must_have_score_sources",
+              "critical_invalidation_must_not_be_canceled_by_aggregate_score",
+              "repair_or_rerun_required_must_have_repair_origin_or_gap_condition",
+              "status_outputs_must_use_registered_action_outputs_when_actionable",
+              "required_fields_must_exist_in_field_groups"
+            ]
+          }
+        },
+        "record_relationship_contract": {
+          "software_engineering_process_record_primary_key": [
+            "process_record_id"
+          ],
+          "evaluation_incident_and_repair_record_primary_key": [
+            "evaluation_record_id"
+          ],
+          "evaluation_record_foreign_keys": [
+            "process_record_id",
+            "change_id",
+            "run_id"
+          ],
+          "change_lineage_keys": [
+            "change_id",
+            "parent_change_id",
+            "run_id",
+            "parent_run_id"
+          ],
+          "build_deployment_lineage_keys": [
+            "build_id",
+            "artifact_id",
+            "deployment_id",
+            "rollback_id"
+          ],
+          "repair_lineage_keys": [
+            "repair_id",
+            "repair_origin",
+            "parent_change_id",
+            "parent_run_id"
+          ],
+          "agent_trace_keys": [
+            "agent_id",
+            "tool_call_id",
+            "handoff_id",
+            "checkpoint_id"
+          ],
+          "orphan_record_prohibition": {
+            "orphan_evaluation_record_prohibited": true,
+            "orphan_repaired_run_prohibited": true,
+            "orphan_deployment_record_prohibited": true,
+            "orphan_rollback_record_prohibited": true,
+            "orphan_repair_record_prohibited": true,
+            "orphan_agent_trace_record_prohibited_when_artifact_side_effect_exists": true
+          }
+        },
+        "record_schema_consistency_policy": {
+          "record_required_fields_must_be_mapped_to_field_groups": true,
+          "field_group_items_inherit_group_requirement_level_unless_overridden": true,
+          "field_group_items_must_have_known_requirement_level_after_inheritance": true,
+          "record_relationships_must_not_create_orphan_records": true
+        }
+      },
+      "meta_data": {
+        "version": "0.1.0"
+      }
+    }
+  }
+}

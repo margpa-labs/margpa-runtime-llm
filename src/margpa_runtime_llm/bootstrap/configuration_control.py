@@ -22,6 +22,9 @@ def build_configuration_control(
     *,
     effective: EffectivePhase1Config,
     documentation_rag_state: DocumentationRagEffectiveState,
+    conversation_persistence_enabled: bool = False,
+    conversation_storage_backend: str | None = None,
+    conversation_storage_backend_version: str | None = None,
 ) -> ConfigurationControlService:
     """Project the finite safe startup allowlist into a process-local service."""
 
@@ -74,6 +77,27 @@ def build_configuration_control(
             value=ResearchDeveloperMode.OFF.value,
             source=ConfigurationSource.BUILT_IN_DEFAULT,
             apply_disposition=ApplyDisposition.RUNTIME_APPLICABLE,
+        ),
+        ConfigurationField(
+            key="conversation_storage_kind",
+            value=(
+                conversation_storage_backend
+                if conversation_persistence_enabled and conversation_storage_backend is not None
+                else "disabled"
+            ),
+            source=ConfigurationSource.COMPOSED_RUNTIME,
+            apply_disposition=ApplyDisposition.READ_ONLY,
+        ),
+        ConfigurationField(
+            key="conversation_storage_version",
+            value=(
+                conversation_storage_backend_version
+                if conversation_persistence_enabled
+                and conversation_storage_backend_version is not None
+                else "disabled"
+            ),
+            source=ConfigurationSource.COMPOSED_RUNTIME,
+            apply_disposition=ApplyDisposition.READ_ONLY,
         ),
     )
     rag_enabled = documentation_rag_state is DocumentationRagEffectiveState.ENABLED

@@ -9,6 +9,7 @@ import pytest
 from margpa_runtime_llm.modules.conversation.adapters import SQLiteConversationStore
 from margpa_runtime_llm.modules.conversation.application import (
     PersistentConversationError,
+    PersistentConversationErrorCode,
     PersistentConversationService,
     PersistentGenerationIdentities,
 )
@@ -24,6 +25,8 @@ from margpa_runtime_llm.modules.conversation.domain import (
     ConversationOperationId,
     ConversationScopeId,
     ConversationSessionId,
+    ConversationSessionState,
+    ConversationState,
     ConversationStorageError,
     ConversationTurnId,
     ConversationTurnOrigin,
@@ -52,6 +55,7 @@ class Session:
     def __init__(self, request_id: str, answer: str) -> None:
         self.request_id = request_id
         self.answer = answer
+        self.documentation_augmentation = None
 
     def events(self) -> Iterator[ConversationEvent]:
         yield ConversationEvent(
@@ -268,6 +272,90 @@ def test_branch_selection_is_cas_only_and_stale_revision_writes_nothing(tmp_path
         "answer-1",
         "after selected branch",
     ]
+
+
+def test_rename_conversation_updates_title_and_clears_to_auto(tmp_path: Path) -> None:
+    service, _, _ = built(tmp_path)
+    renamed = service.rename_conversation(
+        conversation_id=CID,
+        operation_id=ConversationOperationId(value="rename-1"),
+        expected_revision=1,
+        title="My renamed chat",
+    )
+    assert renamed.conversation.title == "My renamed chat"
+    cleared = service.rename_conversation(
+        conversation_id=CID,
+        operation_id=ConversationOperationId(value="rename-2"),
+        expected_revision=renamed.storage_revision,
+        title=None,
+    )
+    assert cleared.conversation.title is None
+
+
+def test_rename_conversation_rejects_deleted_conversation(tmp_path: Path) -> None:
+    service, _, _ = built(tmp_path)
+    deleted = service.set_deleted(
+        conversation_id=CID,
+        operation_id=ConversationOperationId(value="delete-1"),
+        expected_revision=1,
+    )
+    assert deleted.conversation.state is ConversationState.DELETED
+    with pytest.raises(PersistentConversationError) as captured:
+        service.rename_conversation(
+            conversation_id=CID,
+            operation_id=ConversationOperationId(value="rename-after-delete"),
+            expected_revision=deleted.storage_revision,
+            title="too late",
+        )
+    assert captured.value.code is PersistentConversationErrorCode.INVALID_LIFECYCLE
+
+
+def test_set_deleted_closes_active_session_from_active_state(tmp_path: Path) -> None:
+    service, _, _ = built(tmp_path)
+    deleted = service.set_deleted(
+        conversation_id=CID,
+        operation_id=ConversationOperationId(value="delete-1"),
+        expected_revision=1,
+    )
+    assert deleted.conversation.state is ConversationState.DELETED
+    assert all(
+        item.state is not ConversationSessionState.ACTIVE for item in deleted.conversation.sessions
+    )
+
+
+def test_set_deleted_from_archived_state(tmp_path: Path) -> None:
+    service, _, _ = built(tmp_path)
+    archived = service.set_archived(
+        conversation_id=CID,
+        operation_id=ConversationOperationId(value="archive-1"),
+        expected_revision=1,
+        archived=True,
+    )
+    deleted = service.set_deleted(
+        conversation_id=CID,
+        operation_id=ConversationOperationId(value="delete-1"),
+        expected_revision=archived.storage_revision,
+    )
+    assert deleted.conversation.state is ConversationState.DELETED
+
+
+def test_set_deleted_rejects_non_terminal_turn(tmp_path: Path) -> None:
+    service, _, _ = built(tmp_path)
+    pending = service.append_user_turn(
+        conversation_id=CID,
+        turn_id=ConversationTurnId(value="turn-pending"),
+        user_message_id=ConversationMessageId(value="message-user-pending"),
+        content="still going",
+        operation_id=ConversationOperationId(value="append-pending"),
+        expected_revision=1,
+    )
+    with pytest.raises(PersistentConversationError) as captured:
+        service.set_deleted(
+            conversation_id=CID,
+            operation_id=ConversationOperationId(value="delete-blocked"),
+            expected_revision=pending.storage_revision,
+        )
+    assert captured.value.code is PersistentConversationErrorCode.INVALID_LIFECYCLE
 
 
 def test_cancel_requires_exact_generating_revision_and_request(tmp_path: Path) -> None:

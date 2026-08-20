@@ -30,18 +30,23 @@ class LlamaCppGenerationStream:
         model_key: str,
         native_stream: Iterator[dict[str, Any]],
         on_terminal: Callable[[], None],
+        fallback_prompt_tokens: int,
+        completion_text_token_counter: Callable[[str], int],
     ) -> None:
         self._generation_id = generation_id
         self._request_id = request_id
         self._model_key = model_key
         self._native_stream = native_stream
         self._on_terminal = on_terminal
+        self._fallback_prompt_tokens = fallback_prompt_tokens
+        self._completion_text_token_counter = completion_text_token_counter
         self._terminal_state = GenerationTerminalState.ACTIVE
         self._iteration_started = False
         self._started = time.perf_counter()
         self._first_content_latency: float | None = None
         self._timing: GenerationTiming | None = None
         self._usage: TokenUsage | None = None
+        self._completion_text_parts: list[str] = []
 
     @property
     def generation_id(self) -> str:
@@ -82,6 +87,7 @@ class LlamaCppGenerationStream:
                 if text_delta:
                     if self._first_content_latency is None:
                         self._first_content_latency = time.perf_counter() - self._started
+                    self._completion_text_parts.append(text_delta)
                     yield GenerationChunk(
                         request_id=self._request_id,
                         sequence=sequence,
@@ -92,7 +98,7 @@ class LlamaCppGenerationStream:
 
                 if raw_finish_reason is not None:
                     finish_reason, _ = map_finish_reason(raw_finish_reason)
-                    self._usage = parse_token_usage(payload)
+                    self._usage = parse_token_usage(payload) or self._fallback_usage()
                     self._finish(GenerationTerminalState.COMPLETED)
                     yield GenerationChunk(
                         request_id=self._request_id,
@@ -148,6 +154,20 @@ class LlamaCppGenerationStream:
         traceback: TracebackType | None,
     ) -> None:
         self.close()
+
+    def _fallback_usage(self) -> TokenUsage:
+        """llama.cpp's streaming chat format never reports `usage` per-chunk
+        (unlike its non-streaming response), so approximate it from the
+        prompt token count already computed for the Fail-closed context
+        check, plus a fresh tokenization of the accumulated completion text."""
+
+        completion_text = "".join(self._completion_text_parts)
+        completion_tokens = self._completion_text_token_counter(completion_text)
+        return TokenUsage(
+            prompt_tokens=self._fallback_prompt_tokens,
+            completion_tokens=completion_tokens,
+            total_tokens=self._fallback_prompt_tokens + completion_tokens,
+        )
 
     def _close_native(self) -> None:
         close = getattr(self._native_stream, "close", None)

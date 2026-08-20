@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from typing import Protocol, runtime_checkable
 
 from .contracts import (
     AssembledDocumentationContext,
+    CitationUnavailable,
     CorpusManifest,
     DocumentationAugmentation,
     DocumentationChunk,
@@ -15,6 +16,7 @@ from .contracts import (
     DocumentationRagRequestContext,
     DocumentationWarning,
     DocumentSource,
+    PersistedTurnCitationEvidence,
     RetrievalQuery,
     RetrievalResult,
 )
@@ -149,3 +151,24 @@ class ContextualRagOrchestratorPort(Protocol):
         *,
         cancelled: CancellationCheck | None = None,
     ) -> DocumentationAugmentation: ...
+
+
+@runtime_checkable
+class CitationEvidenceStorePort(Protocol):
+    """Fail-closed read boundary for persisted per-turn citation evidence.
+
+    Writes are not exposed here: they are committed atomically alongside the
+    owning turn through `ConversationRepositoryPort.commit()` so that the
+    assistant completion and its citation evidence can never diverge.
+    """
+
+    def get_turn_citations(
+        self,
+        conversation_id: str,
+        turn_id: str,
+    ) -> PersistedTurnCitationEvidence | CitationUnavailable: ...
+
+    def get_conversation_citations(
+        self,
+        conversation_id: str,
+    ) -> Mapping[str, PersistedTurnCitationEvidence | CitationUnavailable]: ...
