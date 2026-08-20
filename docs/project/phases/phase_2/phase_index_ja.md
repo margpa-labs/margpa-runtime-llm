@@ -439,7 +439,7 @@ Provider Mapping        : semantic_mapping／mechanical enforcement unavailable
 Batch Capability        : unavailable／deny
 Permission Hardening     : undecided／not authorized
 Mechanical Enforcement  : research candidates only／not implemented
-Commit／Push             : Phase 2 final closure and Phase 3 READY snapshot authorized／pending
+Commit／Push             : PHASE 2 FINAL CLOSURE／PHASE 3 READY SNAPSHOT PUSHED・REMOTE ALIGNED
 ```
 
 最上位規則の追加・変更・削除・並替え・例外化・候補登録は、ユーザーまたはユーザーが明示指定した人間だけが指示できる。Pilot、Provider、Role、Automation Levelまたは将来の上位権限は例外を生成しない。

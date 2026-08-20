@@ -5,7 +5,7 @@
   "algorithm": "SHA-512",
   "source_root": "docs/project/phases/phase_2",
   "source_count": 406,
-  "source_set_digest": "4823206ddfc90ef9a302eef0463462b584dce75f2af6c8144c81e12d30e653f2435eb4b2aba8ba03a183d3912ea7d5100616dd55b8bf17c24d8e32874234616f",
+  "source_set_digest": "cdc49c1b7b724000e05a28ffc4a06ab5ba7b08d70b0c763ed27a4368b56f43939e8e36c22a9fe2eaee5033569776827be4b64d020b3db0e9b0c1d998accdd78b",
   "entries": [
     {
       "path": "docs/project/phases/phase_2/adr/phase_2_a_conversation_domain_adr_ja.md",
@@ -2009,8 +2009,8 @@
     },
     {
       "path": "docs/project/phases/phase_2/phase_index_ja.md",
-      "size_bytes": 41387,
-      "sha512": "3edc34758600650032640bd51d9b3b0f0521113651779ab8b060fd6c9a7234bb87ad2b0b50edf4b1247e4f4f1bd3da33187553e25c93e7d6e789e55048526d3a"
+      "size_bytes": 41388,
+      "sha512": "81abaec1d04e89450bce3cecd69832fd1bcdfd765e1dcc34c0fb83ea820067947ed55ae6622d48d1b244bfdc886f41051ef0ceff2b133587edfbda6749365854"
     },
     {
       "path": "docs/project/phases/phase_2/requirements/phase_2_0_automation_pilot_requirements_ja.md",
