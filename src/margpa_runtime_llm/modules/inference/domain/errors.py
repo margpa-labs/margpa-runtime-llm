@@ -20,6 +20,7 @@ class InferenceErrorCode(StrEnum):
     MODEL_NOT_LOADED = "model_not_loaded"
     MODEL_ALREADY_LOADED = "model_already_loaded"
     MODEL_BUSY = "model_busy"
+    INTERNAL_TASK_PREEMPTION_FAILED = "internal_task_preemption_failed"
     UNSUPPORTED_CAPABILITY = "unsupported_capability"
     CONTEXT_LIMIT_EXCEEDED = "context_limit_exceeded"
     GENERATION_FAILED = "generation_failed"

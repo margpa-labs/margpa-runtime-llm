@@ -5,6 +5,16 @@ import SettingsPanel, { type SettingsFormState } from "../SettingsPanel";
 import ConfigurationControlPanel, {
   type ConfigurationControlState,
 } from "../ConfigurationControlPanel";
+import GovernancePanel, { type GovernanceControlState } from "../GovernancePanel";
+import RuntimeGovernancePanel, {
+  type RuntimeGovernanceControlState,
+} from "../RuntimeGovernancePanel";
+import GuardrailGovernancePanel, {
+  type GuardrailGovernanceControlState,
+} from "../GuardrailGovernancePanel";
+import RuntimeModelStatusPanel from "../RuntimeModelStatusPanel";
+import FeatureModesPanel from "../FeatureModesPanel";
+import type { GovernanceMode, GuardrailGovernanceMode, MainGovernanceMode } from "../../types";
 
 interface SettingsModalProps {
   language: UiLanguage;
@@ -22,6 +32,18 @@ interface SettingsModalProps {
   onConfigurationRefresh: () => void;
   onConfigurationPreview: (patch: Record<string, unknown>) => void;
   onConfigurationApply: (researchDeveloperMode: string) => void;
+  governanceBootstrapEnabled: boolean;
+  governanceState: GovernanceControlState;
+  onGovernanceRefresh: () => void;
+  onGovernanceApply: (requestedMode: GovernanceMode) => void;
+  runtimeGovernanceBootstrapEnabled: boolean;
+  runtimeGovernanceState: RuntimeGovernanceControlState;
+  onRuntimeGovernanceRefresh: () => void;
+  onRuntimeGovernanceApply: (requestedMode: MainGovernanceMode) => void;
+  guardrailGovernanceBootstrapEnabled: boolean;
+  guardrailGovernanceState: GuardrailGovernanceControlState;
+  onGuardrailGovernanceRefresh: () => void;
+  onGuardrailGovernanceApply: (requestedMode: GuardrailGovernanceMode) => void;
 }
 
 type Category = "basic" | "advanced";
@@ -46,8 +68,25 @@ export default function SettingsModal({
   onConfigurationRefresh,
   onConfigurationPreview,
   onConfigurationApply,
+  governanceBootstrapEnabled,
+  governanceState,
+  onGovernanceRefresh,
+  onGovernanceApply,
+  runtimeGovernanceBootstrapEnabled,
+  runtimeGovernanceState,
+  onRuntimeGovernanceRefresh,
+  onRuntimeGovernanceApply,
+  guardrailGovernanceBootstrapEnabled,
+  guardrailGovernanceState,
+  onGuardrailGovernanceRefresh,
+  onGuardrailGovernanceApply,
 }: SettingsModalProps) {
   const [category, setCategory] = useState<Category>("basic");
+  // The Advanced tab is unconditionally shown: RuntimeModelStatusPanel has
+  // no bootstrap flag of its own (Phase 6: always available, unlike the
+  // Phase 4/5 features below which can be entirely disabled), so it alone
+  // is enough to keep the tab visible even when every other Governance
+  // feature is off.
 
   // Reset to "basic" every time the modal opens, adjusted during render
   // (React's documented pattern for "reset state when a prop changes")
@@ -113,18 +152,16 @@ export default function SettingsModal({
             >
               {translate(language, "settingsMenuLabel")}
             </button>
-            {configurationBootstrapEnabled ? (
-              <button
-                type="button"
-                className="secondary"
-                aria-current={category === "advanced"}
-                onClick={() => {
-                  setCategory("advanced");
-                }}
-              >
-                {translate(language, "advancedModeLabel")}
-              </button>
-            ) : null}
+            <button
+              type="button"
+              className="secondary"
+              aria-current={category === "advanced"}
+              onClick={() => {
+                setCategory("advanced");
+              }}
+            >
+              {translate(language, "advancedModeLabel")}
+            </button>
           </nav>
           <div className="settings-modal-content">
             <div hidden={category !== "basic"}>
@@ -139,8 +176,8 @@ export default function SettingsModal({
                 documentationRagNoteText={documentationRagNoteText}
               />
             </div>
-            {configurationBootstrapEnabled ? (
-              <div hidden={category !== "advanced"}>
+            <div hidden={category !== "advanced"}>
+              {configurationBootstrapEnabled ? (
                 <ConfigurationControlPanel
                   language={language}
                   visible={true}
@@ -149,8 +186,37 @@ export default function SettingsModal({
                   onPreview={onConfigurationPreview}
                   onApply={onConfigurationApply}
                 />
-              </div>
-            ) : null}
+              ) : null}
+              {governanceBootstrapEnabled ? (
+                <GovernancePanel
+                  language={language}
+                  visible={true}
+                  state={governanceState}
+                  onRefresh={onGovernanceRefresh}
+                  onApply={onGovernanceApply}
+                />
+              ) : null}
+              {runtimeGovernanceBootstrapEnabled ? (
+                <RuntimeGovernancePanel
+                  language={language}
+                  visible={true}
+                  state={runtimeGovernanceState}
+                  onRefresh={onRuntimeGovernanceRefresh}
+                  onApply={onRuntimeGovernanceApply}
+                />
+              ) : null}
+              {guardrailGovernanceBootstrapEnabled ? (
+                <GuardrailGovernancePanel
+                  language={language}
+                  visible={true}
+                  state={guardrailGovernanceState}
+                  onRefresh={onGuardrailGovernanceRefresh}
+                  onApply={onGuardrailGovernanceApply}
+                />
+              ) : null}
+              <RuntimeModelStatusPanel language={language} visible={category === "advanced"} />
+              <FeatureModesPanel language={language} visible={category === "advanced"} />
+            </div>
           </div>
         </div>
       </div>

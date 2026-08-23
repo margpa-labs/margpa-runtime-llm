@@ -3,6 +3,9 @@ import { describe, expect, test, vi } from "vitest";
 import SettingsModal from "./SettingsModal";
 import type { SettingsFormState } from "../SettingsPanel";
 import type { ConfigurationControlState } from "../ConfigurationControlPanel";
+import type { GovernanceControlState } from "../GovernancePanel";
+import type { RuntimeGovernanceControlState } from "../RuntimeGovernancePanel";
+import type { GuardrailGovernanceControlState } from "../GuardrailGovernancePanel";
 
 const SETTINGS_FORM: SettingsFormState = {
   responseLanguage: "ja",
@@ -29,6 +32,62 @@ const CONFIGURATION_STATE: ConfigurationControlState = {
   resultText: "",
 };
 
+const GOVERNANCE_STATE: GovernanceControlState = {
+  capability: "ready",
+  status: {
+    mode: {
+      revision: 1,
+      digest_sha512: "gov123",
+      current_mode: "off",
+      descriptors: [
+        { mode: "off", availability: "available", apply_disposition: "hot", unavailable_reason_code: null },
+        { mode: "observe", availability: "available", apply_disposition: "hot", unavailable_reason_code: null },
+        {
+          mode: "enforce",
+          availability: "unavailable",
+          apply_disposition: "rejected",
+          unavailable_reason_code: "phase_3_enforce_unavailable",
+        },
+      ],
+    },
+    observe_summary: null,
+  },
+  resultText: "",
+};
+
+const RUNTIME_GOVERNANCE_STATE: RuntimeGovernanceControlState = {
+  capability: "ready",
+  status: {
+    enabled: true,
+    revision: 1,
+    current_mode: "off",
+    descriptors: [
+      { mode: "off", availability: "available", unavailable_reason_code: null },
+      { mode: "observe", availability: "available", unavailable_reason_code: null },
+      { mode: "enforce", availability: "available", unavailable_reason_code: null },
+    ],
+    points: [],
+    evidence: null,
+  },
+  resultText: "",
+};
+
+const GUARDRAIL_GOVERNANCE_STATE: GuardrailGovernanceControlState = {
+  capability: "ready",
+  status: {
+    enabled: true,
+    revision: 1,
+    current_mode: "off",
+    descriptors: [
+      { mode: "off", availability: "available", unavailable_reason_code: null },
+      { mode: "observe", availability: "available", unavailable_reason_code: null },
+      { mode: "enforce", availability: "available", unavailable_reason_code: null },
+    ],
+    points: [],
+  },
+  resultText: "",
+};
+
 function baseProps(overrides: Partial<Parameters<typeof SettingsModal>[0]> = {}) {
   return {
     language: "en" as const,
@@ -46,6 +105,18 @@ function baseProps(overrides: Partial<Parameters<typeof SettingsModal>[0]> = {})
     onConfigurationRefresh: vi.fn(),
     onConfigurationPreview: vi.fn(),
     onConfigurationApply: vi.fn(),
+    governanceBootstrapEnabled: true,
+    governanceState: GOVERNANCE_STATE,
+    onGovernanceRefresh: vi.fn(),
+    onGovernanceApply: vi.fn(),
+    runtimeGovernanceBootstrapEnabled: true,
+    runtimeGovernanceState: RUNTIME_GOVERNANCE_STATE,
+    onRuntimeGovernanceRefresh: vi.fn(),
+    onRuntimeGovernanceApply: vi.fn(),
+    guardrailGovernanceBootstrapEnabled: true,
+    guardrailGovernanceState: GUARDRAIL_GOVERNANCE_STATE,
+    onGuardrailGovernanceRefresh: vi.fn(),
+    onGuardrailGovernanceApply: vi.fn(),
     ...overrides,
   };
 }
@@ -70,10 +141,80 @@ describe("SettingsModal", () => {
     expect(document.querySelector("#settings")?.closest("div")).toHaveAttribute("hidden");
   });
 
-  test("Advanced Mode is not offered when the configuration bootstrap is disabled", () => {
-    render(<SettingsModal {...baseProps({ configurationBootstrapEnabled: false })} />);
-    expect(screen.queryByRole("button", { name: "Advanced Mode" })).toBeNull();
+  test("Advanced Mode still appears when all four Governance bootstraps are disabled, showing only Runtime Model Status", () => {
+    render(
+      <SettingsModal
+        {...baseProps({
+          configurationBootstrapEnabled: false,
+          governanceBootstrapEnabled: false,
+          runtimeGovernanceBootstrapEnabled: false,
+          guardrailGovernanceBootstrapEnabled: false,
+        })}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
     expect(document.querySelector("#configuration-panel")).toBeNull();
+    expect(document.querySelector("#governance-panel")).toBeNull();
+    expect(document.querySelector("#runtime-governance-panel")).toBeNull();
+    expect(document.querySelector("#guardrail-governance-panel")).toBeNull();
+    expect(document.querySelector("#runtime-model-status-panel")).not.toBeNull();
+  });
+
+  test("Advanced Mode still appears with only Governance enabled, and only renders the Governance panel", () => {
+    render(
+      <SettingsModal
+        {...baseProps({
+          configurationBootstrapEnabled: false,
+          runtimeGovernanceBootstrapEnabled: false,
+          guardrailGovernanceBootstrapEnabled: false,
+        })}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
+    expect(document.querySelector("#governance-panel")).not.toBeNull();
+    expect(document.querySelector("#configuration-panel")).toBeNull();
+    expect(document.querySelector("#runtime-governance-panel")).toBeNull();
+    expect(document.querySelector("#guardrail-governance-panel")).toBeNull();
+  });
+
+  test("Advanced Mode still appears with only Runtime Governance enabled, and only renders that panel", () => {
+    render(
+      <SettingsModal
+        {...baseProps({
+          configurationBootstrapEnabled: false,
+          governanceBootstrapEnabled: false,
+          guardrailGovernanceBootstrapEnabled: false,
+        })}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
+    expect(document.querySelector("#runtime-governance-panel")).not.toBeNull();
+    expect(document.querySelector("#configuration-panel")).toBeNull();
+    expect(document.querySelector("#governance-panel")).toBeNull();
+    expect(document.querySelector("#guardrail-governance-panel")).toBeNull();
+  });
+
+  test("Advanced Mode still appears with only Guardrail Governance enabled, and only renders that panel", () => {
+    render(
+      <SettingsModal
+        {...baseProps({
+          configurationBootstrapEnabled: false,
+          governanceBootstrapEnabled: false,
+          runtimeGovernanceBootstrapEnabled: false,
+        })}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
+    expect(document.querySelector("#guardrail-governance-panel")).not.toBeNull();
+    expect(document.querySelector("#configuration-panel")).toBeNull();
+    expect(document.querySelector("#governance-panel")).toBeNull();
+    expect(document.querySelector("#runtime-governance-panel")).toBeNull();
+  });
+
+  test("switching to Advanced Mode reveals the Governance Definitions panel", () => {
+    render(<SettingsModal {...baseProps()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
+    expect(document.querySelector("#governance-panel")?.closest("div")).not.toHaveAttribute("hidden");
   });
 
   test("the close button calls onClose", () => {

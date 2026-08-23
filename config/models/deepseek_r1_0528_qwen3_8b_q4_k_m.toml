@@ -1,0 +1,79 @@
+schema_version = "2"
+model_key = "main.deepseek-r1-0528-qwen3-8b-q4-k-m"
+logical_role = "main"
+enabled = true
+
+[source]
+provider = "DeepSeek"
+distribution_repository = "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B"
+upstream_model = "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B"
+revision = "6e8885a6ff5c1dc5201574c8fd700323f23c25fa"
+
+[artifact]
+relative_path = "main/deepseek-r1-0528-qwen3-8b/gguf/DeepSeek-R1-0528-Qwen3-8B-Q4_K_M-from-Q8_0.gguf"
+file_name = "DeepSeek-R1-0528-Qwen3-8B-Q4_K_M-from-Q8_0.gguf"
+format = "gguf"
+quantization = "Q4_K_M"
+size_bytes = 5027782720
+sha512 = "b32af428f1e44c8f4f19b4069b5bc56042ecdb58b18cfb604ee17f33897863986987e731ec4cd28929b72af4b845ac99d7b5f405d97c56bbec40db437518e786"
+
+# This artifact was produced with `--allow-requantize` from a preserved
+# Q8_0 intermediate, not directly from the original F32/F16 weights (see
+# phase_6_deepseek_quantization_completion_evidence_ja_20260823141827.md).
+# That is a disclosed, open quality caveat carried forward honestly here,
+# not hidden — Runtime Load/Inference/quality were explicitly out of that
+# task's Authority scope and are exercised for the first time in Phase 6
+# Fourth Rework.
+
+[backend]
+backend_key = "llama_cpp"
+required_version = "0.3.34"
+
+[model]
+# Both `architecture` and `native_context_limit` were independently
+# re-verified (Fourth Rework) by a read-only `vocab_only=True` metadata
+# load of the exact artifact above — not copied from Qwen's definition or
+# assumed from the quantization manifest alone:
+#   general.architecture = "qwen3"
+#   qwen3.context_length = 131072
+# `qwen3.rope.scaling.type = "yarn"` with
+# `qwen3.rope.scaling.original_context_length = 32768` — the 131072 figure
+# is a YaRN RoPE extrapolation of a 32768 pretraining context, not a
+# natively trained 131072 window. This is exactly why the Fourth Rework's
+# real Load Attempt requests a conservative context size well under both
+# figures, never this ceiling value.
+architecture = "qwen3"
+native_context_limit = 131072
+chat_template_source = "gguf_metadata"
+
+[capabilities]
+# Identical to Qwen's own set not because this Definition was copied, but
+# because `MODEL_REQUIRED_CAPABILITIES` (adapters/model_backends/llama_cpp/
+# adapter.py) is a fixed constant this shared llama.cpp backend always
+# reports for any GGUF model it loads — verified by reading that adapter,
+# not assumed. `thinking_control` is satisfied via the soft-switch path
+# (`chat_template.py`'s `hard_switch_supported`): the embedded template was
+# independently confirmed present (2937 bytes) but does not itself contain
+# `enable_thinking`, so a live Load will report the soft-switch Warning,
+# not a Load failure.
+required_features = [
+  "chat",
+  "streaming",
+  "cooperative_cancel",
+  "stop_sequences",
+  "seed",
+  "token_usage",
+  "model_metadata",
+  "chat_template",
+  "thinking_control",
+]
+optional_features = ["gpu_offload"]
+
+[verification]
+state = "phase_6_fourth_rework_local_artifact_sha512_independently_reverified_runtime_load_pending"
+provenance_complete = false
+
+[output_protocol.thinking]
+parser_key = "tagged_thinking_v1"
+opening_delimiter = "<think>"
+closing_delimiter = "</think>"

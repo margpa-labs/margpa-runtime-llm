@@ -417,6 +417,7 @@ def test_docs_missing_emits_safe_error_without_model_call() -> None:
 
     assert inference.requests == []
     assert [event.event for event in events] == [
+        ConversationEventType.STATUS,
         ConversationEventType.START,
         ConversationEventType.RETRIEVAL,
         ConversationEventType.ERROR,
@@ -434,6 +435,7 @@ def test_context_insufficient_emits_distinct_error_without_model_call() -> None:
 
     assert inference.requests == []
     assert [event.event for event in events] == [
+        ConversationEventType.STATUS,
         ConversationEventType.START,
         ConversationEventType.RETRIEVAL,
         ConversationEventType.ERROR,
@@ -452,12 +454,13 @@ def test_partial_subject_coverage_emits_safe_error_without_model_call() -> None:
 
     assert inference.requests == []
     assert [event.event for event in events] == [
+        ConversationEventType.STATUS,
         ConversationEventType.START,
         ConversationEventType.RETRIEVAL,
         ConversationEventType.ERROR,
     ]
     assert events[-1].data["code"] == "documentation_subject_coverage_insufficient"
-    retrieval_data = cast(dict[str, Any], events[1].data)
+    retrieval_data = cast(dict[str, Any], events[2].data)
     assert len(retrieval_data["citations"]) == 1
 
 
@@ -482,6 +485,7 @@ def test_cancel_during_retrieval_releases_busy_gate_without_model_call() -> None
     conversation = service(inference, rag, DocumentationRagAvailability.AVAILABLE)
     session = conversation.start(value())
     iterator = session.events()
+    assert next(iterator).data["state"] == "preparing"
     assert next(iterator).data["state"] == "retrieving_documentation"
     remaining_events: list[ConversationEvent] = []
     worker = threading.Thread(target=lambda: remaining_events.extend(iterator))

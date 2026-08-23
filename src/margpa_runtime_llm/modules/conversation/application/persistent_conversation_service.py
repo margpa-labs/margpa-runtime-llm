@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import threading
 from collections.abc import Callable, Iterator, Mapping
 from datetime import UTC, datetime
 from functools import partial
@@ -31,6 +32,7 @@ from ..domain import (
     ConversationTurn,
     ConversationTurnId,
     ConversationTurnOrigin,
+    ConversationTurnProvenance,
     ConversationTurnState,
     PersistedConversationMessage,
     PersistedConversationRole,
@@ -73,6 +75,21 @@ def _recovery_operation_id(label: str) -> ConversationOperationId:
     return ConversationOperationId(value=digest)
 
 
+def _decode_attempt_provenance(raw: object) -> ConversationTurnProvenance | None:
+    """Best-effort (P6-CODEX-013): `raw` is whatever a COMPLETED
+    `ConversationEvent.data.get("attempt_provenance")` happened to carry —
+    absent for older callers/Ephemeral-only flows, or malformed if a future
+    caller's shape ever drifts. Either case degrades to `None` (an honest
+    "not captured for this Attempt"), never a raised exception that would
+    abort Terminal Persistence over a non-essential enrichment field."""
+    if not isinstance(raw, dict):
+        return None
+    try:
+        return ConversationTurnProvenance.model_validate(raw)
+    except Exception:
+        return None
+
+
 class PersistentConversationService:
     def __init__(
         self,
@@ -89,6 +106,8 @@ class PersistentConversationService:
         self._clock = clock
         self._recovery_operation_factory = recovery_operation_factory
         self._readiness = PersistentServiceReadiness.NOT_READY
+        self._request_locations_lock = threading.Lock()
+        self._request_locations: dict[str, tuple[ConversationId, ConversationTurnId]] = {}
 
     @property
     def readiness(self) -> PersistentServiceReadiness:
@@ -260,9 +279,13 @@ class PersistentConversationService:
         operation_id: ConversationOperationId,
         expected_revision: int,
     ) -> StoredConversation:
-        """Append a retry/regenerate candidate from canonical server state."""
+        """Append a retry/regenerate/repair candidate from canonical server state."""
 
-        if origin not in {ConversationTurnOrigin.RETRY, ConversationTurnOrigin.REGENERATE}:
+        if origin not in {
+            ConversationTurnOrigin.RETRY,
+            ConversationTurnOrigin.REGENERATE,
+            ConversationTurnOrigin.REPAIR,
+        }:
             raise self._invalid_lifecycle()
         stored = self._require_revision(conversation_id, expected_revision)
         snapshot = stored.conversation
@@ -273,7 +296,7 @@ class PersistentConversationService:
             ConversationTurnState.INTERRUPTED,
         }
         if (origin is ConversationTurnOrigin.RETRY and source.state not in retry_states) or (
-            origin is ConversationTurnOrigin.REGENERATE
+            origin in {ConversationTurnOrigin.REGENERATE, ConversationTurnOrigin.REPAIR}
             and source.state is not ConversationTurnState.COMPLETED
         ):
             raise self._invalid_lifecycle()
@@ -356,6 +379,7 @@ class PersistentConversationService:
         operation_id: ConversationOperationId,
         expected_revision: int,
         documentation_augmentation: DocumentationAugmentation | None = None,
+        provenance: ConversationTurnProvenance | None = None,
     ) -> StoredConversation:
         stored = self._require_revision(conversation_id, expected_revision)
         snapshot = stored.conversation
@@ -375,6 +399,7 @@ class PersistentConversationService:
             target=ConversationTurnState.COMPLETED,
             finished_at=now,
             assistant_message_id=assistant_message_id,
+            provenance=provenance,
         )
         candidate = self._replace_turn(
             snapshot,
@@ -398,7 +423,25 @@ class PersistentConversationService:
             expected_revision=expected_revision,
             citation_evidence=citation_evidence,
         )
+        if turn.request_id is not None:
+            with self._request_locations_lock:
+                self._request_locations[turn.request_id] = (conversation_id, turn_id)
         return self._require(conversation_id)
+
+    def locate_request(
+        self, *, request_id: str
+    ) -> tuple[ConversationId, ConversationTurnId] | None:
+        """Best-effort, in-memory only (P6-CODEX-013/009, Second Rework):
+        maps a completed Turn's own `request_id` back to its
+        `(conversation_id, turn_id)`, so an internal Background Task (Judge,
+        Repair) that only ever sees a bare `request_id` (Core has no
+        `conversation`/`persistent` concept — see `JudgeCompletionContext`)
+        can still safely act on the exact Turn it was invoked for. Entries
+        are process-local and unbounded for this Session's lifetime; this
+        is a lookup aid, never a Source of Truth (the Store row remains
+        that) and is never itself persisted."""
+        with self._request_locations_lock:
+            return self._request_locations.get(request_id)
 
     def cancel_generation(
         self,
@@ -423,6 +466,7 @@ class PersistentConversationService:
         turn_id: ConversationTurnId,
         operation_id: ConversationOperationId,
         expected_revision: int,
+        failure_reason_code: str | None = None,
     ) -> StoredConversation:
         return self._transition_terminal_or_generating(
             conversation_id=conversation_id,
@@ -430,6 +474,7 @@ class PersistentConversationService:
             target=ConversationTurnState.FAILED,
             operation_id=operation_id,
             expected_revision=expected_revision,
+            failure_reason_code=failure_reason_code,
         )
 
     def interrupt_generation(
@@ -789,6 +834,7 @@ class PersistentConversationService:
                             code=PersistentConversationErrorCode.TERMINAL_PERSISTENCE_FAILED,
                             safe_message="The canonical assistant message could not be persisted.",
                         )
+                    provenance = _decode_attempt_provenance(event.data.get("attempt_provenance"))
                     self._persist_terminal(
                         partial(
                             self.complete_generation,
@@ -799,6 +845,7 @@ class PersistentConversationService:
                             operation_id=identities.terminal_operation_id,
                             expected_revision=generating.storage_revision,
                             documentation_augmentation=session.documentation_augmentation,
+                            provenance=provenance,
                         )
                     )
                     terminal_persisted = True
@@ -813,12 +860,18 @@ class PersistentConversationService:
                     )
                     terminal_persisted = True
                 elif event.event is ConversationEventType.ERROR:
+                    raw_error_code = event.data.get("code")
+                    failure_reason_code = (
+                        raw_error_code if isinstance(raw_error_code, str) else None
+                    )
                     self._persist_terminal(
-                        lambda: self.fail_generation(
+                        partial(
+                            self.fail_generation,
                             conversation_id=conversation_id,
                             turn_id=identities.turn_id,
                             operation_id=identities.terminal_operation_id,
                             expected_revision=generating.storage_revision,
+                            failure_reason_code=failure_reason_code,
                         )
                     )
                     terminal_persisted = True
@@ -931,6 +984,7 @@ class PersistentConversationService:
         operation_id: ConversationOperationId,
         expected_revision: int,
         request_id: str | None = None,
+        failure_reason_code: str | None = None,
     ) -> StoredConversation:
         stored = self._require_revision(conversation_id, expected_revision)
         snapshot = stored.conversation
@@ -942,6 +996,7 @@ class PersistentConversationService:
                 target=target,
                 finished_at=None if target is ConversationTurnState.GENERATING else now,
                 request_id=request_id,
+                failure_reason_code=failure_reason_code,
             )
         except Exception:
             raise self._invalid_lifecycle() from None

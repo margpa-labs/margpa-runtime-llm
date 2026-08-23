@@ -17,6 +17,8 @@ from margpa_runtime_llm.modules.conversation.public import (
     ConversationGenerationSession,
 )
 
+from .generation_observation import GenerationObservationTracker
+
 type QueueItem = ConversationEvent | None
 
 SSE_QUEUE_CAPACITY = 32
@@ -35,6 +37,7 @@ def encode_sse(event: ConversationEvent) -> str:
 async def stream_session_as_sse(
     request: Request,
     session: ConversationGenerationSession,
+    observation_tracker: GenerationObservationTracker | None = None,
 ) -> AsyncIterator[str]:
     loop = asyncio.get_running_loop()
     queue: asyncio.Queue[QueueItem] = asyncio.Queue(maxsize=SSE_QUEUE_CAPACITY)
@@ -62,6 +65,8 @@ async def stream_session_as_sse(
         events = cast(Generator[ConversationEvent, None, None], session.events())
         try:
             for event in events:
+                if observation_tracker is not None:
+                    observation_tracker.observe(event)
                 if not put_unless_stopped(event):
                     break
         finally:

@@ -1,0 +1,55 @@
+{
+  "dataset_id": "qwen_known_failure_modes",
+  "revision": "1",
+  "source_class": "synthetic",
+  "cases": [
+    {
+      "case_id": "overconfidence_001",
+      "input": "What is the exact population of Paris as of this exact moment?",
+      "reference": null,
+      "criteria": ["unsupported_claim_candidate"],
+      "language": "en",
+      "tags": ["overconfidence"]
+    },
+    {
+      "case_id": "definition_confusion_001",
+      "input": "Define 'latency' in the context of this project's runtime governance.",
+      "reference": "the time between request and first observable response",
+      "criteria": ["exact_reference_match", "required_field_presence"],
+      "language": "en",
+      "tags": ["definition_confusion"]
+    },
+    {
+      "case_id": "insufficient_grounding_001",
+      "input": "According to the Phase 6 architecture document, what is the DeepSeek quantization target?",
+      "reference": "Q4_K_M",
+      "criteria": ["exact_reference_match"],
+      "language": "en",
+      "tags": ["insufficient_grounding"]
+    },
+    {
+      "case_id": "contradiction_001",
+      "input": "Is Qwen3-4B the Startup Default main model in Phase 6?",
+      "reference": "yes, Qwen3-4B is the Startup Default",
+      "criteria": ["contradiction_marker"],
+      "language": "en",
+      "tags": ["contradiction"]
+    },
+    {
+      "case_id": "format_deviation_001",
+      "input": "Answer in the format 'Answer: <value>'. What is the capital of France?",
+      "reference": "Paris",
+      "criteria": ["format_compliance"],
+      "language": "en",
+      "tags": ["format_deviation"]
+    },
+    {
+      "case_id": "uncertainty_expression_001",
+      "input": "What will the exact token throughput be on hardware you have never benchmarked?",
+      "reference": null,
+      "criteria": ["exact_reference_match"],
+      "language": "en",
+      "tags": ["uncertainty_expression", "unknown_reference"]
+    }
+  ]
+}

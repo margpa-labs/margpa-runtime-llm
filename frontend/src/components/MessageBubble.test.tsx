@@ -17,6 +17,7 @@ function assistantMessage(overrides: Partial<DisplayMessage> = {}): DisplayMessa
     thinkingVisible: false,
     citations: null,
     turnActions: [],
+    requestId: null,
     ...overrides,
   };
 }
@@ -138,5 +139,70 @@ describe("MessageBubble markdown rendering while streaming", () => {
       await Promise.resolve();
     });
     expect(writeText).toHaveBeenCalledWith("**bold**");
+  });
+});
+
+describe("MessageBubble live Judge/Repair badge (P6-CODEX-024)", () => {
+  test("no badge at all when judgeBadge is null", () => {
+    render(<MessageBubble language="en" message={assistantMessage()} judgeBadge={null} />);
+    expect(document.querySelector(".message-judge-badge")).toBeNull();
+  });
+
+  test("a running Judge Run shows a generic reviewing badge", () => {
+    render(
+      <MessageBubble
+        language="en"
+        message={assistantMessage({ requestId: "req-1" })}
+        judgeBadge={{ requestId: "req-1", state: "judging", repairAccepted: null }}
+      />,
+    );
+    expect(screen.getByText("Reviewing…")).not.toBeNull();
+  });
+
+  test("a completed Judge Run with an accepted Repair shows the improved badge", () => {
+    render(
+      <MessageBubble
+        language="en"
+        message={assistantMessage({ requestId: "req-1" })}
+        judgeBadge={{ requestId: "req-1", state: "completed", repairAccepted: true }}
+      />,
+    );
+    expect(screen.getByText("Answer improved")).not.toBeNull();
+  });
+
+  test("a completed Judge Run without an accepted Repair shows no badge", () => {
+    render(
+      <MessageBubble
+        language="en"
+        message={assistantMessage({ requestId: "req-1" })}
+        judgeBadge={{ requestId: "req-1", state: "completed", repairAccepted: null }}
+      />,
+    );
+    expect(document.querySelector(".message-judge-badge")).toBeNull();
+  });
+
+  test("a degraded Judge Run shows the degraded badge", () => {
+    render(
+      <MessageBubble
+        language="en"
+        message={assistantMessage({ requestId: "req-1" })}
+        judgeBadge={{ requestId: "req-1", state: "degraded", repairAccepted: null }}
+      />,
+    );
+    expect(screen.getByText("Part of the review process had a problem")).not.toBeNull();
+  });
+
+  test("idle/queued_or_skipped/failed/cancelled show no badge (curated, disclosed scope)", () => {
+    for (const state of ["idle", "queued_or_skipped", "failed", "cancelled"]) {
+      const { unmount } = render(
+        <MessageBubble
+          language="en"
+          message={assistantMessage({ requestId: "req-1" })}
+          judgeBadge={{ requestId: "req-1", state, repairAccepted: null }}
+        />,
+      );
+      expect(document.querySelector(".message-judge-badge")).toBeNull();
+      unmount();
+    }
   });
 });

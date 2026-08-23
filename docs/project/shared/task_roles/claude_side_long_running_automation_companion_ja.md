@@ -6,10 +6,12 @@ status: provisional_self_maintained
 owner_role: Claude側設計統括者役
 decision_authority: user
 created_at: 2026-08-19 16:28:22 JST
-last_updated_at: 2026-08-19 17:53:18 JST
+last_updated_at: 2026-08-21 16:33:49 JST
 language: ja
 provisional: true
-long_running_mode_active: false
+long_running_mode_active: true
+long_running_mode_activated_at: 2026-08-21 16:33:49 JST
+long_running_mode_context: phase_3_implementation_p3_0_wu_002_onward
 ```
 
 ## 0. 位置づけ

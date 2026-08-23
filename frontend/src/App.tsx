@@ -1,8 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { translate, knownServerMessages, type TranslationKey } from "./i18n/translations";
+import { translate, type TranslationKey } from "./i18n/translations";
 import { usePreference } from "./hooks/usePreference";
 import { readConfigurationBootstrap } from "./lib/configurationBootstrap";
+import { readGovernanceBootstrap } from "./lib/governanceBootstrap";
+import { readRuntimeGovernanceBootstrap } from "./lib/runtimeGovernanceBootstrap";
+import { readGuardrailGovernanceBootstrap } from "./lib/guardrailGovernanceBootstrap";
 import { readEventStream } from "./lib/eventStream";
+import {
+  detailToMessages,
+  emptyMessage,
+  knownMessageText,
+  translatedServerMessage,
+} from "./lib/persistentDetailProjection";
 import * as api from "./api/client";
 import type {
   ChatMessage,
@@ -11,8 +20,11 @@ import type {
   ConversationMode,
   DisplayMessage,
   GenerationSettings,
+  GovernanceMode,
+  GuardrailGovernanceMode,
+  LiveJudgeBadge,
+  MainGovernanceMode,
   PersistentConversationDetail,
-  PersistentTurn,
   StreamEvent,
   UiLanguage,
   UiTheme,
@@ -23,6 +35,9 @@ import Sidebar from "./components/Sidebar/Sidebar";
 import type { ChatListAction } from "./components/Sidebar/ChatListItem";
 import SettingsModal from "./components/SettingsModal/SettingsModal";
 import type { ConfigurationControlState } from "./components/ConfigurationControlPanel";
+import type { GovernanceControlState } from "./components/GovernancePanel";
+import type { RuntimeGovernanceControlState } from "./components/RuntimeGovernancePanel";
+import type { GuardrailGovernanceControlState } from "./components/GuardrailGovernancePanel";
 import MessageList from "./components/MessageList";
 import Composer from "./components/Composer";
 import type { SettingsFormState } from "./components/SettingsPanel";
@@ -33,91 +48,6 @@ const UI_THEME_KEY = "margpa.ui_theme.v1";
 type Status =
   | { kind: "key"; key: TranslationKey; values?: Record<string, string | number> }
   | { kind: "serverWarning"; code: string; fallback: string };
-
-function translatedServerMessage(language: UiLanguage, code: string, fallback: string): string {
-  const key = knownServerMessages[code];
-  return key === undefined ? fallback || translate(language, "genericError") : translate(language, key);
-}
-
-function knownMessageText(language: UiLanguage, code: string | null, fallback: string): string {
-  if (code !== null) {
-    const key = knownServerMessages[code];
-    if (key !== undefined) {
-      return translate(language, key);
-    }
-  }
-  return fallback || translate(language, "genericError");
-}
-
-function emptyMessage(role: "user" | "assistant", content: string, id: string): DisplayMessage {
-  return {
-    id,
-    role,
-    content,
-    isFinal: role === "user",
-    isError: false,
-    isIncomplete: false,
-    errorCode: null,
-    errorMessage: null,
-    thinkingText: "",
-    thinkingVisible: false,
-    citations: null,
-    turnActions: [],
-  };
-}
-
-function detailToMessages(detail: PersistentConversationDetail): DisplayMessage[] {
-  const out: DisplayMessage[] = [];
-  for (const turn of detail.turns) {
-    const user = turn.messages.find((message) => message.role === "user");
-    const assistant = turn.messages.find((message) => message.role === "assistant");
-    if (user !== undefined) {
-      out.push(emptyMessage("user", user.content, `${turn.turn_id}-user`));
-    }
-    if (assistant !== undefined) {
-      const turnActions = buildTurnActions(turn, detail);
-      out.push({
-        ...emptyMessage("assistant", assistant.content, `${turn.turn_id}-assistant`),
-        isFinal: true,
-        citations:
-          turn.citations?.available === true
-            ? { citations: turn.citations.citations, warnings: [] }
-            : null,
-        turnActions,
-      });
-    } else {
-      // A turn without a completed assistant message (failed/cancelled/interrupted
-      // before any content) still needs somewhere to host retry/regenerate actions.
-      const turnActions = buildTurnActions(turn, detail);
-      if (turnActions.length > 0) {
-        const last = out.at(-1);
-        if (last !== undefined) {
-          last.turnActions = turnActions;
-        }
-      }
-    }
-  }
-  return out;
-}
-
-function buildTurnActions(
-  turn: PersistentTurn,
-  detail: PersistentConversationDetail,
-): DisplayMessage["turnActions"] {
-  // Order matches the display row's left-to-right layout (right-aligned,
-  // Copy always last/rightmost): branch-select, then regenerate.
-  const actions: DisplayMessage["turnActions"] = [];
-  if (["failed", "cancelled", "interrupted"].includes(turn.state)) {
-    actions.push({ kind: "retry", turnId: turn.turn_id });
-  }
-  if (turn.state === "completed") {
-    if (turn.turn_id !== detail.head_turn_id) {
-      actions.push({ kind: "selectBranch", turnId: turn.turn_id });
-    }
-    actions.push({ kind: "regenerate", turnId: turn.turn_id });
-  }
-  return actions;
-}
 
 export default function App() {
   const [uiLanguage, setUiLanguage] = usePreference<UiLanguage>(UI_LANGUAGE_KEY, ["ja", "en"], "ja");
@@ -135,6 +65,9 @@ export default function App() {
   }, [uiTheme]);
 
   const [configurationBootstrapEnabled] = useState(() => readConfigurationBootstrap());
+  const [governanceBootstrapEnabled] = useState(() => readGovernanceBootstrap());
+  const [runtimeGovernanceBootstrapEnabled] = useState(() => readRuntimeGovernanceBootstrap());
+  const [guardrailGovernanceBootstrapEnabled] = useState(() => readGuardrailGovernanceBootstrap());
 
   const [prompt, setPrompt] = useState("");
   const [active, setActive] = useState(false);
@@ -183,11 +116,39 @@ export default function App() {
     resultText: "",
   });
 
+  const [governanceState, setGovernanceState] = useState<GovernanceControlState>({
+    capability: governanceBootstrapEnabled ? "loading" : "disabled",
+    status: null,
+    resultText: "",
+  });
+
+  const [runtimeGovernanceState, setRuntimeGovernanceState] =
+    useState<RuntimeGovernanceControlState>({
+      capability: runtimeGovernanceBootstrapEnabled ? "loading" : "disabled",
+      status: null,
+      resultText: "",
+    });
+
+  const [guardrailGovernanceState, setGuardrailGovernanceState] =
+    useState<GuardrailGovernanceControlState>({
+      capability: guardrailGovernanceBootstrapEnabled ? "loading" : "disabled",
+      status: null,
+      resultText: "",
+    });
+
   // Non-rendering imperative bookkeeping (mirrors the plain-object mutation
   // semantics of the original vanilla state object for fields that never
   // drive rendering on their own).
   const controllerRef = useRef<AbortController | null>(null);
   const requestIdRef = useRef<string | null>(null);
+  // P6-CODEX-024 (Third Rework): the request_id a background poll is
+  // actively waiting to see the Judge Run reach a terminal state for —
+  // distinct from `requestIdRef` (which also drives Stop/cancel wiring and
+  // is cleared on completion) because this one must survive past the Turn
+  // itself completing (Judge/Repair only start once generation finishes).
+  const liveJudgePollRequestIdRef = useRef<string | null>(null);
+  const liveJudgePollStartedAtRef = useRef<number | null>(null);
+  const [liveJudgeBadge, setLiveJudgeBadge] = useState<LiveJudgeBadge | null>(null);
   const terminalWarningRef = useRef<{ code: string; fallback: string } | null>(null);
   const persistentRevisionRef = useRef<number | null>(null);
   const activePersistentTurnIdRef = useRef<string | null>(null);
@@ -235,6 +196,68 @@ export default function App() {
   function updateMessageById(id: string, updater: (message: DisplayMessage) => DisplayMessage): void {
     setMessages((previous) => previous.map((message) => (message.id === id ? updater(message) : message)));
   }
+
+  // P6-CODEX-024 (Third Rework): called from every "start" event handler —
+  // Judge/Repair only ever start running *after* this Turn's own Generation
+  // Attempt completes, so the poll this begins is expected to keep running
+  // for a while past `isFinal` becoming true, not only during streaming.
+  function beginLiveJudgePolling(requestId: string | null): void {
+    liveJudgePollRequestIdRef.current = requestId;
+    liveJudgePollStartedAtRef.current = requestId === null ? null : Date.now();
+  }
+
+  // P6-CODEX-024 (Third Rework): a single long-lived interval (not
+  // recreated per Turn) that only ever does network work while
+  // `liveJudgePollRequestIdRef` names a Turn actually being waited on —
+  // idle between Turns costs nothing beyond the interval tick itself.
+  useEffect(() => {
+    const POLL_INTERVAL_MS = 1500;
+    const MAX_POLL_MS = 45_000;
+    const cancelledRef = { current: false };
+
+    const tick = async () => {
+      const targetRequestId = liveJudgePollRequestIdRef.current;
+      if (targetRequestId === null) {
+        return;
+      }
+      try {
+        const status = await api.fetchFeatureModesStatus();
+        if (cancelledRef.current || liveJudgePollRequestIdRef.current !== targetRequestId) {
+          return;
+        }
+        if (status.judge.current_request_id === targetRequestId) {
+          const state = status.judge.state ?? "idle";
+          setLiveJudgeBadge({
+            requestId: targetRequestId,
+            state,
+            repairAccepted: status.judge.last_result?.repair_accepted ?? null,
+          });
+          if (["completed", "failed", "cancelled", "degraded"].includes(state)) {
+            liveJudgePollRequestIdRef.current = null;
+          }
+        } else {
+          const startedAt = liveJudgePollStartedAtRef.current;
+          if (startedAt !== null && Date.now() - startedAt > MAX_POLL_MS) {
+            // Never became "current" within a generous bound (e.g. Judge
+            // is OFF) — stop polling rather than forever.
+            liveJudgePollRequestIdRef.current = null;
+          }
+        }
+      } catch {
+        // Best-effort only: a failed poll never surfaces as a user-facing
+        // error — the Canonical Answer itself is entirely unaffected by
+        // Judge/Repair (Architecture's Mode-orthogonality guarantee).
+      }
+    };
+
+    const interval = window.setInterval(() => {
+      void tick();
+    }, POLL_INTERVAL_MS);
+    return () => {
+      cancelledRef.current = true;
+      window.clearInterval(interval);
+    };
+  }, []);
 
   // Mirrors the original rollbackPendingUser(): pops the optimistically
   // pushed user turn from the *request history* only. The display transcript
@@ -360,11 +383,217 @@ export default function App() {
     }
   }
 
+  // --- Governance Definitions (Phase 3-F) ---
+  const loadGovernanceStatus = useCallback(async (): Promise<void> => {
+    if (!governanceBootstrapEnabled) {
+      return;
+    }
+    setGovernanceState((previous) => ({ ...previous, capability: "loading" }));
+    try {
+      const status = await api.fetchGovernanceStatus();
+      setGovernanceState({ capability: "ready", status, resultText: "" });
+    } catch {
+      setGovernanceState({ capability: "failed", status: null, resultText: "" });
+    }
+    // governanceBootstrapEnabled is set once (lazy useState init) and never
+    // updated again, so this callback is effectively stable.
+  }, [governanceBootstrapEnabled]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadGovernanceStatus();
+  }, [loadGovernanceStatus]);
+
+  // Mode Mutation is a Typed Field on Configuration Control's shared
+  // Preview/Apply state machine (Revision/Digest/CAS, Operation
+  // Idempotency) — not a Governance-only endpoint. See
+  // src/margpa_runtime_llm/web/governance_routes.py's module docstring.
+  async function handleGovernanceApply(requestedMode: GovernanceMode): Promise<void> {
+    const snapshot = configurationState.snapshot;
+    if (configurationState.capability !== "ready" || snapshot === null) {
+      setGovernanceState((previous) => ({ ...previous, resultText: t("governanceApplyFailed") }));
+      return;
+    }
+    try {
+      const response = await api.applyConfigurationPatch(
+        api.newActionId(),
+        snapshot.revision,
+        snapshot.digest_sha512,
+        { governance_mode: requestedMode },
+      );
+      if (response.status === 409) {
+        setGovernanceState((previous) => ({ ...previous, resultText: t("configurationConflict") }));
+        await loadConfigurationControl();
+        await loadGovernanceStatus();
+        return;
+      }
+      if (!response.ok) {
+        setGovernanceState((previous) => ({ ...previous, resultText: t("governanceApplyFailed") }));
+        await loadGovernanceStatus();
+        return;
+      }
+      await loadConfigurationControl();
+      await loadGovernanceStatus();
+      setGovernanceState((previous) => ({ ...previous, resultText: t("governanceApplied") }));
+    } catch {
+      setGovernanceState((previous) => ({ ...previous, resultText: t("governanceFailed") }));
+    }
+  }
+
+  // --- Main Runtime Governance (Phase 4) ---
+  const loadRuntimeGovernanceStatus = useCallback(async (): Promise<void> => {
+    if (!runtimeGovernanceBootstrapEnabled) {
+      return;
+    }
+    setRuntimeGovernanceState((previous) => ({ ...previous, capability: "loading" }));
+    try {
+      const status = await api.fetchRuntimeGovernanceStatus();
+      setRuntimeGovernanceState({ capability: "ready", status, resultText: "" });
+    } catch {
+      setRuntimeGovernanceState({ capability: "failed", status: null, resultText: "" });
+    }
+    // runtimeGovernanceBootstrapEnabled is set once (lazy useState init)
+    // and never updated again, so this callback is effectively stable.
+  }, [runtimeGovernanceBootstrapEnabled]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadRuntimeGovernanceStatus();
+  }, [loadRuntimeGovernanceStatus]);
+
+  // Mode Mutation is a Typed Field on Configuration Control's shared
+  // Preview/Apply state machine (P4-CODEX-002 Rework) — the same pattern
+  // as Phase 3's own governance_mode, not a separate direct-Apply route.
+  // See src/margpa_runtime_llm/web/runtime_governance_routes.py's module
+  // docstring.
+  async function handleRuntimeGovernanceApply(requestedMode: MainGovernanceMode): Promise<void> {
+    const snapshot = configurationState.snapshot;
+    if (configurationState.capability !== "ready" || snapshot === null) {
+      setRuntimeGovernanceState((previous) => ({
+        ...previous,
+        resultText: t("runtimeGovernanceApplyFailed"),
+      }));
+      return;
+    }
+    try {
+      const response = await api.applyConfigurationPatch(
+        api.newActionId(),
+        snapshot.revision,
+        snapshot.digest_sha512,
+        { main_governance_mode: requestedMode },
+      );
+      if (response.status === 409) {
+        setRuntimeGovernanceState((previous) => ({
+          ...previous,
+          resultText: t("configurationConflict"),
+        }));
+        await loadConfigurationControl();
+        await loadRuntimeGovernanceStatus();
+        return;
+      }
+      if (!response.ok) {
+        setRuntimeGovernanceState((previous) => ({
+          ...previous,
+          resultText: t("runtimeGovernanceApplyFailed"),
+        }));
+        await loadRuntimeGovernanceStatus();
+        return;
+      }
+      await loadConfigurationControl();
+      await loadRuntimeGovernanceStatus();
+      setRuntimeGovernanceState((previous) => ({
+        ...previous,
+        resultText: t("runtimeGovernanceApplied"),
+      }));
+    } catch {
+      setRuntimeGovernanceState((previous) => ({
+        ...previous,
+        resultText: t("runtimeGovernanceFailed"),
+      }));
+    }
+  }
+
+  // --- Guardrail Governance (Phase 5) ---
+  const loadGuardrailGovernanceStatus = useCallback(async (): Promise<void> => {
+    if (!guardrailGovernanceBootstrapEnabled) {
+      return;
+    }
+    setGuardrailGovernanceState((previous) => ({ ...previous, capability: "loading" }));
+    try {
+      const status = await api.fetchGuardrailGovernanceStatus();
+      setGuardrailGovernanceState({ capability: "ready", status, resultText: "" });
+    } catch {
+      setGuardrailGovernanceState({ capability: "failed", status: null, resultText: "" });
+    }
+    // guardrailGovernanceBootstrapEnabled is set once (lazy useState init)
+    // and never updated again, so this callback is effectively stable.
+  }, [guardrailGovernanceBootstrapEnabled]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadGuardrailGovernanceStatus();
+  }, [loadGuardrailGovernanceStatus]);
+
+  // Mode Mutation is a Typed Field on Configuration Control's shared
+  // Preview/Apply state machine (P5-F-WU-002, mirrors P4-CODEX-002
+  // Rework) — the same pattern as Phase 3/4's own Governance Modes, not
+  // a separate direct-Apply route. See
+  // src/margpa_runtime_llm/web/guardrail_governance_routes.py's module
+  // docstring.
+  async function handleGuardrailGovernanceApply(requestedMode: GuardrailGovernanceMode): Promise<void> {
+    const snapshot = configurationState.snapshot;
+    if (configurationState.capability !== "ready" || snapshot === null) {
+      setGuardrailGovernanceState((previous) => ({
+        ...previous,
+        resultText: t("guardrailGovernanceApplyFailed"),
+      }));
+      return;
+    }
+    try {
+      const response = await api.applyConfigurationPatch(
+        api.newActionId(),
+        snapshot.revision,
+        snapshot.digest_sha512,
+        { guardrail_governance_mode: requestedMode },
+      );
+      if (response.status === 409) {
+        setGuardrailGovernanceState((previous) => ({
+          ...previous,
+          resultText: t("configurationConflict"),
+        }));
+        await loadConfigurationControl();
+        await loadGuardrailGovernanceStatus();
+        return;
+      }
+      if (!response.ok) {
+        setGuardrailGovernanceState((previous) => ({
+          ...previous,
+          resultText: t("guardrailGovernanceApplyFailed"),
+        }));
+        await loadGuardrailGovernanceStatus();
+        return;
+      }
+      await loadConfigurationControl();
+      await loadGuardrailGovernanceStatus();
+      setGuardrailGovernanceState((previous) => ({
+        ...previous,
+        resultText: t("guardrailGovernanceApplied"),
+      }));
+    } catch {
+      setGuardrailGovernanceState((previous) => ({
+        ...previous,
+        resultText: t("guardrailGovernanceFailed"),
+      }));
+    }
+  }
+
   // --- Ephemeral (v1) streaming ---
   function handleEphemeralEvent(event: StreamEvent, assistantId: string): boolean {
     const data = event.data;
     if (event.type === "start") {
       requestIdRef.current = data.request_id ?? null;
+      beginLiveJudgePolling(data.request_id ?? null);
+      updateMessageById(assistantId, (message) => ({ ...message, requestId: data.request_id ?? null }));
       terminalWarningRef.current = null;
       setStatusKey(data.state === "retrieving_documentation" ? "retrievingDocumentation" : "generating");
       return false;
@@ -384,8 +613,19 @@ export default function App() {
       }
       return false;
     }
-    if (event.type === "status" && data.state === "summarizing_answer") {
-      setStatusKey("summarizing");
+    if (event.type === "status") {
+      // P6-CODEX-012 (Second Rework, P6-OBS-004's Current Request State
+      // Machine): "preparing"/"guarding" precede the Turn's own `start`
+      // event; any other `status` state (including ones this build does
+      // not yet recognize) is intentionally left as a silent no-op rather
+      // than showing a raw code.
+      if (data.state === "preparing") {
+        setStatusKey("preparingTurn");
+      } else if (data.state === "guarding") {
+        setStatusKey("guardingTurn");
+      } else if (data.state === "summarizing_answer") {
+        setStatusKey("summarizing");
+      }
       return false;
     }
     if (event.type === "delta") {
@@ -442,17 +682,16 @@ export default function App() {
       setStatusKey("stopped");
       return false;
     }
-    if (event.type === "error") {
-      rollbackPendingUserIfLast();
-      updateMessageById(assistantId, (message) => ({
-        ...message,
-        isError: true,
-        isFinal: true,
-        content: knownMessageText(uiLanguage, data.code ?? null, data.message ?? ""),
-      }));
-      setStatusKey("errorStatus", { code: data.code ?? "unknown" });
-      return false;
-    }
+    // Every other StreamEvent variant returned above, so `event.type` here
+    // can only be "error".
+    rollbackPendingUserIfLast();
+    updateMessageById(assistantId, (message) => ({
+      ...message,
+      isError: true,
+      isFinal: true,
+      content: knownMessageText(uiLanguage, data.code ?? null, data.message ?? ""),
+    }));
+    setWarningStatus(data.code ?? "unknown", data.message ?? "");
     return false;
   }
 
@@ -518,6 +757,15 @@ export default function App() {
       requestIdRef.current = null;
       terminalWarningRef.current = null;
       setActive(false);
+      // P4-CODEX-014: Best-effort Observability refresh only — never
+      // awaited into this function's own error handling, and
+      // loadRuntimeGovernanceStatus never throws (it catches its own
+      // fetch failure into `capability: "failed"`), so a Status read
+      // failure here can never rewrite the Chat Result set above. A
+      // no-op when the Bootstrap tag reports disabled (checked inside
+      // loadRuntimeGovernanceStatus itself) — Call 0 stays Call 0.
+      void loadRuntimeGovernanceStatus();
+      void loadGuardrailGovernanceStatus();
     }
   }
 
@@ -530,7 +778,7 @@ export default function App() {
   async function loadPersistentDetail(conversationId: string): Promise<void> {
     const detail = await api.fetchPersistentDetail(conversationId);
     persistentRevisionRef.current = detail.storage_revision;
-    setMessages(detailToMessages(detail));
+    setMessages(detailToMessages(detail, uiLanguage));
   }
 
   useEffect(() => {
@@ -581,7 +829,7 @@ export default function App() {
       const result = await api.createPersistentConversation(api.newActionId());
       setSelectedConversationId(result.detail.conversation_id);
       persistentRevisionRef.current = result.detail.storage_revision;
-      setMessages(detailToMessages(result.detail));
+      setMessages(detailToMessages(result.detail, uiLanguage));
       setContextUsage(null);
       setPinnedMessageId(null);
       await loadPersistentList();
@@ -608,6 +856,11 @@ export default function App() {
   function handlePersistentEvent(event: StreamEvent, assistantId: string): boolean {
     if (event.type === "start") {
       requestIdRef.current = event.data.request_id ?? null;
+      beginLiveJudgePolling(event.data.request_id ?? null);
+      updateMessageById(assistantId, (message) => ({
+        ...message,
+        requestId: event.data.request_id ?? null,
+      }));
       if (typeof event.data.durable_revision === "number") {
         persistentRevisionRef.current = event.data.durable_revision;
       }
@@ -633,7 +886,7 @@ export default function App() {
         setStatusKey("stopped");
         updateMessageById(assistantId, (message) => ({ ...message, isIncomplete: true, isFinal: true }));
       } else {
-        setStatusKey("errorStatus", { code: event.data.code ?? "generation_failed" });
+        setWarningStatus(event.data.code ?? "generation_failed", event.data.message ?? "");
         updateMessageById(assistantId, (message) => ({
           ...message,
           isError: true,
@@ -718,6 +971,12 @@ export default function App() {
       // never reassigned again, so it is guaranteed to still be a string here.
       await loadPersistentDetail(conversationId);
       await loadPersistentList();
+      // P4-CODEX-014: Best-effort Observability refresh — never awaited
+      // into this function's own control flow, so a Status read failure
+      // can never rewrite the Conversation Commit/canonical messages
+      // reloaded just above. No-op when the Bootstrap tag is disabled.
+      void loadRuntimeGovernanceStatus();
+      void loadGuardrailGovernanceStatus();
       // Deliberately NOT clearing pinnedMessageId here: the reload above
       // swaps in canonical turn-id-based message ids, so the pinned
       // (locally-generated) id from the live send no longer matches
@@ -771,6 +1030,11 @@ export default function App() {
       // above; this closure's snapshot of it cannot change mid-function.
       await loadPersistentDetail(selectedConversationId);
       await loadPersistentList();
+      // P4-CODEX-014: Best-effort Observability refresh for Derived Turn
+      // (retry/regenerate) Terminal too — see sendEphemeralMessage's own
+      // comment on why this can never affect the Conversation Result.
+      void loadRuntimeGovernanceStatus();
+      void loadGuardrailGovernanceStatus();
     }
   }
 
@@ -785,7 +1049,7 @@ export default function App() {
     }
     const result = (await response.json()) as { detail: PersistentConversationDetail };
     persistentRevisionRef.current = result.detail.storage_revision;
-    setMessages(detailToMessages(result.detail));
+    setMessages(detailToMessages(result.detail, uiLanguage));
     await loadPersistentList();
   }
 
@@ -818,7 +1082,7 @@ export default function App() {
           setMessages([]);
         } else {
           persistentRevisionRef.current = result.detail.storage_revision;
-          setMessages(detailToMessages(result.detail));
+          setMessages(detailToMessages(result.detail, uiLanguage));
         }
       }
       await loadPersistentList();
@@ -985,6 +1249,7 @@ export default function App() {
           onTurnAction={handleTurnAction}
           pinnedMessageId={pinnedMessageId}
           active={active}
+          liveJudgeBadge={liveJudgeBadge}
         />
 
         <Composer
@@ -1019,6 +1284,18 @@ export default function App() {
         onConfigurationRefresh={() => void loadConfigurationControl()}
         onConfigurationPreview={(patch) => void handleConfigurationPreview(patch)}
         onConfigurationApply={(mode) => void handleConfigurationApply(mode)}
+        governanceBootstrapEnabled={governanceBootstrapEnabled}
+        governanceState={governanceState}
+        onGovernanceRefresh={() => void loadGovernanceStatus()}
+        onGovernanceApply={(mode) => void handleGovernanceApply(mode)}
+        runtimeGovernanceBootstrapEnabled={runtimeGovernanceBootstrapEnabled}
+        runtimeGovernanceState={runtimeGovernanceState}
+        onRuntimeGovernanceRefresh={() => void loadRuntimeGovernanceStatus()}
+        onRuntimeGovernanceApply={(mode) => void handleRuntimeGovernanceApply(mode)}
+        guardrailGovernanceBootstrapEnabled={guardrailGovernanceBootstrapEnabled}
+        guardrailGovernanceState={guardrailGovernanceState}
+        onGuardrailGovernanceRefresh={() => void loadGuardrailGovernanceStatus()}
+        onGuardrailGovernanceApply={(mode) => void handleGuardrailGovernanceApply(mode)}
       />
     </div>
   );

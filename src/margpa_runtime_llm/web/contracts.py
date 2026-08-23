@@ -3,6 +3,7 @@
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 from pydantic import Field, field_validator
 
@@ -10,12 +11,34 @@ from margpa_runtime_llm.modules.configuration_control import ConfigurationContro
 from margpa_runtime_llm.modules.conversation.application import PersistentConversationService
 from margpa_runtime_llm.modules.conversation.public import ConversationGenerationService
 from margpa_runtime_llm.modules.documentation_rag.contracts import DocumentationRagMode
+from margpa_runtime_llm.modules.evaluation.application.judge_mode_controller import (
+    JudgeModeController,
+)
 from margpa_runtime_llm.modules.inference.contracts.base import ImmutableContract
 from margpa_runtime_llm.modules.inference.contracts.generation import ThinkingMode
 from margpa_runtime_llm.modules.inference.contracts.response import ResponseLanguage
 from margpa_runtime_llm.modules.presentation.contracts.thinking import ThinkingVisibility
+from margpa_runtime_llm.modules.repair.application.repair_mode_controller import (
+    RepairModeController,
+)
 from margpa_runtime_llm.modules.runtime_composition.application import ComponentRegistryService
+from margpa_runtime_llm.modules.runtime_model_control.application.runtime_model_controller import (
+    RuntimeModelController,
+)
+from margpa_runtime_llm.modules.runtime_observability.application.recording_mode_controller import (
+    RecordingModeController,
+)
 from margpa_runtime_llm.modules.summarization.public import SummaryMode
+
+if TYPE_CHECKING:
+    # Import-time only: `bootstrap/` composes `web/`, not the reverse.
+    # This forward reference avoids a real dependency inversion while
+    # still letting `WebRuntime.runtime_governance_composition` be
+    # precisely typed for the Status route (P4-F-WU-003).
+    from margpa_runtime_llm.bootstrap.guardrail_governance import GuardrailGovernanceComposition
+    from margpa_runtime_llm.bootstrap.judge_live_integration import JudgeGovernanceComposition
+    from margpa_runtime_llm.bootstrap.recording_live_integration import RecordingCompositionState
+    from margpa_runtime_llm.bootstrap.runtime_governance import RuntimeGovernanceComposition
 
 from .access_profiles import DocumentationRagEffectiveState
 
@@ -69,6 +92,15 @@ class WebRuntime:
     persistent_conversation: PersistentConversationService | None = None
     configuration_control: ConfigurationControlService | None = None
     runtime_composition: ComponentRegistryService | None = None
+    runtime_governance_composition: "RuntimeGovernanceComposition | None" = None
+    guardrail_governance_composition: "GuardrailGovernanceComposition | None" = None
+    runtime_model_control: RuntimeModelController | None = None
+    judge_mode_control: JudgeModeController | None = None
+    repair_mode_control: RepairModeController | None = None
+    recording_mode_control: RecordingModeController | None = None
+    judge_governance_composition: "JudgeGovernanceComposition | None" = None
+    recording_composition: "RecordingCompositionState | None" = None
+    judge_evidence_recording_composition: "RecordingCompositionState | None" = None
     _close_lock: threading.Lock = field(default_factory=threading.Lock, init=False, repr=False)
     _closed: bool = field(default=False, init=False, repr=False)
 

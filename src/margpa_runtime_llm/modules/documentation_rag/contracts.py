@@ -235,6 +235,9 @@ class DocumentationContextBudget(ImmutableContract):
     fallback_maximum_characters: int = Field(ge=0)
 
 
+DOCUMENTATION_RAG_CITATION_SOURCE_CLASS = "documentation_rag_citation"
+
+
 class DocumentationReferenceBlock(ImmutableContract):
     reference_id: str = Field(pattern=r"^ref-[1-9][0-9]*$")
     project_relative_path: str = Field(min_length=1)
@@ -244,6 +247,17 @@ class DocumentationReferenceBlock(ImmutableContract):
     measured_size: int = Field(gt=0)
     measurement_unit: DocumentationMeasurementUnit
     truncated: bool = False
+    # P5-CODEX-006 Rework (Codex Third Independent Review): this Block's
+    # own declared Source Class — the RAG module is the authoritative
+    # owner of what kind of content this is, rather than a downstream
+    # consumer (`conversation_generation.py`, `guardrail_governance`)
+    # independently guessing/hardcoding the same string. Consumed by
+    # Guardrail Detection (per-Source judgment) and by Prompt
+    # Composition (Role selection) alike — both read this exact field,
+    # never re-derive it.
+    source_class: str = Field(
+        default=DOCUMENTATION_RAG_CITATION_SOURCE_CLASS, min_length=1, max_length=64
+    )
 
     @field_validator("project_relative_path")
     @classmethod
@@ -391,6 +405,15 @@ class DocumentationAugmentation(ImmutableContract):
     should_generate: bool
     reference_message: str | None = None
     citations: tuple[DocumentationCitation, ...] = ()
+    # P5-CODEX-006 Rework (Codex Second Independent Review): the same
+    # per-chunk structure `reference_message` is itself flattened from
+    # (`AssembledDocumentationContext.blocks`), carried alongside it
+    # rather than only inside the already-joined string — lets a
+    # Guardrail Point judge each retrieved Source's own content
+    # independently, before any collapse into one untyped block. Same
+    # order/count as `citations` (`citations[i]` <-> `reference_blocks[i]`,
+    # both built from `context.blocks` in the same iteration).
+    reference_blocks: tuple[DocumentationReferenceBlock, ...] = ()
     evidence: DocumentationEvidence
     warnings: tuple[DocumentationWarning, ...] = ()
     document_count: int = Field(ge=0)
@@ -402,6 +425,18 @@ class DocumentationAugmentation(ImmutableContract):
     def validate_selected_count(self) -> DocumentationAugmentation:
         if self.selected_chunk_count != len(self.citations):
             raise ValueError("selected chunk count must match system citations")
+        # `reference_blocks` (P5-CODEX-006 Rework) is deliberately *not*
+        # count-enforced against `citations`/`selected_chunk_count` here:
+        # it is an additive, optional per-Source structure the real
+        # `ContextualRagOrchestratorPort` production path always
+        # populates in lockstep with `citations` (see `documentation_rag.
+        # py`'s `augment_with_context`), but a legacy/test
+        # `RagOrchestratorPort.augment()` fixture that predates this
+        # field is still a fully valid Augmentation with `reference_
+        # blocks=()` — `conversation_generation.py`'s Guardrail wiring
+        # already falls back to scanning the flattened `reference_
+        # message` as one Source whenever `reference_blocks` is empty,
+        # so no caller is ever silently skipped either way.
         if self.selected_chunk_count != self.evidence.assembled_block_count:
             raise ValueError("citations must match assembled reference block evidence")
         if self.should_generate != self.evidence.generation_allowed:

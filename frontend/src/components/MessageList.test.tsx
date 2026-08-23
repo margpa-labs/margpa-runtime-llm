@@ -17,6 +17,7 @@ function message(overrides: Partial<DisplayMessage> = {}): DisplayMessage {
     thinkingVisible: false,
     citations: null,
     turnActions: [],
+    requestId: null,
     ...overrides,
   };
 }
@@ -41,6 +42,7 @@ describe("MessageList", () => {
         onTurnAction={vi.fn()}
         pinnedMessageId={null}
         active={false}
+        liveJudgeBadge={null}
       />,
     );
     expect(spy).toHaveBeenCalledWith({ block: "end" });
@@ -60,6 +62,7 @@ describe("MessageList", () => {
         onTurnAction={vi.fn()}
         pinnedMessageId="msg-1"
         active={false}
+        liveJudgeBadge={null}
       />,
     );
     expect(spy).not.toHaveBeenCalled();
@@ -75,6 +78,7 @@ describe("MessageList", () => {
         onTurnAction={vi.fn()}
         pinnedMessageId="msg-1"
         active={true}
+        liveJudgeBadge={null}
       />,
     );
     expect(container.querySelector(".messages-gap-filler")).not.toBeNull();
@@ -90,6 +94,7 @@ describe("MessageList", () => {
         onTurnAction={vi.fn()}
         pinnedMessageId="msg-1"
         active={true}
+        liveJudgeBadge={null}
       />,
     );
     expect(container.querySelector(".messages-gap-filler")).not.toBeNull();
@@ -106,6 +111,7 @@ describe("MessageList", () => {
         onTurnAction={vi.fn()}
         pinnedMessageId="msg-1"
         active={false}
+        liveJudgeBadge={null}
       />,
     );
     expect(container.querySelector(".messages-gap-filler")).not.toBeNull();
@@ -121,6 +127,7 @@ describe("MessageList", () => {
         onTurnAction={vi.fn()}
         pinnedMessageId={null}
         active={false}
+        liveJudgeBadge={null}
       />,
     );
     expect(container.querySelector(".messages-gap-filler")).toBeNull();
@@ -146,6 +153,7 @@ describe("MessageList", () => {
         onTurnAction={vi.fn()}
         pinnedMessageId="msg-1"
         active={true}
+        liveJudgeBadge={null}
       />,
       { container: mountPoint },
     );
@@ -164,6 +172,7 @@ describe("MessageList", () => {
         onTurnAction={vi.fn()}
         pinnedMessageId="msg-1"
         active={true}
+        liveJudgeBadge={null}
       />,
     );
 
@@ -194,6 +203,7 @@ describe("MessageList", () => {
         onTurnAction={vi.fn()}
         pinnedMessageId="msg-1"
         active={true}
+        liveJudgeBadge={null}
       />,
       { container: mountPoint },
     );
@@ -213,6 +223,7 @@ describe("MessageList", () => {
         onTurnAction={vi.fn()}
         pinnedMessageId="msg-1"
         active={true}
+        liveJudgeBadge={null}
       />,
     );
 
@@ -242,6 +253,7 @@ describe("MessageList", () => {
         onTurnAction={vi.fn()}
         pinnedMessageId="msg-1"
         active={false}
+        liveJudgeBadge={null}
       />,
       { container: mountPoint },
     );
@@ -260,6 +272,7 @@ describe("MessageList", () => {
         onTurnAction={vi.fn()}
         pinnedMessageId="msg-1"
         active={false}
+        liveJudgeBadge={null}
       />,
     );
 
@@ -268,5 +281,45 @@ describe("MessageList", () => {
     expect(main.scrollTop).toBe(124 + 60);
     document.body.removeChild(main);
     document.body.removeChild(composer);
+  });
+});
+
+describe("MessageList Live Judge badge correlation (P6-CODEX-024)", () => {
+  test("only the message whose requestId matches the badge's requestId receives it", () => {
+    render(
+      <MessageList
+        language="en"
+        messages={[
+          message({ id: "msg-1", role: "assistant", content: "turn one", requestId: "req-1" }),
+          message({ id: "msg-2", role: "assistant", content: "turn two", requestId: "req-2" }),
+        ]}
+        emptyTitleKey="persistentEmptyTitle"
+        emptyNoteKey="persistentEmptyNote"
+        onTurnAction={vi.fn()}
+        pinnedMessageId={null}
+        active={false}
+        liveJudgeBadge={{ requestId: "req-2", state: "judging", repairAccepted: null }}
+      />,
+    );
+
+    expect(document.getElementById("msg-1-judge-badge")).toBeNull();
+    expect(document.getElementById("msg-2-judge-badge")).not.toBeNull();
+  });
+
+  test("a message with a null requestId never receives the badge, even if the badge's requestId is null-ish", () => {
+    render(
+      <MessageList
+        language="en"
+        messages={[message({ id: "msg-1", role: "assistant", content: "reloaded turn", requestId: null })]}
+        emptyTitleKey="persistentEmptyTitle"
+        emptyNoteKey="persistentEmptyNote"
+        onTurnAction={vi.fn()}
+        pinnedMessageId={null}
+        active={false}
+        liveJudgeBadge={{ requestId: "req-1", state: "judging", repairAccepted: null }}
+      />,
+    );
+
+    expect(document.getElementById("msg-1-judge-badge")).toBeNull();
   });
 });

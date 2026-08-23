@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import hashlib
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from typing import Any, cast
 
-from llama_cpp import Llama
+from llama_cpp import Llama, StoppingCriteriaList
 from llama_cpp.llama_chat_format import Jinja2ChatFormatter
 
 from margpa_runtime_llm.modules.inference.contracts.generation import (
@@ -16,6 +16,7 @@ from margpa_runtime_llm.modules.inference.contracts.generation import (
 )
 from margpa_runtime_llm.modules.inference.contracts.messages import ChatMessage, MessageRole
 from margpa_runtime_llm.modules.inference.contracts.runtime import InferenceWarning
+from margpa_runtime_llm.modules.inference.domain.cancellation import CancellationToken
 from margpa_runtime_llm.modules.inference.domain.capabilities import CapabilityFeature
 from margpa_runtime_llm.modules.inference.domain.errors import (
     InferenceError,
@@ -58,8 +59,8 @@ class LlamaCppChatTemplate:
             stop_token_ids=[eos_token_id],
         )
         self._formatter_call = cast(Callable[..., Any], self._formatter)
-        self._handler = cast(Callable[..., Any], self._formatter.to_chat_handler())
         self._hard_switch_supported = "enable_thinking" in template
+        self._prompt_normalization = self._build_prompt_normalization(eos_token)
 
     @property
     def source(self) -> str:
@@ -72,6 +73,35 @@ class LlamaCppChatTemplate:
     @property
     def hard_switch_supported(self) -> bool:
         return self._hard_switch_supported
+
+    @staticmethod
+    def _build_prompt_normalization(eos_token: str) -> tuple[tuple[str, str], ...]:
+        """P6-CODEX-037 (Fifth Rework): some embedded chat templates hardcode
+        a literal turn-separator string using the SentencePiece '▁' (U+2581)
+        word-separator convention as plain Jinja text, instead of routing it
+        through the template's own `{{ eos_token }}` variable. When that
+        literal differs byte-for-byte from what this GGUF's own tokenizer
+        emits for the real EOS token (verified here via a detokenize/
+        tokenize round-trip on the exact artifact), every past-assistant-
+        turn boundary in a multi-turn prompt silently degrades into ordinary
+        sub-word tokens instead of the special EOS token, corrupting how the
+        model reads conversation structure — this is the confirmed root
+        cause of the DeepSeek multi-turn incompatibility. Model-agnostic: a
+        template whose hardcoded literal already matches the tokenizer's own
+        canonical bytes (e.g. Qwen, which uses `{{ eos_token }}` directly)
+        produces no substitution pair here.
+        """
+        if " " not in eos_token:
+            return ()
+        underscore_variant = eos_token.replace(" ", "▁")
+        if underscore_variant == eos_token:
+            return ()
+        return ((underscore_variant, eos_token),)
+
+    def _normalize_rendered_prompt(self, prompt: str) -> str:
+        for broken, canonical in self._prompt_normalization:
+            prompt = prompt.replace(broken, canonical)
+        return prompt
 
     @property
     def warnings(self) -> tuple[InferenceWarning, ...]:
@@ -93,12 +123,13 @@ class LlamaCppChatTemplate:
         native_messages, template_kwargs = self._prepare(messages, thinking_mode)
         try:
             formatted = self._formatter_call(messages=native_messages, **template_kwargs)
+            prompt_text = self._normalize_rendered_prompt(formatted.prompt)
             tokens = self._model.tokenize(
-                formatted.prompt.encode("utf-8"),
+                prompt_text.encode("utf-8"),
                 add_bos=not formatted.added_special,
                 special=True,
             )
-            return FormattedPrompt(prompt=formatted.prompt, token_count=len(tokens))
+            return FormattedPrompt(prompt=prompt_text, token_count=len(tokens))
         except InferenceError:
             raise
         except (TypeError, ValueError) as exc:
@@ -130,24 +161,97 @@ class LlamaCppChatTemplate:
         parameters: GenerationParameters,
         *,
         stream: bool,
+        cancellation: CancellationToken | None = None,
     ) -> object:
+        """P6-CODEX-019 (Third Rework) / P6-CODEX-037 (Fifth Rework): renders
+        the prompt manually against `Llama.create_completion()` instead of
+        `Jinja2ChatFormatter.to_chat_handler()`'s opaque bridge, for two
+        reasons that now both apply to every call, not only Background ones:
+
+        1. The bridge does not expose a `stopping_criteria` pass-through, so
+           a Background Model Call (Judge/Repair) could not be told to stop
+           generating as soon as a Main Turn needs the shared Model.
+        2. The bridge tokenizes the formatter's rendered prompt text
+           unmodified, which for a template that hardcodes a turn-boundary
+           literal not matching the tokenizer's own canonical byte sequence
+           (see `_build_prompt_normalization`) silently breaks multi-turn
+           EOS recognition. Normalizing the rendered prompt requires
+           control over the render-then-tokenize step, which the opaque
+           bridge does not offer.
+
+        Tool/function-calling grammar derived from the Jinja chat
+        formatter's own `result.stopping_criteria` is intentionally not
+        applied here: this codebase never issues chat-format tool/function
+        calls (only role-based prompt construction), so that omission has
+        no observable effect.
+        """
         native_messages, template_kwargs = self._prepare(messages, parameters.thinking_mode)
-        return self._handler(
-            llama=self._model,
-            messages=native_messages,
+        formatted = self._formatter_call(messages=native_messages, **template_kwargs)
+        prompt_text = self._normalize_rendered_prompt(formatted.prompt)
+        tokens = self._model.tokenize(
+            prompt_text.encode("utf-8"), add_bos=not formatted.added_special, special=True
+        )
+        stop = list(parameters.stop_sequences)
+        if formatted.stop is not None:
+            extra_stop = formatted.stop if isinstance(formatted.stop, list) else [formatted.stop]
+            stop = [*stop, *extra_stop]
+        stopping_criteria = (
+            StoppingCriteriaList([lambda input_ids, logits: cancellation.is_cancelled()])
+            if cancellation is not None
+            else None
+        )
+        raw = self._model.create_completion(
+            prompt=tokens,
             temperature=parameters.temperature,
             top_p=parameters.top_p,
             top_k=parameters.top_k,
             min_p=parameters.min_p,
             stream=stream,
-            stop=list(parameters.stop_sequences),
+            stop=stop,
             seed=parameters.seed,
             max_tokens=parameters.max_new_tokens,
             presence_penalty=parameters.presence_penalty,
             frequency_penalty=parameters.frequency_penalty,
             repeat_penalty=parameters.repeat_penalty,
-            **template_kwargs,
+            stopping_criteria=stopping_criteria,
         )
+        if stream:
+            return self._stream_completion_as_chat_deltas(cast(Iterator[dict[str, Any]], raw))
+        completion = cast(dict[str, Any], raw)
+        choice = cast(dict[str, Any], completion["choices"][0])
+        return {
+            "choices": [
+                {
+                    "message": {"role": "assistant", "content": choice.get("text", "")},
+                    "finish_reason": choice.get("finish_reason"),
+                }
+            ],
+            "usage": completion.get("usage"),
+        }
+
+    @staticmethod
+    def _stream_completion_as_chat_deltas(
+        chunks: Iterator[dict[str, Any]],
+    ) -> Iterator[dict[str, Any]]:
+        """Reshape `Llama.create_completion(stream=True)`'s raw completion
+        chunks (`choices[0]["text"]`) into the OpenAI-chat delta shape
+        (`choices[0]["delta"]["content"]`) that `LlamaCppGenerationStream`
+        consumes — replicating what `Jinja2ChatFormatter.to_chat_handler()`'s
+        bridge used to do, now that streaming also goes through the manual
+        `create_completion()` call so prompt normalization applies to it too.
+        """
+        for chunk in chunks:
+            choice = cast(dict[str, Any], chunk["choices"][0])
+            finish_reason = choice.get("finish_reason")
+            text = choice.get("text", "")
+            yield {
+                "choices": [
+                    {
+                        "delta": {} if finish_reason is not None else {"content": text},
+                        "finish_reason": finish_reason,
+                    }
+                ]
+            }
 
     def _prepare(
         self,

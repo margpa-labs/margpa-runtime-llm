@@ -12,6 +12,9 @@ from margpa_runtime_llm.modules.configuration_control import (
     ConfigurationPreview,
     DocumentationRagControlMode,
     EffectiveConfigurationSnapshot,
+    GovernanceControlMode,
+    GuardrailGovernanceControlMode,
+    MainGovernanceControlMode,
     RecordingControlMode,
     RedactedConfigurationChange,
     ResearchDeveloperMode,
@@ -36,6 +39,9 @@ class ConfigurationPatchRequest(_ConfigurationContract):
     context_size: int | None = Field(default=None, strict=True, ge=1, le=1_048_576)
     documentation_rag_mode: DocumentationRagControlMode | None = None
     recording_mode: RecordingControlMode | None = None
+    governance_mode: GovernanceControlMode | None = None
+    main_governance_mode: MainGovernanceControlMode | None = None
+    guardrail_governance_mode: GuardrailGovernanceControlMode | None = None
 
     @model_validator(mode="after")
     def require_one_field(self) -> ConfigurationPatchRequest:
@@ -50,6 +56,9 @@ class ConfigurationPatchRequest(_ConfigurationContract):
             context_size=self.context_size,
             documentation_rag_mode=self.documentation_rag_mode,
             recording_mode=self.recording_mode,
+            governance_mode=self.governance_mode,
+            main_governance_mode=self.main_governance_mode,
+            guardrail_governance_mode=self.guardrail_governance_mode,
         )
 
 
@@ -90,6 +99,18 @@ class RecordingHookResponse(FeatureHookResponse):
     pass
 
 
+class GovernanceHookResponse(FeatureHookResponse):
+    pass
+
+
+class MainGovernanceHookResponse(FeatureHookResponse):
+    pass
+
+
+class GuardrailGovernanceHookResponse(FeatureHookResponse):
+    pass
+
+
 class EffectiveConfigurationResponse(_ConfigurationContract):
     schema_version: Literal["1"]
     revision: int
@@ -97,6 +118,9 @@ class EffectiveConfigurationResponse(_ConfigurationContract):
     fields: tuple[ConfigurationFieldResponse, ...]
     feature_hooks: tuple[FeatureHookResponse, ...]
     recording_hooks: tuple[RecordingHookResponse, ...]
+    governance_hooks: tuple[GovernanceHookResponse, ...] = ()
+    main_governance_hooks: tuple[MainGovernanceHookResponse, ...] = ()
+    guardrail_governance_hooks: tuple[GuardrailGovernanceHookResponse, ...] = ()
 
 
 class ConfigurationChangeResponse(_ConfigurationContract):
@@ -159,6 +183,36 @@ def project_effective(
                 apply_disposition=item.apply_disposition.value,
             )
             for item in value.recording_hooks
+        ),
+        governance_hooks=tuple(
+            GovernanceHookResponse(
+                component_key=item.component_key,
+                allowed_modes=tuple(mode.value for mode in item.allowed_modes),
+                current_mode=item.current_mode.value,
+                available=item.available,
+                apply_disposition=item.apply_disposition.value,
+            )
+            for item in value.governance_hooks
+        ),
+        main_governance_hooks=tuple(
+            MainGovernanceHookResponse(
+                component_key=item.component_key,
+                allowed_modes=tuple(mode.value for mode in item.allowed_modes),
+                current_mode=item.current_mode.value,
+                available=item.available,
+                apply_disposition=item.apply_disposition.value,
+            )
+            for item in value.main_governance_hooks
+        ),
+        guardrail_governance_hooks=tuple(
+            GuardrailGovernanceHookResponse(
+                component_key=item.component_key,
+                allowed_modes=tuple(mode.value for mode in item.allowed_modes),
+                current_mode=item.current_mode.value,
+                available=item.available,
+                apply_disposition=item.apply_disposition.value,
+            )
+            for item in value.guardrail_governance_hooks
         ),
     )
 

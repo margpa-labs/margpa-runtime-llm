@@ -6,11 +6,16 @@ import type {
   ConfigurationPreviewResult,
   ConfigurationSnapshot,
   GenerationSettings,
+  GovernanceStatus,
+  GuardrailGovernanceStatus,
   PersistentConversationDetail,
   PersistentConversationPage,
   PersistentMutationResponse,
   PersistentRuntimeResponse,
+  FeatureModesStatus,
+  RuntimeGovernanceStatus,
   RuntimeInfo,
+  RuntimeModelStatus,
 } from "../types";
 
 export interface ApiFailure {
@@ -246,6 +251,139 @@ export async function applyConfigurationPatch(
     }),
     cache: "no-store",
   });
+}
+
+export async function fetchGovernanceStatus(): Promise<GovernanceStatus> {
+  const response = await fetch("/api/v3/governance/runtime", { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("governance_runtime_unavailable");
+  }
+  return (await response.json()) as GovernanceStatus;
+}
+
+export async function fetchRuntimeGovernanceStatus(): Promise<RuntimeGovernanceStatus> {
+  const response = await fetch("/api/v3/runtime-governance/status", { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("runtime_governance_status_unavailable");
+  }
+  return (await response.json()) as RuntimeGovernanceStatus;
+}
+
+export async function fetchRuntimeModelStatus(): Promise<RuntimeModelStatus> {
+  const response = await fetch("/api/v4/runtime-model/status", { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("runtime_model_status_unavailable");
+  }
+  return (await response.json()) as RuntimeModelStatus;
+}
+
+export async function applyRuntimeModelContext(
+  expectedRevision: number,
+  expectedDigest: string,
+  requestedContextSize: number,
+): Promise<RuntimeModelStatus> {
+  const response = await fetch("/api/v4/runtime-model/context", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      expected_revision: expectedRevision,
+      expected_digest: expectedDigest,
+      requested_context_size: requestedContextSize,
+    }),
+  });
+  if (!response.ok) {
+    const failure = await safeError(response, "runtime_model_context_change_failed");
+    throw new Error(failure.code ?? failure.message);
+  }
+  return (await response.json()) as RuntimeModelStatus;
+}
+
+export async function applyRuntimeModelMaxNewTokens(
+  expectedRevision: number,
+  expectedDigest: string,
+  requestedMaxNewTokens: number,
+): Promise<RuntimeModelStatus> {
+  const response = await fetch("/api/v4/runtime-model/max-new-tokens", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      expected_revision: expectedRevision,
+      expected_digest: expectedDigest,
+      requested_max_new_tokens: requestedMaxNewTokens,
+    }),
+  });
+  if (!response.ok) {
+    const failure = await safeError(response, "runtime_model_max_new_tokens_change_failed");
+    throw new Error(failure.code ?? failure.message);
+  }
+  return (await response.json()) as RuntimeModelStatus;
+}
+
+export async function applyRuntimeModelSwitch(
+  expectedRevision: number,
+  expectedDigest: string,
+  targetModelKey: string,
+  requestedContextSize: number,
+): Promise<RuntimeModelStatus> {
+  const response = await fetch("/api/v4/runtime-model/switch", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      expected_revision: expectedRevision,
+      expected_digest: expectedDigest,
+      target_model_key: targetModelKey,
+      requested_context_size: requestedContextSize,
+    }),
+  });
+  if (!response.ok) {
+    const failure = await safeError(response, "runtime_model_switch_failed");
+    throw new Error(failure.code ?? failure.message);
+  }
+  return (await response.json()) as RuntimeModelStatus;
+}
+
+export async function fetchFeatureModesStatus(): Promise<FeatureModesStatus> {
+  const response = await fetch("/api/v5/feature-modes/status", { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("feature_modes_status_unavailable");
+  }
+  return (await response.json()) as FeatureModesStatus;
+}
+
+async function applyFeatureMode(
+  path: "judge" | "repair" | "recording",
+  requestedMode: string,
+): Promise<FeatureModesStatus> {
+  const response = await fetch(`/api/v5/feature-modes/${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ requested_mode: requestedMode }),
+  });
+  if (!response.ok) {
+    const failure = await safeError(response, `feature_modes_${path}_apply_failed`);
+    throw new Error(failure.code ?? failure.message);
+  }
+  return (await response.json()) as FeatureModesStatus;
+}
+
+export function applyJudgeMode(requestedMode: string): Promise<FeatureModesStatus> {
+  return applyFeatureMode("judge", requestedMode);
+}
+
+export function applyRepairMode(requestedMode: string): Promise<FeatureModesStatus> {
+  return applyFeatureMode("repair", requestedMode);
+}
+
+export function applyRecordingMode(requestedMode: string): Promise<FeatureModesStatus> {
+  return applyFeatureMode("recording", requestedMode);
+}
+
+export async function fetchGuardrailGovernanceStatus(): Promise<GuardrailGovernanceStatus> {
+  const response = await fetch("/api/v3/guardrail-governance/status", { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("guardrail_governance_status_unavailable");
+  }
+  return (await response.json()) as GuardrailGovernanceStatus;
 }
 
 export function newActionId(): string {

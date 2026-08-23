@@ -16,6 +16,9 @@ import httpx
 import pytest
 from fastapi import FastAPI, Request
 
+from margpa_runtime_llm.modules.audit_evidence.generation_observation import (
+    GenerationObserverStatus,
+)
 from margpa_runtime_llm.modules.conversation.adapters import SQLiteConversationStore
 from margpa_runtime_llm.modules.conversation.application import PersistentConversationService
 from margpa_runtime_llm.modules.conversation.contracts import (
@@ -264,6 +267,69 @@ class PersistentCallSpy:
     def __getattr__(self, name: str) -> object:
         self.calls.append(name)
         raise AssertionError(f"v1 accessed persistent service: {name}")
+
+
+class RecordingGenerationObserver:
+    def __init__(self) -> None:
+        self.started_calls: list[dict[str, object]] = []
+        self.terminal_calls: list[dict[str, object]] = []
+
+    def is_active(self) -> bool:
+        return True
+
+    def status(self) -> GenerationObserverStatus:
+        return GenerationObserverStatus()
+
+    def observe_generation_started(self, *, request_id: str, profile_key: str) -> None:
+        self.started_calls.append({"request_id": request_id, "profile_key": profile_key})
+
+    def observe_generation_terminal(self, **kwargs: object) -> None:
+        self.terminal_calls.append(dict(kwargs))
+
+
+class RaisingGenerationObserver:
+    def __init__(self) -> None:
+        self._degraded_calls = 0
+
+    def is_active(self) -> bool:
+        return True
+
+    def status(self) -> GenerationObserverStatus:
+        return GenerationObserverStatus(
+            degraded=self._degraded_calls > 0,
+            degraded_reason_code="evidence_write_failed" if self._degraded_calls > 0 else None,
+            degraded_event_count=self._degraded_calls,
+        )
+
+    def observe_generation_started(self, **kwargs: object) -> None:
+        self._degraded_calls += 1
+        raise RuntimeError("generation observer failure")
+
+    def observe_generation_terminal(self, **kwargs: object) -> None:
+        self._degraded_calls += 1
+        raise RuntimeError("generation observer failure")
+
+
+class InactiveSpyGenerationObserver:
+    """`is_active() -> False`: a P3-CODEX-002 Spy proving the Hook itself
+    is never called (not merely that it writes nothing) while Mode is
+    off — the caller must never even construct a Tracker."""
+
+    def __init__(self) -> None:
+        self.started_calls: list[dict[str, object]] = []
+        self.terminal_calls: list[dict[str, object]] = []
+
+    def is_active(self) -> bool:
+        return False
+
+    def status(self) -> GenerationObserverStatus:
+        return GenerationObserverStatus()
+
+    def observe_generation_started(self, **kwargs: object) -> None:
+        self.started_calls.append(dict(kwargs))
+
+    def observe_generation_terminal(self, **kwargs: object) -> None:
+        self.terminal_calls.append(dict(kwargs))
 
 
 def runtime_snapshot() -> SafeRuntimeSnapshot:
@@ -528,9 +594,14 @@ async def test_archive_unarchive_resume_and_pagination_are_server_canonical(
     assert resumed.status_code == 200 and resumed_detail["storage_revision"] == 4
     assert [item["state"] for item in resumed_detail["sessions"]] == ["closed", "active"]
 
-    def item_for(payload: dict, conversation_id: str) -> dict:
-        return next(
-            item for item in payload.json()["items"] if item["conversation_id"] == conversation_id
+    def item_for(payload: httpx.Response, conversation_id: object) -> dict[str, object]:
+        return cast(
+            "dict[str, object]",
+            next(
+                item
+                for item in payload.json()["items"]
+                if item["conversation_id"] == conversation_id
+            ),
         )
 
     assert item_for(after_archive_list, first["conversation_id"])["has_active_session"] is False
@@ -628,6 +699,103 @@ async def test_normal_stream_is_durable_before_terminal_and_replay_mutates_zero(
     assert generation.active is not None
     assert generation.start_thread_ids == generation.active.event_thread_ids[:1]
     assert len(set(generation.active.event_thread_ids)) == 1
+
+
+@pytest.mark.asyncio
+async def test_generation_observer_records_start_and_terminal_for_a_persistent_turn(
+    tmp_path: Path,
+) -> None:
+    runtime, _, _ = persistent_runtime(tmp_path)
+    observer = RecordingGenerationObserver()
+    app = create_web_app(
+        runtime_factory=lambda: runtime,
+        access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+    )
+    app.state.generation_observer = observer
+
+    async with client_for(app) as client:
+        detail = await create(client)
+        conversation_id = detail["conversation_id"]
+        streamed = await client.post(
+            f"/api/v2/conversations/{conversation_id}/turns/stream",
+            json={
+                "content": "canonical user",
+                "settings": settings_payload(),
+                "operation_id": "turn-action-1",
+                "expected_revision": detail["storage_revision"],
+            },
+        )
+
+    assert streamed.status_code == 200
+    assert "event: completed" in streamed.text
+    assert len(observer.started_calls) == 1
+    assert observer.started_calls[0]["profile_key"] == "local.fixture"
+    assert len(observer.terminal_calls) == 1
+    assert observer.terminal_calls[0]["stop_reason"] == "stop"
+    assert observer.terminal_calls[0]["error_count"] == 0
+
+
+@pytest.mark.asyncio
+async def test_an_inactive_generation_observer_receives_zero_calls_for_a_persistent_turn(
+    tmp_path: Path,
+) -> None:
+    runtime, _, _ = persistent_runtime(tmp_path)
+    observer = InactiveSpyGenerationObserver()
+    app = create_web_app(
+        runtime_factory=lambda: runtime,
+        access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+    )
+    app.state.generation_observer = observer
+
+    async with client_for(app) as client:
+        detail = await create(client)
+        conversation_id = detail["conversation_id"]
+        streamed = await client.post(
+            f"/api/v2/conversations/{conversation_id}/turns/stream",
+            json={
+                "content": "canonical user",
+                "settings": settings_payload(),
+                "operation_id": "turn-action-1",
+                "expected_revision": detail["storage_revision"],
+            },
+        )
+
+    assert streamed.status_code == 200
+    assert "event: completed" in streamed.text
+    assert observer.started_calls == []
+    assert observer.terminal_calls == []
+
+
+@pytest.mark.asyncio
+async def test_a_raising_generation_observer_never_alters_persistent_durability(
+    tmp_path: Path,
+) -> None:
+    runtime, _, _ = persistent_runtime(tmp_path)
+    app = create_web_app(
+        runtime_factory=lambda: runtime,
+        access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+    )
+    app.state.generation_observer = RaisingGenerationObserver()
+
+    async with client_for(app) as client:
+        detail = await create(client)
+        conversation_id = detail["conversation_id"]
+        streamed = await client.post(
+            f"/api/v2/conversations/{conversation_id}/turns/stream",
+            json={
+                "content": "canonical user",
+                "settings": settings_payload(),
+                "operation_id": "turn-action-1",
+                "expected_revision": detail["storage_revision"],
+            },
+        )
+        persisted = await client.get(f"/api/v2/conversations/{conversation_id}")
+
+    assert streamed.status_code == 200
+    assert "event: start" in streamed.text
+    assert "event: completed" in streamed.text
+    assert persisted.json()["storage_revision"] == 4
+    assert persisted.json()["turns"][0]["messages"][-1]["content"] == "canonical-1"
 
 
 @pytest.mark.asyncio

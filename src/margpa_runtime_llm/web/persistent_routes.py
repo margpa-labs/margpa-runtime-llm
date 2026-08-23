@@ -11,6 +11,9 @@ from typing import Any, NoReturn
 from fastapi import APIRouter, Path, Query, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 
+from margpa_runtime_llm.modules.audit_evidence.generation_observation import (
+    GenerationObserverPort,
+)
 from margpa_runtime_llm.modules.conversation.application import (
     PersistentConversationError,
     PersistentConversationErrorCode,
@@ -32,6 +35,7 @@ from margpa_runtime_llm.modules.conversation.domain import (
 from margpa_runtime_llm.modules.conversation.ports import StoredConversation
 
 from .contracts import WebRuntime
+from .generation_observation import GenerationObservationTracker
 from .persistent_contracts import (
     WEB_ID_PATTERN,
     PersistentConversationDetailResponse,
@@ -343,11 +347,23 @@ async def _stream_response(
     turn_id: ConversationTurnId,
     events: Iterator[ConversationEvent],
 ) -> StreamingResponse:
+    runtime: WebRuntime = request.app.state.runtime
+    observer: GenerationObserverPort | None = getattr(
+        request.app.state, "generation_observer", None
+    )
+    # Bind (or don't) exactly once, at generation start (P3-CODEX-002) —
+    # see the matching comment in web/app.py's chat_stream.
+    observation_tracker = (
+        GenerationObservationTracker(observer, profile_key=runtime.snapshot.profile_key)
+        if observer is not None and observer.is_active()
+        else None
+    )
     bridge = PersistentSseBridge(
         events=events,
         service=service,
         conversation_id=conversation_id,
         turn_id=turn_id,
+        observation_tracker=observation_tracker,
     )
     await bridge.prepare()
     return StreamingResponse(

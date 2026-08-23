@@ -1,6 +1,7 @@
 """P2B-MIG-001..004 explicit migration, checkpoint, and rollback evidence."""
 
 import hashlib
+import os
 import sqlite3
 import threading
 from collections.abc import Callable
@@ -102,6 +103,37 @@ def test_explicit_migration_preserves_checkpoint_and_supports_exact_rollback(
 
     migration.rollback(receipt)
     assert digest(store.database_path) == source_digest
+
+
+def test_transient_migration_paths_remain_openable_under_long_authorized_root(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path
+    for index in range(8):
+        candidate = SQLiteConversationStore(
+            runtime_data_root=root / "runtime-data",
+            bound_scope_id=ConversationScopeId(value="scope-private"),
+            known_legacy_versions=("legacy-fixture-1",),
+        )
+        if len(os.fsencode(candidate.database_path)) >= 430:
+            break
+        root /= f"nested-{index}-" + ("x" * 32)
+    else:  # pragma: no cover - defensive guard for unexpectedly tiny filesystem roots
+        pytest.fail("could not construct a representative long authorized root")
+
+    root.mkdir(mode=0o700, parents=True)
+    store, _ = legacy_store(root)
+    assert 430 <= len(os.fsencode(store.database_path)) < 480
+    migration = engine(root, store)
+
+    receipt = migration.migrate(
+        migration.plan_migration(STORAGE_SCHEMA_VERSION),
+        migration_id="long-path-migration",
+        checkpoint_id="long-path-checkpoint",
+    )
+
+    assert receipt.target_digest == digest(store.database_path)
+    migration.rollback(receipt)
 
 
 def test_transform_failure_leaves_source_unchanged_and_incomplete_marker(

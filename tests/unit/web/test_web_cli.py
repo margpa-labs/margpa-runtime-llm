@@ -67,6 +67,10 @@ def test_web_help_documents_safe_defaults_and_placeholders() -> None:
     assert "--conversation-persistence-migrate" in help_text
     assert "--configuration-control" in help_text
     assert "--runtime-composition-inspection" in help_text
+    assert "--phase-3-governance-definitions" in help_text
+    assert "--phase-3-governance-definitions-root" in help_text
+    assert "--phase-4-runtime-governance" in help_text
+    assert "--phase-4-runtime-governance-definitions-root" in help_text
 
 
 def test_conversation_persistence_requires_explicit_local_loopback_inputs(
@@ -145,6 +149,142 @@ def test_configuration_control_gate_requires_explicit_local_loopback() -> None:
                 access_mode=mode,
                 authentication_required=auth,
             )
+
+
+def test_governance_definitions_gate_requires_explicit_local_loopback() -> None:
+    assert web_cli._governance_definitions_enabled(
+        enabled=True,
+        host="127.0.0.1",
+        access_mode=WebExposureMode.LOCAL,
+        authentication_required=False,
+    )
+    assert not web_cli._governance_definitions_enabled(
+        enabled=False,
+        host="0.0.0.0",
+        access_mode=WebExposureMode.PUBLIC_DEMO,
+        authentication_required=False,
+    )
+    for mode, host, auth in (
+        (WebExposureMode.PUBLIC_DEMO, "0.0.0.0", False),
+        (WebExposureMode.BASIC_PREVIEW, "0.0.0.0", True),
+        (WebExposureMode.LOCAL, "0.0.0.0", False),
+        (WebExposureMode.LOCAL, "127.0.0.1", True),
+    ):
+        with pytest.raises(InferenceError, match="Governance Definitions"):
+            web_cli._governance_definitions_enabled(
+                enabled=True,
+                host=host,
+                access_mode=mode,
+                authentication_required=auth,
+            )
+
+
+def test_runtime_governance_gate_requires_explicit_local_loopback() -> None:
+    assert web_cli._runtime_governance_enabled(
+        enabled=True,
+        host="127.0.0.1",
+        access_mode=WebExposureMode.LOCAL,
+        authentication_required=False,
+    )
+    assert not web_cli._runtime_governance_enabled(
+        enabled=False,
+        host="0.0.0.0",
+        access_mode=WebExposureMode.PUBLIC_DEMO,
+        authentication_required=False,
+    )
+    for mode, host, auth in (
+        (WebExposureMode.PUBLIC_DEMO, "0.0.0.0", False),
+        (WebExposureMode.BASIC_PREVIEW, "0.0.0.0", True),
+        (WebExposureMode.LOCAL, "0.0.0.0", False),
+        (WebExposureMode.LOCAL, "127.0.0.1", True),
+    ):
+        with pytest.raises(InferenceError, match="Runtime Governance"):
+            web_cli._runtime_governance_enabled(
+                enabled=True,
+                host=host,
+                access_mode=mode,
+                authentication_required=auth,
+            )
+
+
+def test_runtime_governance_opt_in_is_passed_only_for_local_runtime(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: list[object] = []
+
+    def fake_create_web_app(**kwargs: object) -> FastAPI:
+        runtime_factory = kwargs["runtime_factory"]
+        assert isinstance(runtime_factory, partial)
+        captured.append(runtime_factory.keywords["runtime_governance_enabled"])
+        return FastAPI()
+
+    monkeypatch.setattr(
+        "margpa_runtime_llm.entrypoints.web.main.create_web_app",
+        fake_create_web_app,
+    )
+    monkeypatch.setattr(
+        "margpa_runtime_llm.entrypoints.web.main.uvicorn.run",
+        lambda *_args, **_kwargs: None,
+    )
+
+    assert web_cli.main(["--phase-4-runtime-governance"]) == 0
+    assert captured == [True]
+
+
+def test_guardrail_governance_gate_requires_explicit_local_loopback() -> None:
+    assert web_cli._guardrail_governance_enabled(
+        enabled=True,
+        host="127.0.0.1",
+        access_mode=WebExposureMode.LOCAL,
+        authentication_required=False,
+    )
+    assert not web_cli._guardrail_governance_enabled(
+        enabled=False,
+        host="0.0.0.0",
+        access_mode=WebExposureMode.PUBLIC_DEMO,
+        authentication_required=False,
+    )
+    for mode, host, auth in (
+        (WebExposureMode.PUBLIC_DEMO, "0.0.0.0", False),
+        (WebExposureMode.BASIC_PREVIEW, "0.0.0.0", True),
+        (WebExposureMode.LOCAL, "0.0.0.0", False),
+        (WebExposureMode.LOCAL, "127.0.0.1", True),
+    ):
+        with pytest.raises(InferenceError, match="Guardrail Governance"):
+            web_cli._guardrail_governance_enabled(
+                enabled=True,
+                host=host,
+                access_mode=mode,
+                authentication_required=auth,
+            )
+
+
+def test_guardrail_governance_opt_in_is_passed_only_for_local_runtime(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: list[object] = []
+
+    def fake_create_web_app(**kwargs: object) -> FastAPI:
+        runtime_factory = kwargs["runtime_factory"]
+        assert isinstance(runtime_factory, partial)
+        captured.append(runtime_factory.keywords["guardrail_governance_enabled"])
+        return FastAPI()
+
+    monkeypatch.setattr(
+        "margpa_runtime_llm.entrypoints.web.main.create_web_app",
+        fake_create_web_app,
+    )
+    monkeypatch.setattr(
+        "margpa_runtime_llm.entrypoints.web.main.uvicorn.run",
+        lambda *_args, **_kwargs: None,
+    )
+
+    assert web_cli.main(["--phase-5-guardrail-governance"]) == 0
+    assert captured == [True]
+
+
+def test_governance_mode_value_reader_fails_closed_to_off_without_a_runtime() -> None:
+    assert web_cli._current_governance_mode_value(None) == "off"
 
 
 def test_configuration_control_opt_in_is_passed_only_for_local_runtime(
@@ -492,6 +632,278 @@ def test_web_runtime_binds_loaded_service_counter_without_loading_another_model(
     assert chat_count_calls == [(messages, ThinkingMode.ENABLED)]
     runtime.close()
     assert close_calls == 1
+
+
+def test_web_runtime_builds_a_real_runtime_governance_composition_when_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # P4-CODEX-001 Rework: the actual `runtime_factory` the Web CLI builds
+    # must produce a bound `runtime_governance_composition` — a Test that
+    # only exercises `RuntimeGovernanceComposition` directly (as the
+    # unit-level Governance tests do) proves nothing about this wiring.
+    class FakeLoadedService:
+        runtime_info = SimpleNamespace(
+            model_key="main.qwen3-4b-q4-k-m",
+            backend_key="metal",
+            loaded_context_size=4096,
+            effective_capabilities=SimpleNamespace(features=frozenset()),
+            device_kind="gpu",
+            acceleration_api="metal",
+        )
+
+        def count_text_tokens(self, text: str) -> int:
+            return len(text.split())
+
+        def count_chat_prompt_tokens(
+            self, messages: tuple[ChatMessage, ...], thinking_mode: ThinkingMode
+        ) -> int:
+            del messages, thinking_mode
+            return 0
+
+    presentation = ResolvedThinkingPresentationPolicy(
+        visibility=ThinkingVisibility.HIDDEN,
+        display_label="推論過程",
+        persistence=ThinkingPersistence.DISABLED,
+        visibility_source=ThinkingPresentationSource.APPLICATION,
+        display_label_source=ThinkingPresentationSource.APPLICATION,
+        persistence_source=ThinkingPresentationSource.APPLICATION,
+    )
+    config = SimpleNamespace(
+        selected_model="main.qwen3-4b-q4-k-m",
+        profile_key="mac.local",
+        generation=GenerationParameters(max_new_tokens=2048),
+        response=SimpleNamespace(language=ResponseLanguage.JA),
+        presentation=presentation,
+        summarization=SummarizationConfig(),
+    )
+    application = cast(
+        Phase1Application,
+        SimpleNamespace(
+            service=FakeLoadedService(),
+            config=config,
+            presentation_service=object(),
+            close=lambda: None,
+        ),
+    )
+    monkeypatch.setattr(
+        web_application_module,
+        "build_phase1_application",
+        lambda **_kwargs: application,
+    )
+
+    runtime = build_phase1_web_runtime(
+        project_root=PROJECT_ROOT,
+        profile_path=None,
+        registry_path=PROJECT_ROOT / "config/models/qwen3_4b_q4_k_m.toml",
+        runtime_governance_enabled=True,
+        runtime_governance_definitions_root=None,
+    )
+
+    assert runtime.runtime_governance_composition is not None
+    assert runtime.runtime_governance_composition.mode_controller.current_mode_value() == "off"
+    runtime.close()
+
+
+def test_web_runtime_leaves_runtime_governance_composition_none_when_disabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeLoadedService:
+        runtime_info = SimpleNamespace(
+            model_key="main.qwen3-4b-q4-k-m",
+            backend_key="metal",
+            loaded_context_size=4096,
+            effective_capabilities=SimpleNamespace(features=frozenset()),
+            device_kind="gpu",
+            acceleration_api="metal",
+        )
+
+        def count_text_tokens(self, text: str) -> int:
+            return len(text.split())
+
+        def count_chat_prompt_tokens(
+            self, messages: tuple[ChatMessage, ...], thinking_mode: ThinkingMode
+        ) -> int:
+            del messages, thinking_mode
+            return 0
+
+    presentation = ResolvedThinkingPresentationPolicy(
+        visibility=ThinkingVisibility.HIDDEN,
+        display_label="推論過程",
+        persistence=ThinkingPersistence.DISABLED,
+        visibility_source=ThinkingPresentationSource.APPLICATION,
+        display_label_source=ThinkingPresentationSource.APPLICATION,
+        persistence_source=ThinkingPresentationSource.APPLICATION,
+    )
+    config = SimpleNamespace(
+        selected_model="main.qwen3-4b-q4-k-m",
+        profile_key="mac.local",
+        generation=GenerationParameters(max_new_tokens=2048),
+        response=SimpleNamespace(language=ResponseLanguage.JA),
+        presentation=presentation,
+        summarization=SummarizationConfig(),
+    )
+    application = cast(
+        Phase1Application,
+        SimpleNamespace(
+            service=FakeLoadedService(),
+            config=config,
+            presentation_service=object(),
+            close=lambda: None,
+        ),
+    )
+    monkeypatch.setattr(
+        web_application_module,
+        "build_phase1_application",
+        lambda **_kwargs: application,
+    )
+
+    runtime = build_phase1_web_runtime(
+        project_root=PROJECT_ROOT,
+        profile_path=None,
+        registry_path=PROJECT_ROOT / "config/models/qwen3_4b_q4_k_m.toml",
+    )
+
+    assert runtime.runtime_governance_composition is None
+    runtime.close()
+
+
+def test_web_runtime_builds_a_real_guardrail_governance_composition_when_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Mirrors `test_web_runtime_builds_a_real_runtime_governance_composition_
+    # when_enabled` (P4-CODEX-001 Rework rationale): only the actual
+    # `runtime_factory` wiring proves the Composition is really bound —
+    # exercising `GuardrailGovernanceComposition` directly proves nothing
+    # about this seam (P5-F-WU-001).
+    class FakeLoadedService:
+        runtime_info = SimpleNamespace(
+            model_key="main.qwen3-4b-q4-k-m",
+            backend_key="metal",
+            loaded_context_size=4096,
+            effective_capabilities=SimpleNamespace(features=frozenset()),
+            device_kind="gpu",
+            acceleration_api="metal",
+        )
+
+        def count_text_tokens(self, text: str) -> int:
+            return len(text.split())
+
+        def count_chat_prompt_tokens(
+            self, messages: tuple[ChatMessage, ...], thinking_mode: ThinkingMode
+        ) -> int:
+            del messages, thinking_mode
+            return 0
+
+    presentation = ResolvedThinkingPresentationPolicy(
+        visibility=ThinkingVisibility.HIDDEN,
+        display_label="推論過程",
+        persistence=ThinkingPersistence.DISABLED,
+        visibility_source=ThinkingPresentationSource.APPLICATION,
+        display_label_source=ThinkingPresentationSource.APPLICATION,
+        persistence_source=ThinkingPresentationSource.APPLICATION,
+    )
+    config = SimpleNamespace(
+        selected_model="main.qwen3-4b-q4-k-m",
+        profile_key="mac.local",
+        generation=GenerationParameters(max_new_tokens=2048),
+        response=SimpleNamespace(language=ResponseLanguage.JA),
+        presentation=presentation,
+        summarization=SummarizationConfig(),
+    )
+    application = cast(
+        Phase1Application,
+        SimpleNamespace(
+            service=FakeLoadedService(),
+            config=config,
+            presentation_service=object(),
+            close=lambda: None,
+        ),
+    )
+    monkeypatch.setattr(
+        web_application_module,
+        "build_phase1_application",
+        lambda **_kwargs: application,
+    )
+
+    runtime = build_phase1_web_runtime(
+        project_root=PROJECT_ROOT,
+        profile_path=None,
+        registry_path=PROJECT_ROOT / "config/models/qwen3_4b_q4_k_m.toml",
+        guardrail_governance_enabled=True,
+    )
+
+    assert runtime.guardrail_governance_composition is not None
+    assert runtime.guardrail_governance_composition.mode_controller.current_mode_value() == "off"
+    assert runtime.conversation._guardrail_pre_hook is not None
+    assert runtime.conversation._guardrail_post_hook is not None
+    assert runtime.conversation._guardrail_stream_guard_factory is not None
+    runtime.close()
+
+
+def test_web_runtime_leaves_guardrail_governance_composition_none_when_disabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeLoadedService:
+        runtime_info = SimpleNamespace(
+            model_key="main.qwen3-4b-q4-k-m",
+            backend_key="metal",
+            loaded_context_size=4096,
+            effective_capabilities=SimpleNamespace(features=frozenset()),
+            device_kind="gpu",
+            acceleration_api="metal",
+        )
+
+        def count_text_tokens(self, text: str) -> int:
+            return len(text.split())
+
+        def count_chat_prompt_tokens(
+            self, messages: tuple[ChatMessage, ...], thinking_mode: ThinkingMode
+        ) -> int:
+            del messages, thinking_mode
+            return 0
+
+    presentation = ResolvedThinkingPresentationPolicy(
+        visibility=ThinkingVisibility.HIDDEN,
+        display_label="推論過程",
+        persistence=ThinkingPersistence.DISABLED,
+        visibility_source=ThinkingPresentationSource.APPLICATION,
+        display_label_source=ThinkingPresentationSource.APPLICATION,
+        persistence_source=ThinkingPresentationSource.APPLICATION,
+    )
+    config = SimpleNamespace(
+        selected_model="main.qwen3-4b-q4-k-m",
+        profile_key="mac.local",
+        generation=GenerationParameters(max_new_tokens=2048),
+        response=SimpleNamespace(language=ResponseLanguage.JA),
+        presentation=presentation,
+        summarization=SummarizationConfig(),
+    )
+    application = cast(
+        Phase1Application,
+        SimpleNamespace(
+            service=FakeLoadedService(),
+            config=config,
+            presentation_service=object(),
+            close=lambda: None,
+        ),
+    )
+    monkeypatch.setattr(
+        web_application_module,
+        "build_phase1_application",
+        lambda **_kwargs: application,
+    )
+
+    runtime = build_phase1_web_runtime(
+        project_root=PROJECT_ROOT,
+        profile_path=None,
+        registry_path=PROJECT_ROOT / "config/models/qwen3_4b_q4_k_m.toml",
+    )
+
+    assert runtime.guardrail_governance_composition is None
+    assert runtime.conversation._guardrail_pre_hook is None
+    assert runtime.conversation._guardrail_post_hook is None
+    assert runtime.conversation._guardrail_stream_guard_factory is None
+    runtime.close()
 
 
 def test_linux_local_profile_does_not_bind_mac_documentation_adapter(

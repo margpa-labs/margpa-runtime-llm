@@ -2,9 +2,9 @@
 
 ```yaml
 document_id: phase_3_index
-status: ready_not_started
+status: complete_accepted_closed
 phase: phase_3
-active_subphase: phase_3_0_ready
+active_subphase: phase_3_h_closed
 language: ja
 created_at: 2026-08-21 02:05:30 JST
 owner_role: プロジェクト責任者兼設計統括者役
@@ -16,22 +16,24 @@ implementation_authorized: false
 automation_control_state: OFF
 governance_runtime_default: off
 git_mutation_authorized: false
+implementation_complete: true
+closed_at: 2026-08-21 23:20:56 JST
 ```
 
 ## 1. Current Decision
 
-Phase 3の設計、工程分割、AcceptanceおよびClaude Code向け開始前HandoffをAccepted／Frozenとし、開始可能な`READY`状態まで整備した。
+Phase 3-0～3-Gの実装、Claude側自己Review、Codex独立Review、Exact ReworkおよびGovernance Correctionを完了し、Phase 3-H最小Closureにより`COMPLETE／ACCEPTED／CLOSED`とした。
 
-これはPhase 3実装の開始、Automationの有効化、Claude Codeへの送信、Git操作、既存Phaseの完了、Phase 3の完了またはPhase 4への移行を意味しない。
+本ClosureはGit操作、Phase 4実装開始、Automation再有効化またはModel／External操作を意味しない。次状態はPhase 4 Design Freeze後の`READY_FOR_BACKUP`である。
 
 ```text
-Phase 2                 : COMPLETE／ACCEPTED
+Phase 2                 : COMPLETE／ACCEPTED／CLOSED
 Phase 3 Design          : ACCEPTED／FROZEN
-Phase 3 Entry           : READY／NOT ARMED
-Phase 3 Implementation  : NOT STARTED
-Claude Long-running Mode: OFF／USER ACTIVATION REQUIRED
+Phase 3 Implementation  : COMPLETE／ACCEPTED
+Phase 3 Final Closure   : COMPLETE／CLOSED
+Claude Long-running Mode: OFF／STOPPED AT COMPLETE_CANDIDATE
 Governance Runtime Mode : initial default = off
-Final Closure           : Codex／User専用Gate
+Phase 4 Implementation  : NOT AUTHORIZED
 ```
 
 ## 2. Goal
@@ -142,11 +144,20 @@ enforce request in Phase 3 : unsupported／state mutation 0／no silent downgrad
 ## 9. Current Stop Point
 
 ```text
-Current Point        : Phase 3 READY／NOT STARTED
-Current Blocker      : NONE FOR READY STATE
-Controller-owned Work: Start時Preflight／Exact Activation Receipt
-User Action Required : Phase 3実装開始の別途明示
-Next Safe Transition : READY → Preflight → ARMED → User Start → ON
+Current Point        : Phase 3 COMPLETE／ACCEPTED／CLOSED
+Current Blocker      : NONE
+Controller-owned Work: Phase 4 As-built Reconciliation／Exact Freeze
+User Action Required : Phase 4 READY_FOR_BACKUP後のBackup報告
+Next Safe Transition : Phase 4 READY_FOR_BACKUP → Backup → ARMED → User Start
 ```
 
-Phase 2完了時点のUser Backupは取得済みと報告されている。Phase 3の実装、Claude側Long-running Mode、Automation、GitまたはExternal Actionはまだ許可されていない。`READY`は開始を意味しない。
+Phase 3のClaude実行は停止済みであり、Automation、Git、Phase 4実装またはExternal Actionは許可されていない。
+
+## 10. Final Closure／Recovery
+
+- [Phase 3 Minimal Final Closure](history/operations/phase_3_minimal_final_closure_ja_20260821232056.md)
+- [Claude Fifth Governance Correction Candidate](handoffs/phase_3_claude_fifth_governance_correction_complete_candidate_handoff_ja.md)
+- [P3-GOV-005 Correction Evidence](history/index/phase_3_gov005_test_temp_boundary_and_evidence_class_correction_ja_20260821231139.md)
+- [Phase 4 As-built Reconciliation](../phase_4/history/operations/phase_4_as_built_reconciliation_ja_20260821232056.md)
+
+Lightning横断AcceptanceはPhase 4-Hまたはユーザーが指定する別Deployment Gateへ正式再延期した。新規User Mac Manual Matrixは本最小Closureでは実施せず、既存real-browser／自動検証、Codex ReviewおよびユーザーClosure判断を採用した。

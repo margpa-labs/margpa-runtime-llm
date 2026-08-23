@@ -143,6 +143,7 @@ class PersistentTurnResponse(_PersistentContract):
     request_id: str | None = None
     started_at: datetime
     finished_at: datetime | None = None
+    failure_reason_code: str | None = None
     messages: tuple[PersistentMessageResponse, ...]
     citations: PersistentTurnCitationsResponse | None = None
 
@@ -256,6 +257,7 @@ def project_persistent_detail(
                 request_id=turn.request_id,
                 started_at=turn.started_at,
                 finished_at=turn.finished_at,
+                failure_reason_code=turn.failure_reason_code,
                 messages=tuple(messages_by_turn.get(turn.turn_id.value, ())),
                 citations=_project_turn_citations(
                     None if citations_by_turn is None else citations_by_turn.get(turn.turn_id.value)

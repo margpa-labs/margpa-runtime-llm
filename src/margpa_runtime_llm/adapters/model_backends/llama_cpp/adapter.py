@@ -15,6 +15,7 @@ from uuid import uuid4
 from llama_cpp import Llama, llama_cpp
 
 from margpa_runtime_llm.modules.inference.contracts.generation import (
+    FinishReason,
     GenerationRequest,
     GenerationResult,
     GenerationStream,
@@ -29,6 +30,7 @@ from margpa_runtime_llm.modules.inference.contracts.runtime import (
     ModelLoadConfig,
     ModelRuntimeInfo,
 )
+from margpa_runtime_llm.modules.inference.domain.cancellation import CancellationToken
 from margpa_runtime_llm.modules.inference.domain.capabilities import (
     MODEL_REQUIRED_CAPABILITIES,
     CapabilityFeature,
@@ -192,7 +194,12 @@ class LlamaCppModelAdapter:
             )
         return runtime_info.effective_capabilities
 
-    def generate(self, request: GenerationRequest) -> GenerationResult:
+    def generate(
+        self,
+        request: GenerationRequest,
+        *,
+        cancellation: CancellationToken | None = None,
+    ) -> GenerationResult:
         model, chat_template, runtime_info = self._begin_generation(request)
         started = time.perf_counter()
         try:
@@ -201,6 +208,7 @@ class LlamaCppModelAdapter:
                 request.messages,
                 request.parameters,
                 stream=False,
+                cancellation=cancellation,
             )
             response = cast(dict[str, Any], raw_response)
             choices = response.get("choices")
@@ -222,6 +230,14 @@ class LlamaCppModelAdapter:
                     model_key=request.model_key,
                 )
             finish_reason, backend_finish_reason = map_finish_reason(choice.get("finish_reason"))
+            if cancellation is not None and cancellation.is_cancelled():
+                # P6-CODEX-019: a Main-priority preemption stops the token
+                # loop via `stopping_criteria`, which llama.cpp itself
+                # reports as an ordinary "stop" — only the caller-held
+                # Cancellation Token can distinguish "stopped because the
+                # caller wants to actually stop" from a genuine content
+                # stop. Never conflated with a real completed answer.
+                finish_reason = FinishReason.CANCELLED
             usage = parse_token_usage(response)
             total_seconds = time.perf_counter() - started
             tokens_per_second = (
@@ -521,8 +537,19 @@ class LlamaCppModelAdapter:
             native_context_limit=definition.model.native_context_limit,
             loaded_context_size=model.n_ctx(),
             max_concurrent_generations=1,
+            # P5-CODEX-006 Rework (Codex Third Independent Review):
+            # `TOOL` added so Retrieved/Untrusted RAG Reference content
+            # can be spliced in under a genuinely distinct Role from
+            # both `SYSTEM` (a real Instruction) and `USER` (a real
+            # human turn) — see `ConversationGenerationService.
+            # _inject_documentation_reference()`. `_prepare()` in
+            # `chat_template.py` has no Role-specific branching of its
+            # own; every `ChatMessage` (including `TOOL`) is dumped
+            # generically and handed to the GGUF's own embedded Jinja
+            # Chat Template, which is what actually decides how each
+            # Role renders.
             supported_message_roles=frozenset(
-                {MessageRole.SYSTEM, MessageRole.USER, MessageRole.ASSISTANT}
+                {MessageRole.SYSTEM, MessageRole.USER, MessageRole.ASSISTANT, MessageRole.TOOL}
             ),
         )
         return ModelRuntimeInfo(

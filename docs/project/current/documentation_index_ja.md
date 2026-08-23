@@ -5,9 +5,9 @@ document_id: current_documentation_index
 status: current
 language: ja
 created_at: 2026-07-26 15:16:24 JST
-updated_at: 2026-08-21 03:10:52 JST
+updated_at: 2026-08-22 21:13:08 JST
 owner: プロジェクト責任者兼設計統括者役
-active_phase: phase_3_ready_not_started
+active_phase: phase_6_ready_for_backup_not_armed
 rag_default: true
 ```
 
@@ -34,7 +34,10 @@ Phase 2-A～2-D            : COMPLETE／USER ACCEPTED
 Phase 2-E Technical Work : COMPLETE／USER ACCEPTED
 Phase 2-E Cross-provider : TECHNICAL・HANDOFF CHAIN SUCCESS／GOVERNANCE VIOLATION RECORDED
 Phase 2-F Final Gate      : COMPLETE／FINAL INSPECTION PASS／LIGHTNING DEFERRED TO PHASE 3
-Phase 3                  : READY／DESIGN ACCEPTED・FROZEN／NOT STARTED
+Phase 3                  : COMPLETE／ACCEPTED／CLOSED
+Phase 4                  : COMPLETE／ACCEPTED／CLOSED
+Phase 5                  : COMPLETE／ACCEPTED／CLOSED／MAC ACCEPTANCE PASS
+Phase 6                  : DESIGN ACCEPTED／FROZEN／READY_FOR_BACKUP／NOT ARMED
 Combined Control Role     : ACTIVE／PROJECT RESPONSIBILITY AND DESIGN GOVERNANCE COMBINED
 Automation Profile       : BOUNDED UNIT／VALIDATED／NO PROMOTION
 Large Backup              : USER REPORTED COMPLETE／PRIVATE ASSET OUTSIDE AI GATE
@@ -43,7 +46,7 @@ Provider Capability       : TASK MANAGEMENT／BOUNDED READ／ONE CREATE PASS
 Pilot Result              : WU-002 ACCEPTED／WU-003 ADJUST REQUIRED／WU-004 ACCEPTED
 Restart Dual Consent      : COMPLETED FOR WU-004／WORK UNIT CLOSED
 Multi-provider Use        : PHASE 2-E BOUNDED EXPERIMENT EXECUTED／NO GENERAL PROMOTION
-Automation Control State : OFF／PHASE 3 READY・NOT STARTED
+Automation Control State : OFF／PHASE 6 BACKUP PENDING
 Permission Hardening     : UNDECIDED／NOT AUTHORIZED
 Mechanical Enforcement  : RESEARCH CANDIDATES／NOT IMPLEMENTED
 ```
@@ -57,7 +60,27 @@ Mechanical Enforcement  : RESEARCH CANDIDATES／NOT IMPLEMENTED
 - [Runtime Governance仕様書](governance/runtime_governance_specification_ja.md)
 - [Project Continuity Master](project_continuity/project_continuity_master_ja.md)
 
-## Active Phase — Phase 2
+## Active Phase — Phase 6 READY_FOR_BACKUP／Not Armed
+
+- [Phase 5 Index](../phases/phase_5/phase_index_ja.md)
+- [Phase 5 Final Independent Review](../phases/phase_5/handoffs/phase_5_codex_final_independent_review_acceptance_ja_20260822195345.md)
+- [Phase 5 Mac Manual Acceptance](../phases/phase_5/history/operations/phase_5_mac_manual_acceptance_ja_20260822210119.md)
+- [Phase 5 Minimal Final Closure](../phases/phase_5/history/operations/phase_5_minimal_final_closure_ja_20260822210119.md)
+- [Phase 5／6 Recovery Index](../phases/phase_5/history/index/phase_5_final_closure_and_phase_6_design_recovery_ja_20260822210119.md)
+- [Phase 6 Index](../phases/phase_6/phase_index_ja.md)
+- [Phase 6 Requirements](../phases/phase_6/requirements/phase_6_requirements_ja.md)
+- [Phase 6 Architecture](../phases/phase_6/architecture/phase_6_architecture_ja.md)
+- [Phase 6 ADR](../phases/phase_6/adr/phase_6_adr_ja.md)
+- [Phase 6 Execution Plan](../phases/phase_6/operations/phase_6_execution_plan_ja.md)
+- [Phase 6 Acceptance Matrix](../phases/phase_6/operations/phase_6_acceptance_matrix_ja.md)
+- [Phase 6 Claude Handoff](../phases/phase_6/handoffs/phase_6_claude_execution_handoff_ja.md)
+- [Phase 6 Controller Design Review](../phases/phase_6/history/operations/phase_6_controller_design_review_ja_20260822211308.md)
+- [Phase 6 Exact Design Freeze](../phases/phase_6/history/operations/phase_6_exact_design_freeze_ja_20260822211308.md)
+- [Phase 6 READY_FOR_BACKUP Receipt](../phases/phase_6/history/operations/phase_6_ready_for_backup_receipt_ja_20260822211308.md)
+
+Phase 5はClaude実装、Codex独立Review／Exact Rework、User Mac Manual AcceptanceおよびMinimal Closureを経て`COMPLETE／ACCEPTED／CLOSED`となった。Phase 6統合Design PackageはController Review後に`ACCEPTED／FROZEN／READY_FOR_BACKUP`となったが、`ARMED`または実装許可ではない。次はUser Backupであり、その後にResolved Model Root Authority、Activation Preflight、Controller `ARMED`および後続User Startを必要とする。
+
+## Completed Phase Reference — Phase 2
 
 - [Phase 2 Index](../phases/phase_2/phase_index_ja.md)
 - [Phase 2-0 Pilot Requirements](../phases/phase_2/requirements/phase_2_0_automation_pilot_requirements_ja.md)
@@ -97,7 +120,7 @@ Mechanical Enforcement  : RESEARCH CANDIDATES／NOT IMPLEMENTED
 
 初回有界PilotはTask Lifecycleと停止境界がSafety Pass、Docs-only RecoveryがFailとなった。その後、共通Role／Docs Authority、Role-local Judgment、Tiered Escalation、Authorization Envelope投影およびTask作成／Handoff／Status Authority分離を再設計した。P2-0-WU-002でCold Recovery、P2-0-WU-004でCapability-semantics Documentation Createが合格し、Controller Review、User AcceptanceおよびP2-0 Final Acceptanceまで完了した。Phase 2-A～2-Dは実装とユーザーMac Acceptanceを完了した。
 
-Phase 2-EではRuntime Composition Switchboard Foundation、Documentation RAG Multi-turn Follow-upおよびPersistent Citation EvidenceをClaude Code側Role Chainで設計・実装し、Codex独立ReviewとClaude側Exact Reworkを接続した。Mac Manual AcceptanceとCodex Final Reviewを含めて`COMPLETE／USER ACCEPTED`である。Cross-provider実験は実装／Handoff／Review Chainに成功した一方、Provider MemoryへのAuthorized Root外書込みによって最上位規則に違反した。Provider固有Memoryは非正本・依存禁止とし、Repository内Index／Handoff／Evidenceだけを正本とする。Phase 2-Fは完了し、Phase 3は`READY／NOT STARTED／AUTOMATION OFF`である。
+Phase 2-EではRuntime Composition Switchboard Foundation、Documentation RAG Multi-turn Follow-upおよびPersistent Citation EvidenceをClaude Code側Role Chainで設計・実装し、Codex独立ReviewとClaude側Exact Reworkを接続した。Mac Manual AcceptanceとCodex Final Reviewを含めて`COMPLETE／USER ACCEPTED`である。Cross-provider実験は実装／Handoff／Review Chainに成功した一方、Provider MemoryへのAuthorized Root外書込みによって最上位規則に違反した。Provider固有Memoryは非正本・依存禁止とし、Repository内Index／Handoff／Evidenceだけを正本とする。本段落のPhase 3 `READY／NOT STARTED`はPhase 2-F Closure時点のHistorical Successor Stateであり、Current Stateは本書冒頭のActive Phase表記を正とする。
 
 ## Phase 2 Final Closure／Phase 3 READY
 

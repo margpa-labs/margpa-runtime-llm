@@ -30,11 +30,26 @@ LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_2 = "sqlite-2"
 MigrationTransform = Callable[[Path], None]
 MigrationValidator = Callable[[Path], int]
 _ARTIFACT_DOMAIN = b"margpa-conversation-migration-artifact-v1\0"
+_TRANSIENT_ARTIFACT_KEY_HEX_LENGTH = 32
 
 
 def _artifact_key(kind: str, identity: str) -> str:
     payload = _ARTIFACT_DOMAIN + kind.encode("ascii") + b"\0" + identity.encode("utf-8")
     return hashlib.sha512(payload).hexdigest()
+
+
+def _transient_artifact_name(kind: str, identity: str, suffix: str) -> str:
+    """Return a bounded same-directory name for atomic SQLite cutover artifacts.
+
+    Checkpoints and markers retain the complete SHA-512 key. Transient files must live
+    beside the active database for atomic ``os.replace``; using the complete key there
+    can exceed SQLite's pathname limit when the authorized project root is already long.
+    A domain-separated 128-bit prefix keeps the local collision bound negligible while
+    leaving enough pathname budget for deeply scoped conversation stores.
+    """
+
+    key = _artifact_key(kind, identity)[:_TRANSIENT_ARTIFACT_KEY_HEX_LENGTH]
+    return f".margpa-{kind}-{key}.{suffix}"
 
 
 @dataclass(frozen=True, slots=True)
@@ -119,7 +134,7 @@ class SQLiteMigrationEngine:
         checkpoint = self._checkpoints / f"{_artifact_key('checkpoint', checkpoint_id)}.sqlite3"
         marker = self._markers / f"{_artifact_key('marker', migration_id)}.json"
         staging = self._active.with_name(
-            f".{self._active.name}.{_artifact_key('staging', migration_id)}.staging"
+            _transient_artifact_name("staging", migration_id, "staging")
         )
         self._validate_artifact_path(checkpoint)
         self._validate_artifact_path(marker)
@@ -223,7 +238,7 @@ class SQLiteMigrationEngine:
                 safe_message="The migrated store cannot be rolled back automatically.",
             )
         restore = self._active.with_name(
-            f".{self._active.name}.{_artifact_key('restore', receipt.migration_id)}.rollback"
+            _transient_artifact_name("restore", receipt.migration_id, "rollback")
         )
         self._validate_artifact_path(restore)
         if restore.exists():
@@ -376,7 +391,7 @@ class SQLiteMigrationEngine:
     def _restore_checkpoint_after_failure(self, checkpoint: Path, migration_id: str) -> None:
         self._validate_artifact_path(checkpoint)
         restore = self._active.with_name(
-            f".{self._active.name}.{_artifact_key('failure-restore', migration_id)}.rollback"
+            _transient_artifact_name("failure-restore", migration_id, "rollback")
         )
         self._validate_artifact_path(restore)
         if restore.exists():

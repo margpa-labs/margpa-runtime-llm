@@ -672,7 +672,12 @@ h1 {
   font-size: 0.86rem;
 }
 
-.configuration-toggle button[aria-pressed="true"] {
+/* P4-CODEX-012-A: the Mode buttons in GovernancePanel/RuntimeGovernancePanel
+   use role="radio" + aria-checked (never aria-pressed) to express selection
+   — this selector must cover both, so a Radio's selected state is visually
+   distinguishable exactly like an aria-pressed Toggle's already is. */
+.configuration-toggle button[aria-pressed="true"],
+.configuration-toggle button[aria-checked="true"] {
   background: var(--accent-strong);
 }
 
@@ -781,6 +786,17 @@ h1 {
 
 .message-incomplete {
   border: 1px dashed var(--border-strong);
+}
+
+.message-judge-badge {
+  margin: 4px 0 0;
+  font-size: 0.8em;
+  opacity: 0.75;
+}
+
+.message-judge-badge-degraded {
+  color: var(--error-border, #b00020);
+  opacity: 1;
 }
 
 .message-thinking {

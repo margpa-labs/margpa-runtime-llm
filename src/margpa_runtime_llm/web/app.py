@@ -14,6 +14,9 @@ from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import Response
 
+from margpa_runtime_llm.modules.audit_evidence.generation_observation import (
+    GenerationObserverPort,
+)
 from margpa_runtime_llm.modules.configuration_control import ConfigurationControlError
 from margpa_runtime_llm.modules.conversation.application import PersistentConversationError
 from margpa_runtime_llm.modules.conversation.domain import (
@@ -26,6 +29,15 @@ from margpa_runtime_llm.modules.conversation.public import (
     ConversationGenerationSession,
 )
 from margpa_runtime_llm.modules.inference.domain.errors import InferenceError
+from margpa_runtime_llm.modules.runtime_model_control.domain.errors import (
+    RuntimeModelBusyError,
+    RuntimeModelContextLimitExceeded,
+    RuntimeModelLoadFailure,
+    RuntimeModelMaxNewTokensExceeded,
+    RuntimeModelRevisionConflict,
+    RuntimeModelRollbackFailure,
+    RuntimeModelTargetNotRegistered,
+)
 
 from .access_profiles import (
     DisabledPublicControlPolicy,
@@ -41,6 +53,14 @@ from .configuration_routes import (
 )
 from .contracts import StopGenerationRequest, WebRuntime
 from .error_mapping import http_status_for_inference_error
+from .feature_modes_routes import create_feature_modes_router
+from .generation_observation import GenerationObservationTracker
+from .governance_routes import (
+    GovernanceWebError,
+    create_governance_router,
+    governance_error_response,
+)
+from .guardrail_governance_routes import create_guardrail_governance_router
 from .persistent_routes import (
     PersistentWebError,
     create_persistent_router,
@@ -50,6 +70,13 @@ from .runtime_composition_routes import (
     RuntimeCompositionWebError,
     create_runtime_composition_router,
     runtime_composition_error_response,
+)
+from .runtime_governance_routes import create_runtime_governance_router
+from .runtime_model_control_routes import (
+    RuntimeModelControlWebError,
+    create_runtime_model_control_router,
+    runtime_model_control_error_response,
+    runtime_model_control_web_error_response,
 )
 from .streaming import stream_session_as_sse
 
@@ -62,6 +89,24 @@ CONFIGURATION_BOOTSTRAP_DISABLED = (
 )
 CONFIGURATION_BOOTSTRAP_ENABLED = (
     '<script id="configuration-bootstrap" type="application/json">{"enabled":true}</script>'
+)
+GOVERNANCE_BOOTSTRAP_DISABLED = (
+    '<script id="governance-bootstrap" type="application/json">{"enabled":false}</script>'
+)
+GOVERNANCE_BOOTSTRAP_ENABLED = (
+    '<script id="governance-bootstrap" type="application/json">{"enabled":true}</script>'
+)
+RUNTIME_GOVERNANCE_BOOTSTRAP_DISABLED = (
+    '<script id="runtime-governance-bootstrap" type="application/json">{"enabled":false}</script>'
+)
+RUNTIME_GOVERNANCE_BOOTSTRAP_ENABLED = (
+    '<script id="runtime-governance-bootstrap" type="application/json">{"enabled":true}</script>'
+)
+GUARDRAIL_BOOTSTRAP_DISABLED = (
+    '<script id="guardrail-bootstrap" type="application/json">{"enabled":false}</script>'
+)
+GUARDRAIL_BOOTSTRAP_ENABLED = (
+    '<script id="guardrail-bootstrap" type="application/json">{"enabled":true}</script>'
 )
 SHUTDOWN_FAILURE_MESSAGE = "The web runtime could not shut down cleanly."
 RuntimeFactory = Callable[[], WebRuntime]
@@ -106,6 +151,52 @@ def create_web_app(
                 raise RuntimeError(
                     "Configuration control requires local loopback access."
                 ) from None
+        if runtime.runtime_governance_composition is not None and (
+            access_policy.exposure_mode is not WebExposureMode.LOCAL
+            or access_policy.mode is not WebAuthMode.DISABLED
+            or access_policy.non_loopback_allowed
+        ):
+            try:
+                await asyncio.to_thread(runtime.close)
+            finally:
+                raise RuntimeError(
+                    "Runtime governance control requires local loopback access."
+                ) from None
+        if runtime.guardrail_governance_composition is not None and (
+            access_policy.exposure_mode is not WebExposureMode.LOCAL
+            or access_policy.mode is not WebAuthMode.DISABLED
+            or access_policy.non_loopback_allowed
+        ):
+            try:
+                await asyncio.to_thread(runtime.close)
+            finally:
+                raise RuntimeError(
+                    "Guardrail governance control requires local loopback access."
+                ) from None
+        if runtime.runtime_model_control is not None and (
+            access_policy.exposure_mode is not WebExposureMode.LOCAL
+            or access_policy.mode is not WebAuthMode.DISABLED
+            or access_policy.non_loopback_allowed
+        ):
+            try:
+                await asyncio.to_thread(runtime.close)
+            finally:
+                raise RuntimeError(
+                    "Runtime model control requires local loopback access."
+                ) from None
+        if (
+            runtime.judge_mode_control is not None
+            or runtime.repair_mode_control is not None
+            or runtime.recording_mode_control is not None
+        ) and (
+            access_policy.exposure_mode is not WebExposureMode.LOCAL
+            or access_policy.mode is not WebAuthMode.DISABLED
+            or access_policy.non_loopback_allowed
+        ):
+            try:
+                await asyncio.to_thread(runtime.close)
+            finally:
+                raise RuntimeError("Feature mode control requires local loopback access.") from None
         app.state.runtime = runtime
         try:
             yield
@@ -207,6 +298,36 @@ def create_web_app(
         del request
         return configuration_error_response(exc)
 
+    @app.exception_handler(RuntimeModelControlWebError)
+    async def runtime_model_control_web_error(
+        request: Request,
+        exc: RuntimeModelControlWebError,
+    ) -> JSONResponse:
+        del request
+        return runtime_model_control_web_error_response(exc)
+
+    @app.exception_handler(RuntimeModelRevisionConflict)
+    @app.exception_handler(RuntimeModelContextLimitExceeded)
+    @app.exception_handler(RuntimeModelMaxNewTokensExceeded)
+    @app.exception_handler(RuntimeModelBusyError)
+    @app.exception_handler(RuntimeModelLoadFailure)
+    @app.exception_handler(RuntimeModelRollbackFailure)
+    @app.exception_handler(RuntimeModelTargetNotRegistered)
+    async def runtime_model_control_domain_error(
+        request: Request,
+        exc: (
+            RuntimeModelRevisionConflict
+            | RuntimeModelContextLimitExceeded
+            | RuntimeModelMaxNewTokensExceeded
+            | RuntimeModelBusyError
+            | RuntimeModelLoadFailure
+            | RuntimeModelRollbackFailure
+            | RuntimeModelTargetNotRegistered
+        ),
+    ) -> JSONResponse:
+        del request
+        return runtime_model_control_error_response(exc)
+
     @app.exception_handler(RuntimeCompositionWebError)
     async def runtime_composition_web_error(
         request: Request,
@@ -214,6 +335,14 @@ def create_web_app(
     ) -> JSONResponse:
         del request
         return runtime_composition_error_response(exc)
+
+    @app.exception_handler(GovernanceWebError)
+    async def governance_web_error(
+        request: Request,
+        exc: GovernanceWebError,
+    ) -> JSONResponse:
+        del request
+        return governance_error_response(exc)
 
     @app.exception_handler(PersistentWebError)
     async def persistent_web_error(
@@ -281,6 +410,28 @@ def create_web_app(
                 CONFIGURATION_BOOTSTRAP_DISABLED,
                 CONFIGURATION_BOOTSTRAP_ENABLED,
             )
+        governance_runtime = getattr(request.app.state, "governance_definitions_runtime", None)
+        if governance_runtime is not None:
+            if html.count(GOVERNANCE_BOOTSTRAP_DISABLED) != 1:
+                raise RuntimeError("The governance bootstrap marker is invalid.")
+            html = html.replace(
+                GOVERNANCE_BOOTSTRAP_DISABLED,
+                GOVERNANCE_BOOTSTRAP_ENABLED,
+            )
+        if _runtime(request).runtime_governance_composition is not None:
+            if html.count(RUNTIME_GOVERNANCE_BOOTSTRAP_DISABLED) != 1:
+                raise RuntimeError("The runtime governance bootstrap marker is invalid.")
+            html = html.replace(
+                RUNTIME_GOVERNANCE_BOOTSTRAP_DISABLED,
+                RUNTIME_GOVERNANCE_BOOTSTRAP_ENABLED,
+            )
+        if _runtime(request).guardrail_governance_composition is not None:
+            if html.count(GUARDRAIL_BOOTSTRAP_DISABLED) != 1:
+                raise RuntimeError("The guardrail bootstrap marker is invalid.")
+            html = html.replace(
+                GUARDRAIL_BOOTSTRAP_DISABLED,
+                GUARDRAIL_BOOTSTRAP_ENABLED,
+            )
         return HTMLResponse(html)
 
     @app.get("/api/v1/runtime")
@@ -301,11 +452,25 @@ def create_web_app(
         except BaseException:
             control_policy.after_generation()
             raise
+        observer: GenerationObserverPort | None = getattr(
+            request.app.state, "generation_observer", None
+        )
+        # Bind (or don't) exactly once, at generation start: this is what
+        # makes "off -> zero Governance Hook calls" literal, and what
+        # keeps a generation that started under `observe` completing its
+        # Start/Terminal pair even if Mode changes mid-stream, rather than
+        # re-checking Mode on every event (P3-CODEX-002).
+        observation_tracker = (
+            GenerationObservationTracker(observer, profile_key=runtime.snapshot.profile_key)
+            if observer is not None and observer.is_active()
+            else None
+        )
         return StreamingResponse(
             stream_session_with_control_policy(
                 request=request,
                 session=session,
                 control_policy=control_policy,
+                observation_tracker=observation_tracker,
             ),
             media_type="text/event-stream",
             headers={"X-Accel-Buffering": "no"},
@@ -328,6 +493,11 @@ def create_web_app(
     app.include_router(create_persistent_router())
     app.include_router(create_configuration_router())
     app.include_router(create_runtime_composition_router())
+    app.include_router(create_governance_router())
+    app.include_router(create_runtime_governance_router())
+    app.include_router(create_guardrail_governance_router())
+    app.include_router(create_runtime_model_control_router())
+    app.include_router(create_feature_modes_router())
 
     app.mount("/assets", StaticFiles(directory=STATIC_ROOT), name="assets")
     return app
@@ -338,9 +508,10 @@ async def stream_session_with_control_policy(
     request: Request,
     session: ConversationGenerationSession,
     control_policy: PublicControlPolicyPort,
+    observation_tracker: GenerationObservationTracker | None = None,
 ) -> AsyncIterator[str]:
     try:
-        async for chunk in stream_session_as_sse(request, session):
+        async for chunk in stream_session_as_sse(request, session, observation_tracker):
             if chunk.startswith("event:"):
                 control_policy.observe_generation()
             yield chunk

@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import hashlib
+import re
 import threading
 import time
 from collections.abc import AsyncGenerator, AsyncIterator, Callable, Iterator
@@ -21,6 +22,12 @@ from starlette.types import Message, Scope
 
 from margpa_runtime_llm.adapters.output_protocols.tagged_thinking import (
     TaggedThinkingOutputParser,
+)
+from margpa_runtime_llm.bootstrap.governance_definitions import (
+    build_governance_definitions_runtime,
+)
+from margpa_runtime_llm.modules.audit_evidence.generation_observation import (
+    GenerationObserverStatus,
 )
 from margpa_runtime_llm.modules.conversation.public import (
     ConversationGenerationInput,
@@ -227,6 +234,69 @@ class RecordingControlPolicy:
         self.calls.append("after_generation")
 
 
+class RecordingGenerationObserver:
+    def __init__(self) -> None:
+        self.started_calls: list[dict[str, object]] = []
+        self.terminal_calls: list[dict[str, object]] = []
+
+    def is_active(self) -> bool:
+        return True
+
+    def status(self) -> GenerationObserverStatus:
+        return GenerationObserverStatus()
+
+    def observe_generation_started(self, *, request_id: str, profile_key: str) -> None:
+        self.started_calls.append({"request_id": request_id, "profile_key": profile_key})
+
+    def observe_generation_terminal(self, **kwargs: object) -> None:
+        self.terminal_calls.append(dict(kwargs))
+
+
+class RaisingGenerationObserver:
+    def __init__(self) -> None:
+        self._degraded_calls = 0
+
+    def is_active(self) -> bool:
+        return True
+
+    def status(self) -> GenerationObserverStatus:
+        return GenerationObserverStatus(
+            degraded=self._degraded_calls > 0,
+            degraded_reason_code="evidence_write_failed" if self._degraded_calls > 0 else None,
+            degraded_event_count=self._degraded_calls,
+        )
+
+    def observe_generation_started(self, **kwargs: object) -> None:
+        self._degraded_calls += 1
+        raise RuntimeError("generation observer failure")
+
+    def observe_generation_terminal(self, **kwargs: object) -> None:
+        self._degraded_calls += 1
+        raise RuntimeError("generation observer failure")
+
+
+class InactiveSpyGenerationObserver:
+    """`is_active() -> False`: a P3-CODEX-002 Spy proving the Hook itself
+    is never called (not merely that it writes nothing) while Mode is
+    off — the caller must never even construct a Tracker."""
+
+    def __init__(self) -> None:
+        self.started_calls: list[dict[str, object]] = []
+        self.terminal_calls: list[dict[str, object]] = []
+
+    def is_active(self) -> bool:
+        return False
+
+    def status(self) -> GenerationObserverStatus:
+        return GenerationObserverStatus()
+
+    def observe_generation_started(self, **kwargs: object) -> None:
+        self.started_calls.append(dict(kwargs))
+
+    def observe_generation_terminal(self, **kwargs: object) -> None:
+        self.terminal_calls.append(dict(kwargs))
+
+
 class FakeDocumentationRag:
     def __init__(
         self,
@@ -421,6 +491,13 @@ def request_payload(
             "documentation_rag_mode": documentation_rag_mode,
         },
     }
+
+
+def normalize_request_ids(text: str) -> str:
+    """Blank out the per-call random `request_id` so two independently
+    generated SSE streams can be compared shape-for-shape."""
+
+    return re.sub(r'"request_id":\s*"[^"]*"', '"request_id":"<id>"', text)
 
 
 @pytest.mark.asyncio
@@ -659,6 +736,109 @@ async def test_control_policy_finalizes_cancelled_and_error_generation_once(
 
 
 @pytest.mark.asyncio
+async def test_generation_observer_records_start_and_terminal_without_altering_the_stream() -> None:
+    observer = RecordingGenerationObserver()
+    app = create_web_app(
+        runtime_factory=lambda: build_runtime(FakeInference(), []),
+        access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+    )
+    app.state.generation_observer = observer
+
+    bare_app = create_web_app(
+        runtime_factory=lambda: build_runtime(FakeInference(), []),
+        access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+    )
+
+    async with client_for(app) as client:
+        observed = await client.post("/api/v1/chat/stream", json=request_payload())
+    async with client_for(bare_app) as client:
+        bare = await client.post("/api/v1/chat/stream", json=request_payload())
+
+    assert observed.status_code == 200
+    assert normalize_request_ids(observed.text) == normalize_request_ids(bare.text)
+    assert len(observer.started_calls) == 1
+    assert observer.started_calls[0]["profile_key"] == "local.macos-arm64.metal"
+    assert len(observer.terminal_calls) == 1
+    assert observer.terminal_calls[0]["stop_reason"] == "stop"
+    assert observer.terminal_calls[0]["error_count"] == 0
+
+
+@pytest.mark.asyncio
+async def test_an_inactive_generation_observer_receives_zero_calls_not_just_zero_writes() -> None:
+    observer = InactiveSpyGenerationObserver()
+    app = create_web_app(
+        runtime_factory=lambda: build_runtime(FakeInference(), []),
+        access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+    )
+    app.state.generation_observer = observer
+
+    async with client_for(app) as client:
+        response = await client.post("/api/v1/chat/stream", json=request_payload())
+
+    assert response.status_code == 200
+    assert "event: completed" in response.text
+    assert observer.started_calls == []
+    assert observer.terminal_calls == []
+
+
+@pytest.mark.asyncio
+async def test_a_raising_generation_observer_never_alters_the_sse_stream() -> None:
+    app = create_web_app(
+        runtime_factory=lambda: build_runtime(FakeInference(), []),
+        access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+    )
+    app.state.generation_observer = RaisingGenerationObserver()
+
+    bare_app = create_web_app(
+        runtime_factory=lambda: build_runtime(FakeInference(), []),
+        access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+    )
+
+    async with client_for(app) as client:
+        observed = await client.post("/api/v1/chat/stream", json=request_payload())
+    async with client_for(bare_app) as client:
+        bare = await client.post("/api/v1/chat/stream", json=request_payload())
+
+    assert observed.status_code == 200
+    assert normalize_request_ids(observed.text) == normalize_request_ids(bare.text)
+
+
+@pytest.mark.asyncio
+async def test_evidence_write_failure_leaves_generation_ok_but_degrades_status() -> None:
+    observer = RaisingGenerationObserver()
+    app = create_web_app(
+        runtime_factory=lambda: build_runtime(FakeInference(), []),
+        access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+    )
+    app.state.generation_observer = observer
+    app.state.governance_definitions_runtime = build_governance_definitions_runtime(
+        definitions_root=None
+    )
+
+    async with client_for(app) as client:
+        pre_failure_status = await client.get("/api/v3/governance/runtime")
+        generation = await client.post("/api/v1/chat/stream", json=request_payload())
+        post_failure_status = await client.get("/api/v3/governance/runtime")
+
+    assert pre_failure_status.status_code == 200
+    assert pre_failure_status.json()["evidence"] == {
+        "degraded": False,
+        "degraded_reason_code": None,
+        "degraded_event_count": 0,
+    }
+
+    assert generation.status_code == 200
+    assert "event: completed" in generation.text
+    assert "event: error" not in generation.text
+
+    assert post_failure_status.status_code == 200
+    evidence = post_failure_status.json()["evidence"]
+    assert evidence["degraded"] is True
+    assert evidence["degraded_reason_code"] == "evidence_write_failed"
+    assert evidence["degraded_event_count"] == 2
+
+
+@pytest.mark.asyncio
 async def test_chat_sse_hides_thinking_and_returns_canonical_final_once() -> None:
     inference = FakeInference()
     app = create_web_app(
@@ -757,11 +937,14 @@ async def test_summary_sse_hides_original_then_presents_only_valid_summary() -> 
 
     assert response.status_code == 200
     assert response.text.count("event: start") == 1
-    assert response.text.count("event: status") == 1
+    # Three STATUS events per Turn now (P6-CODEX-012, Second Rework):
+    # "preparing" and "guarding" precede the Turn's own START event, and
+    # "summarizing_answer" (this test's original concern) still follows it.
+    assert response.text.count("event: status") == 3
     assert response.text.count("event: delta") == 1
     assert response.text.count("event: completed") == 1
-    assert response.text.index("event: start") < response.text.index("event: status")
-    assert response.text.index("event: status") < response.text.index("event: delta")
+    assert response.text.index("event: start") < response.text.index("summarizing_answer")
+    assert response.text.index("summarizing_answer") < response.text.index("event: delta")
     assert "Short summary" in response.text
     assert "Original answer" not in response.text
     assert "normal secret" not in response.text
@@ -981,7 +1164,10 @@ async def test_client_disconnect_requests_cooperative_cancel() -> None:
         )
     ]
 
-    assert any("event: start" in chunk for chunk in events)
+    # P6-CODEX-012 (Second Rework): the turn may be cooperatively cancelled
+    # before its own START event is reached (it now follows two leading
+    # STATUS markers) — any real event proves the turn genuinely began.
+    assert any("event: start" in chunk or "event: status" in chunk for chunk in events)
     assert inference.streams == []
     assert session.finished is True
     assert runtime.conversation.active_request_id is None
@@ -1064,6 +1250,12 @@ async def test_backpressured_consumer_close_releases_session_and_generation_gate
         AsyncGenerator[str, None],
         stream_session_as_sse(Request(scope, receive), session),
     )
+    # P6-CODEX-012 (Second Rework): drain the two new leading STATUS
+    # markers ("preparing", "guarding") before the Turn's own START event.
+    preparing_event = await anext(stream)
+    assert "preparing" in preparing_event
+    guarding_event = await anext(stream)
+    assert "guarding" in guarding_event
     first_event = await anext(stream)
     for _ in range(100):
         if first_stream.yielded_chunks > SSE_QUEUE_CAPACITY:
@@ -1136,7 +1328,16 @@ async def test_keepalive_during_silent_normal_or_buffered_summary_generation(
         AsyncGenerator[str, None],
         stream_session_as_sse(Request(scope, receive), session),
     )
+    # P6-CODEX-012 (Second Rework): every Turn now opens with two
+    # additional STATUS markers ("preparing", "guarding") before its own
+    # START event — drain those here so the keepalive check below still
+    # observes the first genuinely *blocked* gap, not one of these.
     chunks = [await anext(stream)]
+    assert "preparing" in chunks[-1]
+    chunks.append(await anext(stream))
+    assert "guarding" in chunks[-1]
+    chunks.append(await anext(stream))
+    assert "event: start" in chunks[-1]
     if summary_mode is SummaryMode.POST_GENERATION:
         chunks.append(await anext(stream))
         assert "event: status" in chunks[-1]
@@ -1200,6 +1401,10 @@ async def test_consumer_close_after_keepalive_cancels_native_iteration_on_produc
         AsyncGenerator[str, None],
         stream_session_as_sse(Request(scope, receive), session),
     )
+    # P6-CODEX-012 (Second Rework): drain the two new leading STATUS
+    # markers ("preparing", "guarding") before the Turn's own START event.
+    assert "preparing" in await anext(stream)
+    assert "guarding" in await anext(stream)
     first_event = await anext(stream)
     assert "event: start" in first_event
     assert await asyncio.to_thread(first_stream.next_entered.wait, 1.0)
@@ -1271,6 +1476,10 @@ async def test_cleanup_timeout_fails_without_cross_thread_native_cancel(
         AsyncGenerator[str, None],
         stream_session_as_sse(Request(scope, receive), session),
     )
+    # P6-CODEX-012 (Second Rework): drain the two new leading STATUS
+    # markers ("preparing", "guarding") before the Turn's own START event.
+    assert "preparing" in await anext(stream)
+    assert "guarding" in await anext(stream)
     assert "event: start" in await anext(stream)
     assert await asyncio.to_thread(first_stream.next_entered.wait, 1.0)
 

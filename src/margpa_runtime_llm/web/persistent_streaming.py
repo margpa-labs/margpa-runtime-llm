@@ -24,6 +24,8 @@ from margpa_runtime_llm.modules.conversation.domain import (
     ConversationTurnState,
 )
 
+from .generation_observation import GenerationObservationTracker
+
 PERSISTENT_SSE_QUEUE_CAPACITY = 32
 PERSISTENT_SSE_KEEPALIVE_SECONDS = 15.0
 PERSISTENT_DISCONNECT_POLL_SECONDS = 0.1
@@ -174,11 +176,13 @@ class PersistentSseBridge:
         service: PersistentConversationService,
         conversation_id: ConversationId,
         turn_id: ConversationTurnId,
+        observation_tracker: GenerationObservationTracker | None = None,
     ) -> None:
         self._events = cast(Generator[ConversationEvent, None, None], events)
         self._service = service
         self._conversation_id = conversation_id
         self._turn_id = turn_id
+        self._observation_tracker = observation_tracker
         self._queue: asyncio.Queue[PersistentQueueItem] = asyncio.Queue(
             maxsize=PERSISTENT_SSE_QUEUE_CAPACITY
         )
@@ -243,6 +247,8 @@ class PersistentSseBridge:
         ready = False
         try:
             for event in self._events:
+                if self._observation_tracker is not None:
+                    self._observation_tracker.observe(event)
                 projected = project_persistent_event(
                     service=self._service,
                     conversation_id=self._conversation_id,

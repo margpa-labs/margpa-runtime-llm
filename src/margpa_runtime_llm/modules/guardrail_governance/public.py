@@ -1,0 +1,57 @@
+"""Public re-export surface for `guardrail_governance` (Phase 5)."""
+
+from .application import GuardrailPointRuntime, IncrementalStreamGuard, StreamGuardDecision
+from .domain import (
+    ActionId,
+    ApprovalOutcome,
+    ApprovalState,
+    AuthorityDecision,
+    AuthorityOutcome,
+    DetectionOutcome,
+    ExecutedAction,
+    ExecutionState,
+    GuardDetection,
+    GuardrailResult,
+    NotExecutedReason,
+    PolicyApplicability,
+    PolicyDecision,
+    RecommendedAction,
+    Severity,
+)
+from .ports import (
+    ApprovalPort,
+    AuthorityProviderPort,
+    DetectorPort,
+    GuardActionAdapterPort,
+    PolicyProviderPort,
+    SafetyModelPort,
+    SafetyModelUnavailable,
+)
+
+__all__ = [
+    "ActionId",
+    "ApprovalOutcome",
+    "ApprovalPort",
+    "ApprovalState",
+    "AuthorityDecision",
+    "AuthorityOutcome",
+    "AuthorityProviderPort",
+    "DetectionOutcome",
+    "DetectorPort",
+    "ExecutedAction",
+    "ExecutionState",
+    "GuardActionAdapterPort",
+    "GuardDetection",
+    "GuardrailPointRuntime",
+    "GuardrailResult",
+    "IncrementalStreamGuard",
+    "NotExecutedReason",
+    "PolicyApplicability",
+    "PolicyDecision",
+    "PolicyProviderPort",
+    "RecommendedAction",
+    "SafetyModelPort",
+    "SafetyModelUnavailable",
+    "Severity",
+    "StreamGuardDecision",
+]

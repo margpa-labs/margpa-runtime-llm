@@ -5,7 +5,7 @@ document_type: public_roadmap
 document_state: current
 language: ja
 created_at: 2026-07-22
-updated_at: 2026-08-21 03:10:52 JST
+updated_at: 2026-08-23 23:24:03 JST
 public_author: Nazuna Research
 project: MARGPA Runtime LLM
 ```
@@ -140,9 +140,9 @@ FutureまたはPlannedと書かれた項目は、実装済みを意味しない�
 
 ---
 
-## 4. 現在地 — Phase 2 In Progress／Phase 2-E Technical Completion Candidate
+## 4. 現在地 — Phase 6 In Progress／User Mac AcceptanceでADJUST
 
-2026年8月15日時点の現在地は次のとおりである。
+2026年8月23日時点の現在地は次のとおりである。
 
 ```text
 Phase 0                               : Complete
@@ -198,17 +198,33 @@ Phase 2-E Final Acceptance            : Complete／User Accepted
 Phase 2-E Context Observatory Preview : Gauge／Popover／Basic Breakdown／Threshold Color Implemented
 Phase 2 UI Consolidation              : Current UI Work Complete／Responsive Correction Reserved
 Phase 2-F Routing                     : Complete／Phase Closed
-Phase 2 Lightning Follow-up           : Deferred to Phase 3／Non-blocking for Phase 2
+Phase 2 Lightning Follow-up           : Deferred to Phase 10以降／Non-blocking for Phase 2～9
 Phase 2 Manual Acceptance             : Checklist 1～7 Passed／Item 8 Deferred Non-blocking
 Phase 2 Latest Full Suite             : 697 Passed／3 Deselected／Frontend 101 Passed
 Phase 2 Final Git Boundary            : Phase 2 Closed＋Phase 3 READY／Pushed／Remote Aligned
-Phase 3 Design Package                : Accepted／Frozen／READY／33 Work Units
-Phase 3 Runtime State                 : Not Started／Automation OFF／Implementation Not Authorized
-Phase 3 Claude Execution Boundary     : 30 Work Units through COMPLETE_CANDIDATE／Final 3 Reserved for Codex and User
-High-performance Main Model Expansion : DeepSeek Candidate after Phase 3／Qwen Lightweight Baseline Retained
-AWS Deployment Foundation             : Reserved／Incremental Preparation after Phase 3 Candidate
+Phase 3 Design Package                : Accepted／Frozen／33 Work Units
+Phase 3 Runtime State                 : Complete／Accepted／Closed
+Phase 3 Claude Execution Boundary     : COMPLETE_CANDIDATE Returned／Codex Review and Rework Closed
+Phase 4 Runtime Governance            : Complete／Accepted／Closed／Mac Manual Acceptance Passed
+Phase 4 Structural／Semantic Boundary: Structural Enforce Accepted／Semantic Rules Deferred to Phase 6
+Phase 5 Guardrail Runtime             : Complete／Accepted／Closed／Mac Acceptance Passed
+Phase 6 Integrated Design             : Accepted／Frozen／Implementation Executed
+Phase 6 Automated Verification        : COMPLETE_CANDIDATE／Open Automated Major 0 at Candidate Return
+Phase 6 User Mac Acceptance           : ADJUST／Judge malformed_output／Repair Golden Path Failed
+Phase 6 Runtime Model Control         : Qwen Default／Qwen↔DeepSeek Switch／Restart Reset Passed
+Phase 6 Conversation Compatibility    : Two-tab Reload／Conversation／Citation／Branch Passed
+Phase 6 Context／Token Control         : Dynamic Apply Available／Additional Bug Reproduction Pending
+Phase 6 Closure                       : NOT ACCEPTED／Rework Deferred to Next Available Cycle
+High-performance Main Model Expansion : DeepSeek Mac Q4 Load Passed／Quality Acceptance Failed／Qwen Default Retained
+AWS Deployment Foundation             : Deferred to Phase 10以降／Phase 6～9から分離
 Optional English Documentation        : Formally Deferred／Non-blocking／History Excluded
 ```
+
+Phase 3、4、5は最小Closureにより`COMPLETE／ACCEPTED／CLOSED`となった。Phase 6はJudge、Repair、Recording、Runtime Model Control、Dynamic Context Size／Max New TokensおよびCurrent Component UIを実装候補まで進めた。User MacではQwen Default、Qwen→DeepSeek、再起動後Qwen復帰、二つのBrowser Tab、Conversation、CitationおよびBranch維持を確認した。
+
+一方、実ChatのLLM-as-a-Judgeは`malformed_output／unknown／failed`となり、Repair ENFORCEの有界Golden Pathは成立しなかった。Current Judge Identity表示、将来形のまま残ったUI説明、Context／Token ControlにもReworkが必要である。DeepSeek Mac Q4はLoad／Switch可能だが回答品質Acceptanceを満たさず、Research CandidateのままDefaultへ昇格しない。したがってPhase 6は完了ではなく`In Progress／ADJUST`であり、Phase 7は未開始である。
+
+以下のPhase 1／2詳細は成立過程のCurrent-to-date説明として保持する。最新の短い入口は[Roadmap要約版](roadmap_summary_ja.md)、技術判断は[技術選定](technology_selection_ja.md)を参照する。
 
 現在、MacではQwen3-4B GGUFを用いたCLIと最小Web Previewが動作する。Streaming、生成停止、一時的な複数Turn、回答言語切替、要約モード、UI日本語／英語切替、Thinking生成／表示分離、安全なCompletion MarkdownおよびMessage Copyを実装済みであり、Mac Web Manual Acceptanceも合格した。
 
@@ -635,7 +651,7 @@ PhaseごとのDocumentation統合は、要約や意訳ではなくLossless Compi
 
 ## 8. Phase 2 — Conversation Continuity and Experimental Control Surface
 
-**State: `Complete／Accepted — Phase 2-A～2-F Closed／Lightning Acceptance Deferred to Phase 3`**
+**State: `Complete／Accepted — Phase 2-A～2-F Closed／Lightning Acceptance Deferred to Phase 10以降`**
 
 Phase 1の一時的なWeb Previewを、継続利用と研究設定に耐えられるApplicationへ発展させる。
 
@@ -823,13 +839,13 @@ CodexからClaude CodeへTaskをHandoffする最初のMulti-provider構成をPha
 
 ## 9. Phase 3 — Audit, Evidence, and Generic Definition Infrastructure
 
-**State: `READY — Design Accepted／Frozen／Implementation Not Started／Automation OFF`**
+**State: `COMPLETE／ACCEPTED／CLOSED`**
 
 Runtimeを「動くSystem」から「何が起きたか検証できるSystem」へ進め、任意Governance Definitionを安全に受け入れる基盤を作る。
 
 Phase 2 Orchestration PilotがAcceptedされた場合、Phase 3ではAudit／Evidence実装と並行して、同じDocument-driven開発体制の再現性・移植性を検証する。Phase 2で成立した運用が異なるPhase要件、担当Task、ContextおよびEvidence対象でも維持できるかを確認し、成功、Incident、Near Miss、人間介入およびRuleの有効性を将来の統合憲法へ入力する。
 
-Phase 3のRequirements、Architecture、ADR、Governance、Definition Source Inventory、Execution Plan、Acceptance Matrix、Claude Execution HandoffおよびPhase IndexはAccepted／Frozenである。Phase 2-F Closure、ユーザーによる設計確認、Backup通知およびCodex `READY`は成立した。実装は未開始であり、開始時Preflight、Codex `ARMED`およびその後のユーザーの明示的開始を別Gateとして必要とする。Phase 2から延期されたLightning横断AcceptanceはPhase 3内で別途解決するが、Phase 3機能のLightning Deploymentを自動許可しない。
+Phase 3のRequirements、Architecture、ADR、Governance、Definition Source Inventory、Execution Plan、Acceptance Matrix、Claude Execution HandoffおよびPhase IndexはAccepted／Frozenされ、Phase 3-0～3-G実装、Claude側Review、Codex独立Review、Exact ReworkおよびGovernance Correctionを完了した。Phase 3-H最小Closureにより`COMPLETE／ACCEPTED／CLOSED`である。Phase 2から延期されたLightning横断AcceptanceはPhase 10以降のExternal Deployment／Cross-environment Refreshへ正式延期し、Phase 3～9機能のLightning反映を自動許可しない。
 
 ### Phase 3 Subphase Plan
 
@@ -900,7 +916,7 @@ ARGD、DAGD、CDOGDを含め、どのGDもRuntime Bootの必須Dependencyにし�
 
 - Context ObservatoryのGauge／基本内訳は実装済みだが、LLM自身のContext認識、Self-triggered CompactionおよびNative Recovery CycleはPhase 3へ混在させず、Agent Runtimeまたは後続Context研究へ送る。
 - Temporal Authorityを持つScheduler／Scheduled Autonomous Workflowは、Tool／Agent／Authority／Evidence基盤と合わせて後続Phaseで設計する。
-- AWS配置、高性能DeepSeek追加および本格Responsive再設計はPhase 3の実装変数へ加えず、Phase 3 Closure後の独立境界で扱う。
+- AWS配置およびLightning更新はPhase 10以降へ送り、Phase 3～9の実装変数へ加えない。高性能DeepSeekのLocal Candidateと本格Responsive再設計は、それぞれ独立した後続境界で扱う。
 
 ### Phase 3 Milestone
 
@@ -910,23 +926,26 @@ ARGD、DAGD、CDOGDを含め、どのGDもRuntime Bootの必須Dependencyにし�
 
 ## 10. Phase 4 — MARGPA Main Runtime Governance
 
-**State: `Planned／Core Research Priority`**
+**State: `Complete／Accepted／Closed`**
 
 Main Modelに最も近いGovernance Pointを実装し、MARGPA Runtime Governanceの最初の実証を行う。
 
-### Phase 4 Entry Candidate — Multi-Model／Cloud Backend Foundation
+Phase 4-0～4-GのClaude連結実行、Codex Independent Review／Exact Rework、User Mac AcceptanceおよびMinimal Closureを完了した。Phase 3のDefinition／IR／Unbound PlanをMain Model `pre／post`へBindingし、Standard Result、Deterministic Evaluation、Action Resolver、ARGD／DAGD Reference Adapter、OFF／OBSERVE／ENFORCE、Evidence／Status／UIを成立させた。
 
-Phase 3のDefinition／Compiler／Evidence成立後、Phase 4のMain Runtime Governanceへ入る前または最初の独立Subphaseとして、高性能Main ModelとCloud Backendの追加を候補とする。Phase 3の途中でModelとCloudを同時変更せず、Phase 3のFailure Cause、Definition ReadinessおよびAutomation Evaluationを混線させない。
+Mac Manual AcceptanceではMode再Open、OBSERVE非介入とObservation／Deviation／Deferred表示を確認した。Qwenの明白な意味的誤答に対し、意味Rule 109件は不実なPass／Deviationではなく`Deferred`として表示された。意味的Judge／RepairはPhase 6の責務であり、Phase 4 Closure Blockerではない。
+
+### Phase 4 Entry Candidate — Multi-Model／Backend Foundation
+
+Phase 3のDefinition／Compiler／Evidence成立後、Phase 4のMain Runtime Governanceへ入る前または最初の独立Subphaseとして、高性能Main Modelと交換可能Backend境界の追加を候補とした。Phase 3の途中でModelとBackendを同時変更せず、Phase 3のFailure Cause、Definition ReadinessおよびAutomation Evaluationを混線させない。
 
 - 高性能Main候補としてDeepSeek系を追加し、正確なModel名、Revision、提供形態およびBackendは実装時点のCapability、License、Cost、SecurityおよびAvailabilityを確認して固定する。
 - 現行Qwen3-4Bは削除せず、Mac／低資源環境向けの軽量ModelかつGovernance効果を比較するResearch Baselineとして保持する。
 - 最終的に複数Open Modelを自由に切り替えられる構造を目指し、Model、Backend、Artifact／API Model ID、Revision、Format、Quantization、Capability、Context Limit、Cost ProfileおよびDigestを分離する。
 - `Current Model`、`Candidate Model`および選択されたBackendを分離し、Candidateの追加だけでCurrentを黙って上書きしない。
 - 同一Input、Config、Definition、Mode、SeedおよびEvaluation Setで、Qwen／DeepSeek、Local／Cloud、Governance `off／observe／enforce`を比較可能にする。
-- AWSは小さなInfrastructureから段階的に構築する。Managed InferenceによるAdapter検証とOpen Weight Self-hostingは別Routeとし、AWS配置、Model Hosting、一般公開およびPersistent Storageを一つの決定へ結合しない。
-- AWSの一般公開準備では、初期DefaultをEphemeral Chatとし、Persistent Conversation／Citation DBを公開Surfaceへ自動Bindingしない。Cost上限、Secret、Network、Access、RegionおよびShutdown／Rollbackは実操作前に別途設計・承認する。
+- Cloud Backend、AWS Resource、Model Hosting、一般公開およびLightning更新はPhase 10以降へ延期する。Phase 4～9ではLocal Model／Artifact／Adapter／切替Contractを優先し、Cloud実環境をCompletion Dependencyにしない。
 
-この予約はPhase 3 Completion Gateの変更、DeepSeekの現在採用、AWS Resource作成、Model Download、課金承認または一般公開開始を意味しない。Phase 4設計時に既存Main Governanceの依存順と統合し、必要ならPhase 4-0等の独立Subphaseとして確定する。
+この予約はPhase 3 Completion Gateの変更、DeepSeekのCurrent昇格、Cloud Resource作成、課金承認または一般公開開始を意味しない。Local Model Artifactの事前選定／DownloadとCurrent Modelへの昇格は分離し、Cloud実装はPhase 10以降の独立Gateで確定する。
 
 ### Governance Control Plane
 
@@ -1100,9 +1119,15 @@ Multi-tab競合時の409 `model_busy`制御は成立している。Phase 4では
 
 ## 11. Phase 5 — Guardrail, Security, Policy, and Authority Governance
 
-**State: `Planned`**
+**State: `Complete／Accepted／Closed`**
 
 安全判定、Policy判断、権限判断をMain Governanceから分離し、専用Componentと専用Governance Pointとして構成する。
+
+Requirements、Architecture、ADR、Claude Governance、32 Work UnitのExecution Plan、Acceptance Matrix、Claude Execution HandoffおよびPhase IndexをExact Freezeした。Claude連結実行、Codex独立Review、Exact Rework、User Mac Manual AcceptanceおよびMinimal Closureを完了し、Phase 5は`COMPLETE／ACCEPTED／CLOSED`である。
+
+Mac実測では、Prompt Injection Markerに対してOBSERVEが`Match 1／Action 0`で非介入、ENFORCEが`Match 1／Action 1`でModel Call前停止した。Mode再Open、通常Chat、RAG／Citation SmokeおよびServer再起動もPASSした。意味的Hallucination／知ったかぶり／根拠なき断定のJudge／RepairはPhase 6、RAG再構成後の最終品質評価はPhase 7へ正式延期し、Phase 5 Completion Blockerにはしない。
+
+Phase 5はSafety Modelの存在を必須とせず、Deterministic GuardをBaselineとした。`guardrail.input／context_source／stream_candidate／output_candidate`、Detection／Policy／Authority／Approval／Action分離、Secret／PII非露出、Guardrail独立OFF／OBSERVE／ENFORCEを実装した。Phase 6 Judge／Repair、Safety Model Download／Load、AWS／LightningはPhase 5 Completion Scopeに含めなかった。
 
 ### Guardrail Component
 
@@ -1143,9 +1168,11 @@ Tool PermissionはModel判断を正本にせず、決定論的Policyと既存権
 
 ## 12. Phase 6 — Judge, Evaluation, Repair, and Observability
 
-**State: `Planned`**
+**State: `In Progress／User Mac Acceptance ADJUST／Rework Pending`**
 
 回答の評価、修復、状態表示を独立Componentとして追加し、Governanceの効果と失敗を測定可能にする。
+
+Phase 5 Closure後の統合Designとして、従来のJudge／Evaluation／Repair／Observabilityに加え、DeepSeek 8B Q4 Local Feasibility、Qwen既定維持、起動中Model Switch、Dynamic Context Size／Max New Tokens、Localized Safe Refusal、Request-correlated Status、Feedback／RecordingおよびCurrent Runtime Identity UIを同一Programへ構成した。実装と複数回のIndependent Review後、User MacではModel切替、再起動後Qwen復帰、Conversation／Citation／Branch維持を確認した一方、Judge Structured Outputが`malformed_output`となりRepair Golden Pathは成立しなかった。Phase 6は完了扱いにせず、重大箇所の差分Rework待ちとする。
 
 ### Judge／Evaluation
 
@@ -1430,6 +1457,39 @@ CDOGDは将来のCross-Domain Orchestration候補だが、必須ではない。
 
 これらは固定16個のClosed Systemではない。全く別の名前、分野、Schema、Providerが将来追加されることを前提とする。
 
+### Phase 9後半——Context Compaction／Recovery／Governance Trace Observatory
+
+Phase 9前半のExperiment Runtime、EvaluationおよびMulti-Governanceが成立した後、利用可能量と
+As-builtが許す範囲で、次の3機能群を累積Full Closure前の優先後半候補とする。
+
+1. Effective Context BudgetとPressure Stateに基づく自動Snapshot、Context圧縮、Atomic切替え、
+   Rollbackおよび原Turn／Artifactの選択的再読込。固定95%をそのまま閾値にせず、
+   Model Capacity、System／Governance／RAG／Tool予約、Max New Tokens、Working Reserveおよび
+   Safety Marginから設計する。
+2. Context表示の右側に「重要コンテキスト復旧・引き継ぎ書作成」と「任意手動圧縮」の
+   2 Icon Buttonを追加する。HandoffはStructured InstructionからLog表示、Copyおよび任意の
+   `.md` Downloadを提供し、Contextを変更しない。Manual Compactionは正確な確認Dialogと
+   実行前Snapshotを必須にする。
+3. Main Chatの右側に開閉可能なObservability Panelを追加し、User Input、RAG、PRE、Raw Model Candidate、
+   POST、Guardrail／Policy、Judge、Conflict Resolution、Action Resolver、Repair Attempt、
+   Final Presented ResponseおよびAuditを同一Identity Chainで表示する。
+
+自動Compactionおよび対応する研究機能のDefaultは`off`とする。OBSERVEは圧力または
+Governance判定を記録するがContext／Finalを変更せず、ENFORCEは定義されたGateと
+Snapshot／Budget／Authorityの範囲内だけで実Actionを行う。
+
+Governance TraceはAI Governance研究者向けとし、明示有効化時にはRuntimeが実際に観測した
+Raw Failure、拒否前Candidate、Hidden OriginalおよびLayer Evidenceを表示・保存可能にする。
+Visibility、PersistenceおよびRedactionは別契約とし、研究者は`full_raw／persistent／none`も
+明示選択できる。`Protected`はRawを隠す意味ではなく、Public／Basic、Git、外部送信への
+偶発露出を防ぐ境界とする。Runtimeが観測できないInternal Hidden Reasoningを捗造しない。
+
+Original Chatは自動削除せず、圧縮Contextから失われた文章を生成的に復号したと主張しない。
+Original、Structured Context、Recovery IndexおよびSelective Rehydrationを分離する。Exact Threshold、
+Subphase、Work UnitおよびUI LayoutはPhase 9設計時に動的に決める。
+
+詳細予約は`docs/project/shared/history/planned_work/phase_9_late_context_compaction_recovery_and_governance_trace_observatory_ja_20260823092049.md`を正本Inputとする。
+
 ### Phase 9 Milestone
 
 > **Composable Multi-Governance Research Platform**
@@ -1464,9 +1524,10 @@ MARGPA Runtime LLM本体が一通り成立した後、運用Hardening、Backend�
 - Remote Inference API
 - Docker
 - AWS／Azure
+- Lightning AI Studio Refresh
 - Hybrid Deployment
 
-AWSはPhase 10の本格Cloud Scaleだけに固定せず、Phase 3 Closure後からPhase 4初期にかけて、小さな検証環境を段階的に準備する候補とする。ただし、初期検証はPhase 10のAuto Scaling、Hardening、Multi-region、長期運用または一般公開完成を意味しない。公開準備用SurfaceではEphemeral Chatを優先し、Persistent StorageのBindingはCost／Privacy／Access設計と独立した明示決定を必要とする。
+AWS構築、Cloud Backend実装、外部Browserへ到達可能なPublic-ready SurfaceおよびLightningへのCurrent Runtime再反映は、Phase 10以降の独立Deployment Programとして開始する。Phase 6～9ではこれらを実装、AcceptanceまたはCompletion Dependencyにしない。初期公開準備用SurfaceではEphemeral Chatを優先し、Persistent StorageのBindingはCost／Privacy／Access設計と独立した明示決定を必要とする。AWS Account／Quota／Cost、Network／Secret／Region、Health／Shutdown／Rollback、Rate／Token／Cost LimitおよびURL共有は、それぞれHuman Gateを通過するまで実操作しない。
 
 ### 16.3 Model／Modality Expansion
 
@@ -1478,7 +1539,7 @@ AWSはPhase 10の本格Cloud Scaleだけに固定せず、Phase 3 Closure後か�
 - GGUF／Safetensors比較
 - Local／Cloud Capability Routing
 
-Model Strategyの早期候補として、高性能DeepSeek系をMainへ追加し、Qwen3-4Bを低資源Baselineとして保持する。Phase 4初期でModel Adapter／Cloud Backend／比較契約を先行実証できるが、複数Main Model、Router、複数Guard／Judgeおよび大規模Self-hostingの本格展開は本節の後続Scopeとして残す。
+Model Strategyの早期候補として、高性能DeepSeek系をMainへ追加し、Qwen3-4Bを低資源Baselineとして保持する。Phase 6前のLocal Feasibility GateでModel Adapter／Artifact／比較契約を先行実証できるが、Cloud Backend、複数Main Model、Router、複数Guard／Judgeおよび大規模Self-hostingの本格展開は本節の後続Scopeとして残す。
 
 ### 16.4 Responsive UI／Multi-device Experience
 
@@ -1486,9 +1547,9 @@ Model Strategyの早期候補として、高性能DeepSeek系をMainへ追加し
 
 #### Desktop Application化予約
 
-Web版だけでなく、Local Model、Local File、Offline利用およびOS統合を扱えるDesktop Application化を後続候補とする。実装Phaseと技術は未決定であり、Web／CLI／Runtime Coreの分離を維持したまま、Packaging、Code Signing、Update、Sandbox、Secret Storage、Model配置、GPU BackendおよびmacOS／Windows／Linux対応範囲を評価して決定する。
+Web版だけでなく、Local Model、Local File、Offline利用およびOS統合を扱えるDesktop Application化をPhase 10以降の後続候補とし、Phase 6～9のCompletion Dependencyから外す。Web／CLI／Runtime Coreの分離を維持したまま、Packaging、Code Signing、Notarization、Update、Sandbox、Secret Storage、Model配置、GPU Backend、Crash Recovery、Uninstall／Data RetentionおよびmacOS／Windows／Linux対応範囲を評価して決定する。
 
-本予約は特定Frameworkの採用、Phase 10固定、Web版廃止または配布開始を意味しない。
+最初の必須TargetはmacOS向けDesktop Application Previewとする。Windows版も可能なら同一Programで扱うが、Platform差または工数が大きい場合は後続Scopeへ延期できる。本予約は特定Frameworkの採用、Web版廃止、配布開始、署名／Notarization実行またはOS Secret操作を事前許可しない。
 
 単に画面全体を縮小するのではなく、利用可能な画面幅、入力方式、表示密度、Orientationおよび主要操作の優先順位に応じてLayoutとInteractionを再構成する。
 
@@ -1727,6 +1788,10 @@ Default: All OFF
 
 Phase 10以降の長期R&D候補として、Thread内のToken、Context、Turn、Decision、Evidence、未解決事項および参照関係を、後続Task、ModelまたはProviderがLosslessに保持・参照・再接続できる機構を検討する。
 
+Phase 9後半では、実用候補としてStructured Compaction、Pre-compaction Snapshot、Recovery Indexおよび
+Selective Rehydrationを優先実装候補にする。Phase 10以降の本節は、Phase 9で完了しない範囲と、
+単純圧縮を超えるLedger／Graph／Index／OCILNS等のLossless研究を引き続き保持する。
+
 単純な要約圧縮と復号だけを既定解にしない。原文、構造、順序、Identity、Digest、参照Graphおよび選択的読込を保持し、必要部分を検証可能に解決するAlgorithm、Index、Ledger、Graphその他の方式を研究候補とする。保存Cost、Privacy、Context Window、Provider差およびOCILNS等との関係は後続設計で決定する。
 
 ### 16.11 Context Observatory／Native Compaction and Recovery Reservation
@@ -1742,6 +1807,10 @@ Context Capacity、Current Usage、Remaining Budget、Threshold、Compaction Eve
 
 Self-triggered Actionと自動復旧はAgent／Tool Authority、Provider Capability、Snapshot Source of Truth、PrivacyおよびHuman Gateが成立してから扱う。単純な要約圧縮／復号を唯一の方式に固定せず、第16.10節のLossless Context研究と接続できる構造を維持する。
 
+これらのうち、Native Compaction／Recovery、2つのContext Action ButtonおよびGovernance Trace Observatoryは
+Phase 9後半の優先候補へ前倒しした。Phase 9時点の利用可能量またはAs-built制約で完了できない範囲は、
+Phase 10以降の本予約に残し、未実装を完了と表記しない。
+
 現在Phase 10へ予約しているHardening、Platform、Model、UI、ML、外部R&Dおよび追加研究群は規模が大きい。依存関係と研究境界が十分明確になった段階で、Phase 11以降の複数Phaseへ再分割する。現時点では番号、境界または実装順を確定せず、Phase 10予約を削除・圧縮しない。
 
 ### Phase 10 Milestone
@@ -1756,8 +1825,9 @@ Self-triggered Actionと自動復旧はAgent／Tool Authority、Provider Capabil
 
 | Role | Current／Candidate Artifact | State |
 |---|---|---|
-| Main | Qwen3-4B GGUF Q4_K_M | Phase 1 Active |
-| Main Candidate | High-performance DeepSeek family | Reserved after Phase 3 Closure／Exact Model and Backend Not Frozen |
+| Main | Qwen3-4B GGUF Q4_K_M | Current Default／Low-resource Governance Baseline |
+| Main Candidate | DeepSeek-R1-0528-Qwen3-8B GGUF Q4_K_M | Local Load／Switch Passed／User Mac Quality Acceptance Failed／Not Promoted |
+| Server／Cloud Candidate | DeepSeek-V4-Flash-0731 | Official Snapshot retained／Mac Local対象外／Not Loaded |
 | Guard | Qwen3Guard-Gen-0.6B GGUF Q8_0 | Future Guard Phase |
 | Judge | Selene-1-Mini-Llama-3.1-8B GGUF Q5_K_M | Future／Experimental |
 

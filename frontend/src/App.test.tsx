@@ -38,6 +38,24 @@ function setBootstrapTag(enabled: boolean): void {
   document.head.appendChild(script);
 }
 
+function setGovernanceBootstrapTag(enabled: boolean): void {
+  document.head.querySelector("#governance-bootstrap")?.remove();
+  const script = document.createElement("script");
+  script.id = "governance-bootstrap";
+  script.type = "application/json";
+  script.textContent = JSON.stringify({ enabled });
+  document.head.appendChild(script);
+}
+
+function setRuntimeGovernanceBootstrapTag(enabled: boolean): void {
+  document.head.querySelector("#runtime-governance-bootstrap")?.remove();
+  const script = document.createElement("script");
+  script.id = "runtime-governance-bootstrap";
+  script.type = "application/json";
+  script.textContent = JSON.stringify({ enabled });
+  document.head.appendChild(script);
+}
+
 function pathOf(input: RequestInfo | URL): string {
   const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
   return url.split("?")[0] ?? url;
@@ -60,18 +78,32 @@ interface FetchRoutes {
   persistentList?: { items: { conversation_id: string; updated_at: string; state: string }[]; next_cursor: null };
   configurationRuntime?: { enabled: boolean; non_persistent: boolean };
   configurationEffective?: unknown;
+  governanceRuntime?: unknown;
+  runtimeGovernanceStatus?: unknown;
+  featureModesStatus?: unknown;
   chatStream?: Response;
-  conversationDetail?: Record<string, { storage_revision: number; state: string }>;
+  persistentTurnStream?: Response;
+  persistentDerivedStream?: Response;
+  conversationDetail?: Record<
+    string,
+    { storage_revision: number; state: string; turns?: unknown[]; head_turn_id?: string | null }
+  >;
   mutation?: (path: string, body: { expected_revision?: number }) => Response;
 }
 
-function detailPayload(conversationId: string, storageRevision: number, state: string): unknown {
+function detailPayload(
+  conversationId: string,
+  storageRevision: number,
+  state: string,
+  turns: unknown[] = [],
+  headTurnId: string | null = null,
+): unknown {
   return {
     conversation_id: conversationId,
     state,
     storage_revision: storageRevision,
-    head_turn_id: null,
-    turns: [],
+    head_turn_id: headTurnId,
+    turns,
     sessions: [],
   };
 }
@@ -82,6 +114,21 @@ function installFetchMock(routes: FetchRoutes): ReturnType<typeof vi.fn> {
     const method = init?.method ?? "GET";
     if (path === "/api/v1/runtime") {
       return Promise.resolve(jsonResponse(RUNTIME_INFO));
+    }
+    if (path === "/api/v5/feature-modes/status") {
+      // P6-CODEX-024: App's own background Live Judge/Repair badge poll
+      // hits this unconditionally once a Turn starts — a harmless "not
+      // enabled" default here keeps every pre-existing test route-complete
+      // without each one needing to know about this unrelated feature.
+      return Promise.resolve(
+        jsonResponse(
+          routes.featureModesStatus ?? {
+            judge: { enabled: false, revision: null, current_mode: null, state: null, current_request_id: null, last_result: null },
+            repair: { enabled: false, revision: null, current_mode: null },
+            recording: { enabled: false, revision: null, current_mode: null, last_outcome: null, judge_evidence_last_outcome: null },
+          },
+        ),
+      );
     }
     if (path === "/api/v2/conversations/runtime") {
       return Promise.resolve(jsonResponse(routes.persistentRuntime ?? { enabled: false, source_of_truth: "server" }));
@@ -97,8 +144,64 @@ function installFetchMock(routes: FetchRoutes): ReturnType<typeof vi.fn> {
     if (path === "/api/v2/configuration/effective") {
       return Promise.resolve(jsonResponse(routes.configurationEffective ?? {}));
     }
+    if (path === "/api/v3/governance/runtime") {
+      return Promise.resolve(
+        jsonResponse(
+          routes.governanceRuntime ?? {
+            mode: {
+              revision: 1,
+              digest_sha512: "gov123",
+              current_mode: "off",
+              descriptors: [
+                { mode: "off", availability: "available", apply_disposition: "hot", unavailable_reason_code: null },
+                {
+                  mode: "observe",
+                  availability: "available",
+                  apply_disposition: "hot",
+                  unavailable_reason_code: null,
+                },
+                {
+                  mode: "enforce",
+                  availability: "unavailable",
+                  apply_disposition: "rejected",
+                  unavailable_reason_code: "phase_3_enforce_unavailable",
+                },
+              ],
+            },
+            observe_summary: null,
+          },
+        ),
+      );
+    }
+    if (path === "/api/v3/runtime-governance/status") {
+      return Promise.resolve(
+        jsonResponse(
+          routes.runtimeGovernanceStatus ?? {
+            enabled: true,
+            revision: 1,
+            current_mode: "off",
+            descriptors: [
+              { mode: "off", availability: "available", unavailable_reason_code: null },
+              { mode: "observe", availability: "available", unavailable_reason_code: null },
+              { mode: "enforce", availability: "unavailable", unavailable_reason_code: "no_definitions" },
+            ],
+            points: [],
+            evidence: null,
+          },
+        ),
+      );
+    }
     if (path === "/api/v1/chat/stream" && method === "POST" && routes.chatStream !== undefined) {
       return Promise.resolve(routes.chatStream);
+    }
+    const turnStreamMatch = /^\/api\/v2\/conversations\/([^/]+)\/turns\/stream$/u.exec(path);
+    if (turnStreamMatch !== null && method === "POST" && routes.persistentTurnStream !== undefined) {
+      return Promise.resolve(routes.persistentTurnStream);
+    }
+    const derivedStreamMatch =
+      /^\/api\/v2\/conversations\/([^/]+)\/turns\/([^/]+)\/(?:retry|regenerate)\/stream$/u.exec(path);
+    if (derivedStreamMatch !== null && method === "POST" && routes.persistentDerivedStream !== undefined) {
+      return Promise.resolve(routes.persistentDerivedStream);
     }
     const detailMatch = /^\/api\/v2\/conversations\/([^/]+)$/u.exec(path);
     if (detailMatch !== null && method === "GET" && routes.conversationDetail !== undefined) {
@@ -106,7 +209,15 @@ function installFetchMock(routes: FetchRoutes): ReturnType<typeof vi.fn> {
       const entry = routes.conversationDetail[conversationId];
       if (entry !== undefined) {
         return Promise.resolve(
-          jsonResponse(detailPayload(conversationId, entry.storage_revision, entry.state)),
+          jsonResponse(
+            detailPayload(
+              conversationId,
+              entry.storage_revision,
+              entry.state,
+              entry.turns ?? [],
+              entry.head_turn_id ?? null,
+            ),
+          ),
         );
       }
     }
@@ -126,6 +237,8 @@ function installFetchMock(routes: FetchRoutes): ReturnType<typeof vi.fn> {
 describe("App", () => {
   beforeEach(() => {
     setBootstrapTag(false);
+    setGovernanceBootstrapTag(false);
+    setRuntimeGovernanceBootstrapTag(false);
     // The app defaults to Japanese; pin English so assertions below can use
     // one fixed set of expected strings.
     window.localStorage.setItem("margpa.ui_language.v1", "en");
@@ -134,6 +247,8 @@ describe("App", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     document.head.querySelector("#configuration-bootstrap")?.remove();
+    document.head.querySelector("#governance-bootstrap")?.remove();
+    document.head.querySelector("#runtime-governance-bootstrap")?.remove();
     window.localStorage.clear();
   });
 
@@ -222,6 +337,635 @@ describe("App", () => {
     expect(screen.getByText("Runtime configuration control")).toBeInTheDocument();
   });
 
+  test("governance status stays out of the DOM and unfetched when the bootstrap tag reports disabled", async () => {
+    const fetchMock = installFetchMock({});
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Send" })).toBeInTheDocument();
+    });
+    expect(document.querySelector("#governance-panel")).toBeNull();
+    expect(
+      fetchMock.mock.calls.some((call) => pathOf(call[0] as RequestInfo).startsWith("/api/v3/governance")),
+    ).toBe(false);
+  });
+
+  test("governance status loads once the bootstrap tag reports enabled", async () => {
+    setGovernanceBootstrapTag(true);
+    installFetchMock({});
+
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Account" })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Account" }));
+    fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
+
+    await waitFor(() => {
+      expect(document.querySelector("#governance-panel")).not.toBeNull();
+    });
+    expect(screen.getByText("Governance Definitions (Phase 3)")).toBeInTheDocument();
+  });
+
+  test("governance apply goes through Configuration Control's apply endpoint, never a dedicated governance mutation route", async () => {
+    setBootstrapTag(true);
+    setGovernanceBootstrapTag(true);
+    const fetchMock = installFetchMock({
+      configurationRuntime: { enabled: true, non_persistent: true },
+      configurationEffective: {
+        schema_version: "1",
+        revision: 5,
+        digest_sha512: "cfg-digest",
+        fields: [{ key: "research_developer_mode", value: "off", source: "default", apply_disposition: "hot" }],
+        feature_hooks: [],
+        recording_hooks: [],
+        governance_hooks: [
+          {
+            component_key: "governance_mode",
+            allowed_modes: ["off", "observe"],
+            current_mode: "off",
+            available: true,
+            apply_disposition: "runtime_applicable",
+          },
+        ],
+      },
+      mutation: (path) => {
+        if (path === "/api/v2/configuration/apply") {
+          return jsonResponse({
+            outcome: "applied",
+            revision: 6,
+            digest_sha512: "cfg-digest-2",
+            redacted_changes: [],
+            restart_fields: [],
+          });
+        }
+        throw new Error(`unexpected mutation: ${path}`);
+      },
+    });
+
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Account" })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Account" }));
+    fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
+    await waitFor(() => {
+      expect(document.querySelector("#governance-panel")).not.toBeNull();
+    });
+
+    fireEvent.click(screen.getByRole("radio", { name: "Observe" }));
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.some(
+          (call) => pathOf(call[0] as RequestInfo) === "/api/v2/configuration/apply",
+        ),
+      ).toBe(true);
+    });
+    expect(
+      fetchMock.mock.calls.some(
+        (call) => pathOf(call[0] as RequestInfo) === "/api/v3/governance/mode",
+      ),
+    ).toBe(false);
+
+    const applyCall = fetchMock.mock.calls.find(
+      (call) => pathOf(call[0] as RequestInfo) === "/api/v2/configuration/apply",
+    );
+    const requestInit = applyCall?.[1] as RequestInit;
+    const body = JSON.parse(requestInit.body as string) as { patch: Record<string, unknown> };
+    expect(body.patch).toEqual({ governance_mode: "observe" });
+  });
+
+  test("runtime governance status stays out of the DOM and unfetched when the bootstrap tag reports disabled", async () => {
+    const fetchMock = installFetchMock({});
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Send" })).toBeInTheDocument();
+    });
+    expect(document.querySelector("#runtime-governance-panel")).toBeNull();
+    expect(
+      fetchMock.mock.calls.some((call) =>
+        pathOf(call[0] as RequestInfo).startsWith("/api/v3/runtime-governance"),
+      ),
+    ).toBe(false);
+  });
+
+  test("runtime governance status loads once the bootstrap tag reports enabled", async () => {
+    setRuntimeGovernanceBootstrapTag(true);
+    installFetchMock({});
+
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Account" })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Account" }));
+    fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
+
+    await waitFor(() => {
+      expect(document.querySelector("#runtime-governance-panel")).not.toBeNull();
+    });
+    expect(screen.getByText("Main Runtime Governance")).toBeInTheDocument();
+  });
+
+  test("runtime governance mode selection visually reflects the click before Apply is even pressed", async () => {
+    // P4-CODEX-012-D / regression guard for P4-CODEX-012-A: the
+    // aria-checked transition itself (not just the eventual Apply
+    // payload) must be observable right after the click.
+    setRuntimeGovernanceBootstrapTag(true);
+    installFetchMock({});
+
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Account" })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Account" }));
+    fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
+    await waitFor(() => {
+      expect(document.querySelector("#runtime-governance-panel")).not.toBeNull();
+    });
+
+    const panel = document.querySelector("#runtime-governance-panel") as HTMLElement;
+    expect(within(panel).getByRole("radio", { name: "OFF" })).toHaveAttribute("aria-checked", "true");
+    expect(within(panel).getByRole("radio", { name: "Observe" })).toHaveAttribute("aria-checked", "false");
+
+    fireEvent.click(within(panel).getByRole("radio", { name: "Observe" }));
+
+    expect(within(panel).getByRole("radio", { name: "OFF" })).toHaveAttribute("aria-checked", "false");
+    expect(within(panel).getByRole("radio", { name: "Observe" })).toHaveAttribute("aria-checked", "true");
+  });
+
+  test("runtime governance apply goes through Configuration Control's apply endpoint, never a dedicated runtime governance mutation route, and resyncs Status after applying", async () => {
+    setBootstrapTag(true);
+    setRuntimeGovernanceBootstrapTag(true);
+    let applyCount = 0;
+    const fetchMock = installFetchMock({
+      configurationRuntime: { enabled: true, non_persistent: true },
+      configurationEffective: {
+        schema_version: "1",
+        revision: 5,
+        digest_sha512: "cfg-digest",
+        fields: [{ key: "research_developer_mode", value: "off", source: "default", apply_disposition: "hot" }],
+        feature_hooks: [],
+        recording_hooks: [],
+      },
+      runtimeGovernanceStatus: {
+        enabled: true,
+        revision: 1,
+        current_mode: "off",
+        descriptors: [
+          { mode: "off", availability: "available", unavailable_reason_code: null },
+          { mode: "observe", availability: "available", unavailable_reason_code: null },
+          { mode: "enforce", availability: "unavailable", unavailable_reason_code: "no_definitions" },
+        ],
+        points: [],
+        evidence: null,
+      },
+      mutation: (path) => {
+        if (path === "/api/v2/configuration/apply") {
+          applyCount += 1;
+          return jsonResponse({
+            outcome: "applied",
+            revision: 6,
+            digest_sha512: "cfg-digest-2",
+            redacted_changes: [],
+            restart_fields: [],
+          });
+        }
+        throw new Error(`unexpected mutation: ${path}`);
+      },
+    });
+
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Account" })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Account" }));
+    fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
+    await waitFor(() => {
+      expect(document.querySelector("#runtime-governance-panel")).not.toBeNull();
+    });
+
+    const statusCallsBeforeApply = fetchMock.mock.calls.filter(
+      (call) => pathOf(call[0] as RequestInfo) === "/api/v3/runtime-governance/status",
+    ).length;
+
+    const panel = document.querySelector("#runtime-governance-panel") as HTMLElement;
+    fireEvent.click(within(panel).getByRole("radio", { name: "Observe" }));
+    fireEvent.click(within(panel).getByRole("button", { name: "Apply" }));
+
+    await waitFor(() => {
+      expect(applyCount).toBe(1);
+    });
+    expect(
+      fetchMock.mock.calls.some(
+        (call) => pathOf(call[0] as RequestInfo) === "/api/v3/runtime-governance/mode",
+      ),
+    ).toBe(false);
+
+    const applyCall = fetchMock.mock.calls.find(
+      (call) => pathOf(call[0] as RequestInfo) === "/api/v2/configuration/apply",
+    );
+    const requestInit = applyCall?.[1] as RequestInit;
+    const body = JSON.parse(requestInit.body as string) as { patch: Record<string, unknown> };
+    expect(body.patch).toEqual({ main_governance_mode: "observe" });
+
+    // P4-CODEX-012-D §5: Apply success re-reads Status from the Server —
+    // never trusts the locally-selected Mode alone.
+    await waitFor(() => {
+      const statusCallsAfterApply = fetchMock.mock.calls.filter(
+        (call) => pathOf(call[0] as RequestInfo) === "/api/v3/runtime-governance/status",
+      ).length;
+      expect(statusCallsAfterApply).toBeGreaterThan(statusCallsBeforeApply);
+    });
+  });
+
+  test("closing and reopening Settings keeps the Server's Current Mode selected, for both Phase 3 and Phase 4 Panels", async () => {
+    // P4-CODEX-013: the Settings Modal fully unmounts its Panels on
+    // close (`if (!open) return null`) and remounts them on reopen — a
+    // remount must not silently reset the visible selection to OFF when
+    // the Server's own Current Mode is already something else.
+    setBootstrapTag(true);
+    setGovernanceBootstrapTag(true);
+    setRuntimeGovernanceBootstrapTag(true);
+    installFetchMock({
+      configurationRuntime: { enabled: true, non_persistent: true },
+      configurationEffective: {
+        schema_version: "1",
+        revision: 5,
+        digest_sha512: "cfg-digest",
+        fields: [{ key: "research_developer_mode", value: "off", source: "default", apply_disposition: "hot" }],
+        feature_hooks: [],
+        recording_hooks: [],
+      },
+      governanceRuntime: {
+        mode: {
+          revision: 2,
+          digest_sha512: "gov123",
+          current_mode: "observe",
+          descriptors: [
+            { mode: "off", availability: "available", apply_disposition: "hot", unavailable_reason_code: null },
+            {
+              mode: "observe",
+              availability: "available",
+              apply_disposition: "hot",
+              unavailable_reason_code: null,
+            },
+            {
+              mode: "enforce",
+              availability: "unavailable",
+              apply_disposition: "rejected",
+              unavailable_reason_code: "phase_3_enforce_unavailable",
+            },
+          ],
+        },
+        observe_summary: null,
+      },
+      runtimeGovernanceStatus: {
+        enabled: true,
+        revision: 2,
+        current_mode: "enforce",
+        descriptors: [
+          { mode: "off", availability: "available", unavailable_reason_code: null },
+          { mode: "observe", availability: "available", unavailable_reason_code: null },
+          { mode: "enforce", availability: "available", unavailable_reason_code: null },
+        ],
+        points: [],
+        evidence: null,
+      },
+    });
+
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Account" })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Account" }));
+    fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
+
+    await waitFor(() => {
+      expect(document.querySelector("#governance-panel")).not.toBeNull();
+      expect(document.querySelector("#runtime-governance-panel")).not.toBeNull();
+    });
+    expect(
+      within(document.querySelector("#governance-panel") as HTMLElement).getByRole("radio", {
+        name: "Observe",
+      }),
+    ).toHaveAttribute("aria-checked", "true");
+    expect(
+      within(document.querySelector("#runtime-governance-panel") as HTMLElement).getByRole("radio", {
+        name: "Enforce",
+      }),
+    ).toHaveAttribute("aria-checked", "true");
+
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Account" }));
+    fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
+    await waitFor(() => {
+      expect(document.querySelector("#governance-panel")).not.toBeNull();
+      expect(document.querySelector("#runtime-governance-panel")).not.toBeNull();
+    });
+
+    expect(
+      within(document.querySelector("#governance-panel") as HTMLElement).getByRole("radio", {
+        name: "Observe",
+      }),
+    ).toHaveAttribute("aria-checked", "true");
+    expect(
+      within(document.querySelector("#runtime-governance-panel") as HTMLElement).getByRole("radio", {
+        name: "Enforce",
+      }),
+    ).toHaveAttribute("aria-checked", "true");
+  });
+
+  test("runtime governance status refreshes exactly once after an ephemeral chat terminates", async () => {
+    setRuntimeGovernanceBootstrapTag(true);
+    const fetchMock = installFetchMock({
+      persistentRuntime: { enabled: false, source_of_truth: "server" },
+      chatStream: sseStreamResponse([
+        { type: "start", data: { request_id: "req-1" } },
+        { type: "delta", data: { channel: "final", text: "hello there" } },
+        { type: "completed", data: { assistant_message: { content: "hello there" }, finish_reason: "stop" } },
+      ]),
+    });
+
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Send" })).not.toBeDisabled();
+    });
+    const statusCallsBeforeSend = fetchMock.mock.calls.filter(
+      (call) => pathOf(call[0] as RequestInfo) === "/api/v3/runtime-governance/status",
+    ).length;
+
+    fireEvent.change(screen.getByLabelText("Message"), { target: { value: "hi" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("hello there")).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      const statusCallsAfterSend = fetchMock.mock.calls.filter(
+        (call) => pathOf(call[0] as RequestInfo) === "/api/v3/runtime-governance/status",
+      ).length;
+      expect(statusCallsAfterSend).toBe(statusCallsBeforeSend + 1);
+    });
+  });
+
+  test("P6-CODEX-024: the completed assistant bubble carries the stream's own request_id for Live Judge/Repair correlation", async () => {
+    installFetchMock({
+      persistentRuntime: { enabled: false, source_of_truth: "server" },
+      chatStream: sseStreamResponse([
+        { type: "start", data: { request_id: "req-live-judge-1" } },
+        { type: "delta", data: { channel: "final", text: "hello there" } },
+        { type: "completed", data: { assistant_message: { content: "hello there" }, finish_reason: "stop" } },
+      ]),
+    });
+
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Send" })).not.toBeDisabled();
+    });
+
+    fireEvent.change(screen.getByLabelText("Message"), { target: { value: "hi" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("hello there")).toBeInTheDocument();
+    });
+    const bubble = screen.getByText("hello there").closest("[data-request-id]");
+    expect(bubble?.getAttribute("data-request-id")).toBe("req-live-judge-1");
+  });
+
+  test("P6-CODEX-024: a live Judge badge appears once the background poll observes this Turn's own request_id running", async () => {
+    installFetchMock({
+      persistentRuntime: { enabled: false, source_of_truth: "server" },
+      chatStream: sseStreamResponse([
+        { type: "start", data: { request_id: "req-live-judge-2" } },
+        { type: "delta", data: { channel: "final", text: "hello there" } },
+        { type: "completed", data: { assistant_message: { content: "hello there" }, finish_reason: "stop" } },
+      ]),
+      featureModesStatus: {
+        judge: {
+          enabled: true,
+          revision: 1,
+          current_mode: "enforce",
+          state: "judging",
+          current_request_id: "req-live-judge-2",
+          last_result: null,
+        },
+        repair: { enabled: true, revision: 1, current_mode: "enforce" },
+        recording: {
+          enabled: false,
+          revision: null,
+          current_mode: null,
+          last_outcome: null,
+          judge_evidence_last_outcome: null,
+        },
+      },
+    });
+
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Send" })).not.toBeDisabled();
+    });
+
+    fireEvent.change(screen.getByLabelText("Message"), { target: { value: "hi" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("hello there")).toBeInTheDocument();
+    });
+    await waitFor(
+      () => {
+        expect(screen.getByText("Reviewing…")).toBeInTheDocument();
+      },
+      { timeout: 3000 },
+    );
+  });
+
+  test("a runtime governance status refresh failure never rewrites the completed chat result", async () => {
+    setRuntimeGovernanceBootstrapTag(true);
+    installFetchMock({
+      persistentRuntime: { enabled: false, source_of_truth: "server" },
+      runtimeGovernanceStatus: undefined,
+      chatStream: sseStreamResponse([
+        { type: "start", data: { request_id: "req-1" } },
+        { type: "completed", data: { assistant_message: { content: "final answer" }, finish_reason: "stop" } },
+      ]),
+    });
+    // Force the post-Terminal Status refetch to fail, without touching
+    // the Chat stream response above at all.
+    const originalFetch = window.fetch.bind(window);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        if (pathOf(input) === "/api/v3/runtime-governance/status") {
+          return Promise.reject(new Error("simulated network failure"));
+        }
+        return originalFetch(input, init);
+      }),
+    );
+
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Send" })).not.toBeDisabled();
+    });
+    fireEvent.change(screen.getByLabelText("Message"), { target: { value: "hi" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("final answer")).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/^Error/u)).toBeNull();
+  });
+
+  test("no extra runtime governance status GET happens when the bootstrap tag reports disabled", async () => {
+    const fetchMock = installFetchMock({
+      persistentRuntime: { enabled: false, source_of_truth: "server" },
+      chatStream: sseStreamResponse([
+        { type: "start", data: { request_id: "req-1" } },
+        { type: "completed", data: { assistant_message: { content: "hello" }, finish_reason: "stop" } },
+      ]),
+    });
+
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Send" })).not.toBeDisabled();
+    });
+    fireEvent.change(screen.getByLabelText("Message"), { target: { value: "hi" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("hello")).toBeInTheDocument();
+    });
+    expect(
+      fetchMock.mock.calls.some((call) =>
+        pathOf(call[0] as RequestInfo).startsWith("/api/v3/runtime-governance"),
+      ),
+    ).toBe(false);
+  });
+
+  test("runtime governance status refreshes exactly once after a persistent turn terminates", async () => {
+    setRuntimeGovernanceBootstrapTag(true);
+    const fetchMock = installFetchMock({
+      persistentRuntime: { enabled: true, source_of_truth: "server" },
+      persistentList: {
+        items: [{ conversation_id: "conversation-1", updated_at: "2024-01-01T00:00:00Z", state: "active" }],
+        next_cursor: null,
+      },
+      conversationDetail: {
+        "conversation-1": { storage_revision: 1, state: "active" },
+      },
+      persistentTurnStream: sseStreamResponse([
+        {
+          type: "start",
+          data: { request_id: "req-1", turn_id: "turn-1", durable_revision: 2, state: "generating" },
+        },
+        {
+          type: "completed",
+          data: {
+            durable_revision: 3,
+            assistant_message: { content: "persistent answer" },
+            finish_reason: "stop",
+          },
+        },
+      ]),
+    });
+
+    render(<App />);
+    await waitFor(() => {
+      expect(document.querySelectorAll(".chat-list-item")).toHaveLength(1);
+    });
+    fireEvent.click(within(document.querySelector(".chat-list") as HTMLElement).getByText(/conversati/));
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Send" })).not.toBeDisabled();
+    });
+
+    const statusCallsBeforeSend = fetchMock.mock.calls.filter(
+      (call) => pathOf(call[0] as RequestInfo) === "/api/v3/runtime-governance/status",
+    ).length;
+
+    fireEvent.change(screen.getByLabelText("Message"), { target: { value: "hi" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    await waitFor(() => {
+      const statusCallsAfterSend = fetchMock.mock.calls.filter(
+        (call) => pathOf(call[0] as RequestInfo) === "/api/v3/runtime-governance/status",
+      ).length;
+      expect(statusCallsAfterSend).toBe(statusCallsBeforeSend + 1);
+    });
+  });
+
+  test("runtime governance status refreshes exactly once after a derived (retry/regenerate) turn terminates", async () => {
+    setRuntimeGovernanceBootstrapTag(true);
+    const fetchMock = installFetchMock({
+      persistentRuntime: { enabled: true, source_of_truth: "server" },
+      persistentList: {
+        items: [{ conversation_id: "conversation-1", updated_at: "2024-01-01T00:00:00Z", state: "active" }],
+        next_cursor: null,
+      },
+      conversationDetail: {
+        "conversation-1": {
+          storage_revision: 1,
+          state: "active",
+          head_turn_id: "turn-1",
+          turns: [
+            {
+              turn_id: "turn-1",
+              state: "completed",
+              messages: [
+                { role: "user", content: "hi" },
+                { role: "assistant", content: "first answer" },
+              ],
+            },
+          ],
+        },
+      },
+      persistentDerivedStream: sseStreamResponse([
+        {
+          type: "start",
+          data: { request_id: "req-1", turn_id: "turn-1", durable_revision: 2, state: "generating" },
+        },
+        {
+          type: "completed",
+          data: {
+            durable_revision: 3,
+            assistant_message: { content: "regenerated answer" },
+            finish_reason: "stop",
+          },
+        },
+      ]),
+    });
+
+    render(<App />);
+    await waitFor(() => {
+      expect(document.querySelectorAll(".chat-list-item")).toHaveLength(1);
+    });
+    fireEvent.click(within(document.querySelector(".chat-list") as HTMLElement).getByText(/conversati/));
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Regenerate" })).toBeInTheDocument();
+    });
+
+    const statusCallsBeforeAction = fetchMock.mock.calls.filter(
+      (call) => pathOf(call[0] as RequestInfo) === "/api/v3/runtime-governance/status",
+    ).length;
+
+    fireEvent.click(screen.getByRole("button", { name: "Regenerate" }));
+
+    await waitFor(() => {
+      const statusCallsAfterAction = fetchMock.mock.calls.filter(
+        (call) => pathOf(call[0] as RequestInfo) === "/api/v3/runtime-governance/status",
+      ).length;
+      expect(statusCallsAfterAction).toBe(statusCallsBeforeAction + 1);
+    });
+  });
+
   test("browser storage only ever receives the two interface-preference keys, never conversation or configuration data", async () => {
     installFetchMock({ persistentRuntime: { enabled: false, source_of_truth: "server" } });
 
@@ -268,6 +1012,35 @@ describe("App", () => {
       ).toBeInTheDocument();
     });
     expect(screen.queryByText(/^Completed/u)).toBeNull();
+  });
+
+  test("P6-CODEX-012: preparing/guarding STATUS events before start are handled without breaking the chat result", async () => {
+    installFetchMock({
+      persistentRuntime: { enabled: false, source_of_truth: "server" },
+      chatStream: sseStreamResponse([
+        { type: "status", data: { request_id: "req-1", state: "preparing" } },
+        { type: "status", data: { request_id: "req-1", state: "guarding" } },
+        { type: "start", data: { request_id: "req-1", state: "generating" } },
+        { type: "delta", data: { channel: "final", text: "hello there" } },
+        {
+          type: "completed",
+          data: { assistant_message: { content: "hello there" }, finish_reason: "stop" },
+        },
+      ]),
+    });
+
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Send" })).not.toBeDisabled();
+    });
+
+    fireEvent.change(screen.getByLabelText("Message"), { target: { value: "hi" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("hello there")).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/^Error/u)).toBeNull();
   });
 
   test("the sidebar Account entry opens the settings modal, showing basic settings by default", async () => {

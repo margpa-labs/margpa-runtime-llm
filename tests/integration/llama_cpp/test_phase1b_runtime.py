@@ -287,7 +287,20 @@ def test_phase1b_production_runtime_load_generate_stream_cancel_and_unload() -> 
             ).events()
         )
         assert [event.event for event in summary_events].count(ConversationEventType.START) == 1
-        assert [event.event for event in summary_events].count(ConversationEventType.STATUS) == 1
+        # P6-CODEX-039 (Fifth Rework): this Turn goes through
+        # `_events_with_summary()` (SummaryMode.POST_GENERATION), which
+        # emits three STATUS phase markers — "preparing" (events() entry),
+        # "guarding" (pre-check phase), and "summarizing_answer" (after the
+        # original answer completes, before the summary generation call) —
+        # not the single "preparing"-only marker an earlier STATUS
+        # vocabulary had. Asserting the exact sequence (not just a count)
+        # keeps this test meaningful rather than a magic number.
+        status_states = [
+            event.data.get("state")
+            for event in summary_events
+            if event.event is ConversationEventType.STATUS
+        ]
+        assert status_states == ["preparing", "guarding", "summarizing_answer"]
         assert summary_events[-1].event is ConversationEventType.COMPLETED
         transformation = summary_events[-1].data["transformation"]
         assistant_message = summary_events[-1].data["assistant_message"]

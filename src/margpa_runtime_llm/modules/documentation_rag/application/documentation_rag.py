@@ -376,6 +376,7 @@ class DocumentationRagApplicationService:
             should_generate=generation_allowed,
             reference_message=(context.reference_message if generation_allowed else None),
             citations=citations,
+            reference_blocks=context.blocks,
             evidence=evidence,
             warnings=tuple(warnings),
             document_count=index.document_count,

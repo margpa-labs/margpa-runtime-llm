@@ -5,9 +5,9 @@ document_id: project_continuity_master
 status: current
 language: ja
 created_at: 2026-07-26 15:16:24 JST
-updated_at: 2026-08-21 03:10:52 JST
+updated_at: 2026-08-22 21:13:08 JST
 owner: Nazuna Research
-active_phase: phase_3_ready_not_started
+active_phase: phase_6_ready_for_backup_not_armed
 public_repository_eligible: true
 rag_default: true
 ```
@@ -43,11 +43,15 @@ Phase 2                       : COMPLETE／ACCEPTED
 Phase 2-A～2-D                 : COMPLETE／USER ACCEPTED
 Phase 2-E Functional Work     : COMPLETE／USER ACCEPTED
 Phase 2-E Cross-provider      : TECHNICAL・HANDOFF SUCCESS／GOVERNANCE VIOLATION RECORDED
+Phase 3                       : COMPLETE／ACCEPTED／CLOSED
+Phase 4                       : COMPLETE／ACCEPTED／CLOSED
+Phase 5                       : COMPLETE／ACCEPTED／CLOSED／MAC ACCEPTANCE PASS
+Phase 6                       : DESIGN ACCEPTED／FROZEN／READY_FOR_BACKUP／NOT ARMED
 ```
 
 Phase 1でmacOS MetalとLightning Linux x86_64 Pure CPUのCLI／Web Runtimeを成立させ、ユーザーによるMac／Lightning Web Acceptance、Basic認証、停止、再送信、New Chat、Language、Summary、Thinking、Copy、BusyおよびPublic URL確認を完了した。
 
-Phase 1-exはFinal Docs、Final Lossless、二種のRecovery、Full Test／Static Gate、Backup、Commit／PushおよびLocal／Origin／GitHub一致を通過し、ユーザー確認を含めComplete／Acceptedである。Git基盤と通常運用経路もAccepted／Operationalである。Phase 2-0 Automation Pilot、Phase 2-A～2-Eの実装、Mac AcceptanceおよびPhase 2-F Final Closureは完了した。Phase 2は`COMPLETE／ACCEPTED`、Phase 3は設計Accepted／Frozenの`READY／NOT STARTED／AUTOMATION OFF`である。
+Phase 1-exはFinal Docs、Final Lossless、二種のRecovery、Full Test／Static Gate、Backup、Commit／PushおよびLocal／Origin／GitHub一致を通過し、ユーザー確認を含めComplete／Acceptedである。Git基盤と通常運用経路もAccepted／Operationalである。Phase 2-0 Automation Pilot、Phase 2-A～2-Eの実装、Mac AcceptanceおよびPhase 2-F Final Closureは完了した。Phase 2は`COMPLETE／ACCEPTED`、Phase 3とPhase 4は実装、独立Review、Exact Reworkおよび最小Closureを完了した`COMPLETE／ACCEPTED／CLOSED`である。Phase 5もClaude実装、Codex独立Review、Exact Rework、User Mac AcceptanceおよびMinimal Closureを完了し、`COMPLETE／ACCEPTED／CLOSED`となった。Phase 6統合Design PackageはController Review後に`ACCEPTED／FROZEN／READY_FOR_BACKUP`となったが、`ARMED`または実装許可ではない。
 
 ## 3. Current Runtime
 
@@ -59,7 +63,8 @@ Local Python     : 3.13.14
 Lightning Python : 3.12.11
 UI               : FastAPI Minimal Web
 Storage          : Browser Memory v1／Local SQLite Persistent Conversation v2 Opt-in
-Governance       : Design only／Not implemented
+Governance       : Phase 3 Definition／Phase 4 Main Runtime Governance accepted
+Guardrail        : Phase 5 deterministic runtime accepted／OFF・OBSERVE・ENFORCE
 Documentation RAG: Local Project Corpus／Lightning Public Corpus／Persistent Citation Candidate
 Git Working Root : margpa-runtime-llm／main
 ```
@@ -1444,3 +1449,112 @@ Phase 3 Implementation  : NOT AUTHORIZED
 ```
 
 復旧時はPhase 2を再Openせず、[Phase 3 Index](../../phases/phase_3/phase_index_ja.md)と[Phase 3 Frozen／READY Handoff](../../phases/phase_3/handoffs/phase_3_claude_execution_handoff_ja.md)から開始前状態を復元する。Phase 3 `READY`は`ARMED`または開始を意味しない。
+
+本節はPhase 2 Closure時点のHistorical Recovery Pointである。Phase 3完了後のCurrent Recoveryは次節37を正とする。
+
+## 37. Phase 3 Final Closure／Phase 4 READY_FOR_BACKUP Recovery Point
+
+```text
+Phase 3 Implementation      : COMPLETE／ACCEPTED
+Phase 3 Technical Findings  : CLOSED
+Phase 3 Governance Findings : CLOSED／INCIDENT EVIDENCE RETAINED
+Phase 3 Final State         : COMPLETE／ACCEPTED／CLOSED
+Phase 3 Lightning           : RE-DEFERRED TO PHASE 4-H OR EXPLICIT DEPLOYMENT GATE
+Phase 4 As-built Reconcile  : PASS
+Phase 4 Design              : ACCEPTED／FROZEN
+Phase 4 State               : READY_FOR_BACKUP／NOT ARMED
+Automation                  : OFF
+Phase 4 Implementation      : NOT AUTHORIZED
+Git／External               : NOT PERFORMED
+```
+
+Phase 3はAudit／Evidence、Generic Governance Definition Infrastructure、Unbound Plan、Local `off／observe` Control、UIおよび非介入Generation Observationを成立させた。Claude長期実行とAuto-compaction Recoveryは実装到達に成功した一方、途中停止、False／Overstated Evidence、Temporary Root境界およびEvidence ClassのIncidentを残した。成功と違反を相殺せず、CorrectionをAppend-onlyで保持する。
+
+Phase 4ではPhase 3の`TrustedAdapterRegistry`、既存ARGD／DAGD Adapter、構造的Normalized IR、Unbound `CompiledPlan`、Evidence StoreおよびGovernance Statusを置換しない。Binding、Generic Execution Descriptor、Main Model pre／post PointおよびAuthority付き`enforce`を追加する。DeepSeek SnapshotはCandidateであり、Phase 4 Current RouteはQwenを使用する。
+
+Recovery入口：
+
+- [Phase 3 Minimal Final Closure](../../phases/phase_3/history/operations/phase_3_minimal_final_closure_ja_20260821232056.md)
+- [Phase 4 Index](../../phases/phase_4/phase_index_ja.md)
+- [Phase 4 As-built Reconciliation](../../phases/phase_4/history/operations/phase_4_as_built_reconciliation_ja_20260821232056.md)
+- [Phase 4 Exact Design Freeze](../../phases/phase_4/history/operations/phase_4_exact_design_freeze_ja_20260821232056.md)
+- [Phase 4 READY_FOR_BACKUP Receipt](../../phases/phase_4/history/operations/phase_4_ready_for_backup_receipt_ja_20260821232056.md)
+
+復旧時はPhase 3を再Openしない。ユーザーBackup報告前にPhase 4を`ARMED`、Automation `ON`または開始済みと解釈しない。
+
+### 37.1 Phase 4 Backup Report／ARMED
+
+ユーザーはPhase 4開始前Backupの取得完了を報告した。CodexはFrozen Package 9件のSHA-512一致、Mandatory Reading Path、Qwen Current Model Definitionおよび既知Dirty Working TreeをRead-onlyで確認し、Phase 4を`ARMED／AWAITING USER START`へ進めた。
+
+- [Phase 4 Activation Preflight／ARMED Receipt](../../phases/phase_4/history/operations/phase_4_activation_preflight_and_armed_receipt_ja_20260821233802.md)
+
+`ARMED`はAutomation `ON`または実装開始ではない。後続User Startが明示された場合だけ、ClaudeはP4-0-WU-001からP4-G-WU-003までをFrozen Boundary内で連結実行する。
+
+## 38. Phase 4 Final Closure／Phase 5 READY Recovery Point
+
+```text
+Phase 4 Implementation       : COMPLETE／ACCEPTED
+Phase 4 Major Findings       : CLOSED／NONE OPEN
+Phase 4 Mac Acceptance       : PASS
+Phase 4 Final State          : COMPLETE／ACCEPTED／CLOSED
+Phase 4 Semantic Judge／Repair: DEFERRED TO PHASE 6 BY DESIGN
+Phase 4 Lightning            : DEFERRED／NON-BLOCKING
+Phase 5 As-built Reconcile   : PASS
+Phase 5 Design               : ACCEPTED／FROZEN
+Phase 5 State                : ARMED／AWAITING USER START
+Automation                   : ARMED／NOT ON
+Phase 5 Implementation       : NOT AUTHORIZED
+Git／External／AWS          : NOT PERFORMED
+```
+
+Phase 4はPhase 3のDefinition／IR／Unbound PlanをMain Model `pre／post`へBindingし、Deterministic Evaluation、Standard Result、Action Resolver、ARGD／DAGD Reference Adapter、OFF／OBSERVE／ENFORCE、Evidence／Status／UIを成立させた。User Mac AcceptanceではMode再Open、OBSERVE非介入およびObservation／Deviation／Deferred Count投影を確認した。
+
+Qwenの明白な意味的誤答に対し、109件の意味RuleはPassまたはDeviationに捛造されず`Deferred`として可視化された。これはPhase 4 Failureではなく、Phase 6 Semantic Evaluator／Judge／Repairへの明示的境界である。
+
+Phase 5はGuardrail／Security／Policy／AuthorityをMain Governanceから分離する。Deterministic Input／Context／Output／Streaming Guard、Policy／Authority／Approval分離、Safe Evidence、Guardrail独立OFF／OBSERVE／ENFORCEおよびOptional Safety Model SeamをFrozenした。Safety Model Download／Load、AWS／Lightning、Phase 6およびGitは開始許可されていない。
+
+Recovery入口：
+
+- [Phase 4 Minimal Final Closure](../../phases/phase_4/history/operations/phase_4_minimal_final_closure_ja_20260822095748.md)
+- [Phase 5 Index](../../phases/phase_5/phase_index_ja.md)
+- [Phase 5 As-built Reconciliation](../../phases/phase_5/history/operations/phase_5_as_built_reconciliation_ja_20260822095748.md)
+- [Phase 5 Exact Design Freeze](../../phases/phase_5/history/operations/phase_5_exact_design_freeze_ja_20260822095748.md)
+- [Phase 5 READY Receipt](../../phases/phase_5/history/operations/phase_5_ready_for_backup_receipt_ja_20260822095748.md)
+- [Phase 5 Activation Preflight／ARMED Receipt](../../phases/phase_5/history/operations/phase_5_activation_preflight_and_armed_receipt_ja_20260822101913.md)
+- [Phase 4／5 Recovery Index](../../phases/phase_5/history/index/phase_4_closure_and_phase_5_ready_recovery_ja_20260822095748.md)
+
+復旧時はPhase 4を再Openしない。Phase 5はUser BackupとCodex Activation Preflight／`ARMED`を完了した。User Startが明示されるまでAutomation `ON`または実装開始にしない。
+
+## 39. Phase 5 Final Closure／Phase 6 READY_FOR_BACKUP Recovery Point
+
+```text
+Phase 5 Implementation        : COMPLETE／ACCEPTED
+Phase 5 Major Findings        : CLOSED／NONE OPEN
+Phase 5 Mac Acceptance        : PASS
+Phase 5 Final State           : COMPLETE／ACCEPTED／CLOSED
+Phase 6 Semantic Judge／Repair: DESIGN ACCEPTED／FROZEN
+Phase 7 RAG Final Quality     : FORMALLY DEFERRED／NON-BLOCKING
+Phase 6 Implementation        : NOT AUTHORIZED
+Automation                    : OFF
+Model／Git／External           : NOT AUTHORIZED
+```
+
+Phase 5はDeterministic Input／Context／Output／Streaming Guard、Policy／Authority／Approval分離、Safe Evidence、Guardrail独立OFF／OBSERVE／ENFORCEおよびOptional Safety Model Seamを成立させた。Prompt Injection MarkerのMac実測では、OBSERVEが`Match 1／Action 0`で非介入、ENFORCEが`Match 1／Action 1`でModel Call前停止した。Mode再Open、通常Chat、RAG／Citation SmokeおよびServer再起動もPASSした。
+
+一般的な危険性、Hallucination、知ったかぶり、根拠なき断定および推論品質の意味評価はPhase 6、再構成後のRAG最終品質評価はPhase 7の責務である。Raw Guardrail ErrorのLocalized Safe RefusalとRequest-correlated StatusもPhase 6で処理する。これらをPhase 5 Failureとして再Openしない。
+
+Phase 6はJudge／Evaluation／Repair／Observabilityに、DeepSeek 8B Q4 Local Feasibility、Qwen既定維持、起動中Model Switch、Dynamic Context／Token Control、Feedback／RecordingおよびCurrent Runtime Identity UIを統合し、Controller Review後にDesignをAccepted／Frozenした。ただし、User Backup、Resolved Model Root Authority、Activation Preflight、Controller `ARMED`および後続User Startが成立するまで実装しない。
+
+Recovery入口：
+
+- [Phase 5 Index](../../phases/phase_5/phase_index_ja.md)
+- [Phase 5 Final Independent Review](../../phases/phase_5/handoffs/phase_5_codex_final_independent_review_acceptance_ja_20260822195345.md)
+- [Phase 5 Mac Manual Acceptance](../../phases/phase_5/history/operations/phase_5_mac_manual_acceptance_ja_20260822210119.md)
+- [Phase 5 Minimal Final Closure](../../phases/phase_5/history/operations/phase_5_minimal_final_closure_ja_20260822210119.md)
+- [Phase 5／6 Recovery Index](../../phases/phase_5/history/index/phase_5_final_closure_and_phase_6_design_recovery_ja_20260822210119.md)
+- [Phase 6 Index](../../phases/phase_6/phase_index_ja.md)
+- [Phase 6 Controller Design Review](../../phases/phase_6/history/operations/phase_6_controller_design_review_ja_20260822211308.md)
+- [Phase 6 Exact Design Freeze](../../phases/phase_6/history/operations/phase_6_exact_design_freeze_ja_20260822211308.md)
+- [Phase 6 READY_FOR_BACKUP Receipt](../../phases/phase_6/history/operations/phase_6_ready_for_backup_receipt_ja_20260822211308.md)
+
+復旧時はPhase 5を再Openしない。次の安全な作業はUser Phase 6開始前Backupであり、実装またはModel操作ではない。

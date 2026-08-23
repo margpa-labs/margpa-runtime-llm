@@ -192,7 +192,9 @@ class FakeService:
         self.result_finish_reason = result_finish_reason
         self.requests: list[GenerationRequest] = []
 
-    def generate(self, request: GenerationRequest) -> GenerationResult:
+    def generate(
+        self, request: GenerationRequest, *, cancellation: object = None
+    ) -> GenerationResult:
         self.requests.append(request)
         return GenerationResult(
             request_id="request",

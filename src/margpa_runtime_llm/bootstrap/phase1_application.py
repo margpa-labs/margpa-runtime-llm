@@ -51,6 +51,7 @@ class Phase1Application:
     config: EffectivePhase1Config
     runtime_observation: RuntimeObservation
     presentation_service: ThinkingPresentationService
+    adapter: LlamaCppModelAdapter
 
     def close(self) -> None:
         self.service.unload()
@@ -147,6 +148,7 @@ def build_phase1_application(
         config=effective_config,
         runtime_observation=runtime_observation,
         presentation_service=presentation_service,
+        adapter=adapter,
     )
 
 

@@ -10,6 +10,7 @@ from ..contracts.generation import (
 )
 from ..contracts.messages import ChatMessage
 from ..contracts.runtime import ModelCapabilities, ModelLoadConfig, ModelRuntimeInfo
+from ..domain.cancellation import CancellationToken
 from ..domain.lifecycle import ModelLifecycleState
 from ..domain.model_definition import ModelDefinition
 
@@ -31,7 +32,12 @@ class ModelPort(Protocol):
 
     def capabilities(self) -> ModelCapabilities: ...
 
-    def generate(self, request: GenerationRequest) -> GenerationResult: ...
+    def generate(
+        self,
+        request: GenerationRequest,
+        *,
+        cancellation: CancellationToken | None = None,
+    ) -> GenerationResult: ...
 
     def stream(self, request: GenerationRequest) -> GenerationStream: ...
 

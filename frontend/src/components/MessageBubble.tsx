@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { translate } from "../i18n/translations";
 import { containsTable, parseSafeMarkdown, renderSafeMarkdownBlocks } from "../lib/safeMarkdown";
-import type { DisplayMessage, UiLanguage } from "../types";
+import type { DisplayMessage, LiveJudgeBadge, UiLanguage } from "../types";
 import CopyButton from "./CopyButton";
 import CitationsSection from "./CitationsSection";
 
@@ -9,9 +9,47 @@ interface MessageBubbleProps {
   language: UiLanguage;
   message: DisplayMessage;
   onTurnAction?: (turnId: string, kind: "retry" | "regenerate" | "selectBranch") => void;
+  // P6-CODEX-024 (Third Rework): already correlated to this exact
+  // `message` by the caller (`MessageList`) — this component only ever
+  // decides *how* to render it, never re-checks *whether* it applies.
+  judgeBadge?: LiveJudgeBadge | null;
 }
 
-export default function MessageBubble({ language, message, onTurnAction }: MessageBubbleProps) {
+// P6-CODEX-024, updated P6-CODEX-031 (Fourth Rework): a deliberately
+// curated subset of the full backend Judge Run vocabulary (idle/
+// queued_or_skipped/judging/repairing/rejudging/completed/failed/
+// cancelled/degraded — see `JudgeGovernanceComposition`) — `idle`/
+// `queued_or_skipped`/`failed`/`cancelled` are Judge-internal outcomes
+// that do not change anything about the Canonical Answer already shown
+// and would only add noise to the Chat surface for the common case; the
+// full vocabulary (including the distinct judging/repairing/rejudging
+// sub-states) remains fully visible in the Feature Modes Panel for
+// debugging/Observability (P6-OBS-004 is satisfied there). This is a
+// disclosed scope choice (see the Fourth Rework Candidate Handoff), not
+// a hidden gap — the three in-flight sub-states collapse to one Chat
+// Bubble label deliberately, not because the distinction is unknown here.
+function judgeBadgeLabelKey(
+  badge: LiveJudgeBadge,
+): "chatLiveJudgeRunning" | "chatLiveJudgeImproved" | "chatLiveJudgeDegraded" | null {
+  if (badge.state === "judging" || badge.state === "repairing" || badge.state === "rejudging") {
+    return "chatLiveJudgeRunning";
+  }
+  if (badge.state === "degraded") {
+    return "chatLiveJudgeDegraded";
+  }
+  if (badge.state === "completed" && badge.repairAccepted === true) {
+    return "chatLiveJudgeImproved";
+  }
+  return null;
+}
+
+export default function MessageBubble({
+  language,
+  message,
+  onTurnAction,
+  judgeBadge = null,
+}: MessageBubbleProps) {
+  const judgeBadgeLabel = judgeBadge === null ? null : judgeBadgeLabelKey(judgeBadge);
   const isAssistant = message.role === "assistant";
   // Rendered progressively while streaming too (not gated on isFinal
   // anymore) — the source itself (message.content) is untouched either way,
@@ -46,7 +84,7 @@ export default function MessageBubble({ language, message, onTurnAction }: Messa
   const showCopy = !isAssistant || message.isFinal;
 
   return (
-    <div id={message.id} className={classNames}>
+    <div id={message.id} className={classNames} data-request-id={message.requestId ?? undefined}>
       {showThinking ? (
         <section className="message-thinking">
           <div className="message-thinking-label">{translate(language, "thinkingRegionLabel")}</div>
@@ -56,6 +94,15 @@ export default function MessageBubble({ language, message, onTurnAction }: Messa
       <div className={`message-content${markdown?.ok ? " message-markdown" : " message-final"}`}>
         {markdown !== null && markdown.ok ? markdown.node : message.content}
       </div>
+      {judgeBadgeLabel !== null ? (
+        <p
+          id={`${message.id}-judge-badge`}
+          className={`message-judge-badge message-judge-badge-${judgeBadge?.state ?? "unknown"}`}
+          aria-live="polite"
+        >
+          {translate(language, judgeBadgeLabel)}
+        </p>
+      ) : null}
       {/* Suppressed until isFinal: a still-streaming answer routinely has a
           transiently unparsable tail (e.g. an unclosed code fence waiting on
           more tokens) — that's expected mid-stream, not a genuine failure,

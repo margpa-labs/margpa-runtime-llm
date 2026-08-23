@@ -152,7 +152,9 @@ class LoadedRuntimePort:
         assert self._runtime_info is not None
         return self._runtime_info.effective_capabilities
 
-    def generate(self, request: GenerationRequest) -> GenerationResult:
+    def generate(
+        self, request: GenerationRequest, *, cancellation: object = None
+    ) -> GenerationResult:
         raise AssertionError("generation is not used by this deployment test")
 
     def stream(self, request: GenerationRequest) -> GenerationStream:

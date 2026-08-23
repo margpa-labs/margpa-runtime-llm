@@ -12,9 +12,13 @@ from pathlib import Path
 
 import uvicorn
 
+from margpa_runtime_llm.bootstrap.audit_evidence import build_generation_observer
 from margpa_runtime_llm.bootstrap.documentation_rag import (
     build_documentation_rag,
     build_local_documentation_rag,
+)
+from margpa_runtime_llm.bootstrap.governance_definitions import (
+    build_governance_definitions_runtime,
 )
 from margpa_runtime_llm.bootstrap.web_application import build_phase1_web_runtime
 from margpa_runtime_llm.modules.conversation.adapters import (
@@ -25,6 +29,9 @@ from margpa_runtime_llm.modules.documentation_rag.contracts import (
     DocumentationRagAvailability,
     DocumentationRagMode,
     DocumentationRagPlatform,
+)
+from margpa_runtime_llm.modules.governance_definitions.runtime import (
+    GovernanceDefinitionsRuntime,
 )
 from margpa_runtime_llm.modules.inference.domain.errors import (
     InferenceError,
@@ -157,6 +164,65 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Enable loopback-only read-only runtime component inspection",
     )
+    parser.add_argument(
+        "--phase-3-governance-definitions",
+        action="store_true",
+        help=(
+            "Enable loopback-only Phase 3 Governance Definitions Runtime "
+            "(Default Mode off; no Model I/O change)"
+        ),
+    )
+    parser.add_argument(
+        "--phase-3-governance-definitions-root",
+        type=Path,
+        metavar="DEFINITIONS_ROOT",
+        help=(
+            "Filesystem Definition Provider root (must contain manifest.json). "
+            "Omitted: Empty Provider (definitions=0 Baseline)."
+        ),
+    )
+    parser.add_argument(
+        "--phase-4-runtime-governance",
+        action="store_true",
+        help=(
+            "Enable loopback-only Phase 4 Main Runtime Governance "
+            "(Default Mode off; no Model I/O change)"
+        ),
+    )
+    parser.add_argument(
+        "--phase-4-runtime-governance-definitions-root",
+        type=Path,
+        metavar="DEFINITIONS_ROOT",
+        help=(
+            "Filesystem Definition Provider root for the ARGD/DAGD Reference "
+            "Bundle (must contain manifest.json). Omitted: Empty Descriptor Set "
+            "(Definitions-0 Baseline, P4-GD-005)."
+        ),
+    )
+    parser.add_argument(
+        "--phase-5-guardrail-governance",
+        action="store_true",
+        help=(
+            "Enable loopback-only Phase 5 Guardrail/Security/Policy/Authority "
+            "Governance (Default Mode off; no Model I/O change)"
+        ),
+    )
+    parser.add_argument(
+        "--phase-6-runtime-model-control",
+        action="store_true",
+        help=(
+            "Enable loopback-only Phase 6 Runtime Model Control "
+            "(Model identity/status, Context Size, Max New Tokens)"
+        ),
+    )
+    parser.add_argument(
+        "--phase-6-feature-modes",
+        action="store_true",
+        help=(
+            "Enable loopback-only Phase 6 Judge/Repair/Recording Mode toggles "
+            "(Default Mode off for all three; no live Generation-path effect)"
+        ),
+    )
     return parser
 
 
@@ -178,6 +244,36 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         runtime_composition_inspection_enabled = _runtime_composition_inspection_enabled(
             enabled=args.runtime_composition_inspection,
+            host=args.host,
+            access_mode=web_access_profile.access.mode,
+            authentication_required=access_policy.authentication_required,
+        )
+        governance_definitions_enabled = _governance_definitions_enabled(
+            enabled=args.phase_3_governance_definitions,
+            host=args.host,
+            access_mode=web_access_profile.access.mode,
+            authentication_required=access_policy.authentication_required,
+        )
+        runtime_governance_enabled = _runtime_governance_enabled(
+            enabled=args.phase_4_runtime_governance,
+            host=args.host,
+            access_mode=web_access_profile.access.mode,
+            authentication_required=access_policy.authentication_required,
+        )
+        guardrail_governance_enabled = _guardrail_governance_enabled(
+            enabled=args.phase_5_guardrail_governance,
+            host=args.host,
+            access_mode=web_access_profile.access.mode,
+            authentication_required=access_policy.authentication_required,
+        )
+        runtime_model_control_enabled = _runtime_model_control_enabled(
+            enabled=args.phase_6_runtime_model_control,
+            host=args.host,
+            access_mode=web_access_profile.access.mode,
+            authentication_required=access_policy.authentication_required,
+        )
+        feature_modes_enabled = _feature_modes_enabled(
+            enabled=args.phase_6_feature_modes,
             host=args.host,
             access_mode=web_access_profile.access.mode,
             authentication_required=access_policy.authentication_required,
@@ -246,6 +342,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         load_overrides = (
             {"context_size": args.context_size} if args.context_size is not None else None
         )
+        # Built before runtime_factory (not after create_web_app, as a
+        # standalone Phase 3 feature would be) so Configuration Control's
+        # Preview/Apply — which now owns Governance Mode Mutation
+        # (P3-CODEX-001) — can be wired to the same live Runtime instance.
+        governance_definitions_runtime = (
+            build_governance_definitions_runtime(
+                definitions_root=args.phase_3_governance_definitions_root,
+            )
+            if governance_definitions_enabled
+            else None
+        )
         runtime_factory = partial(
             build_phase1_web_runtime,
             project_root=PROJECT_ROOT,
@@ -263,6 +370,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             conversation_persistence_settings=conversation_persistence_settings,
             configuration_control_enabled=configuration_control_enabled,
             runtime_composition_inspection_enabled=runtime_composition_inspection_enabled,
+            governance_definitions_runtime=governance_definitions_runtime,
+            runtime_governance_enabled=runtime_governance_enabled,
+            runtime_governance_definitions_root=args.phase_4_runtime_governance_definitions_root,
+            guardrail_governance_enabled=guardrail_governance_enabled,
+            runtime_model_control_enabled=runtime_model_control_enabled,
+            feature_modes_enabled=feature_modes_enabled,
         )
         app = create_web_app(
             runtime_factory=runtime_factory,
@@ -273,6 +386,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         app.state.public_control_policy = control_policy
         app.state.documentation_rag_feature_profile = documentation_rag_feature_profile
         app.state.documentation_rag_state = documentation_rag_state
+        app.state.governance_definitions_runtime = governance_definitions_runtime
+        app.state.generation_observer = (
+            build_generation_observer(
+                project_root=PROJECT_ROOT,
+                mode_provider=partial(
+                    _current_governance_mode_value, governance_definitions_runtime
+                ),
+            )
+            if governance_definitions_enabled
+            else None
+        )
         uvicorn.run(
             app,
             host=args.host,
@@ -418,6 +542,130 @@ def _runtime_composition_inspection_enabled(
             ),
         )
     return True
+
+
+def _governance_definitions_enabled(
+    *,
+    enabled: bool,
+    host: str,
+    access_mode: WebExposureMode,
+    authentication_required: bool,
+) -> bool:
+    if not enabled:
+        return False
+    if (
+        access_mode is not WebExposureMode.LOCAL
+        or authentication_required
+        or not _is_loopback_host(host)
+    ):
+        raise InferenceError(
+            code=InferenceErrorCode.INVALID_CONFIGURATION,
+            safe_message=(
+                "Phase 3 Governance Definitions requires local loopback access and explicit opt-in."
+            ),
+        )
+    return True
+
+
+def _runtime_governance_enabled(
+    *,
+    enabled: bool,
+    host: str,
+    access_mode: WebExposureMode,
+    authentication_required: bool,
+) -> bool:
+    if not enabled:
+        return False
+    if (
+        access_mode is not WebExposureMode.LOCAL
+        or authentication_required
+        or not _is_loopback_host(host)
+    ):
+        raise InferenceError(
+            code=InferenceErrorCode.INVALID_CONFIGURATION,
+            safe_message=(
+                "Phase 4 Runtime Governance requires local loopback access and explicit opt-in."
+            ),
+        )
+    return True
+
+
+def _guardrail_governance_enabled(
+    *,
+    enabled: bool,
+    host: str,
+    access_mode: WebExposureMode,
+    authentication_required: bool,
+) -> bool:
+    if not enabled:
+        return False
+    if (
+        access_mode is not WebExposureMode.LOCAL
+        or authentication_required
+        or not _is_loopback_host(host)
+    ):
+        raise InferenceError(
+            code=InferenceErrorCode.INVALID_CONFIGURATION,
+            safe_message=(
+                "Phase 5 Guardrail Governance requires local loopback access and explicit opt-in."
+            ),
+        )
+    return True
+
+
+def _runtime_model_control_enabled(
+    *,
+    enabled: bool,
+    host: str,
+    access_mode: WebExposureMode,
+    authentication_required: bool,
+) -> bool:
+    if not enabled:
+        return False
+    if (
+        access_mode is not WebExposureMode.LOCAL
+        or authentication_required
+        or not _is_loopback_host(host)
+    ):
+        raise InferenceError(
+            code=InferenceErrorCode.INVALID_CONFIGURATION,
+            safe_message=(
+                "Phase 6 Runtime Model Control requires local loopback access and explicit opt-in."
+            ),
+        )
+    return True
+
+
+def _feature_modes_enabled(
+    *,
+    enabled: bool,
+    host: str,
+    access_mode: WebExposureMode,
+    authentication_required: bool,
+) -> bool:
+    if not enabled:
+        return False
+    if (
+        access_mode is not WebExposureMode.LOCAL
+        or authentication_required
+        or not _is_loopback_host(host)
+    ):
+        raise InferenceError(
+            code=InferenceErrorCode.INVALID_CONFIGURATION,
+            safe_message=(
+                "Phase 6 Judge/Repair/Recording Mode requires local loopback access and "
+                "explicit opt-in."
+            ),
+        )
+    return True
+
+
+def _current_governance_mode_value(
+    runtime: GovernanceDefinitionsRuntime | None,
+) -> str:
+    if runtime is None:
+        return "off"
+    return runtime.mode_snapshot().current_mode.value
 
 
 def _is_loopback_host(host: str) -> bool:

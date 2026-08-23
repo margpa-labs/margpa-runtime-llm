@@ -8,6 +8,7 @@ from ..contracts.generation import (
 )
 from ..contracts.messages import ChatMessage
 from ..contracts.runtime import ModelCapabilities, ModelLoadConfig, ModelRuntimeInfo
+from ..domain.cancellation import CancellationToken
 from ..domain.capabilities import CapabilityFeature
 from ..domain.errors import InferenceError, InferenceErrorCode
 from ..domain.lifecycle import ModelLifecycleState
@@ -46,9 +47,14 @@ class InferenceService:
     def capabilities(self) -> ModelCapabilities:
         return self._port.capabilities()
 
-    def generate(self, request: GenerationRequest) -> GenerationResult:
+    def generate(
+        self,
+        request: GenerationRequest,
+        *,
+        cancellation: CancellationToken | None = None,
+    ) -> GenerationResult:
         self._validate_request(request)
-        return self._port.generate(request)
+        return self._port.generate(request, cancellation=cancellation)
 
     def stream(self, request: GenerationRequest) -> GenerationStream:
         self._validate_request(request)

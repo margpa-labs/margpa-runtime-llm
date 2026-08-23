@@ -20,11 +20,26 @@ from .contracts import (
     DocumentationRagControlMode,
     EffectiveConfigurationSnapshot,
     FeatureHookDescriptor,
+    GovernanceControlMode,
+    GovernanceHookDescriptor,
+    GuardrailGovernanceControlMode,
+    GuardrailGovernanceHookDescriptor,
+    MainGovernanceControlMode,
+    MainGovernanceHookDescriptor,
     RecordingControlMode,
     RecordingHookDescriptor,
     RedactedConfigurationChange,
     SafeConfigurationValue,
     configuration_digest,
+)
+from .ports import (
+    GovernanceModeApplierPort,
+    GuardrailGovernanceModeApplierPort,
+    MainGovernanceModeApplierPort,
+)
+
+_EXTERNAL_APPLIER_KEYS = frozenset(
+    {"governance_mode", "main_governance_mode", "guardrail_governance_mode"}
 )
 
 
@@ -37,11 +52,25 @@ class ConfigurationControlService:
         fields: tuple[ConfigurationField, ...],
         feature_hooks: tuple[FeatureHookDescriptor, ...],
         recording_hooks: tuple[RecordingHookDescriptor, ...],
+        governance_hooks: tuple[GovernanceHookDescriptor, ...] = (),
+        governance_mode_applier: GovernanceModeApplierPort | None = None,
+        main_governance_hooks: tuple[MainGovernanceHookDescriptor, ...] = (),
+        main_governance_mode_applier: MainGovernanceModeApplierPort | None = None,
+        guardrail_governance_hooks: tuple[GuardrailGovernanceHookDescriptor, ...] = (),
+        guardrail_governance_mode_applier: GuardrailGovernanceModeApplierPort | None = None,
     ) -> None:
         self._lock = threading.Lock()
         self._fields = self._validated_fields(fields)
         self._feature_hooks = self._validated_feature_hooks(feature_hooks)
         self._recording_hooks = self._validated_recording_hooks(recording_hooks)
+        self._governance_hooks = self._validated_governance_hooks(governance_hooks)
+        self._governance_mode_applier = governance_mode_applier
+        self._main_governance_hooks = self._validated_main_governance_hooks(main_governance_hooks)
+        self._main_governance_mode_applier = main_governance_mode_applier
+        self._guardrail_governance_hooks = self._validated_guardrail_governance_hooks(
+            guardrail_governance_hooks
+        )
+        self._guardrail_governance_mode_applier = guardrail_governance_mode_applier
         self._revision = 1
         self._applied_operations: set[str] = set()
 
@@ -135,19 +164,111 @@ class ConfigurationControlService:
                 for item in changes
             ):
                 raise self._unsupported()
-            mode = patch.research_developer_mode
-            if mode is None:
+            changed_keys = {item.key for item in changes}
+            if not changed_keys & ({"research_developer_mode"} | _EXTERNAL_APPLIER_KEYS):
                 raise self._invalid()
-            self._fields = tuple(
-                replace(
-                    item,
-                    value=mode.value,
-                    source=ConfigurationSource.RUNTIME_OVERRIDE,
+            # P4-CODEX-009: independent External Appliers (Phase 3
+            # Governance, Phase 4 Main Governance, Phase 5 Guardrail
+            # Governance) cannot be Committed as one Atomic transaction —
+            # there is no Prepare/Commit/Rollback contract between them.
+            # Rather than risk a Partial Apply (one Applier's external
+            # State already mutated, another Applier fails, and this
+            # Service's own Snapshot/Revision stays at the old value while
+            # a real Mode elsewhere has already moved), a Patch touching
+            # more than one External Applier is rejected before any of
+            # them is ever called — the documented Phase 4 MVP minimal
+            # safe choice (Required Correction option 2), extended
+            # unchanged to Phase 5's own External Applier.
+            if len(changed_keys & _EXTERNAL_APPLIER_KEYS) > 1:
+                raise ConfigurationControlError(
+                    code=ConfigurationControlErrorCode.UNSUPPORTED,
+                    safe_message=(
+                        "Only one governance-family mode may be changed in the same operation."
+                    ),
                 )
-                if item.key == "research_developer_mode"
-                else item
-                for item in self._fields
-            )
+
+            # Governance is applied first, and only committed to local
+            # state together with every other RUNTIME_APPLICABLE change
+            # once it has *already* succeeded — a failure here must leave
+            # `self._fields`/`self._governance_hooks`/`self._revision`
+            # completely untouched (P3-CODEX-001/003 one success boundary).
+            new_governance_hooks = self._governance_hooks
+            if "governance_mode" in changed_keys:
+                applier = self._governance_mode_applier
+                if applier is None:
+                    raise self._unsupported()
+                assert patch.governance_mode is not None
+                try:
+                    new_descriptor = applier.apply(patch.governance_mode)
+                except Exception as error:
+                    raise ConfigurationControlError(
+                        code=ConfigurationControlErrorCode.UNSUPPORTED,
+                        safe_message="The requested governance mode could not be applied.",
+                    ) from error
+                new_governance_hooks = (new_descriptor,)
+
+            # Same build-before-commit contract as Governance above
+            # (P4-CODEX-002 Rework) — Phase 4 Main Governance Mode's
+            # *only* Mutation path is this Apply transaction; no separate
+            # direct-Apply route may exist alongside it (no dual-writer,
+            # no stale cache between this hook and the live Mode state).
+            new_main_governance_hooks = self._main_governance_hooks
+            if "main_governance_mode" in changed_keys:
+                main_applier = self._main_governance_mode_applier
+                if main_applier is None:
+                    raise self._unsupported()
+                assert patch.main_governance_mode is not None
+                try:
+                    new_main_descriptor = main_applier.apply(patch.main_governance_mode)
+                except Exception as error:
+                    raise ConfigurationControlError(
+                        code=ConfigurationControlErrorCode.UNSUPPORTED,
+                        safe_message=("The requested main governance mode could not be applied."),
+                    ) from error
+                new_main_governance_hooks = (new_main_descriptor,)
+
+            # Same build-before-commit contract as Governance/Main
+            # Governance above (P5-F-WU-002, mirrors P4-CODEX-002
+            # Rework) — Phase 5 Guardrail Governance Mode's *only*
+            # Mutation path is this Apply transaction.
+            new_guardrail_governance_hooks = self._guardrail_governance_hooks
+            if "guardrail_governance_mode" in changed_keys:
+                guardrail_applier = self._guardrail_governance_mode_applier
+                if guardrail_applier is None:
+                    raise self._unsupported()
+                assert patch.guardrail_governance_mode is not None
+                try:
+                    new_guardrail_descriptor = guardrail_applier.apply(
+                        patch.guardrail_governance_mode
+                    )
+                except Exception as error:
+                    raise ConfigurationControlError(
+                        code=ConfigurationControlErrorCode.UNSUPPORTED,
+                        safe_message=(
+                            "The requested guardrail governance mode could not be applied."
+                        ),
+                    ) from error
+                new_guardrail_governance_hooks = (new_guardrail_descriptor,)
+
+            new_fields = self._fields
+            if "research_developer_mode" in changed_keys:
+                mode = patch.research_developer_mode
+                assert mode is not None
+                new_fields = tuple(
+                    replace(
+                        item,
+                        value=mode.value,
+                        source=ConfigurationSource.RUNTIME_OVERRIDE,
+                    )
+                    if item.key == "research_developer_mode"
+                    else item
+                    for item in self._fields
+                )
+
+            self._fields = new_fields
+            self._governance_hooks = new_governance_hooks
+            self._main_governance_hooks = new_main_governance_hooks
+            self._guardrail_governance_hooks = new_guardrail_governance_hooks
             self._revision += 1
             self._applied_operations.add(operation_id)
             applied = self._snapshot()
@@ -166,10 +287,16 @@ class ConfigurationControlService:
                 fields=self._fields,
                 feature_hooks=self._feature_hooks,
                 recording_hooks=self._recording_hooks,
+                governance_hooks=self._governance_hooks,
+                main_governance_hooks=self._main_governance_hooks,
+                guardrail_governance_hooks=self._guardrail_governance_hooks,
             ),
             fields=self._fields,
             feature_hooks=self._feature_hooks,
             recording_hooks=self._recording_hooks,
+            governance_hooks=self._governance_hooks,
+            main_governance_hooks=self._main_governance_hooks,
+            guardrail_governance_hooks=self._guardrail_governance_hooks,
         )
 
     def _changes(
@@ -235,6 +362,60 @@ class ConfigurationControlService:
                 raise self._unsupported()
             if patch.recording_mode not in recording_descriptor.allowed_modes:
                 raise self._unsupported()
+        if patch.governance_mode is not None:
+            if not self._governance_hooks:
+                raise self._unsupported()
+            governance_descriptor = self._governance_hooks[0]
+            if patch.governance_mode not in governance_descriptor.allowed_modes:
+                raise self._unsupported()
+            if patch.governance_mode is not governance_descriptor.current_mode:
+                if not governance_descriptor.available:
+                    raise self._unsupported()
+                changes.append(
+                    RedactedConfigurationChange(
+                        key="governance_mode",
+                        before=governance_descriptor.current_mode.value,
+                        after=patch.governance_mode.value,
+                        source=ConfigurationSource.COMPOSED_RUNTIME,
+                        apply_disposition=governance_descriptor.apply_disposition,
+                    )
+                )
+        if patch.main_governance_mode is not None:
+            if not self._main_governance_hooks:
+                raise self._unsupported()
+            main_governance_descriptor = self._main_governance_hooks[0]
+            if patch.main_governance_mode not in main_governance_descriptor.allowed_modes:
+                raise self._unsupported()
+            if patch.main_governance_mode is not main_governance_descriptor.current_mode:
+                if not main_governance_descriptor.available:
+                    raise self._unsupported()
+                changes.append(
+                    RedactedConfigurationChange(
+                        key="main_governance_mode",
+                        before=main_governance_descriptor.current_mode.value,
+                        after=patch.main_governance_mode.value,
+                        source=ConfigurationSource.COMPOSED_RUNTIME,
+                        apply_disposition=main_governance_descriptor.apply_disposition,
+                    )
+                )
+        if patch.guardrail_governance_mode is not None:
+            if not self._guardrail_governance_hooks:
+                raise self._unsupported()
+            guardrail_governance_descriptor = self._guardrail_governance_hooks[0]
+            if patch.guardrail_governance_mode not in guardrail_governance_descriptor.allowed_modes:
+                raise self._unsupported()
+            if patch.guardrail_governance_mode is not guardrail_governance_descriptor.current_mode:
+                if not guardrail_governance_descriptor.available:
+                    raise self._unsupported()
+                changes.append(
+                    RedactedConfigurationChange(
+                        key="guardrail_governance_mode",
+                        before=guardrail_governance_descriptor.current_mode.value,
+                        after=patch.guardrail_governance_mode.value,
+                        source=ConfigurationSource.COMPOSED_RUNTIME,
+                        apply_disposition=guardrail_governance_descriptor.apply_disposition,
+                    )
+                )
         return tuple(changes)
 
     @staticmethod
@@ -339,6 +520,83 @@ class ConfigurationControlService:
             or hooks[0].allowed_modes != (RecordingControlMode.OFF,)
         ):
             raise ValueError("recording hook projection is invalid")
+        return hooks
+
+    @staticmethod
+    def _validated_governance_hooks(
+        hooks: tuple[GovernanceHookDescriptor, ...],
+    ) -> tuple[GovernanceHookDescriptor, ...]:
+        # Unlike documentation_rag/recording (always exactly 1 entry),
+        # governance is an optional Phase 3 feature: 0 entries means it is
+        # not active at all in this process, not a malformed projection.
+        if not hooks:
+            return hooks
+        if len(hooks) != 1:
+            raise ValueError("governance hook projection is invalid")
+        descriptor = hooks[0]
+        if (
+            descriptor.component_key != "governance_mode"
+            or descriptor.allowed_modes
+            != (
+                GovernanceControlMode.OFF,
+                GovernanceControlMode.OBSERVE,
+            )
+            or descriptor.current_mode not in descriptor.allowed_modes
+            or descriptor.apply_disposition is not ApplyDisposition.RUNTIME_APPLICABLE
+        ):
+            raise ValueError("governance hook projection is invalid")
+        return hooks
+
+    @staticmethod
+    def _validated_main_governance_hooks(
+        hooks: tuple[MainGovernanceHookDescriptor, ...],
+    ) -> tuple[MainGovernanceHookDescriptor, ...]:
+        # Like Phase 3 Governance, Phase 4 Main Governance is an optional
+        # feature: 0 entries means it is not active in this process at
+        # all, not a malformed projection.
+        if not hooks:
+            return hooks
+        if len(hooks) != 1:
+            raise ValueError("main governance hook projection is invalid")
+        descriptor = hooks[0]
+        if (
+            descriptor.component_key != "main_governance_mode"
+            or descriptor.allowed_modes
+            != (
+                MainGovernanceControlMode.OFF,
+                MainGovernanceControlMode.OBSERVE,
+                MainGovernanceControlMode.ENFORCE,
+            )
+            or descriptor.current_mode not in descriptor.allowed_modes
+            or descriptor.apply_disposition is not ApplyDisposition.RUNTIME_APPLICABLE
+        ):
+            raise ValueError("main governance hook projection is invalid")
+        return hooks
+
+    @staticmethod
+    def _validated_guardrail_governance_hooks(
+        hooks: tuple[GuardrailGovernanceHookDescriptor, ...],
+    ) -> tuple[GuardrailGovernanceHookDescriptor, ...]:
+        # Like Phase 3/4 Governance, Phase 5 Guardrail Governance is an
+        # optional feature: 0 entries means it is not active in this
+        # process at all, not a malformed projection.
+        if not hooks:
+            return hooks
+        if len(hooks) != 1:
+            raise ValueError("guardrail governance hook projection is invalid")
+        descriptor = hooks[0]
+        if (
+            descriptor.component_key != "guardrail_governance_mode"
+            or descriptor.allowed_modes
+            != (
+                GuardrailGovernanceControlMode.OFF,
+                GuardrailGovernanceControlMode.OBSERVE,
+                GuardrailGovernanceControlMode.ENFORCE,
+            )
+            or descriptor.current_mode not in descriptor.allowed_modes
+            or descriptor.apply_disposition is not ApplyDisposition.RUNTIME_APPLICABLE
+        ):
+            raise ValueError("guardrail governance hook projection is invalid")
         return hooks
 
     @staticmethod

@@ -42,6 +42,44 @@ class RecordingControlMode(StrEnum):
     FULL = "full"
 
 
+class GovernanceControlMode(StrEnum):
+    """Deliberately excludes `enforce`: Phase 3 never makes it a value a
+    Patch can even express, which is a stronger guarantee than rejecting
+    it at apply-time (P3-CODEX-001). The full three-way descriptor
+    (including `enforce`, shown disabled with a reason) stays on the
+    existing read-only `/api/v3/governance/runtime` status surface."""
+
+    OFF = "off"
+    OBSERVE = "observe"
+
+
+class MainGovernanceControlMode(StrEnum):
+    """Phase 4 Main Runtime Governance Mode (P4-CODEX-002 Rework) —
+    unlike Phase 3's `GovernanceControlMode`, `enforce` *is* a real,
+    Patch-expressible value: whether it can actually be Applied depends
+    on live Binding readiness, enforced by `MainGovernanceModeApplierPort.
+    apply()` raising (never a silent downgrade, P4-MOD-005), not by
+    excluding it from the type."""
+
+    OFF = "off"
+    OBSERVE = "observe"
+    ENFORCE = "enforce"
+
+
+class GuardrailGovernanceControlMode(StrEnum):
+    """Phase 5 Guardrail/Security/Policy/Authority Governance Mode
+    (P5-F-WU-002, ADR-5-003) — independent from `MainGovernanceControlMode`
+    both as a distinct Patch field and as a distinct live Mode instance.
+    Like Phase 4's `enforce`, this is a real Patch-expressible value;
+    whether it can actually be Applied is enforced by
+    `GuardrailGovernanceModeApplierPort.apply()` raising, never a silent
+    downgrade."""
+
+    OFF = "off"
+    OBSERVE = "observe"
+    ENFORCE = "enforce"
+
+
 class ConfigurationPreviewOutcome(StrEnum):
     READY = "ready"
     NO_CHANGE = "no_change"
@@ -113,12 +151,42 @@ class RecordingHookDescriptor:
 
 
 @dataclass(frozen=True, slots=True)
+class GovernanceHookDescriptor:
+    component_key: str
+    allowed_modes: tuple[GovernanceControlMode, ...]
+    current_mode: GovernanceControlMode
+    available: bool
+    apply_disposition: ApplyDisposition = ApplyDisposition.RUNTIME_APPLICABLE
+
+
+@dataclass(frozen=True, slots=True)
+class MainGovernanceHookDescriptor:
+    component_key: str
+    allowed_modes: tuple[MainGovernanceControlMode, ...]
+    current_mode: MainGovernanceControlMode
+    available: bool
+    apply_disposition: ApplyDisposition = ApplyDisposition.RUNTIME_APPLICABLE
+
+
+@dataclass(frozen=True, slots=True)
+class GuardrailGovernanceHookDescriptor:
+    component_key: str
+    allowed_modes: tuple[GuardrailGovernanceControlMode, ...]
+    current_mode: GuardrailGovernanceControlMode
+    available: bool
+    apply_disposition: ApplyDisposition = ApplyDisposition.RUNTIME_APPLICABLE
+
+
+@dataclass(frozen=True, slots=True)
 class ConfigurationPatch:
     research_developer_mode: ResearchDeveloperMode | None = None
     selected_model: str | None = None
     context_size: int | None = None
     documentation_rag_mode: DocumentationRagControlMode | None = None
     recording_mode: RecordingControlMode | None = None
+    governance_mode: GovernanceControlMode | None = None
+    main_governance_mode: MainGovernanceControlMode | None = None
+    guardrail_governance_mode: GuardrailGovernanceControlMode | None = None
 
     def __post_init__(self) -> None:
         if self.research_developer_mode is not None and not isinstance(
@@ -137,6 +205,18 @@ class ConfigurationPatch:
             self.recording_mode, RecordingControlMode
         ):
             raise ValueError("recording mode is invalid")
+        if self.governance_mode is not None and not isinstance(
+            self.governance_mode, GovernanceControlMode
+        ):
+            raise ValueError("governance mode is invalid")
+        if self.main_governance_mode is not None and not isinstance(
+            self.main_governance_mode, MainGovernanceControlMode
+        ):
+            raise ValueError("main governance mode is invalid")
+        if self.guardrail_governance_mode is not None and not isinstance(
+            self.guardrail_governance_mode, GuardrailGovernanceControlMode
+        ):
+            raise ValueError("guardrail governance mode is invalid")
         if all(
             value is None
             for value in (
@@ -145,6 +225,9 @@ class ConfigurationPatch:
                 self.context_size,
                 self.documentation_rag_mode,
                 self.recording_mode,
+                self.governance_mode,
+                self.main_governance_mode,
+                self.guardrail_governance_mode,
             )
         ):
             raise ValueError("configuration patch must contain at least one field")
@@ -174,6 +257,9 @@ class EffectiveConfigurationSnapshot:
     fields: tuple[ConfigurationField, ...]
     feature_hooks: tuple[FeatureHookDescriptor, ...]
     recording_hooks: tuple[RecordingHookDescriptor, ...]
+    governance_hooks: tuple[GovernanceHookDescriptor, ...] = ()
+    main_governance_hooks: tuple[MainGovernanceHookDescriptor, ...] = ()
+    guardrail_governance_hooks: tuple[GuardrailGovernanceHookDescriptor, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -199,6 +285,9 @@ def configuration_digest(
     fields: tuple[ConfigurationField, ...],
     feature_hooks: tuple[FeatureHookDescriptor, ...],
     recording_hooks: tuple[RecordingHookDescriptor, ...],
+    governance_hooks: tuple[GovernanceHookDescriptor, ...] = (),
+    main_governance_hooks: tuple[MainGovernanceHookDescriptor, ...] = (),
+    guardrail_governance_hooks: tuple[GuardrailGovernanceHookDescriptor, ...] = (),
 ) -> str:
     """Hash only the finite safe effective projection using canonical JSON."""
 
@@ -232,6 +321,36 @@ def configuration_digest(
                 "apply_disposition": item.apply_disposition.value,
             }
             for item in sorted(recording_hooks, key=lambda item: item.component_key)
+        ],
+        "governance_hooks": [
+            {
+                "component_key": item.component_key,
+                "allowed_modes": sorted(mode.value for mode in item.allowed_modes),
+                "current_mode": item.current_mode.value,
+                "available": item.available,
+                "apply_disposition": item.apply_disposition.value,
+            }
+            for item in sorted(governance_hooks, key=lambda item: item.component_key)
+        ],
+        "main_governance_hooks": [
+            {
+                "component_key": item.component_key,
+                "allowed_modes": sorted(mode.value for mode in item.allowed_modes),
+                "current_mode": item.current_mode.value,
+                "available": item.available,
+                "apply_disposition": item.apply_disposition.value,
+            }
+            for item in sorted(main_governance_hooks, key=lambda item: item.component_key)
+        ],
+        "guardrail_governance_hooks": [
+            {
+                "component_key": item.component_key,
+                "allowed_modes": sorted(mode.value for mode in item.allowed_modes),
+                "current_mode": item.current_mode.value,
+                "available": item.available,
+                "apply_disposition": item.apply_disposition.value,
+            }
+            for item in sorted(guardrail_governance_hooks, key=lambda item: item.component_key)
         ],
     }
     canonical = json.dumps(

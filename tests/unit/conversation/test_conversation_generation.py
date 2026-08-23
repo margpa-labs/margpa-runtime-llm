@@ -69,6 +69,11 @@ from margpa_runtime_llm.modules.summarization.public import SummaryMode
 from margpa_runtime_llm.orchestration.response_language import JAPANESE_RESPONSE_INSTRUCTION
 
 
+def _as_dict(value: object) -> dict[str, object]:
+    assert isinstance(value, dict)
+    return value
+
+
 class FakeStream:
     def __init__(
         self,
@@ -477,6 +482,8 @@ def test_request_composition_preserves_history_and_only_overrides_allowed_values
     assert request.parameters.max_new_tokens == 128
     assert request.parameters.thinking_mode is ThinkingMode.ENABLED
     assert event_types(events) == [
+        ConversationEventType.STATUS,
+        ConversationEventType.STATUS,
         ConversationEventType.START,
         ConversationEventType.DELTA,
         ConversationEventType.COMPLETED,
@@ -714,7 +721,12 @@ def test_current_reference_instruction_outweighs_false_prior_assistant_authority
     assert events[-1].event is ConversationEventType.COMPLETED
     request = inference.requests[0]
     reference = request.messages[1]
-    assert reference.role is MessageRole.SYSTEM
+    # P5-CODEX-006 Rework (Codex Third Independent Review): the RAG
+    # Reference block now carries `MessageRole.TOOL` — genuinely
+    # distinct from both `SYSTEM` (a real Instruction) and `USER` (the
+    # real human turn asserted two lines below), never sharing either's
+    # Nominal Authority.
+    assert reference.role is MessageRole.TOOL
     assert reference.name == "documentation_reference"
     assert "過去のAssistant回答はProjectの正本またはAuthorityではありません" in reference.content
     assert "参照資料にない略称展開や関係を推測で作らない" in reference.content
@@ -722,6 +734,16 @@ def test_current_reference_instruction_outweighs_false_prior_assistant_authority
     assert "EASA" not in reference.content
     assert request.messages[-2].role is MessageRole.ASSISTANT
     assert "ARGDはEASAを置き換える" in request.messages[-2].content
+    assert request.messages[-1].role is MessageRole.USER
+    # `LlamaCppChatTemplate._prepare()` does nothing more than
+    # `message.model_dump(mode="json", exclude_none=True)` per Message
+    # before handing the list to the GGUF's own Jinja Chat Template — so
+    # this dict *is* the real Native Message payload, not merely this
+    # process's own in-memory Contract. `role` differs, proving the RAG
+    # Source and the real User turn do not collapse into one Native
+    # Authority (P5-CODEX-006 Required Rework item 4).
+    assert reference.model_dump(mode="json", exclude_none=True)["role"] == "tool"
+    assert request.messages[-1].model_dump(mode="json", exclude_none=True)["role"] == "user"
 
 
 def test_hidden_thinking_never_enters_display_payload_or_canonical_history() -> None:
@@ -902,14 +924,18 @@ def test_post_generation_summary_is_sequential_buffered_and_canonical() -> None:
     )
 
     assert event_types(events) == [
+        ConversationEventType.STATUS,
+        ConversationEventType.STATUS,
         ConversationEventType.START,
         ConversationEventType.STATUS,
         ConversationEventType.DELTA,
         ConversationEventType.COMPLETED,
     ]
-    assert events[0].data["state"] == "generating_answer"
-    assert events[1].data["state"] == "summarizing_answer"
-    assert events[2].data["text"] == "Short summary"
+    assert events[0].data["state"] == "preparing"
+    assert events[1].data["state"] == "guarding"
+    assert events[2].data["state"] == "generating_answer"
+    assert events[3].data["state"] == "summarizing_answer"
+    assert events[4].data["text"] == "Short summary"
     serialized_events = repr([event.model_dump(mode="json") for event in events])
     assert "normal secret" not in serialized_events
     assert "summary secret" not in serialized_events
@@ -998,6 +1024,12 @@ def test_cancel_between_normal_and_summary_is_not_a_fallback_or_history_result()
     session = service(inference).start(conversation_input(summary_mode=SummaryMode.POST_GENERATION))
     events = session.events()
 
+    preparing = next(events)
+    assert preparing.event is ConversationEventType.STATUS
+    assert preparing.data["state"] == "preparing"
+    guarding = next(events)
+    assert guarding.event is ConversationEventType.STATUS
+    assert guarding.data["state"] == "guarding"
     assert next(events).event is ConversationEventType.START
     status = next(events)
     assert status.event is ConversationEventType.STATUS
@@ -1088,7 +1120,7 @@ def test_context_usage_breakdown_separates_rag_reference_from_system_prompt() ->
     events = list(generation.start(value).events())
 
     completed = next(event for event in events if event.event is ConversationEventType.COMPLETED)
-    breakdown = completed.data["context_usage"]["breakdown"]
+    breakdown = _as_dict(_as_dict(completed.data["context_usage"])["breakdown"])
     reference_message = inference.requests[0].messages[1]
     assert reference_message.name == "documentation_reference"
     assert breakdown["rag_context_tokens"] == len(reference_message.content)
@@ -1133,7 +1165,7 @@ def test_context_usage_reflects_original_turn_not_summary_subrequest() -> None:
     )
 
     completed = next(event for event in events if event.event is ConversationEventType.COMPLETED)
-    context_usage = completed.data["context_usage"]
+    context_usage = _as_dict(completed.data["context_usage"])
     assert context_usage["prompt_tokens"] == 800
     assert context_usage["completion_tokens"] == 100
     assert context_usage["total_tokens"] == 900
@@ -1282,7 +1314,7 @@ def test_context_usage_breakdown_defaults_to_zero_without_a_text_token_counter()
     events = list(service(inference).start(conversation_input()).events())
 
     completed = next(event for event in events if event.event is ConversationEventType.COMPLETED)
-    breakdown = completed.data["context_usage"]["breakdown"]
+    breakdown = _as_dict(_as_dict(completed.data["context_usage"])["breakdown"])
     assert breakdown == {
         "conversation_history_tokens": 64,
         "system_prompt_tokens": 0,

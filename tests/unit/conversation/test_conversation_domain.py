@@ -470,6 +470,36 @@ def test_transitions_validate_terminal_state_and_times() -> None:
         transition_turn(completed, target=ConversationTurnState.FAILED)
 
 
+def test_failed_transition_carries_failure_reason_code_completed_does_not() -> None:
+    pending = pending_turn("turn-1", sequence=0, parent=None)
+    generating = transition_turn(
+        pending,
+        target=ConversationTurnState.GENERATING,
+        request_id="request-1",
+    )
+    failed = transition_turn(
+        generating,
+        target=ConversationTurnState.FAILED,
+        finished_at=NOW + timedelta(seconds=1),
+        failure_reason_code="guardrail_reject_input",
+    )
+    assert failed.failure_reason_code == "guardrail_reject_input"
+
+    generating_again = transition_turn(
+        pending_turn("turn-2", sequence=0, parent=None),
+        target=ConversationTurnState.GENERATING,
+        request_id="request-2",
+    )
+    completed = transition_turn(
+        generating_again,
+        target=ConversationTurnState.COMPLETED,
+        assistant_message_id=message_id("turn-2-assistant"),
+        finished_at=NOW + timedelta(seconds=1),
+        failure_reason_code="guardrail_reject_input",
+    )
+    assert completed.failure_reason_code is None
+
+
 def test_conversation_archive_transition_revalidates_invariants() -> None:
     current = snapshot(sessions=(session(state=ConversationSessionState.CLOSED),))
     archived = transition_conversation_state(

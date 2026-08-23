@@ -48,6 +48,14 @@ class ConversationTurnOrigin(StrEnum):
     NORMAL = "normal"
     RETRY = "retry"
     REGENERATE = "regenerate"
+    REPAIR = "repair"
+    """A Bounded Repair's New Attempt (P6-CODEX-009, Second Rework):
+    persists exactly like REGENERATE (same source User Message content,
+    a genuinely new Turn/Message Identity, never a rewrite of the
+    Original) — the only difference is which internal caller produced it
+    and that it is created only after the Original's own Turn already
+    completed and a Rejudge confirmed the new candidate is an
+    improvement."""
 
 
 class PersistedConversationRole(StrEnum):
@@ -137,6 +145,22 @@ class ConversationSessionRecord(ImmutableContract):
         return self
 
 
+class ConversationTurnProvenance(ImmutableContract):
+    """A completed Generation Attempt's Model/Backend/Context identity
+    (P6-CODEX-013): Role is `origin` on the owning `ConversationTurn`
+    itself, so it is not repeated here. `generation_config_digest_sha512`
+    is Optional because not every caller (e.g. Repair's out-of-band
+    candidate generation) computes one today; absent is represented
+    explicitly as `None`, never a fabricated placeholder."""
+
+    model_identity: str = Field(min_length=1)
+    backend_key: str = Field(min_length=1)
+    backend_version: str = Field(min_length=1)
+    artifact_digest_sha512: str = Field(pattern=r"^[0-9a-f]{128}$")
+    context_size: int = Field(gt=0)
+    generation_config_digest_sha512: str | None = Field(default=None, pattern=r"^[0-9a-f]{128}$")
+
+
 class ConversationTurn(ImmutableContract):
     turn_id: ConversationTurnId
     conversation_id: ConversationId
@@ -151,6 +175,22 @@ class ConversationTurn(ImmutableContract):
     request_id: str | None = Field(default=None, min_length=1, max_length=128)
     started_at: datetime
     finished_at: datetime | None = None
+    failure_reason_code: str | None = Field(default=None, min_length=1, max_length=128)
+    """Set only when `state is FAILED` (P6-CODEX-003): the Guardrail/
+    Governance/generic reason_code the terminal `error` event carried, so a
+    Reload/Resume can reconstruct the same Safe Refusal Presentation the
+    live SSE stream showed, without persisting an actual Assistant Message
+    (P6-ACC-042 — a Safe Refusal must never become Assistant Authority).
+    A new Optional field with a default of None round-trips through the
+    existing JSON-blob storage format without a schema migration: old rows
+    simply decode as None."""
+    provenance: ConversationTurnProvenance | None = Field(default=None)
+    """Set only when `state is COMPLETED` (P6-CODEX-013): the real Model/
+    Backend/Context identity this specific Generation Attempt actually
+    ran with. Same additive-Optional-field, no-migration shape as
+    `failure_reason_code` above; old persisted rows simply decode as
+    None rather than fabricating a value for an Attempt that predates
+    this field's existence."""
 
     @field_validator("request_id")
     @classmethod
@@ -190,6 +230,8 @@ class ConversationTurn(ImmutableContract):
                 raise ValueError("a completed turn requires an assistant message")
         elif self.assistant_message_id is not None:
             raise ValueError("only a completed turn may reference an assistant message")
+        if self.state is not ConversationTurnState.FAILED and self.failure_reason_code is not None:
+            raise ValueError("only a failed turn may carry a failure_reason_code")
         if self.parent_turn_id == self.turn_id:
             raise ValueError("a turn cannot be its own parent")
         if self.derived_from_turn_id == self.turn_id:
@@ -446,6 +488,8 @@ def transition_turn(
     finished_at: datetime | None = None,
     assistant_message_id: ConversationMessageId | None = None,
     request_id: str | None = None,
+    failure_reason_code: str | None = None,
+    provenance: ConversationTurnProvenance | None = None,
 ) -> ConversationTurn:
     allowed = {
         ConversationTurnState.PENDING: {
@@ -476,6 +520,10 @@ def transition_turn(
                 assistant_message_id if target is ConversationTurnState.COMPLETED else None
             ),
             "request_id": request_id if request_id is not None else turn.request_id,
+            "failure_reason_code": (
+                failure_reason_code if target is ConversationTurnState.FAILED else None
+            ),
+            "provenance": (provenance if target is ConversationTurnState.COMPLETED else None),
         }
     )
     return ConversationTurn.model_validate(candidate)

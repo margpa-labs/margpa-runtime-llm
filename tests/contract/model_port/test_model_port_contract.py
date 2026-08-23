@@ -178,7 +178,9 @@ class FakeModelPort:
             )
         return self._runtime_info.effective_capabilities
 
-    def generate(self, request: GenerationRequest) -> GenerationResult:
+    def generate(
+        self, request: GenerationRequest, *, cancellation: object = None
+    ) -> GenerationResult:
         if self._runtime_info is None:
             raise InferenceError(
                 code=InferenceErrorCode.MODEL_NOT_LOADED,

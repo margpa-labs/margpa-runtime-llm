@@ -105,6 +105,226 @@ export interface ConfigurationPreviewResult {
   redacted_changes: unknown;
 }
 
+// --- Governance Definitions (Phase 3-F) ---
+
+export type GovernanceMode = "off" | "observe" | "enforce";
+
+export interface GovernanceModeDescriptor {
+  mode: GovernanceMode;
+  availability: "available" | "unavailable";
+  apply_disposition: string;
+  unavailable_reason_code: string | null;
+}
+
+export interface GovernanceModeInfo {
+  revision: number;
+  digest_sha512: string;
+  current_mode: GovernanceMode;
+  descriptors: GovernanceModeDescriptor[];
+}
+
+export interface GovernanceObserveSummary {
+  provider_state: string;
+  package_found: boolean;
+  package_state: string | null;
+  definition_count: number;
+  valid_definition_count: number;
+  invalid_definition_count: number;
+  unsupported_definition_count: number;
+  compiled_plan_id: string | null;
+}
+
+export interface GovernanceStatus {
+  mode: GovernanceModeInfo;
+  observe_summary: GovernanceObserveSummary | null;
+}
+
+// --- Main Runtime Governance (Phase 4) ---
+
+export type MainGovernanceMode = "off" | "observe" | "enforce";
+
+export interface MainGovernanceModeDescriptor {
+  mode: MainGovernanceMode;
+  availability: "available" | "unavailable";
+  unavailable_reason_code: string | null;
+}
+
+export interface RuntimeGovernancePointStatus {
+  point_id: string;
+  execution_state: string | null;
+  selected_descriptor_count: number | null;
+  severity: string | null;
+  recommended_action_count: number | null;
+  executed_action_count: number | null;
+  unavailable_reason_code: string | null;
+  degraded_reason_code: string | null;
+  latency_ms: number | null;
+  observation_count: number | null;
+  pass_count: number | null;
+  deviation_count: number | null;
+  deferred_count: number | null;
+}
+
+export interface RuntimeGovernanceEvidenceStatus {
+  degraded: boolean;
+  degraded_reason_code: string | null;
+  degraded_event_count: number;
+}
+
+export interface RuntimeGovernanceStatus {
+  enabled: boolean;
+  revision: number | null;
+  current_mode: MainGovernanceMode | null;
+  descriptors: MainGovernanceModeDescriptor[];
+  points: RuntimeGovernancePointStatus[];
+  evidence: RuntimeGovernanceEvidenceStatus | null;
+}
+
+// --- Runtime Model Control (Phase 6) ---
+
+export interface RuntimeModelMainIdentity {
+  model_key: string;
+  artifact_digest: string;
+  backend_identity: string;
+  state: string;
+}
+
+export interface RuntimeModelJudgeIdentity {
+  model_key: string | null;
+  independence_class: string;
+  state: string;
+}
+
+export interface RuntimeModelGuardIdentity {
+  model_id: string | null;
+  exact_revision: string | null;
+  artifact_digest_sha512: string | null;
+  state: string;
+}
+
+export interface RuntimeModelGovernanceLayerIdentity {
+  package_id: string | null;
+  manifest_digest_sha512: string | null;
+  state: string;
+}
+
+export interface FeatureModeSnapshot {
+  enabled: boolean;
+  revision: number | null;
+  current_mode: string | null;
+}
+
+export interface JudgeLastResult {
+  request_id: string;
+  judge_role: string;
+  recommendation: string;
+  confidence: number;
+  execution_state: string;
+  failure_reason: string | null;
+  repair_eligibility: string | null;
+  repair_outcome: string | null;
+  repair_accepted: boolean | null;
+  repair_new_turn_id: string | null;
+}
+
+export interface JudgeModeSnapshot extends FeatureModeSnapshot {
+  // `idle`/`queued_or_skipped` mean no Judge Run is in flight right now
+  // (P6-CODEX-020, Third Rework: `queued_or_skipped` covers both Judge OFF
+  // and a busy-Model skip, always correlated with `current_request_id`),
+  // so `last_result` (if present) is necessarily from a *previous* Turn,
+  // not this one — a reader must compare `last_result.request_id` against
+  // `current_request_id`, never assume freshness from `state` alone.
+  // P6-CODEX-031 (Fourth Rework): "judging"/"repairing"/"rejudging" are
+  // three distinct in-flight sub-states (never a single generic
+  // "running") — the exact P6-OBS-004 Runtime State vocabulary for this
+  // portion of the pipeline.
+  state:
+    | "idle"
+    | "queued_or_skipped"
+    | "judging"
+    | "repairing"
+    | "rejudging"
+    | "completed"
+    | "failed"
+    | "cancelled"
+    | "degraded"
+    | null;
+  current_request_id: string | null;
+  last_result: JudgeLastResult | null;
+}
+
+export interface RecordingOutcome {
+  request_id: string;
+  ok: boolean;
+  degraded_reason: string | null;
+}
+
+export interface RecordingModeSnapshot extends FeatureModeSnapshot {
+  last_outcome: RecordingOutcome | null;
+  judge_evidence_last_outcome: RecordingOutcome | null;
+}
+
+export interface FeatureModesStatus {
+  judge: JudgeModeSnapshot;
+  repair: FeatureModeSnapshot;
+  recording: RecordingModeSnapshot;
+}
+
+export interface RuntimeModelAvailableModel {
+  model_key: string;
+  provider: string;
+  native_context_limit: number;
+}
+
+export interface RuntimeModelStatus {
+  enabled: boolean;
+  revision: number | null;
+  digest_sha512: string | null;
+  runtime_state: string | null;
+  loaded_context_size: number | null;
+  model_native_context_limit: number | null;
+  backend_context_limit: number | null;
+  deployment_verified_context_limit: number | null;
+  max_output_token_limit: number | null;
+  current_max_new_tokens: number | null;
+  main_model: RuntimeModelMainIdentity | null;
+  judge_model: RuntimeModelJudgeIdentity | null;
+  guard_model: RuntimeModelGuardIdentity | null;
+  governance_layer: RuntimeModelGovernanceLayerIdentity | null;
+  available_models: RuntimeModelAvailableModel[];
+}
+
+// --- Guardrail Governance (Phase 5) ---
+
+export type GuardrailGovernanceMode = "off" | "observe" | "enforce";
+
+export interface GuardrailModeDescriptor {
+  mode: GuardrailGovernanceMode;
+  availability: "available" | "unavailable";
+  unavailable_reason_code: string | null;
+}
+
+export interface GuardrailPointStatus {
+  point_id: string;
+  execution_state: string | null;
+  severity: string | null;
+  recommended_action_count: number | null;
+  executed_action_count: number | null;
+  unavailable_reason_code: string | null;
+  degraded_reason_code: string | null;
+  latency_ms: number | null;
+  detection_count: number | null;
+  match_count: number | null;
+}
+
+export interface GuardrailGovernanceStatus {
+  enabled: boolean;
+  revision: number | null;
+  current_mode: GuardrailGovernanceMode | null;
+  descriptors: GuardrailModeDescriptor[];
+  points: GuardrailPointStatus[];
+}
+
 // --- Persistent conversations (v2) ---
 
 export interface PersistentConversationSummary {
@@ -135,6 +355,14 @@ export interface PersistentTurn {
   state: "pending" | "completed" | "failed" | "cancelled" | "interrupted";
   messages: PersistentTurnMessage[];
   citations?: PersistentTurnCitations;
+  failure_reason_code?: string | null;
+  // P6-CODEX-024 (Third Rework): already present on the backend's
+  // `PersistentTurnResponse` (`turn.request_id`, set at `start_generation`)
+  // but not previously consumed here — the correlation key a Live Judge/
+  // Repair badge needs, durable across a full conversation-detail reload
+  // (unlike a purely in-memory, streaming-only `requestId`, which a detail
+  // reload after completion would otherwise silently wipe back to null).
+  request_id?: string | null;
 }
 
 export interface PersistentSession {
@@ -216,4 +444,23 @@ export interface DisplayMessage {
   thinkingVisible: boolean;
   citations: CitationEvidence | null;
   turnActions: TurnActionSpec[];
+  // P6-CODEX-024 (Third Rework): the backend request_id this specific
+  // assistant Turn's Generation Attempt ran under — the correlation key a
+  // Live Judge/Repair badge on the Chat surface is matched against (see
+  // `LiveJudgeBadge` below), never a fabricated identity when unknown
+  // (e.g. a reconstructed historical Turn from before this field existed).
+  requestId: string | null;
+}
+
+/** P6-CODEX-024 (Third Rework): a Current-Request-correlated Live Judge/
+ * Repair projection for the Chat surface — distinct from
+ * `FeatureModesStatus.judge`'s own richer, Feature-Modes-Panel-only view.
+ * `requestId` is always the specific Turn's request_id this badge is
+ * currently for; a `MessageBubble` only ever renders it when its own
+ * `message.requestId` equals this `requestId` — never presented as
+ * "current" for any other Turn. */
+export interface LiveJudgeBadge {
+  requestId: string;
+  state: string;
+  repairAccepted: boolean | null;
 }

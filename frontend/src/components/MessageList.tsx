@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { translate, type TranslationKey } from "../i18n/translations";
-import type { DisplayMessage, UiLanguage } from "../types";
+import type { DisplayMessage, LiveJudgeBadge, UiLanguage } from "../types";
 import MessageBubble from "./MessageBubble";
 
 interface MessageListProps {
@@ -11,6 +11,10 @@ interface MessageListProps {
   onTurnAction: (turnId: string, kind: "retry" | "regenerate" | "selectBranch") => void;
   pinnedMessageId: string | null;
   active: boolean;
+  // P6-CODEX-024 (Third Rework): Current-Request-correlated, never a
+  // fabricated "current" state for any Turn other than the one it actually
+  // names — `MessageBubble` itself does the exact-match check.
+  liveJudgeBadge: LiveJudgeBadge | null;
 }
 
 // Clearance kept between the fixed top-right topbar pill and a pinned
@@ -28,6 +32,7 @@ export default function MessageList({
   onTurnAction,
   pinnedMessageId,
   active,
+  liveJudgeBadge,
 }: MessageListProps) {
   // .messages no longer scrolls internally (it grows to fit its content,
   // and the page itself scrolls) — so "scroll to latest" means scrolling a
@@ -119,6 +124,11 @@ export default function MessageList({
             language={language}
             message={message}
             onTurnAction={onTurnAction}
+            judgeBadge={
+              message.requestId !== null && liveJudgeBadge?.requestId === message.requestId
+                ? liveJudgeBadge
+                : null
+            }
           />
         ))
       )}

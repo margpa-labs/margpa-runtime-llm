@@ -16,11 +16,22 @@ from .contracts import (
     EffectiveConfigFieldSources,
     EffectiveConfigurationSnapshot,
     FeatureHookDescriptor,
+    GovernanceControlMode,
+    GovernanceHookDescriptor,
+    GuardrailGovernanceControlMode,
+    GuardrailGovernanceHookDescriptor,
+    MainGovernanceControlMode,
+    MainGovernanceHookDescriptor,
     RecordingControlMode,
     RecordingHookDescriptor,
     RedactedConfigurationChange,
     ResearchDeveloperMode,
     configuration_digest,
+)
+from .ports import (
+    GovernanceModeApplierPort,
+    GuardrailGovernanceModeApplierPort,
+    MainGovernanceModeApplierPort,
 )
 
 __all__ = [
@@ -39,6 +50,15 @@ __all__ = [
     "EffectiveConfigFieldSources",
     "EffectiveConfigurationSnapshot",
     "FeatureHookDescriptor",
+    "GovernanceControlMode",
+    "GovernanceHookDescriptor",
+    "GovernanceModeApplierPort",
+    "GuardrailGovernanceControlMode",
+    "GuardrailGovernanceHookDescriptor",
+    "GuardrailGovernanceModeApplierPort",
+    "MainGovernanceControlMode",
+    "MainGovernanceHookDescriptor",
+    "MainGovernanceModeApplierPort",
     "RecordingControlMode",
     "RecordingHookDescriptor",
     "RedactedConfigurationChange",

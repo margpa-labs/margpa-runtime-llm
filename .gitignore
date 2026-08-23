@@ -80,9 +80,18 @@ pytestdebug.log
 *.log
 
 # Private persistent conversation history and its recovery artifacts
+/runtime_data/
 /runtime_data/persistent/**/conversations/
 /runtime_data/recovery/checkpoints/**/conversations/
 /runtime_data/recovery/migrations/**/conversations/
+
+# Private Evaluation/Repair/Feedback Recording (P6-CODEX-004, Acceptance
+# P6-ACC-051): Recording Mode may persist real Canonical Input/Presented
+# Answer content — never Git Stage material.
+/runtime_data/persistent/**/evaluations/
+/runtime_data/persistent/**/experiments/
+/runtime_data/persistent/**/evidence/
+/runtime_data/persistent/**/feedback/
 
 # Local databases
 *.db
