@@ -205,3 +205,73 @@ Controllerと設計者兼実装者が同じCodex Provider／Model系統である
 既存Evidenceを上書きして結果を置換してはならない。各記録には、少なくとも対象Phase／Work Unit、使用Task、開始・終了状態、直接通信結果、実施範囲、Validation、Review Finding、Rework回数、Stop／Recovery状態、Authority／Scope逸脱の有無および利用可能量に関する観測可能な情報を含める。
 
 記録を作らずに次の試行または正式運用へ進んではならない。結果が不完全または途中停止であっても、省略せず、その不完全状態自体をEvidenceとして残す。
+
+## 13. 後順位Correction — Controller非並走／Return-boundary Review
+
+```text
+Correction Recorded At : 2026-08-25 01:48:41 JST
+Trigger                : Phase 6 Codex Two-Task Rework実測
+Precedence             : 本節が§3、§4、§8の並走可能な解釈をSupersede
+Default                : Executor Running中、ControllerはWAITING
+```
+
+### 13.1 実測からの変更理由
+
+Phase 6 Reworkで、設計者兼実装者役Taskの実装中にController TaskもSource確認、独立Test、途中Finding整理および先回り指示を並走した。この方式はWall Timeを短縮し得る一方、User報告では一連の工程だけでCodex利用可能量を約70〜80%消費し、Resource残量を予測・管理しにくくした。またController Turnが長時間継続するため、Userが別の確認、予約事項または方針変更を差し込みにくい運用となった。
+
+この値はProvider TelemetryをControllerが独立取得したものではなく、Userが製品表示から観測した概算である。正確なToken消費量とは主張しないが、運用変更を必要とする十分なResource Evidenceとして扱う。
+
+### 13.2 新しいDefault Loop
+
+```text
+User Start
+  -> ControllerがFrozen Handoff／Exact Authorityを作成して送信
+  -> 設計者兼実装者役TaskがLong Run
+  -> Controller TaskはWAITING
+  -> Complete Candidate／STOPPED_SAFE／True Blockerが返る
+  -> Controllerが集中Independent Review
+       +-- PASS   -> Closure Ready／User Gate
+       +-- REWORK -> Exact Rework Handoffを送信
+                       -> Controllerは再びWAITING
+```
+
+Executor稼働中のController WAITINGでは、原則として次を行わない。
+
+- 定期Pollingまたは進捗追跡。
+- Working Tree／Source／Testの途中Review。
+- Executorと同じTestの並行実行。
+- 未完成Diffに対する先回りFinding送信。
+- 完了前の追加Scope、隣接機能またはClosure作業。
+- 単なるSubphase完了報告を契機としたReview開始。
+
+Independent Reviewは、Executorが一旦すべてのAuthorized Workを終え、集約Complete Candidateを返した後に開始する。Reworkでも同じであり、Exact Reworkを渡した後は再度Return Boundaryまで待機する。
+
+### 13.3 WAITING中のController可用性
+
+WAITINGはController Taskを長いTool CallやMonitorで占有することを意味しない。ControllerはUserへTurnを返し、Userからの質問、予約事項、優先順位変更または別のRead-only相談を受けられる状態を維持する。
+
+Executor Taskの進行は別Taskへ委任済みであり、Userが明示的にStatus確認、停止、追加指示または方針変更を求めた場合だけ、その要求に必要な範囲で対象Taskを確認・操作する。
+
+### 13.4 例外
+
+ControllerがExecutor完了前に介入できるのは、次に限定する。
+
+- Executorから`STOPPED_SAFE`、True Blocker、Authority要求または重大Incidentが明示返送された。
+- Userが明示的に進捗確認、停止、割込みまたはScope変更を指示した。
+- 不可逆Mutation、Secret／Privacy、Project Root外Action、課金または外部Side Effectが進行中である具体的Evidenceを受領した。
+- ExecutorがCompleteと誤認して停止し、UserまたはControllerへReturn済みである。
+
+通常の設計判断、Test Failure、追加Rework候補、進捗の遅さ、Auto-Compaction、5時間制限または利用可能量待ちは、Controller常時並走の理由にしない。
+
+### 13.5 Resource評価
+
+今後のCodex 2タスク試行では、次を別々に記録する。
+
+- Executor Long Run中のController実作業回数。
+- Return前のPolling／Source Review／Test回数。Default目標は0。
+- Complete Candidate後のController Review消費傾向。
+- Rework回数。
+- UserがControllerへ別件を差し込めなかった時間。
+- User報告に基づく利用可能量の開始値／終了値／概算消費。
+
+速度だけでなく、Resource予測可能性とUserがControllerへ随時相談できる状態を成功条件へ追加する。

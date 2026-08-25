@@ -150,6 +150,12 @@ def test_builds_a_controller_whose_initial_snapshot_matches_the_loaded_model() -
     assert snapshot.revision == 0
     assert snapshot.runtime_state is RuntimeState.ACTIVE
     assert snapshot.loaded_context_size == 4096
+    assert snapshot.model_native_context_limit == 8192
+    assert snapshot.backend_context_limit == 8192
+    assert snapshot.deployment_verified_context_limit == 4096
+    assert snapshot.effective_context_limit == 4096
+    assert snapshot.max_output_token_limit == 4095
+    assert snapshot.current_max_new_tokens == 2048
     assert snapshot.role_bindings[0].role is ModelRole.MAIN
     assert snapshot.role_bindings[0].artifact_digest == _ARTIFACT_DIGEST_VALUE
 

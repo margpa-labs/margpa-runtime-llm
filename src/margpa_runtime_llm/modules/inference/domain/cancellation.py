@@ -25,3 +25,8 @@ class CancellationToken:
 
     def is_cancelled(self) -> bool:
         return self._event.is_set()
+
+    def wait(self, timeout: float | None = None) -> bool:
+        """Wait until cancellation is requested or ``timeout`` elapses."""
+
+        return self._event.wait(timeout)

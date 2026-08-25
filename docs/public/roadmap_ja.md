@@ -5,7 +5,7 @@ document_type: public_roadmap
 document_state: current
 language: ja
 created_at: 2026-07-22
-updated_at: 2026-08-23 23:24:03 JST
+updated_at: 2026-08-25 09:10:18 JST
 public_author: Nazuna Research
 project: MARGPA Runtime LLM
 ```
@@ -142,7 +142,7 @@ FutureまたはPlannedと書かれた項目は、実装済みを意味しない�
 
 ## 4. 現在地 — Phase 6 In Progress／User Mac AcceptanceでADJUST
 
-2026年8月23日時点の現在地は次のとおりである。
+2026年8月25日時点の現在地は次のとおりである。
 
 ```text
 Phase 0                               : Complete
@@ -209,20 +209,25 @@ Phase 4 Runtime Governance            : Complete／Accepted／Closed／Mac Manua
 Phase 4 Structural／Semantic Boundary: Structural Enforce Accepted／Semantic Rules Deferred to Phase 6
 Phase 5 Guardrail Runtime             : Complete／Accepted／Closed／Mac Acceptance Passed
 Phase 6 Integrated Design             : Accepted／Frozen／Implementation Executed
-Phase 6 Automated Verification        : COMPLETE_CANDIDATE／Open Automated Major 0 at Candidate Return
-Phase 6 User Mac Acceptance           : ADJUST／Judge malformed_output／Repair Golden Path Failed
+Phase 6 Automated Verification        : Ninth Rework COMPLETE_CANDIDATE／Backend 1602 Passed／Frontend 221 Passed
+Phase 6 User Mac Acceptance           : ADJUST／Semantic Definition 109件Deferred／Independent Judge未成立
 Phase 6 Runtime Model Control         : Qwen Default／Qwen↔DeepSeek Switch／Restart Reset Passed
 Phase 6 Conversation Compatibility    : Two-tab Reload／Conversation／Citation／Branch Passed
-Phase 6 Context／Token Control         : Dynamic Apply Available／Additional Bug Reproduction Pending
-Phase 6 Closure                       : NOT ACCEPTED／Rework Deferred to Next Available Cycle
-High-performance Main Model Expansion : DeepSeek Mac Q4 Load Passed／Quality Acceptance Failed／Qwen Default Retained
+Phase 6 Context／Token Control         : Dynamic Apply Passed／Mac Verified Effective Maximum 8192／UI Follow-up Reserved
+Phase 6 Judge／Repair                  : main_self基盤のみ／誤答accept・Malformed・Deadline／Repair Golden Path未成立
+Phase 6 Guard／Judge Dedicated Model  : Qwen3Guard／Selene Artifact候補あり／Runtime Provider未接続
+Phase 6 Recording                     : Write Path Passed／Request ID・時刻・Mode相関表示不足
+Phase 6 Closure                       : BLOCKED／Functional Rework Required
+High-performance Main Model Expansion : DeepSeek Mac Q4 Switch／反復防止Passed／回答品質・Judge品質Failed
 AWS Deployment Foundation             : Deferred to Phase 10以降／Phase 6～9から分離
 Optional English Documentation        : Formally Deferred／Non-blocking／History Excluded
 ```
 
 Phase 3、4、5は最小Closureにより`COMPLETE／ACCEPTED／CLOSED`となった。Phase 6はJudge、Repair、Recording、Runtime Model Control、Dynamic Context Size／Max New TokensおよびCurrent Component UIを実装候補まで進めた。User MacではQwen Default、Qwen→DeepSeek、再起動後Qwen復帰、二つのBrowser Tab、Conversation、CitationおよびBranch維持を確認した。
 
-一方、実ChatのLLM-as-a-Judgeは`malformed_output／unknown／failed`となり、Repair ENFORCEの有界Golden Pathは成立しなかった。Current Judge Identity表示、将来形のまま残ったUI説明、Context／Token ControlにもReworkが必要である。DeepSeek Mac Q4はLoad／Switch可能だが回答品質Acceptanceを満たさず、Research CandidateのままDefaultへ昇格しない。したがってPhase 6は完了ではなく`In Progress／ADJUST`であり、Phase 7は未開始である。
+一方、実Chatでは、Phase 4／5からPhase 6へ送ったARGD／DAGD Semantic Rule 109件が依然として全件`Deferred（意味評価待ち）`であり、MARGPA Governance Definitionsが回答品質のEvaluation／Action／Repairへ接続されていないことが確定した。Current Live Judgeは選択中Main Modelを`main_self`として再利用し、Qwenの明白な誤答を`accept／0.95`と自己承認する一方、DeepSeekは`malformed_output`、重いCallは固定30秒の`deadline_exceeded`へ至った。Repair ENFORCEの再現可能な有界Golden Pathも成立していない。
+
+Phase 6 Reworkでは、Semantic DescriptorからEvaluation Criteriaへの実接続、Selene Dedicated Judge、Qwen3Guard Safety Provider、Main／Guardrail／Judgeの独立Provider選択、`None`／Built-in Provider、Model／Deployment別Timeout、原因別・言語別Failure、最新RecordingのRequest ID／日時／Mode相関を必須とする。DeepSeek Mac Q4はLoad／Switchと病的反復防止を確認したが、Main／Judge回答品質Acceptanceは満たさず、Research CandidateのままDefaultへ昇格しない。したがってPhase 6は`In Progress／ADJUST`、Closureは`BLOCKED`、Phase 7は未開始である。
 
 以下のPhase 1／2詳細は成立過程のCurrent-to-date説明として保持する。最新の短い入口は[Roadmap要約版](roadmap_summary_ja.md)、技術判断は[技術選定](technology_selection_ja.md)を参照する。
 
@@ -1172,13 +1177,18 @@ Tool PermissionはModel判断を正本にせず、決定論的Policyと既存権
 
 回答の評価、修復、状態表示を独立Componentとして追加し、Governanceの効果と失敗を測定可能にする。
 
-Phase 5 Closure後の統合Designとして、従来のJudge／Evaluation／Repair／Observabilityに加え、DeepSeek 8B Q4 Local Feasibility、Qwen既定維持、起動中Model Switch、Dynamic Context Size／Max New Tokens、Localized Safe Refusal、Request-correlated Status、Feedback／RecordingおよびCurrent Runtime Identity UIを同一Programへ構成した。実装と複数回のIndependent Review後、User MacではModel切替、再起動後Qwen復帰、Conversation／Citation／Branch維持を確認した一方、Judge Structured Outputが`malformed_output`となりRepair Golden Pathは成立しなかった。Phase 6は完了扱いにせず、重大箇所の差分Rework待ちとする。
+Phase 5 Closure後の統合Designとして、従来のJudge／Evaluation／Repair／Observabilityに加え、DeepSeek 8B Q4 Local Feasibility、Qwen既定維持、起動中Model Switch、Dynamic Context Size／Max New Tokens、Localized Failure、Request-correlated Status、Feedback／RecordingおよびCurrent Runtime Identity UIを同一Programへ構成した。第7〜9 Rework後の自動検証はBackend 1602件、Frontend 221件、Canonical Mypy 443 files、RuffおよびFrontend Buildで成立した。User MacでもModel切替、再起動後Qwen復帰、Conversation／Citation／Branch、二Tab、StopおよびDeepSeek病的反復防止を確認した。
+
+ただし、ARGD／DAGD Semantic Rule 109件は全件Deferredのままであり、Phase 4／5からPhase 6へ送った「意味的FailureをMARGPA Definitionから評価・修復する」責務を履行していない。Live JudgeはMain Modelの`main_self`再利用に留まり、明白な誤答を自己承認するか、`malformed_output／deadline_exceeded`へ失敗した。Dedicated Selene／Qwen3Guard、独立Provider選択およびRepair Golden Pathも未成立である。大量Test Pass、正確なDeferred表示またはFail-closed Fallbackを、中心Milestoneの完成とは扱わない。
 
 ### Judge／Evaluation
 
 - Rule-based Evaluation
 - LLM-as-a-Judge
-- Selene-1-Mini-Llama-3.1-8B Adapter候補
+- ARGD／DAGD Semantic DescriptorからEvaluation CriteriaへのAdapter／Compiler
+- Selene-1-Mini-Llama-3.1-8B Dedicated Judge Provider
+- Main-selfとIndependent Judgeの明示分離
+- Main Qwen／DeepSeekとJudge None／Deterministic／Selene／Qwen／DeepSeekのRole選択
 - Evaluation Criteria
 - Judge Independence
 - Confidence／Calibration
@@ -1186,6 +1196,11 @@ Phase 5 Closure後の統合Designとして、従来のJudge／Evaluation／Repai
 - Conflict Resolution
 
 Judgeは最終権限を持たず、評価結果とEvidenceを提供する。
+
+Guardrail Providerは`None／Built-in Rule・Pattern Base／Qwen3Guard`、Judge Providerは
+`None／Built-in Deterministic Evaluator／Selene／Qwen／DeepSeek`を初期候補とする。Configured Defaultは
+Qwen3Guard／Seleneを候補とするが、全ModeのStartup Defaultは`OFF`とし、OFF中にDedicated Modelを
+常時Loadしない。Resource不足やLoad Failure時にMain Modelへ暗黙Fallbackしない。
 
 ### Repair
 
@@ -1196,6 +1211,9 @@ Judgeは最終権限を持たず、評価結果とEvidenceを提供する。
 - Success Criterion
 - Infinite Loop Prevention
 - Fallback／Escalation
+
+Manual Acceptanceで偶然`needs_repair`が返ることへ依存せず、既知のConversation内矛盾から
+`needs_repair → bounded repair → rejudge → repair_accepted`を再現できるGolden Fixtureを持つ。
 
 ### User Evaluation
 
@@ -1226,9 +1244,20 @@ failed
 
 Reporting FailureでInference本体を壊さない。
 
+Failureは`deadline_exceeded／malformed_output／resource_unavailable／cancelled`等のReasonごとに、
+Turn開始時の回答言語で正確に表示する。User Inputが原因と決めつけず、Provider、設定Timeout、実Elapsed、
+Failure StageをEvidenceへ記録する。Recordingの暫定UIは成功／失敗だけでなく最新Request ID、日時、Mode、
+Record KindおよびOutcomeを表示する。
+
+MacのCurrent Deployment ProfileはContext `8192`をVerified Maximumとして維持する。Phase 9 Closure手前で
+`16384`を実測し、成功した場合だけProfileを昇格する。Hardware自動検出とProfile自動昇格はPhase 10以降とする。
+
 ### Phase 6 Milestone
 
 > **Measurable Safety, Evaluation, and Repair Runtime**
+
+Phase 6 Closureには、109件一律Deferredの解消、Dedicated Judge／Guardrail Provider実動、明示Provider選択、
+再現可能なRepair Golden Path、理由別FailureおよびRequest-correlated Recording Summaryが必要である。
 
 ---
 
@@ -1248,8 +1277,21 @@ Reporting FailureでInference本体を壊さない。
 - Source／Citation
 - Document Update
 - RAG `OFF／ON`
+- Vendor非依存のWeb Search／Fetch／Normalizer
+- Search Activation `disabled／manual／automatic`
+- Web Evidence Governance `OFF／OBSERVE／ENFORCE`
 
 Phase 2でProject Documentation Explainer Previewを実装した場合は、そのCorpus、RetrieverおよびEvidence Contractを破棄せず、Embedding／Vector Store／複数Corpus／Document Lifecycleへ拡張する。Preview未実装の場合も、Phase 7が正規のFull RAG実装Phaseであることは変わらない。
+
+公開Web、Local／Public Corpus、User提供Data、Human FeedbackおよびSynthetic DataをSource Classと
+最小Provenance付きで分離する。検索起動とGovernance強度を一つの値へ混ぜず、初期値は
+`disabled／OFF`としてNetwork Call 0を保証する。Current／Latest／Official等の要求、Knowledge Cutoff外候補、
+明示User SearchおよびUnsupported ClaimをAutomatic Search Triggerの設計対象とする。
+
+SettingsにはMARGPA固有の第三領域`データコントロール`を予約し、Chat、RAG／Web Evidence、Feedback、
+Synthetic Data、Retention、Export、Delete、外部送信および将来Training利用のConsentを分離する。
+企業提携／有償License Data、Full Dataset Cleaning、Label Governance、EligibilityおよびTrainingは
+Phase 10以降とする。
 
 ### Evidence
 
@@ -1276,6 +1318,11 @@ Phase 2でProject Documentation Explainer Previewを実装した場合は、そ�
 ### Phase 7 Milestone
 
 > **Traceable Grounded Knowledge Runtime**
+
+Phase 7冒頭では汎用File Attachmentの規模を先に判定する。Composer Icon／Drag & Drop、画像、WAV、
+Markdown、JSON、DocumentおよびZIP等を候補とするが、Upload、Storage、Parser、RAG取込、Model-native
+Multimodal推論を黙って同一機能にしない。局所的なVersioned Boundaryで収まればPhase 7へ前倒しし、
+Phase級のStorage／Sandbox／Parser／Multimodal工事ならPhase 10以降へ送る。
 
 ---
 
@@ -1366,6 +1413,18 @@ AAGDがAgent実行過程を確認することは、実行許可を新しく生�
 - Token／Latency
 - Warning／Error
 - Evaluation／Repair Count
+
+Main／Guardrail／Judgeは論理RoleとProviderを分離し、少なくとも次を比較可能にする。
+
+```text
+Main Qwen     / Judge None, Deterministic, Selene, Qwen, DeepSeek
+Main DeepSeek / Judge None, Deterministic, Selene, Qwen, DeepSeek
+Guard None, Rule／Pattern Base, Qwen3Guard
+```
+
+同一ArtifactによるSelf Judgeと異なるArtifactによるIndependent JudgeをEvidence上で区別し、検出率、
+誤承認、Malformed、Timeout、Repair成功、LatencyおよびResourceを比較する。複数ProviderのComposite／
+Hybrid実行は単一Provider選択が成立した後の研究候補とする。
 
 ### LLM動作検証／評価設計
 
@@ -1490,6 +1549,16 @@ Subphase、Work UnitおよびUI LayoutはPhase 9設計時に動的に決める�
 
 詳細予約は`docs/project/shared/history/planned_work/phase_9_late_context_compaction_recovery_and_governance_trace_observatory_ja_20260823092049.md`を正本Inputとする。
 
+Phase 9冒頭では、ENFORCEの出力方式を`Strict`と`Progressive`に分離する。`Strict`は全文をBufferして
+Judge後に一括表示する。既定候補の`Progressive`は短いChunkをBufferして高速検査済みのChunkから
+Streamingし、後段Judgeで残りを停止またはRepairする。既に表示したChunkは回収できないことを明示し、
+見せかけのTyping AnimationをStreamingと扱わない。
+
+Phase 9 Closure手前では、Judge OFF時のCurrent／Historical表示分離、Advanced Settingsの順序・区切り・
+余白、Mode Button整列、Research／Developer内部設定の非表示化、Sidebar環境情報の復元、回答言語幅、
+Model別Context／Token契約およびMac Context `16384` Profile実測をまとめて扱う。Context PanelはNative、
+Backend、Hardware Verified、Effective、Compaction／Recovery／RAG込みWorking Contextを区別する。
+
 ### Phase 9 Milestone
 
 > **Composable Multi-Governance Research Platform**
@@ -1538,8 +1607,18 @@ AWS構築、Cloud Backend実装、外部Browserへ到達可能なPublic-ready Su
 - Image／Multimodal
 - GGUF／Safetensors比較
 - Local／Cloud Capability Routing
+- General File Attachment／Drag & Drop
+- Audio／Image／Document／Archive Processing
+- Video Multimodal Data Analysis（Default OFF）
+- Native／Scaled／Effective Long Context比較
 
 Model Strategyの早期候補として、高性能DeepSeek系をMainへ追加し、Qwen3-4Bを低資源Baselineとして保持する。Phase 6前のLocal Feasibility GateでModel Adapter／Artifact／比較契約を先行実証できるが、Cloud Backend、複数Main Model、Router、複数Guard／Judgeおよび大規模Self-hostingの本格展開は本節の後続Scopeとして残す。
+
+Phase 7冒頭のSizingで局所実装に収まらなかった汎用File Attachment、MP4等の動画解析、Model-native
+Multimodal、最大Context Window拡張、RoPE Scaling／YaRN、KV Cache最適化およびHardware Capability
+自動検出は本節で扱う。Native Context、Scaled Context、Runtime Effective Contextおよび
+Compaction／RAG込みEffective Working Contextを同義にしない。上限はModel CardだけでなくExact Revision、
+Backend、Hardwareおよび実測で固定する。
 
 ### 16.4 Responsive UI／Multi-device Experience
 

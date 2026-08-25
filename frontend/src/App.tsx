@@ -5,6 +5,7 @@ import { readConfigurationBootstrap } from "./lib/configurationBootstrap";
 import { readGovernanceBootstrap } from "./lib/governanceBootstrap";
 import { readRuntimeGovernanceBootstrap } from "./lib/runtimeGovernanceBootstrap";
 import { readGuardrailGovernanceBootstrap } from "./lib/guardrailGovernanceBootstrap";
+import { readRuntimeModelControlBootstrap } from "./lib/runtimeModelControlBootstrap";
 import { readEventStream } from "./lib/eventStream";
 import {
   detailToMessages,
@@ -25,6 +26,7 @@ import type {
   LiveJudgeBadge,
   MainGovernanceMode,
   PersistentConversationDetail,
+  RuntimeModelStatus,
   StreamEvent,
   UiLanguage,
   UiTheme,
@@ -38,6 +40,7 @@ import type { ConfigurationControlState } from "./components/ConfigurationContro
 import type { GovernanceControlState } from "./components/GovernancePanel";
 import type { RuntimeGovernanceControlState } from "./components/RuntimeGovernancePanel";
 import type { GuardrailGovernanceControlState } from "./components/GuardrailGovernancePanel";
+import type { RuntimeModelControlState } from "./components/RuntimeModelStatusPanel";
 import MessageList from "./components/MessageList";
 import Composer from "./components/Composer";
 import type { SettingsFormState } from "./components/SettingsPanel";
@@ -68,6 +71,7 @@ export default function App() {
   const [governanceBootstrapEnabled] = useState(() => readGovernanceBootstrap());
   const [runtimeGovernanceBootstrapEnabled] = useState(() => readRuntimeGovernanceBootstrap());
   const [guardrailGovernanceBootstrapEnabled] = useState(() => readGuardrailGovernanceBootstrap());
+  const [runtimeModelControlBootstrapEnabled] = useState(() => readRuntimeModelControlBootstrap());
 
   const [prompt, setPrompt] = useState("");
   const [active, setActive] = useState(false);
@@ -136,6 +140,20 @@ export default function App() {
       resultText: "",
     });
 
+  const [runtimeModelControlState, setRuntimeModelControlState] =
+    useState<RuntimeModelControlState>({
+      capability: runtimeModelControlBootstrapEnabled ? "loading" : "disabled",
+      status: null,
+    });
+
+  const configurationLoadSequenceRef = useRef(0);
+  const governanceLoadSequenceRef = useRef(0);
+  const runtimeGovernanceLoadSequenceRef = useRef(0);
+  const guardrailGovernanceLoadSequenceRef = useRef(0);
+  const configurationMutationQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const runtimeModelStatusSequenceRef = useRef(0);
+  const acceptedRuntimeModelRevisionRef = useRef(-1);
+
   // Non-rendering imperative bookkeeping (mirrors the plain-object mutation
   // semantics of the original vanilla state object for fields that never
   // drive rendering on their own).
@@ -145,7 +163,8 @@ export default function App() {
   // actively waiting to see the Judge Run reach a terminal state for —
   // distinct from `requestIdRef` (which also drives Stop/cancel wiring and
   // is cleared on completion) because this one must survive past the Turn
-  // itself completing (Judge/Repair only start once generation finishes).
+  // itself completing (OBSERVE may continue in background; ENFORCE reaches
+  // a terminal Judge/Repair result before the canonical completed event).
   const liveJudgePollRequestIdRef = useRef<string | null>(null);
   const liveJudgePollStartedAtRef = useRef<number | null>(null);
   const [liveJudgeBadge, setLiveJudgeBadge] = useState<LiveJudgeBadge | null>(null);
@@ -198,9 +217,8 @@ export default function App() {
   }
 
   // P6-CODEX-024 (Third Rework): called from every "start" event handler —
-  // Judge/Repair only ever start running *after* this Turn's own Generation
-  // Attempt completes, so the poll this begins is expected to keep running
-  // for a while past `isFinal` becoming true, not only during streaming.
+  // Judge/Repair start after raw generation. OBSERVE may outlive the
+  // canonical Turn; ENFORCE completes before its Presented Final is sent.
   function beginLiveJudgePolling(requestId: string | null): void {
     liveJudgePollRequestIdRef.current = requestId;
     liveJudgePollStartedAtRef.current = requestId === null ? null : Date.now();
@@ -244,9 +262,8 @@ export default function App() {
           }
         }
       } catch {
-        // Best-effort only: a failed poll never surfaces as a user-facing
-        // error — the Canonical Answer itself is entirely unaffected by
-        // Judge/Repair (Architecture's Mode-orthogonality guarantee).
+        // Best-effort status projection only. ENFORCE safety is owned by
+        // the server-side Presented Final boundary, never by this poll.
       }
     };
 
@@ -310,11 +327,68 @@ export default function App() {
     // Runs once on mount, matching the original's single loadRuntime() call.
   }, []);
 
+  const acceptRuntimeModelStatus = useCallback((next: RuntimeModelStatus): void => {
+    const nextRevision = next.revision ?? -1;
+    if (nextRevision < acceptedRuntimeModelRevisionRef.current) {
+      return;
+    }
+    acceptedRuntimeModelRevisionRef.current = nextRevision;
+    setRuntimeModelControlState({ capability: "ready", status: next });
+    if (next.current_max_new_tokens !== null) {
+      setSettingsForm((current) => ({
+        ...current,
+        maxNewTokens: String(next.current_max_new_tokens),
+      }));
+    }
+  }, []);
+
+  const loadRuntimeModelStatus = useCallback(
+    async (showLoading: boolean): Promise<void> => {
+      if (!runtimeModelControlBootstrapEnabled) {
+        return;
+      }
+      const sequence = ++runtimeModelStatusSequenceRef.current;
+      if (showLoading) {
+        setRuntimeModelControlState((current) => ({ ...current, capability: "loading" }));
+      }
+      try {
+        const next = await api.fetchRuntimeModelStatus();
+        if (sequence === runtimeModelStatusSequenceRef.current) {
+          acceptRuntimeModelStatus(next);
+        }
+      } catch {
+        if (sequence === runtimeModelStatusSequenceRef.current) {
+          setRuntimeModelControlState((current) => ({ ...current, capability: "failed" }));
+        }
+      }
+    },
+    [acceptRuntimeModelStatus, runtimeModelControlBootstrapEnabled],
+  );
+
+  useEffect(() => {
+    if (!runtimeModelControlBootstrapEnabled) {
+      return;
+    }
+    // Subscribe first and schedule initial synchronization as an external
+    // timer callback; initial React state already projects "loading".
+    const initialLoad = window.setTimeout(() => {
+      void loadRuntimeModelStatus(false);
+    }, 0);
+    const interval = window.setInterval(() => {
+      void loadRuntimeModelStatus(false);
+    }, 1500);
+    return () => {
+      window.clearTimeout(initialLoad);
+      window.clearInterval(interval);
+    };
+  }, [loadRuntimeModelStatus, runtimeModelControlBootstrapEnabled]);
+
   // --- Configuration Control ---
   const loadConfigurationControl = useCallback(async (): Promise<void> => {
     if (!configurationBootstrapEnabled) {
       return;
     }
+    const sequence = ++configurationLoadSequenceRef.current;
     setConfigurationState((previous) => ({ ...previous, capability: "loading" }));
     try {
       const runtime = await api.fetchConfigurationRuntime();
@@ -322,8 +396,14 @@ export default function App() {
         throw new Error("configuration_runtime_invalid");
       }
       const snapshot = await api.fetchConfigurationEffective();
+      if (sequence !== configurationLoadSequenceRef.current) {
+        return;
+      }
       setConfigurationState({ capability: "ready", snapshot, resultText: "" });
     } catch {
+      if (sequence !== configurationLoadSequenceRef.current) {
+        return;
+      }
       setConfigurationState({ capability: "failed", snapshot: null, resultText: "" });
     }
     // configurationBootstrapEnabled is set once (lazy useState init) and
@@ -339,48 +419,61 @@ export default function App() {
     void loadConfigurationControl();
   }, [loadConfigurationControl]);
 
-  async function handleConfigurationPreview(patch: Record<string, unknown>): Promise<void> {
-    if (configurationState.capability !== "ready") {
-      return;
-    }
-    try {
-      const preview = await api.previewConfigurationPatch(patch);
-      const message =
-        preview.outcome === "restart_required" ? t("configurationRestartRequired") : t("configurationPreviewReady");
-      setConfigurationState((previous) => ({
-        ...previous,
-        resultText: `${message}\n${JSON.stringify(preview.redacted_changes, null, 2)}`,
-      }));
-    } catch {
-      setConfigurationState((previous) => ({ ...previous, resultText: t("configurationFailed") }));
-    }
+  function enqueueConfigurationModeMutation(
+    patch: Record<string, unknown>,
+    setResult: (message: string) => void,
+    successKey: TranslationKey,
+    failureKey: TranslationKey,
+    refreshRelated?: () => Promise<void>,
+  ): void {
+    const run = async (): Promise<void> => {
+      try {
+        // Every queued click resolves a fresh CAS token at execution time.
+        // This serializes rapid clicks across all Configuration-backed Mode
+        // panels without presenting an optimistic value as Canonical.
+        const snapshot = await api.fetchConfigurationEffective();
+        const response = await api.applyConfigurationPatch(
+          api.newActionId(),
+          snapshot.revision,
+          snapshot.digest_sha512,
+          patch,
+        );
+        if (response.status === 409) {
+          setResult(t("configurationConflict"));
+          await loadConfigurationControl();
+          if (refreshRelated !== undefined) {
+            await refreshRelated();
+          }
+          return;
+        }
+        if (!response.ok) {
+          throw new Error("configuration_mode_apply_failed");
+        }
+        await loadConfigurationControl();
+        if (refreshRelated !== undefined) {
+          await refreshRelated();
+        }
+        setResult(t(successKey));
+      } catch {
+        setResult(t(failureKey));
+        await loadConfigurationControl();
+        if (refreshRelated !== undefined) {
+          await refreshRelated();
+        }
+      }
+    };
+    configurationMutationQueueRef.current = configurationMutationQueueRef.current.then(run, run);
   }
 
-  async function handleConfigurationApply(researchDeveloperMode: string): Promise<void> {
-    const snapshot = configurationState.snapshot;
-    if (configurationState.capability !== "ready" || snapshot === null) {
-      return;
-    }
-    try {
-      const response = await api.applyConfigurationPatch(
-        api.newActionId(),
-        snapshot.revision,
-        snapshot.digest_sha512,
-        { research_developer_mode: researchDeveloperMode },
-      );
-      if (response.status === 409) {
-        setConfigurationState((previous) => ({ ...previous, resultText: t("configurationConflict") }));
-        await loadConfigurationControl();
-        return;
-      }
-      if (!response.ok) {
-        throw new Error("configuration_apply_failed");
-      }
-      await loadConfigurationControl();
-      setConfigurationState((previous) => ({ ...previous, resultText: t("configurationApplied") }));
-    } catch {
-      setConfigurationState((previous) => ({ ...previous, resultText: t("configurationFailed") }));
-    }
+  function handleConfigurationApply(researchDeveloperMode: string): void {
+    enqueueConfigurationModeMutation(
+      { research_developer_mode: researchDeveloperMode },
+      (message) => {
+        setConfigurationState((previous) => ({ ...previous, resultText: message }));
+      },
+      "configurationApplied",
+      "configurationFailed",
+    );
   }
 
   // --- Governance Definitions (Phase 3-F) ---
@@ -388,11 +481,18 @@ export default function App() {
     if (!governanceBootstrapEnabled) {
       return;
     }
+    const sequence = ++governanceLoadSequenceRef.current;
     setGovernanceState((previous) => ({ ...previous, capability: "loading" }));
     try {
       const status = await api.fetchGovernanceStatus();
+      if (sequence !== governanceLoadSequenceRef.current) {
+        return;
+      }
       setGovernanceState({ capability: "ready", status, resultText: "" });
     } catch {
+      if (sequence !== governanceLoadSequenceRef.current) {
+        return;
+      }
       setGovernanceState({ capability: "failed", status: null, resultText: "" });
     }
     // governanceBootstrapEnabled is set once (lazy useState init) and never
@@ -408,36 +508,16 @@ export default function App() {
   // Preview/Apply state machine (Revision/Digest/CAS, Operation
   // Idempotency) — not a Governance-only endpoint. See
   // src/margpa_runtime_llm/web/governance_routes.py's module docstring.
-  async function handleGovernanceApply(requestedMode: GovernanceMode): Promise<void> {
-    const snapshot = configurationState.snapshot;
-    if (configurationState.capability !== "ready" || snapshot === null) {
-      setGovernanceState((previous) => ({ ...previous, resultText: t("governanceApplyFailed") }));
-      return;
-    }
-    try {
-      const response = await api.applyConfigurationPatch(
-        api.newActionId(),
-        snapshot.revision,
-        snapshot.digest_sha512,
-        { governance_mode: requestedMode },
-      );
-      if (response.status === 409) {
-        setGovernanceState((previous) => ({ ...previous, resultText: t("configurationConflict") }));
-        await loadConfigurationControl();
-        await loadGovernanceStatus();
-        return;
-      }
-      if (!response.ok) {
-        setGovernanceState((previous) => ({ ...previous, resultText: t("governanceApplyFailed") }));
-        await loadGovernanceStatus();
-        return;
-      }
-      await loadConfigurationControl();
-      await loadGovernanceStatus();
-      setGovernanceState((previous) => ({ ...previous, resultText: t("governanceApplied") }));
-    } catch {
-      setGovernanceState((previous) => ({ ...previous, resultText: t("governanceFailed") }));
-    }
+  function handleGovernanceApply(requestedMode: GovernanceMode): void {
+    enqueueConfigurationModeMutation(
+      { governance_mode: requestedMode },
+      (message) => {
+        setGovernanceState((previous) => ({ ...previous, resultText: message }));
+      },
+      "governanceApplied",
+      "governanceApplyFailed",
+      loadGovernanceStatus,
+    );
   }
 
   // --- Main Runtime Governance (Phase 4) ---
@@ -445,11 +525,18 @@ export default function App() {
     if (!runtimeGovernanceBootstrapEnabled) {
       return;
     }
+    const sequence = ++runtimeGovernanceLoadSequenceRef.current;
     setRuntimeGovernanceState((previous) => ({ ...previous, capability: "loading" }));
     try {
       const status = await api.fetchRuntimeGovernanceStatus();
+      if (sequence !== runtimeGovernanceLoadSequenceRef.current) {
+        return;
+      }
       setRuntimeGovernanceState({ capability: "ready", status, resultText: "" });
     } catch {
+      if (sequence !== runtimeGovernanceLoadSequenceRef.current) {
+        return;
+      }
       setRuntimeGovernanceState({ capability: "failed", status: null, resultText: "" });
     }
     // runtimeGovernanceBootstrapEnabled is set once (lazy useState init)
@@ -466,51 +553,16 @@ export default function App() {
   // as Phase 3's own governance_mode, not a separate direct-Apply route.
   // See src/margpa_runtime_llm/web/runtime_governance_routes.py's module
   // docstring.
-  async function handleRuntimeGovernanceApply(requestedMode: MainGovernanceMode): Promise<void> {
-    const snapshot = configurationState.snapshot;
-    if (configurationState.capability !== "ready" || snapshot === null) {
-      setRuntimeGovernanceState((previous) => ({
-        ...previous,
-        resultText: t("runtimeGovernanceApplyFailed"),
-      }));
-      return;
-    }
-    try {
-      const response = await api.applyConfigurationPatch(
-        api.newActionId(),
-        snapshot.revision,
-        snapshot.digest_sha512,
-        { main_governance_mode: requestedMode },
-      );
-      if (response.status === 409) {
-        setRuntimeGovernanceState((previous) => ({
-          ...previous,
-          resultText: t("configurationConflict"),
-        }));
-        await loadConfigurationControl();
-        await loadRuntimeGovernanceStatus();
-        return;
-      }
-      if (!response.ok) {
-        setRuntimeGovernanceState((previous) => ({
-          ...previous,
-          resultText: t("runtimeGovernanceApplyFailed"),
-        }));
-        await loadRuntimeGovernanceStatus();
-        return;
-      }
-      await loadConfigurationControl();
-      await loadRuntimeGovernanceStatus();
-      setRuntimeGovernanceState((previous) => ({
-        ...previous,
-        resultText: t("runtimeGovernanceApplied"),
-      }));
-    } catch {
-      setRuntimeGovernanceState((previous) => ({
-        ...previous,
-        resultText: t("runtimeGovernanceFailed"),
-      }));
-    }
+  function handleRuntimeGovernanceApply(requestedMode: MainGovernanceMode): void {
+    enqueueConfigurationModeMutation(
+      { main_governance_mode: requestedMode },
+      (message) => {
+        setRuntimeGovernanceState((previous) => ({ ...previous, resultText: message }));
+      },
+      "runtimeGovernanceApplied",
+      "runtimeGovernanceApplyFailed",
+      loadRuntimeGovernanceStatus,
+    );
   }
 
   // --- Guardrail Governance (Phase 5) ---
@@ -518,11 +570,18 @@ export default function App() {
     if (!guardrailGovernanceBootstrapEnabled) {
       return;
     }
+    const sequence = ++guardrailGovernanceLoadSequenceRef.current;
     setGuardrailGovernanceState((previous) => ({ ...previous, capability: "loading" }));
     try {
       const status = await api.fetchGuardrailGovernanceStatus();
+      if (sequence !== guardrailGovernanceLoadSequenceRef.current) {
+        return;
+      }
       setGuardrailGovernanceState({ capability: "ready", status, resultText: "" });
     } catch {
+      if (sequence !== guardrailGovernanceLoadSequenceRef.current) {
+        return;
+      }
       setGuardrailGovernanceState({ capability: "failed", status: null, resultText: "" });
     }
     // guardrailGovernanceBootstrapEnabled is set once (lazy useState init)
@@ -540,51 +599,16 @@ export default function App() {
   // a separate direct-Apply route. See
   // src/margpa_runtime_llm/web/guardrail_governance_routes.py's module
   // docstring.
-  async function handleGuardrailGovernanceApply(requestedMode: GuardrailGovernanceMode): Promise<void> {
-    const snapshot = configurationState.snapshot;
-    if (configurationState.capability !== "ready" || snapshot === null) {
-      setGuardrailGovernanceState((previous) => ({
-        ...previous,
-        resultText: t("guardrailGovernanceApplyFailed"),
-      }));
-      return;
-    }
-    try {
-      const response = await api.applyConfigurationPatch(
-        api.newActionId(),
-        snapshot.revision,
-        snapshot.digest_sha512,
-        { guardrail_governance_mode: requestedMode },
-      );
-      if (response.status === 409) {
-        setGuardrailGovernanceState((previous) => ({
-          ...previous,
-          resultText: t("configurationConflict"),
-        }));
-        await loadConfigurationControl();
-        await loadGuardrailGovernanceStatus();
-        return;
-      }
-      if (!response.ok) {
-        setGuardrailGovernanceState((previous) => ({
-          ...previous,
-          resultText: t("guardrailGovernanceApplyFailed"),
-        }));
-        await loadGuardrailGovernanceStatus();
-        return;
-      }
-      await loadConfigurationControl();
-      await loadGuardrailGovernanceStatus();
-      setGuardrailGovernanceState((previous) => ({
-        ...previous,
-        resultText: t("guardrailGovernanceApplied"),
-      }));
-    } catch {
-      setGuardrailGovernanceState((previous) => ({
-        ...previous,
-        resultText: t("guardrailGovernanceFailed"),
-      }));
-    }
+  function handleGuardrailGovernanceApply(requestedMode: GuardrailGovernanceMode): void {
+    enqueueConfigurationModeMutation(
+      { guardrail_governance_mode: requestedMode },
+      (message) => {
+        setGuardrailGovernanceState((previous) => ({ ...previous, resultText: message }));
+      },
+      "guardrailGovernanceApplied",
+      "guardrailGovernanceApplyFailed",
+      loadGuardrailGovernanceStatus,
+    );
   }
 
   // --- Ephemeral (v1) streaming ---
@@ -702,7 +726,13 @@ export default function App() {
       return;
     }
     const maxNewTokens = Number(settingsForm.maxNewTokens);
-    if (!Number.isInteger(maxNewTokens) || maxNewTokens < 1 || maxNewTokens > 2048) {
+    const currentRuntimeMaxNewTokens =
+      runtimeModelControlState.status?.current_max_new_tokens ?? 2048;
+    if (
+      !Number.isInteger(maxNewTokens) ||
+      maxNewTokens < 1 ||
+      maxNewTokens > currentRuntimeMaxNewTokens
+    ) {
       setStatusKey("invalidTokenLimit");
       return;
     }
@@ -914,7 +944,13 @@ export default function App() {
       return;
     }
     const maxNewTokens = Number(settingsForm.maxNewTokens);
-    if (!Number.isInteger(maxNewTokens) || maxNewTokens < 1 || maxNewTokens > 2048) {
+    const currentRuntimeMaxNewTokens =
+      runtimeModelControlState.status?.current_max_new_tokens ?? 2048;
+    if (
+      !Number.isInteger(maxNewTokens) ||
+      maxNewTokens < 1 ||
+      maxNewTokens > currentRuntimeMaxNewTokens
+    ) {
       setStatusKey("invalidTokenLimit");
       return;
     }
@@ -1208,6 +1244,18 @@ export default function App() {
   const documentationRagNoteText = documentationRagControlAvailable
     ? t("documentationRagNote")
     : t("documentationRagUnavailable");
+  const currentRuntimeModel = runtimeModelControlState.status;
+  const sidebarRuntimeStatus =
+    currentRuntimeModel?.enabled === true && currentRuntimeModel.main_model !== null
+      ? {
+          kind: "metadata" as const,
+          text: [
+            currentRuntimeModel.main_model.model_key,
+            currentRuntimeModel.main_model.state,
+            `Context ${String(currentRuntimeModel.loaded_context_size ?? "—")}`,
+          ].join(" · "),
+        }
+      : runtimeStatus;
 
   return (
     <div className="app-shell" data-sidebar-visible={sidebarVisible}>
@@ -1221,7 +1269,7 @@ export default function App() {
       <Sidebar
         language={uiLanguage}
         visible={sidebarVisible}
-        runtimeStatus={runtimeStatus}
+        runtimeStatus={sidebarRuntimeStatus}
         conversations={persistentEnabled ? persistentConversations : []}
         selectedConversationId={selectedConversationId}
         onSelectConversation={(id) => void selectPersistentConversation(id)}
@@ -1282,20 +1330,23 @@ export default function App() {
         configurationBootstrapEnabled={configurationBootstrapEnabled}
         configurationState={configurationState}
         onConfigurationRefresh={() => void loadConfigurationControl()}
-        onConfigurationPreview={(patch) => void handleConfigurationPreview(patch)}
-        onConfigurationApply={(mode) => void handleConfigurationApply(mode)}
+        onConfigurationApply={handleConfigurationApply}
         governanceBootstrapEnabled={governanceBootstrapEnabled}
         governanceState={governanceState}
         onGovernanceRefresh={() => void loadGovernanceStatus()}
-        onGovernanceApply={(mode) => void handleGovernanceApply(mode)}
+        onGovernanceApply={handleGovernanceApply}
         runtimeGovernanceBootstrapEnabled={runtimeGovernanceBootstrapEnabled}
         runtimeGovernanceState={runtimeGovernanceState}
         onRuntimeGovernanceRefresh={() => void loadRuntimeGovernanceStatus()}
-        onRuntimeGovernanceApply={(mode) => void handleRuntimeGovernanceApply(mode)}
+        onRuntimeGovernanceApply={handleRuntimeGovernanceApply}
         guardrailGovernanceBootstrapEnabled={guardrailGovernanceBootstrapEnabled}
         guardrailGovernanceState={guardrailGovernanceState}
         onGuardrailGovernanceRefresh={() => void loadGuardrailGovernanceStatus()}
-        onGuardrailGovernanceApply={(mode) => void handleGuardrailGovernanceApply(mode)}
+        onGuardrailGovernanceApply={handleGuardrailGovernanceApply}
+        runtimeModelControlBootstrapEnabled={runtimeModelControlBootstrapEnabled}
+        runtimeModelControlState={runtimeModelControlState}
+        onRuntimeModelRefresh={() => void loadRuntimeModelStatus(true)}
+        onRuntimeModelStatusChange={acceptRuntimeModelStatus}
       />
     </div>
   );

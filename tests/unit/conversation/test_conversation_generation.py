@@ -423,8 +423,8 @@ def test_history_contract_rejects_invalid_roles_order_and_values() -> None:
         )
 
 
-@pytest.mark.parametrize("value", [True, 1.5, "128", 0, 2049])
-def test_max_new_tokens_is_a_bounded_strict_integer(value: object) -> None:
+@pytest.mark.parametrize("value", [True, 1.5, "128", 0])
+def test_max_new_tokens_is_a_positive_strict_integer(value: object) -> None:
     with pytest.raises(ValidationError):
         ConversationSettings.model_validate(
             {
@@ -433,6 +433,18 @@ def test_max_new_tokens_is_a_bounded_strict_integer(value: object) -> None:
                 "thinking_visibility": "hidden",
             }
         )
+
+
+def test_max_new_tokens_schema_defers_the_upper_bound_to_the_runtime_snapshot() -> None:
+    settings = ConversationSettings.model_validate(
+        {
+            "response_language": "ja",
+            "max_new_tokens": 2049,
+            "thinking_visibility": "hidden",
+        }
+    )
+
+    assert settings.max_new_tokens == 2049
 
 
 def test_summary_mode_rejects_unknown_client_value() -> None:
@@ -550,13 +562,18 @@ def test_documentation_request_context_uses_effective_context_history_and_reques
     assert short_context.prompt_token_count_exact is True
     assert long_context.prompt_token_count_exact is True
     assert short_context.prompt_measurement_unit is DocumentationMeasurementUnit.TOKENS
-    assert len(counter_calls) == 2
+    # Each Turn is counted once before Documentation RAG budgeting and once
+    # after augmentation for the exact remaining-context enforcement boundary.
+    assert len(counter_calls) == 4
     assert counter_calls[0][1] is ThinkingMode.ENABLED
     assert short_context.system_history_current_prompt_tokens == sum(
         len(message.content) for message in counter_calls[0][0]
     )
     assert short_context.system_history_current_prompt_tokens != sum(
         len(message.content.encode("utf-8")) for message in counter_calls[0][0]
+    )
+    assert long_context.system_history_current_prompt_tokens == sum(
+        len(message.content) for message in counter_calls[2][0]
     )
 
 

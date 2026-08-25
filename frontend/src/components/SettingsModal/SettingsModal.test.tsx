@@ -103,7 +103,6 @@ function baseProps(overrides: Partial<Parameters<typeof SettingsModal>[0]> = {})
     configurationBootstrapEnabled: true,
     configurationState: CONFIGURATION_STATE,
     onConfigurationRefresh: vi.fn(),
-    onConfigurationPreview: vi.fn(),
     onConfigurationApply: vi.fn(),
     governanceBootstrapEnabled: true,
     governanceState: GOVERNANCE_STATE,
@@ -117,6 +116,10 @@ function baseProps(overrides: Partial<Parameters<typeof SettingsModal>[0]> = {})
     guardrailGovernanceState: GUARDRAIL_GOVERNANCE_STATE,
     onGuardrailGovernanceRefresh: vi.fn(),
     onGuardrailGovernanceApply: vi.fn(),
+    runtimeModelControlBootstrapEnabled: true,
+    runtimeModelControlState: { capability: "loading" as const, status: null },
+    onRuntimeModelRefresh: vi.fn(),
+    onRuntimeModelStatusChange: vi.fn(),
     ...overrides,
   };
 }
@@ -139,6 +142,19 @@ describe("SettingsModal", () => {
     fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
     expect(document.querySelector("#configuration-panel")?.closest("div")).not.toHaveAttribute("hidden");
     expect(document.querySelector("#settings")?.closest("div")).toHaveAttribute("hidden");
+  });
+
+  test("Advanced places Research Mode last and Basic has no duplicate Max New Tokens input", () => {
+    render(<SettingsModal {...baseProps()} />);
+    expect(document.querySelector("#max-new-tokens")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
+    const featureModes = document.querySelector("#feature-modes-panel");
+    const configuration = document.querySelector("#configuration-panel");
+    expect(featureModes).not.toBeNull();
+    expect(configuration).not.toBeNull();
+    expect(
+      featureModes?.compareDocumentPosition(configuration as Node) ?? 0,
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
   test("Advanced Mode still appears when all four Governance bootstraps are disabled, showing only Runtime Model Status", () => {

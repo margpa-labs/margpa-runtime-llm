@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { translate } from "../i18n/translations";
 import type { MainGovernanceMode, RuntimeGovernanceStatus, UiLanguage } from "../types";
 
@@ -33,25 +32,6 @@ export default function RuntimeGovernancePanel({
   onApply,
 }: RuntimeGovernancePanelProps) {
   const status = state.status;
-  // P4-CODEX-013: initialized from `status` — not a hardcoded "off" — so
-  // a Mount that already has a Server Status available (e.g. reopening
-  // the Settings Modal, which fully unmounts/remounts this component)
-  // starts selected on the real Current Mode instead of always resetting
-  // to "off". Lazy initializer avoids re-deriving this on every render.
-  const [selectedMode, setSelectedMode] = useState<MainGovernanceMode>(
-    () => status?.current_mode ?? "off",
-  );
-
-  // Re-sync the selected Mode button whenever a *new* status arrives
-  // (revision changes on every successful load/apply) — same "adjust
-  // during render" pattern as GovernancePanel's own syncedRevision.
-  const [syncedRevision, setSyncedRevision] = useState(status?.revision);
-  if (status?.revision !== syncedRevision) {
-    setSyncedRevision(status?.revision);
-    if (status !== null && status.current_mode !== null) {
-      setSelectedMode(status.current_mode);
-    }
-  }
 
   const statusKey =
     state.capability === "loading"
@@ -113,15 +93,17 @@ export default function RuntimeGovernancePanel({
                     className="secondary"
                     type="button"
                     role="radio"
-                    aria-checked={selectedMode === descriptor.mode}
-                    disabled={unavailable}
+                    aria-checked={status.current_mode === descriptor.mode}
+                    disabled={unavailable || state.capability !== "ready"}
                     title={
                       unavailable && descriptor.unavailable_reason_code !== null
                         ? descriptor.unavailable_reason_code
                         : undefined
                     }
                     onClick={() => {
-                      setSelectedMode(descriptor.mode);
+                      if (status.current_mode !== descriptor.mode) {
+                        onApply(descriptor.mode);
+                      }
                     }}
                   >
                     {translate(language, MODE_LABEL_KEYS[descriptor.mode])}
@@ -195,19 +177,6 @@ export default function RuntimeGovernancePanel({
               )}
             </dl>
           )}
-          <div className="configuration-actions">
-            <button
-              id="runtime-governance-apply"
-              className="primary"
-              type="button"
-              disabled={state.capability !== "ready"}
-              onClick={() => {
-                onApply(selectedMode);
-              }}
-            >
-              {translate(language, "runtimeGovernanceApply")}
-            </button>
-          </div>
         </>
       )}
       <pre id="runtime-governance-result" className="configuration-result" aria-live="polite">

@@ -66,7 +66,6 @@ def _backend(*, fake_adapter: _FakeLlamaCppModelAdapter) -> LlamaCppRuntimeModel
     return LlamaCppRuntimeModelBackend(
         adapter=fake_adapter,  # type: ignore[arg-type]
         base_load_config=ModelLoadConfig(context_size=4096),
-        default_max_new_tokens=2048,
     )
 
 
@@ -79,7 +78,10 @@ def test_probe_capability_reports_declared_limits_without_loading() -> None:
 
     assert result.native_context_limit == 8192
     assert result.deployment_verified_context_limit == 4096  # min(8192, base 4096)
-    assert result.max_output_token_limit == 2048
+    assert result.backend_context_limit == 8192
+    assert result.effective_context_limit == 4096
+    assert result.context_limit_reason_code == "deployment_hardware_verified_limit"
+    assert result.max_output_token_limit == 4095
     assert fake_adapter.load_calls == []
 
 
@@ -94,7 +96,10 @@ def test_load_overrides_context_size_and_reports_measured_capability() -> None:
     assert handle.loaded_context_size == 8192
     assert handle.artifact_digest == _ARTIFACT_DIGEST_VALUE
     assert handle.backend_identity == "llama_cpp:0.3.34"
-    assert handle.capability.deployment_verified_context_limit == 8192
+    # A direct adapter Load can allocate a size above the tracked profile,
+    # but it must not promote that one allocation into Deployment Evidence.
+    # RuntimeModelController prevents such a request before Unload/Load.
+    assert handle.capability.deployment_verified_context_limit == 4096
 
 
 def test_unload_delegates_to_the_wrapped_adapter() -> None:

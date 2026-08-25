@@ -225,6 +225,8 @@ export interface JudgeLastResult {
   repair_outcome: string | null;
   repair_accepted: boolean | null;
   repair_new_turn_id: string | null;
+  presentation_outcome?: string | null;
+  candidate_withheld?: boolean;
 }
 
 export interface JudgeModeSnapshot extends FeatureModeSnapshot {
@@ -274,10 +276,16 @@ export interface RuntimeModelAvailableModel {
   model_key: string;
   provider: string;
   native_context_limit: number;
+  backend_context_limit: number;
+  hardware_verified_context_limit: number;
+  effective_context_limit: number;
+  context_limit_reason_code: string;
+  max_output_token_limit: number;
 }
 
 export interface RuntimeModelStatus {
   enabled: boolean;
+  configured_startup_model_key: string | null;
   revision: number | null;
   digest_sha512: string | null;
   runtime_state: string | null;
@@ -285,6 +293,10 @@ export interface RuntimeModelStatus {
   model_native_context_limit: number | null;
   backend_context_limit: number | null;
   deployment_verified_context_limit: number | null;
+  hardware_verified_context_limit: number | null;
+  effective_context_limit: number | null;
+  minimum_context_size: number | null;
+  context_limit_reason_code: string | null;
   max_output_token_limit: number | null;
   current_max_new_tokens: number | null;
   main_model: RuntimeModelMainIdentity | null;

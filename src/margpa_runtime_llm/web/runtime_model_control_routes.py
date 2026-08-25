@@ -47,6 +47,9 @@ from margpa_runtime_llm.modules.runtime_model_control.domain.errors import (
     RuntimeModelRollbackFailure,
     RuntimeModelTargetNotRegistered,
 )
+from margpa_runtime_llm.modules.runtime_model_control.domain.snapshot import (
+    MIN_RUNTIME_CONTEXT_SIZE,
+)
 from margpa_runtime_llm.modules.runtime_observability.projection.component_identity_projection import (  # noqa: E501
     project_governance_layer_identity,
     project_guard_model_identity,
@@ -106,10 +109,16 @@ class AvailableModelResponse(_RuntimeModelContract):
     model_key: str
     provider: str
     native_context_limit: int
+    backend_context_limit: int
+    hardware_verified_context_limit: int
+    effective_context_limit: int
+    context_limit_reason_code: str
+    max_output_token_limit: int
 
 
 class RuntimeModelStatusResponse(_RuntimeModelContract):
     enabled: bool
+    configured_startup_model_key: str | None = None
     revision: int | None = None
     digest_sha512: str | None = None
     """CAS token for /context, /max-new-tokens and /switch — distinct from
@@ -119,6 +128,10 @@ class RuntimeModelStatusResponse(_RuntimeModelContract):
     model_native_context_limit: int | None = None
     backend_context_limit: int | None = None
     deployment_verified_context_limit: int | None = None
+    hardware_verified_context_limit: int | None = None
+    effective_context_limit: int | None = None
+    minimum_context_size: int | None = None
+    context_limit_reason_code: str | None = None
     max_output_token_limit: int | None = None
     current_max_new_tokens: int | None = None
     main_model: MainModelIdentityResponse | None = None
@@ -154,7 +167,10 @@ def _project_status(request: Request) -> RuntimeModelStatusResponse:
         return RuntimeModelStatusResponse(enabled=False)
     snapshot = controller.snapshot()
     main_identity = project_main_model_identity(snapshot=snapshot)
-    judge_identity = project_judge_model_identity(snapshot=snapshot)
+    judge_identity = project_judge_model_identity(
+        snapshot=snapshot,
+        main_self_available=runtime.judge_governance_composition is not None,
+    )
     # Guard Model has no bound Safety Model Artifact in Production as of
     # Phase 5 (UnavailableSafetyModelAdapter) — model_id=None is the honest
     # current value, never fabricated (P6-ACC-024A/P6-CODEX-005).
@@ -176,6 +192,7 @@ def _project_status(request: Request) -> RuntimeModelStatusResponse:
     )
     return RuntimeModelStatusResponse(
         enabled=True,
+        configured_startup_model_key=runtime.snapshot.model_key,
         revision=snapshot.revision,
         digest_sha512=snapshot.digest_sha512,
         runtime_state=snapshot.runtime_state.value,
@@ -183,6 +200,10 @@ def _project_status(request: Request) -> RuntimeModelStatusResponse:
         model_native_context_limit=snapshot.model_native_context_limit,
         backend_context_limit=snapshot.backend_context_limit,
         deployment_verified_context_limit=snapshot.deployment_verified_context_limit,
+        hardware_verified_context_limit=snapshot.deployment_verified_context_limit,
+        effective_context_limit=snapshot.effective_context_limit,
+        minimum_context_size=MIN_RUNTIME_CONTEXT_SIZE,
+        context_limit_reason_code=snapshot.context_limit_reason_code,
         max_output_token_limit=snapshot.max_output_token_limit,
         current_max_new_tokens=snapshot.current_max_new_tokens,
         main_model=MainModelIdentityResponse(
@@ -211,9 +232,17 @@ def _project_status(request: Request) -> RuntimeModelStatusResponse:
             AvailableModelResponse(
                 model_key=definition.model_key,
                 provider=definition.source.provider,
-                native_context_limit=definition.model.native_context_limit,
+                native_context_limit=capability.native_context_limit,
+                backend_context_limit=capability.backend_context_limit,
+                hardware_verified_context_limit=capability.deployment_verified_context_limit,
+                effective_context_limit=capability.effective_context_limit,
+                context_limit_reason_code=capability.context_limit_reason_code,
+                max_output_token_limit=min(
+                    capability.max_output_token_limit,
+                    max(1, capability.effective_context_limit - 1),
+                ),
             )
-            for definition in controller.available_models()
+            for definition, capability in controller.available_model_capabilities()
         ),
     )
 
@@ -319,9 +348,26 @@ def runtime_model_control_error_response(
             content={"code": "runtime_model_busy", "message": "A generation is in progress."},
         )
     if isinstance(error, RuntimeModelContextLimitExceeded | RuntimeModelMaxNewTokensExceeded):
+        details: dict[str, object] = {}
+        if isinstance(error, RuntimeModelContextLimitExceeded):
+            details = {
+                "requested_context_size": error.requested_context_size,
+                "minimum_context_size": error.minimum_context_size,
+                "effective_max_context_size": error.effective_max_context_size,
+                "reason_code": error.reason_code,
+            }
+        else:
+            details = {
+                "requested_max_new_tokens": error.requested_max_new_tokens,
+                "max_output_token_limit": error.max_output_token_limit,
+            }
         return JSONResponse(
             status_code=422,
-            content={"code": "runtime_model_limit_exceeded", "message": str(error)},
+            content={
+                "code": "runtime_model_limit_exceeded",
+                "message": str(error),
+                "details": details,
+            },
         )
     return JSONResponse(
         status_code=502,

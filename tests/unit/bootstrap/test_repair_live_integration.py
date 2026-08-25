@@ -279,6 +279,36 @@ def test_returns_none_when_request_id_was_never_located(tmp_path: Path) -> None:
     assert service.calls == []
 
 
+def test_presented_final_repair_needs_no_persisted_source_and_returns_content() -> None:
+    service = _FakeRepairService(repair_content="Source-grounded corrected answer.")
+
+    result = attempt_live_repair(
+        service=service,  # type: ignore[arg-type]
+        model_key="main.test-model",
+        persistent=None,
+        request_id="ephemeral-enforce-1",
+        user_input="No, the correct reading is Amane Kanata.",
+        original_answer="The official reading is Tenon.",
+        before_recommendation=EvaluationRecommendation.NEEDS_REPAIR,
+        judge_reasoning="contradicts the supplied evidence",
+        dialogue_context=("assistant: The official reading is Tenon.",),
+        evidence_context=("ref-1 | official.md: Amane Kanata",),
+        governance_post_hook=None,
+        guardrail_post_hook=None,
+        persist_accepted_attempt=False,
+    )
+
+    assert result is not None
+    assert result.accepted is True
+    assert result.new_turn_id is None
+    assert result.presented_content == "Source-grounded corrected answer."
+    assert len(service.calls) == 2
+    repair_prompt = service.calls[0].messages[0].content
+    rejudge_prompt = service.calls[1].messages[0].content
+    assert "ref-1 | official.md: Amane Kanata" in repair_prompt
+    assert "ref-1 | official.md: Amane Kanata" in rejudge_prompt
+
+
 def test_repair_generation_failure_is_a_typed_rejection(tmp_path: Path) -> None:
     persistent, request_id = _build_persistent_with_one_completed_turn(tmp_path)
     service = _FakeRepairService(fail_on_suffix=":repair")

@@ -239,6 +239,8 @@ async def test_status_projects_a_real_judge_result_including_repair_fields() -> 
             repair_outcome="improved",
             repair_accepted=True,
             repair_new_turn_id="turn-repaired-1",
+            presentation_outcome="repair_accepted",
+            candidate_withheld=True,
         )
     )
 
@@ -261,6 +263,8 @@ async def test_status_projects_a_real_judge_result_including_repair_fields() -> 
     assert result["repair_outcome"] == "improved"
     assert result["repair_accepted"] is True
     assert result["repair_new_turn_id"] == "turn-repaired-1"
+    assert result["presentation_outcome"] == "repair_accepted"
+    assert result["candidate_withheld"] is True
 
 
 @pytest.mark.asyncio

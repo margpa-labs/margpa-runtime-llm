@@ -65,19 +65,6 @@ export default function SettingsPanel({
                 </option>
               </select>
             </label>
-            <label>
-              <span id="max-new-tokens-label">{translate(language, "maxNewTokensLabel")}</span>
-              <input
-                id="max-new-tokens"
-                type="number"
-                min={1}
-                max={2048}
-                value={form.maxNewTokens}
-                onChange={(event) => {
-                  onChange({ ...form, maxNewTokens: event.target.value });
-                }}
-              />
-            </label>
           </div>
           <div className="settings-inline-pair">
             <label className="switch-row">

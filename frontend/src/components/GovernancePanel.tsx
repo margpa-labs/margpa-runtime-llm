@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { translate } from "../i18n/translations";
 import type { GovernanceMode, GovernanceStatus, UiLanguage } from "../types";
 
@@ -24,28 +23,6 @@ const MODE_LABEL_KEYS: Record<GovernanceMode, "governanceModeOff" | "governanceM
 
 export default function GovernancePanel({ language, visible, state, onRefresh, onApply }: GovernancePanelProps) {
   const status = state.status;
-  // P4-CODEX-013: initialized from `status` — not a hardcoded "off" — so
-  // a Mount that already has a Server Status available (e.g. reopening
-  // the Settings Modal, which fully unmounts/remounts this component)
-  // starts selected on the real Current Mode instead of always resetting
-  // to "off". Lazy initializer avoids re-deriving this on every render.
-  const [selectedMode, setSelectedMode] = useState<GovernanceMode>(
-    () => status?.mode.current_mode ?? "off",
-  );
-
-  // Re-sync the selected Mode button whenever a *new* status arrives
-  // (revision changes on every successful load/apply), mirroring the same
-  // "adjust during render" pattern used by ConfigurationControlPanel's
-  // syncedRevision — never in a useEffect, so it can't race the parent's
-  // refresh fetch. See:
-  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
-  const [syncedRevision, setSyncedRevision] = useState(status?.mode.revision);
-  if (status?.mode.revision !== syncedRevision) {
-    setSyncedRevision(status?.mode.revision);
-    if (status !== null) {
-      setSelectedMode(status.mode.current_mode);
-    }
-  }
 
   const statusKey =
     state.capability === "loading"
@@ -98,15 +75,17 @@ export default function GovernancePanel({ language, visible, state, onRefresh, o
                     className="secondary"
                     type="button"
                     role="radio"
-                    aria-checked={selectedMode === descriptor.mode}
-                    disabled={unavailable}
+                    aria-checked={status.mode.current_mode === descriptor.mode}
+                    disabled={unavailable || state.capability !== "ready"}
                     title={
                       unavailable && descriptor.mode === "enforce"
                         ? translate(language, "governanceModeUnavailableEnforce")
                         : undefined
                     }
                     onClick={() => {
-                      setSelectedMode(descriptor.mode);
+                      if (status.mode.current_mode !== descriptor.mode) {
+                        onApply(descriptor.mode);
+                      }
                     }}
                   >
                     {translate(language, MODE_LABEL_KEYS[descriptor.mode])}
@@ -141,19 +120,6 @@ export default function GovernancePanel({ language, visible, state, onRefresh, o
               )}
             </dl>
           )}
-          <div className="configuration-actions">
-            <button
-              id="governance-apply"
-              className="primary"
-              type="button"
-              disabled={state.capability !== "ready"}
-              onClick={() => {
-                onApply(selectedMode);
-              }}
-            >
-              {translate(language, "governanceApply")}
-            </button>
-          </div>
         </>
       )}
       <pre id="governance-result" className="configuration-result" aria-live="polite">

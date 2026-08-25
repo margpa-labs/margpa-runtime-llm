@@ -149,9 +149,17 @@ def project_governance_layer_identity(
     )
 
 
-def project_judge_model_identity(*, snapshot: RuntimeModelSnapshot) -> JudgeModelIdentity:
+def project_judge_model_identity(
+    *, snapshot: RuntimeModelSnapshot, main_self_available: bool = False
+) -> JudgeModelIdentity:
     independence = resolve_judge_independence(snapshot=snapshot)
     if independence is JudgeIndependenceClass.UNAVAILABLE:
+        if main_self_available:
+            return JudgeModelIdentity(
+                model_key=snapshot.selected_model_key,
+                independence_class=JudgeIndependenceClass.MAIN_SELF,
+                state=_RUNTIME_STATE_TO_IDENTITY_STATE[snapshot.runtime_state],
+            )
         return JudgeModelIdentity(
             model_key=None,
             independence_class=independence,

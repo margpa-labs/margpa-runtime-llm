@@ -71,10 +71,10 @@ def _initial_snapshot() -> RuntimeModelSnapshot:
         backend_identity="llama_cpp",
         runtime_state=RuntimeState.ACTIVE,
         loaded_context_size=4096,
-        model_native_context_limit=8192,
-        backend_context_limit=8192,
+        model_native_context_limit=32768,
+        backend_context_limit=32768,
         deployment_verified_context_limit=8192,
-        max_output_token_limit=2048,
+        max_output_token_limit=8191,
         current_max_new_tokens=2048,
         last_transition_receipt=None,
     )
@@ -91,7 +91,7 @@ class _FakeBackend:
             native_context_limit=definition.model.native_context_limit,
             backend_context_limit=8192,
             deployment_verified_context_limit=8192,
-            max_output_token_limit=2048,
+            max_output_token_limit=8191,
             capability_digest=_SHA512_FILLER,
         )
 
@@ -132,8 +132,10 @@ class _FakeAccessLease:
 class _FakeDefinitionResolver:
     def __init__(self) -> None:
         self._definitions = {
-            _QWEN_KEY: make_model_definition(model_key=_QWEN_KEY),
-            _DEEPSEEK_KEY: make_model_definition(model_key=_DEEPSEEK_KEY),
+            _QWEN_KEY: make_model_definition(model_key=_QWEN_KEY, native_context_limit=32768),
+            _DEEPSEEK_KEY: make_model_definition(
+                model_key=_DEEPSEEK_KEY, native_context_limit=131072
+            ),
         }
 
     def resolve(self, *, model_key: str) -> ModelDefinition:
@@ -244,13 +246,13 @@ def test_switch_clamps_max_new_tokens_to_the_target_models_own_ceiling() -> None
         expected_revision=initial.revision,
         expected_digest=initial.digest_sha512,
         transition_id="t-clamp",
-        # _FakeBackend.probe_capability() always reports max_output_token_limit=2048;
+        # _FakeBackend.probe_capability() reports the deployment-aware ceiling;
         # override the Target's own ceiling lower to exercise the clamp.
         target_definition=make_model_definition(model_key=_DEEPSEEK_KEY),
         requested_context_size=8192,
     )
 
-    # _FakeBackend's max_output_token_limit is 2048 (>= previous 2048), so
+    # _FakeBackend's max_output_token_limit is >= previous 2048, so
     # this asserts the no-op case; the dedicated low-ceiling backend below
     # asserts the actual clamp.
     assert committed.current_max_new_tokens == 2048

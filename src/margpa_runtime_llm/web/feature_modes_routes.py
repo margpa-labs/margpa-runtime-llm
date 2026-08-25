@@ -10,8 +10,8 @@ actual place that decides whether to invoke the Model (this route never
 calls it directly). `judge.last_result` surfaces the most recent Live Judge
 outcome (if any) so a Golden Path can observe it without a separate
 Recording sink (P6-CODEX-004 remains a distinct, larger integration step).
-Repair/Recording have no live Model-side effect yet — see the Phase 6-E/6-F
-Recovery Entries and the Rework Handoff's Controller-owned Work list.
+Judge ENFORCE now owns the Presented Final boundary and can route one bounded
+Repair/Rejudge attempt; Recording remains a separate, orthogonal local sink.
 """
 
 from __future__ import annotations
@@ -50,6 +50,8 @@ class JudgeLastResultResponse(_FeatureModesContract):
     repair_outcome: str | None = None
     repair_accepted: bool | None = None
     repair_new_turn_id: str | None = None
+    presentation_outcome: str | None = None
+    candidate_withheld: bool = False
 
 
 class JudgeModeSnapshotResponse(ModeSnapshotResponse):
@@ -121,6 +123,8 @@ def _judge_snapshot(runtime: WebRuntime) -> JudgeModeSnapshotResponse:
                 repair_outcome=last_result.repair_outcome,
                 repair_accepted=last_result.repair_accepted,
                 repair_new_turn_id=last_result.repair_new_turn_id,
+                presentation_outcome=last_result.presentation_outcome,
+                candidate_withheld=last_result.candidate_withheld,
             )
         ),
     )

@@ -23,12 +23,18 @@ from ..domain.identifiers import (
     SwitchOutcome,
 )
 from ..domain.snapshot import (
+    MIN_RUNTIME_CONTEXT_SIZE,
     RoleBinding,
     RuntimeModelSnapshot,
     TransitionReceipt,
     compute_runtime_model_snapshot_digest,
 )
-from ..ports import ModelAccessLeasePort, ModelBackendPort, ModelDefinitionResolverPort
+from ..ports import (
+    CapabilityProbeResult,
+    ModelAccessLeasePort,
+    ModelBackendPort,
+    ModelDefinitionResolverPort,
+)
 
 
 def _now_iso() -> str:
@@ -50,6 +56,7 @@ class RuntimeModelController:
         access_lease: ModelAccessLeasePort,
         definitions: ModelDefinitionResolverPort,
         on_commit: Callable[[RuntimeModelSnapshot], None] | None = None,
+        default_max_new_tokens: int = 2048,
     ) -> None:
         self._lock = threading.Lock()
         self._snapshot = initial_snapshot
@@ -66,6 +73,7 @@ class RuntimeModelController:
         # released) so arbitrary external code in the callback can never
         # deadlock against, or reenter, this Controller's own lock.
         self._on_commit = on_commit
+        self._default_max_new_tokens = default_max_new_tokens
 
     def snapshot(self) -> RuntimeModelSnapshot:
         with self._lock:
@@ -80,6 +88,27 @@ class RuntimeModelController:
             for definition in self._definitions.all_definitions()
             if definition.enabled and definition.logical_role == ModelRole.MAIN.value
         )
+
+    def available_model_capabilities(
+        self,
+    ) -> tuple[tuple[ModelDefinition, CapabilityProbeResult], ...]:
+        return tuple(
+            (definition, self._backend.probe_capability(definition=definition))
+            for definition in self.available_models()
+        )
+
+    @staticmethod
+    def _validate_context_size(
+        *, requested_context_size: int, capability: CapabilityProbeResult
+    ) -> None:
+        effective_max = capability.effective_context_limit
+        if not MIN_RUNTIME_CONTEXT_SIZE <= requested_context_size <= effective_max:
+            raise RuntimeModelContextLimitExceeded(
+                requested_context_size=requested_context_size,
+                effective_max_context_size=effective_max,
+                minimum_context_size=MIN_RUNTIME_CONTEXT_SIZE,
+                reason_code=capability.context_limit_reason_code,
+            )
 
     def switch_to_model_key(
         self,
@@ -137,6 +166,11 @@ class RuntimeModelController:
                     current_revision=current.revision,
                     current_digest=current.digest_sha512,
                 )
+            target_capability = self._backend.probe_capability(definition=target_definition)
+            self._validate_context_size(
+                requested_context_size=requested_context_size,
+                capability=target_capability,
+            )
             if not self._access_lease.try_acquire_switch_lease(task_id=transition_id):
                 raise RuntimeModelBusyError(
                     reason="active generation lease held; idle-only switch required"
@@ -200,8 +234,14 @@ class RuntimeModelController:
                 # Rework, P6-CODEX-025) actually applies to the next real
                 # Generation, so API/UI/Attempt Evidence all observe the
                 # same effective value.
-                effective_max_new_tokens = min(
-                    previous.current_max_new_tokens, handle.capability.max_output_token_limit
+                target_max_new_tokens = min(
+                    handle.capability.max_output_token_limit,
+                    max(1, handle.loaded_context_size - 1),
+                )
+                effective_max_new_tokens = (
+                    previous.current_max_new_tokens
+                    if previous.current_max_new_tokens <= target_max_new_tokens
+                    else min(self._default_max_new_tokens, target_max_new_tokens)
                 )
                 new_revision = previous.revision + 1
                 new_digest = compute_runtime_model_snapshot_digest(
@@ -239,7 +279,7 @@ class RuntimeModelController:
                     deployment_verified_context_limit=(
                         handle.capability.deployment_verified_context_limit
                     ),
-                    max_output_token_limit=handle.capability.max_output_token_limit,
+                    max_output_token_limit=target_max_new_tokens,
                     current_max_new_tokens=effective_max_new_tokens,
                     last_transition_receipt=receipt,
                 )
@@ -279,11 +319,13 @@ class RuntimeModelController:
                     current_revision=current.revision,
                     current_digest=current.digest_sha512,
                 )
-            effective_max = min(current.model_native_context_limit, current.backend_context_limit)
-            if requested_context_size > effective_max:
+            effective_max = current.effective_context_limit
+            if not MIN_RUNTIME_CONTEXT_SIZE <= requested_context_size <= effective_max:
                 raise RuntimeModelContextLimitExceeded(
                     requested_context_size=requested_context_size,
                     effective_max_context_size=effective_max,
+                    minimum_context_size=MIN_RUNTIME_CONTEXT_SIZE,
+                    reason_code=current.context_limit_reason_code,
                 )
             current_definition = self._definitions.resolve(model_key=current.selected_model_key)
 

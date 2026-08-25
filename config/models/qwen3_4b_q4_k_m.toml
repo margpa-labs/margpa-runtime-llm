@@ -22,7 +22,10 @@ required_version = "0.3.34"
 
 [model]
 architecture = "qwen3"
-native_context_limit = 32768
+# Read-only `vocab_only` metadata inspection of this exact GGUF on
+# 2026-08-24 reports `qwen3.context_length = 40960`. The effective local
+# deployment ceiling remains independently bounded by the active Profile.
+native_context_limit = 40960
 chat_template_source = "gguf_metadata"
 
 [capabilities]

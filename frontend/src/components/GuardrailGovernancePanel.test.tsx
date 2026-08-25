@@ -85,7 +85,7 @@ describe("GuardrailGovernancePanel", () => {
     );
   });
 
-  test("clicking Observe flips aria-checked and Apply hands onApply the newly selected mode", () => {
+  test("clicking Observe immediately mutates while selection stays server-canonical", () => {
     const onApply = vi.fn();
     render(
       <GuardrailGovernancePanel
@@ -97,11 +97,11 @@ describe("GuardrailGovernancePanel", () => {
       />,
     );
     fireEvent.click(screen.getByRole("radio", { name: "Observe" }));
-    expect(screen.getByRole("radio", { name: "Observe" })).toHaveAttribute("aria-checked", "true");
-
-    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
     expect(onApply).toHaveBeenCalledTimes(1);
     expect(onApply).toHaveBeenCalledWith("observe");
+    expect(screen.getByRole("radio", { name: "Observe" })).toHaveAttribute("aria-checked", "false");
+    expect(screen.getByRole("radio", { name: "OFF" })).toHaveAttribute("aria-checked", "true");
+    expect(document.querySelector("#guardrail-governance-apply")).toBeNull();
   });
 
   test("mounting directly with an Observe status selects Observe, not Off", () => {
@@ -157,7 +157,7 @@ describe("GuardrailGovernancePanel", () => {
     expect(screen.getByRole("radio", { name: "OFF" })).toHaveAttribute("aria-checked", "false");
   });
 
-  test("shows the Safety Model Unavailable / Phase 6 boundary notice", () => {
+  test("shows the current Safety Model boundary without a Phase suffix", () => {
     render(
       <GuardrailGovernancePanel
         language="en"
@@ -168,7 +168,8 @@ describe("GuardrailGovernancePanel", () => {
       />,
     );
     expect(document.querySelector("#guardrail-governance-safety-model-notice")).not.toBeNull();
-    expect(screen.getByText(/Phase 6/u)).toBeInTheDocument();
+    expect(screen.getByText(/dedicated Safety Model/u)).toBeInTheDocument();
+    expect(screen.queryByText(/Phase 6/u)).toBeNull();
   });
 
   test("shows the per-Point detection and match counts", () => {
@@ -187,7 +188,7 @@ describe("GuardrailGovernancePanel", () => {
     expect(pointRow?.textContent).toContain("Executed actions: 1");
   });
 
-  test("Enforce can be selected and Apply hands onApply \"enforce\"", () => {
+  test("clicking Enforce calls onApply immediately", () => {
     const onApply = vi.fn();
     render(
       <GuardrailGovernancePanel
@@ -199,7 +200,6 @@ describe("GuardrailGovernancePanel", () => {
       />,
     );
     fireEvent.click(screen.getByRole("radio", { name: "Enforce" }));
-    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
     expect(onApply).toHaveBeenCalledWith("enforce");
   });
 
@@ -253,7 +253,7 @@ describe("GuardrailGovernancePanel", () => {
     expect(screen.getByText("guardrail.input")).toBeInTheDocument();
   });
 
-  test("Apply is disabled while a refresh is in flight, even with a status already loaded", () => {
+  test("Mode selectors are disabled while a refresh is in flight", () => {
     render(
       <GuardrailGovernancePanel
         language="en"
@@ -263,7 +263,8 @@ describe("GuardrailGovernancePanel", () => {
         onApply={vi.fn()}
       />,
     );
-    expect(screen.getByRole("button", { name: "Apply" })).toBeDisabled();
+    expect(screen.getByRole("radio", { name: "OFF" })).toBeDisabled();
+    expect(screen.getByRole("radio", { name: "Observe" })).toBeDisabled();
   });
 
   test("renders nothing about the status before the first successful load", () => {

@@ -48,7 +48,7 @@ describe("GovernancePanel", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  test("Enforce is always disabled in Phase 3, even when selected mode is off", () => {
+  test("Enforce is disabled when the Definitions surface reports it unavailable", () => {
     render(<GovernancePanel language="en" visible={true} state={readyState()} onRefresh={vi.fn()} onApply={vi.fn()} />);
     expect(screen.getByRole("radio", { name: "Enforce" })).toBeDisabled();
   });
@@ -60,31 +60,19 @@ describe("GovernancePanel", () => {
     expect(screen.getByRole("radio", { name: "Observe" })).toHaveAttribute("aria-checked", "false");
   });
 
-  // P4-CODEX-012-B: clicking a Mode Radio must visibly flip aria-checked,
-  // and the Mode actually clicked (not the initial one) must be what
-  // Apply hands to onApply — a plain initial-DOM assertion cannot catch a
-  // Selector Contract mismatch (P4-CODEX-012-A) between the Radio's own
-  // aria-checked state and the CSS that is supposed to render it.
-  test("clicking Observe flips its aria-checked state and clears Off's", () => {
-    render(<GovernancePanel language="en" visible={true} state={readyState()} onRefresh={vi.fn()} onApply={vi.fn()} />);
+  test("clicking Observe immediately calls onApply and keeps server-canonical selection", () => {
+    const onApply = vi.fn();
+    render(<GovernancePanel language="en" visible={true} state={readyState()} onRefresh={vi.fn()} onApply={onApply} />);
     expect(screen.getByRole("radio", { name: "OFF" })).toHaveAttribute("aria-checked", "true");
     expect(screen.getByRole("radio", { name: "Observe" })).toHaveAttribute("aria-checked", "false");
 
     fireEvent.click(screen.getByRole("radio", { name: "Observe" }));
 
-    expect(screen.getByRole("radio", { name: "OFF" })).toHaveAttribute("aria-checked", "false");
-    expect(screen.getByRole("radio", { name: "Observe" })).toHaveAttribute("aria-checked", "true");
-  });
-
-  test("clicking Observe then Apply calls onApply with observe exactly once", () => {
-    const onApply = vi.fn();
-    render(<GovernancePanel language="en" visible={true} state={readyState()} onRefresh={vi.fn()} onApply={onApply} />);
-
-    fireEvent.click(screen.getByRole("radio", { name: "Observe" }));
-    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
-
     expect(onApply).toHaveBeenCalledTimes(1);
     expect(onApply).toHaveBeenCalledWith("observe");
+    expect(screen.getByRole("radio", { name: "OFF" })).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByRole("radio", { name: "Observe" })).toHaveAttribute("aria-checked", "false");
+    expect(document.querySelector("#governance-apply")).toBeNull();
   });
 
   // P4-CODEX-013: a fresh Mount that already has a non-off Server Status
@@ -124,7 +112,7 @@ describe("GovernancePanel", () => {
     expect(screen.getByRole("radio", { name: "OFF" })).toHaveAttribute("aria-checked", "false");
   });
 
-  test("Enforce stays unselectable — clicking it never changes the checked Mode or reaches Apply", () => {
+  test("Enforce stays unselectable and never reaches the mutation callback", () => {
     const onApply = vi.fn();
     render(<GovernancePanel language="en" visible={true} state={readyState()} onRefresh={vi.fn()} onApply={onApply} />);
 
@@ -132,8 +120,7 @@ describe("GovernancePanel", () => {
     expect(screen.getByRole("radio", { name: "Enforce" })).toHaveAttribute("aria-checked", "false");
     expect(screen.getByRole("radio", { name: "OFF" })).toHaveAttribute("aria-checked", "true");
 
-    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
-    expect(onApply).toHaveBeenCalledWith("off");
+    expect(onApply).not.toHaveBeenCalled();
     expect(onApply).not.toHaveBeenCalledWith("enforce");
   });
 
@@ -156,7 +143,7 @@ describe("GovernancePanel", () => {
     expect(screen.getAllByText("18")).toHaveLength(2);
   });
 
-  test("Apply is disabled while a refresh is in flight, even with a status already loaded", () => {
+  test("Mode selectors are disabled while a refresh is in flight", () => {
     render(
       <GovernancePanel
         language="en"
@@ -166,7 +153,8 @@ describe("GovernancePanel", () => {
         onApply={vi.fn()}
       />,
     );
-    expect(screen.getByRole("button", { name: "Apply" })).toBeDisabled();
+    expect(screen.getByRole("radio", { name: "OFF" })).toBeDisabled();
+    expect(screen.getByRole("radio", { name: "Observe" })).toBeDisabled();
   });
 
   test("renders nothing about the status before the first successful load", () => {

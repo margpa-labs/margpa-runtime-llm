@@ -19,6 +19,7 @@ from margpa_runtime_llm.modules.inference.domain.errors import (
 )
 
 from .error_mapping import map_finish_reason, parse_token_usage, raise_mapped_backend_error
+from .repetition import PathologicalRepetitionDetector
 
 
 class LlamaCppGenerationStream:
@@ -32,6 +33,8 @@ class LlamaCppGenerationStream:
         on_terminal: Callable[[], None],
         fallback_prompt_tokens: int,
         completion_text_token_counter: Callable[[str], int],
+        repetition_detector: PathologicalRepetitionDetector | None = None,
+        on_pathological_output: Callable[[], None] | None = None,
     ) -> None:
         self._generation_id = generation_id
         self._request_id = request_id
@@ -47,6 +50,8 @@ class LlamaCppGenerationStream:
         self._timing: GenerationTiming | None = None
         self._usage: TokenUsage | None = None
         self._completion_text_parts: list[str] = []
+        self._repetition_detector = repetition_detector
+        self._on_pathological_output = on_pathological_output
 
     @property
     def generation_id(self) -> str:
@@ -85,6 +90,23 @@ class LlamaCppGenerationStream:
                 raw_finish_reason = choice.get("finish_reason")
 
                 if text_delta:
+                    if self._repetition_detector is not None and self._repetition_detector.feed(
+                        text_delta
+                    ):
+                        self._close_native()
+                        if self._on_pathological_output is not None:
+                            self._on_pathological_output()
+                        raise InferenceError(
+                            code=InferenceErrorCode.GENERATION_FAILED,
+                            safe_message=(
+                                "The model produced an unstable repetitive response and was "
+                                "stopped safely."
+                            ),
+                            retryable=True,
+                            request_id=self._request_id,
+                            model_key=self._model_key,
+                            details={"reason": "pathological_repetition_detected"},
+                        )
                     if self._first_content_latency is None:
                         self._first_content_latency = time.perf_counter() - self._started
                     self._completion_text_parts.append(text_delta)

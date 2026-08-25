@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { translate } from "../i18n/translations";
 import type { ConfigurationSnapshot, UiLanguage } from "../types";
 
@@ -13,7 +12,6 @@ interface ConfigurationControlPanelProps {
   visible: boolean;
   state: ConfigurationControlState;
   onRefresh: () => void;
-  onPreview: (patch: { research_developer_mode?: string; selected_model?: string; context_size?: number }) => void;
   onApply: (researchDeveloperMode: string) => void;
 }
 
@@ -25,9 +23,6 @@ interface ConfigurationControlPanelProps {
 // key instead of via a single `snapshot.fields.map(...)` pass.
 const LEFT_COLUMN_FIELD_KEYS = [
   "research_developer_mode",
-  "context_size",
-  "max_new_tokens",
-  "selected_model",
   "profile_key",
 ];
 
@@ -44,33 +39,10 @@ export default function ConfigurationControlPanel({
   visible,
   state,
   onRefresh,
-  onPreview,
   onApply,
 }: ConfigurationControlPanelProps) {
   const snapshot = state.snapshot;
   const researchField = snapshot?.fields.find((item) => item.key === "research_developer_mode") ?? null;
-  const modelField = snapshot?.fields.find((item) => item.key === "selected_model") ?? null;
-  const contextField = snapshot?.fields.find((item) => item.key === "context_size") ?? null;
-
-  const [researchPressed, setResearchPressed] = useState(false);
-  const [modelValue, setModelValue] = useState("");
-  const [contextValue, setContextValue] = useState("");
-
-  // Re-sync the local editable inputs whenever a *new* snapshot arrives
-  // (revision changes on every successful load/apply), mirroring the
-  // original synchronizeConfigurationInputs() call inside
-  // loadConfigurationControl(). Adjusted during render (React's documented
-  // pattern for "reset state when a prop changes") rather than in a
-  // useEffect, so it never races the parent's refresh fetch and never
-  // triggers an extra commit. See:
-  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
-  const [syncedRevision, setSyncedRevision] = useState(snapshot?.revision);
-  if (snapshot?.revision !== syncedRevision) {
-    setSyncedRevision(snapshot?.revision);
-    setResearchPressed(researchField?.value === "on");
-    setModelValue(modelField === null ? "" : String(modelField.value));
-    setContextValue(contextField === null ? "" : String(contextField.value));
-  }
 
   const developerDetailsVisible = researchField?.value === "on";
   const statusKey =
@@ -79,28 +51,6 @@ export default function ConfigurationControlPanel({
       : state.capability === "ready"
         ? "configurationReady"
         : "configurationFailed";
-
-  const handlePreview = (): void => {
-    const patch: { research_developer_mode?: string; selected_model?: string; context_size?: number } =
-      {};
-    const researchValue = researchPressed ? "on" : "off";
-    const trimmedModel = modelValue.trim();
-    const numericContext = Number(contextValue);
-    if (researchField !== null && researchField.value !== researchValue) {
-      patch.research_developer_mode = researchValue;
-    }
-    if (modelField !== null && trimmedModel && modelField.value !== trimmedModel) {
-      patch.selected_model = trimmedModel;
-    }
-    if (
-      contextField !== null &&
-      Number.isInteger(numericContext) &&
-      contextField.value !== numericContext
-    ) {
-      patch.context_size = numericContext;
-    }
-    onPreview(Object.keys(patch).length === 0 ? { research_developer_mode: researchValue } : patch);
-  };
 
   if (!visible) {
     return null;
@@ -154,68 +104,33 @@ export default function ConfigurationControlPanel({
             ))}
           </div>
           <div className="configuration-controls">
-            <div className="configuration-toggle">
+            <div
+              className="configuration-toggle"
+              role="radiogroup"
+              aria-label={translate(language, "configurationResearchMode")}
+            >
               <span id="configuration-research-mode-label">
                 {translate(language, "configurationResearchMode")}
               </span>
-              <button
-                id="configuration-research-mode"
-                className="secondary"
-                type="button"
-                aria-pressed={researchPressed}
-                onClick={() => {
-                  setResearchPressed((previous) => !previous);
-                }}
-              >
-                {researchPressed ? "ON" : "OFF"}
-              </button>
+              {(["off", "on"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  id={`configuration-research-mode-${mode}`}
+                  className="secondary"
+                  type="button"
+                  role="radio"
+                  aria-checked={researchField?.value === mode}
+                  disabled={state.capability !== "ready"}
+                  onClick={() => {
+                    if (researchField?.value !== mode) {
+                      onApply(mode);
+                    }
+                  }}
+                >
+                  {mode.toUpperCase()}
+                </button>
+              ))}
             </div>
-            <label hidden={!developerDetailsVisible}>
-              <span id="configuration-model-label">{translate(language, "configurationModel")}</span>
-              <input
-                id="configuration-model"
-                type="text"
-                maxLength={128}
-                value={modelValue}
-                onChange={(event) => {
-                  setModelValue(event.target.value);
-                }}
-              />
-            </label>
-            <label hidden={!developerDetailsVisible}>
-              <span id="configuration-context-label">{translate(language, "configurationContext")}</span>
-              <input
-                id="configuration-context"
-                type="number"
-                value={contextValue}
-                onChange={(event) => {
-                  setContextValue(event.target.value);
-                }}
-              />
-            </label>
-          </div>
-          <div className="configuration-actions">
-            <button
-              id="configuration-preview"
-              className="secondary"
-              type="button"
-              hidden={!developerDetailsVisible}
-              disabled={state.capability !== "ready"}
-              onClick={handlePreview}
-            >
-              {translate(language, "configurationPreview")}
-            </button>
-            <button
-              id="configuration-apply"
-              className="primary"
-              type="button"
-              disabled={state.capability !== "ready"}
-              onClick={() => {
-                onApply(researchPressed ? "on" : "off");
-              }}
-            >
-              {translate(language, "configurationApply")}
-            </button>
           </div>
         </>
       )}

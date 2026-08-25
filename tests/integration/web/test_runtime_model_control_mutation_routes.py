@@ -128,7 +128,13 @@ class _FakeBackend:
         self.unload_calls = 0
 
     def probe_capability(self, *, definition: ModelDefinition) -> CapabilityProbeResult:
-        raise NotImplementedError
+        return CapabilityProbeResult(
+            native_context_limit=definition.model.native_context_limit,
+            backend_context_limit=definition.model.native_context_limit,
+            deployment_verified_context_limit=8192,
+            max_output_token_limit=8191,
+            capability_digest=_SHA512_FILLER,
+        )
 
     def load(self, *, definition: ModelDefinition, context_size: int) -> LoadedModelHandle:
         self.load_calls.append((definition.model_key, context_size))
@@ -199,8 +205,8 @@ class _FakeDefinitionResolver:
 
     def all_definitions(self) -> tuple[ModelDefinition, ...]:
         return (
-            _make_model_definition(model_key="main.qwen3-4b-q4-k-m"),
-            _make_model_definition(model_key="main.deepseek-test"),
+            _make_model_definition(model_key="main.qwen3-4b-q4-k-m", native_context_limit=32768),
+            _make_model_definition(model_key="main.deepseek-test", native_context_limit=131072),
         )
 
 
@@ -235,10 +241,10 @@ def _initial_snapshot() -> RuntimeModelSnapshot:
         backend_identity="llama_cpp",
         runtime_state=RuntimeState.ACTIVE,
         loaded_context_size=4096,
-        model_native_context_limit=8192,
-        backend_context_limit=8192,
+        model_native_context_limit=32768,
+        backend_context_limit=32768,
         deployment_verified_context_limit=8192,
-        max_output_token_limit=2048,
+        max_output_token_limit=8191,
         current_max_new_tokens=2048,
         last_transition_receipt=None,
     )
@@ -380,6 +386,13 @@ async def test_status_lists_available_models_from_the_registry() -> None:
         "main.qwen3-4b-q4-k-m",
         "main.deepseek-test",
     }
+    by_key = {entry["model_key"]: entry for entry in body["available_models"]}
+    assert by_key["main.qwen3-4b-q4-k-m"]["native_context_limit"] == 32768
+    assert by_key["main.deepseek-test"]["native_context_limit"] == 131072
+    assert {entry["effective_context_limit"] for entry in body["available_models"]} == {8192}
+    assert body["effective_context_limit"] == 8192
+    assert body["minimum_context_size"] == 512
+    assert body["context_limit_reason_code"] == "deployment_hardware_verified_limit"
 
 
 @pytest.mark.asyncio

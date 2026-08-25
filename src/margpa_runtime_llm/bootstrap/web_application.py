@@ -21,6 +21,7 @@ from margpa_runtime_llm.modules.conversation.adapters.sqlite_conversation_store 
 from margpa_runtime_llm.modules.conversation.application.conversation_generation import (
     GovernancePostHook,
     GuardrailPostHook,
+    JudgeExecutionModeSnapshot,
     RuntimeGenerationSnapshot,
 )
 from margpa_runtime_llm.modules.conversation.application.persistent_conversation_service import (
@@ -399,18 +400,16 @@ def build_phase1_web_runtime(
             original_answer: str,
             before_recommendation: EvaluationRecommendation,
             judge_reasoning: str,
+            dialogue_context: tuple[str, ...],
+            evidence_context: tuple[str, ...],
             governance_post_hook: GovernancePostHook | None,
             guardrail_post_hook: GuardrailPostHook | None,
             cancellation: CancellationToken | None,
             model_runtime_info: ModelRuntimeInfo | None = None,
             stage_hook: Callable[[str], None] | None = None,
+            persist_accepted_attempt: bool = True,
         ) -> RepairExecutionResult | None:
             bound_persistent = persistent_ref[0]
-            if bound_persistent is None:
-                # Ephemeral chat (no persistence configured) has no Turn for
-                # a Repair Attempt to attach to — genuinely not applicable,
-                # never a fabricated failure.
-                return None
             # P6-CODEX-025 (Fourth Rework): `model_key`/`model_runtime_info`
             # come from the caller's own per-Attempt Context now, never from
             # this closure's bootstrap-time `application.config`/`runtime_info`
@@ -424,11 +423,14 @@ def build_phase1_web_runtime(
                 original_answer=original_answer,
                 before_recommendation=before_recommendation,
                 judge_reasoning=judge_reasoning,
+                dialogue_context=dialogue_context,
+                evidence_context=evidence_context,
                 governance_post_hook=governance_post_hook,
                 guardrail_post_hook=guardrail_post_hook,
                 model_runtime_info=model_runtime_info,
                 cancellation=cancellation,
                 stage_hook=stage_hook,
+                persist_accepted_attempt=persist_accepted_attempt,
             )
 
         judge_completion_hook = None
@@ -445,6 +447,26 @@ def build_phase1_web_runtime(
                 repair_executor=_repair_executor,
                 judge_evidence_recorder=judge_evidence_recorder,
             )
+
+        def _judge_execution_mode_snapshot() -> JudgeExecutionModeSnapshot:
+            return JudgeExecutionModeSnapshot(
+                judge_mode=(
+                    judge_mode_control.mode_snapshot().current_mode.value
+                    if judge_mode_control is not None
+                    else "off"
+                ),
+                repair_mode=(
+                    repair_mode_control.mode_snapshot().current_mode.value
+                    if repair_mode_control is not None
+                    else None
+                ),
+                recording_mode=(
+                    recording_mode_control.mode_snapshot().current_mode.value
+                    if recording_mode_control is not None
+                    else None
+                ),
+            )
+
         conversation = ConversationGenerationService(
             inference=application.service,
             presentation=application.presentation_service,
@@ -476,6 +498,7 @@ def build_phase1_web_runtime(
                 else None
             ),
             judge_completion_hook=judge_completion_hook,
+            judge_mode_snapshot_provider=_judge_execution_mode_snapshot,
             recording_completion_hook=recording_completion_hook,
             model_access_coordinator=model_access_coordinator,
             runtime_snapshot_provider=_runtime_snapshot_provider,

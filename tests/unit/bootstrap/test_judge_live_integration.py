@@ -200,6 +200,346 @@ def test_judge_enforce_also_runs_and_malformed_output_fails_closed() -> None:
     assert result.failure_reason == "malformed_output"
 
 
+def test_presented_final_enforce_turns_malformed_judge_output_into_safe_fallback() -> None:
+    controller = JudgeModeController()
+    controller.apply_mode(EvaluationMode.ENFORCE)
+    service = _FakeInferenceService(content="not json at all")
+    hook, composition = build_judge_completion_hook(
+        service=service,  # type: ignore[arg-type]
+        judge_mode_controller=controller,
+        model_access_coordinator=ModelAccessCoordinator(),
+    )
+
+    decision = hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id="req-enforce-final-failure",
+            user_input="Question",
+            assistant_content="Known failed candidate",
+            judge_mode="enforce",
+            enforce_presented_final=True,
+        )
+    )
+
+    assert decision is not None
+    assert decision.presentation_outcome == "safe_fallback"
+    assert decision.candidate_withheld is True
+    assert "Known failed candidate" not in decision.presented_content
+    result = composition.last_result()
+    assert result is not None
+    assert result.execution_state == "failed"
+    assert result.repair_accepted is None
+
+
+def test_presented_final_enforce_deadline_is_bounded_and_late_worker_cannot_overwrite() -> None:
+    """RW8-B: deadline owns the terminal even if Backend returns later."""
+
+    worker_entered = threading.Event()
+    release_worker = threading.Event()
+    evidence_calls: list[dict[str, object]] = []
+
+    def _evidence_recorder(**fields: object) -> None:
+        evidence_calls.append(fields)
+
+    class _IgnoringCancellationService:
+        def generate(
+            self,
+            request: GenerationRequest,
+            *,
+            cancellation: CancellationToken | None = None,
+        ) -> GenerationResult:
+            worker_entered.set()
+            release_worker.wait(timeout=2.0)
+            return GenerationResult(
+                request_id=request.request_id,
+                model_key=request.model_key,
+                content='{"recommendation":"accept","confidence":1.0}',
+                finish_reason=FinishReason.STOP,
+                usage=TokenUsage(prompt_tokens=10, completion_tokens=5, total_tokens=15),
+                timing=GenerationTiming(total_generation_seconds=0.01),
+                runtime_info=_RUNTIME_REF,
+            )
+
+    controller = JudgeModeController()
+    controller.apply_mode(EvaluationMode.ENFORCE)
+    coordinator = ModelAccessCoordinator()
+    hook, composition = build_judge_completion_hook(
+        service=_IgnoringCancellationService(),  # type: ignore[arg-type]
+        judge_mode_controller=controller,
+        model_access_coordinator=coordinator,
+        judge_evidence_recorder=_evidence_recorder,
+        enforce_wait_timeout_seconds=0.03,
+        enforce_cancel_grace_seconds=0.01,
+    )
+
+    started = time.monotonic()
+    decision = hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id="req-enforce-deadline",
+            user_input="Question",
+            assistant_content="Raw candidate must stay withheld",
+            judge_mode="enforce",
+            recording_mode="full",
+            enforce_presented_final=True,
+        )
+    )
+    elapsed = time.monotonic() - started
+
+    assert worker_entered.is_set()
+    assert elapsed < 0.5
+    assert decision is not None
+    assert decision.presentation_outcome == "safe_fallback"
+    assert "Raw candidate" not in decision.presented_content
+    deadline_result = composition.last_result()
+    assert deadline_result is not None
+    assert deadline_result.execution_state == "failed"
+    assert deadline_result.failure_reason == "deadline_exceeded"
+    assert evidence_calls == []
+
+    release_worker.set()
+    deadline = time.monotonic() + 2.0
+    while coordinator.current_background_task_id() is not None and time.monotonic() < deadline:
+        time.sleep(0.005)
+
+    assert coordinator.current_background_task_id() is None
+    assert composition.last_result() == deadline_result
+    assert evidence_calls == []
+
+
+def test_enforce_worker_cannot_enter_recorder_before_terminal_owner_authorizes() -> None:
+    """Ninth Rework: old check-then-act Recorder race is structural zero."""
+
+    recorder_entered = threading.Event()
+    allow_commit = threading.Event()
+    evidence_calls: list[dict[str, object]] = []
+
+    def _blocking_recorder(**fields: object) -> None:
+        recorder_entered.set()
+        allow_commit.wait(timeout=2.0)
+        evidence_calls.append(fields)
+
+    controller = JudgeModeController()
+    controller.apply_mode(EvaluationMode.ENFORCE)
+    coordinator = ModelAccessCoordinator()
+    hook, composition = build_judge_completion_hook(
+        service=_FakeInferenceService(content='{"recommendation":"accept","confidence":1.0}'),  # type: ignore[arg-type]
+        judge_mode_controller=controller,
+        model_access_coordinator=coordinator,
+        judge_evidence_recorder=_blocking_recorder,
+        enforce_wait_timeout_seconds=0.05,
+    )
+
+    started = time.monotonic()
+    decision = hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id="req-pending-evidence-arbitration",
+            user_input="Q",
+            assistant_content="A",
+            judge_mode="enforce",
+            recording_mode="full",
+            enforce_presented_final=True,
+        )
+    )
+
+    assert time.monotonic() - started < 0.5
+    assert decision is not None
+    assert decision.finalize_evidence is not None
+    assert recorder_entered.is_set() is False
+    assert evidence_calls == []
+    result = composition.last_result()
+    assert result is not None
+    assert result.recommendation == "accept"
+
+    # Terminal ownership is the sole publication authority. Signalling it
+    # is non-blocking even though the Recorder itself then blocks.
+    finalize_started = time.monotonic()
+    decision.finalize_evidence(True)
+    assert time.monotonic() - finalize_started < 0.5
+    assert recorder_entered.wait(timeout=1.0)
+    assert evidence_calls == []
+
+    # The Recorder owns a tracked auxiliary Task, never the Model lease.
+    # A new Main Turn acquires immediately even while publication blocks.
+    deadline = time.monotonic() + 2.0
+    while coordinator.current_background_task_id() is not None and time.monotonic() < deadline:
+        time.sleep(0.005)
+    assert coordinator.current_background_task_id() is None
+    assert coordinator.current_auxiliary_task_ids() == (
+        "req-pending-evidence-arbitration:judge-evidence",
+    )
+    coordinator.acquire_main(task_id="main-after-blocked-evidence")
+    coordinator.release_main(task_id="main-after-blocked-evidence")
+
+    # Shutdown must track the blocked Publisher and refuse a false-clean
+    # result. Once the Recorder drains, retry converges cleanly.
+    assert coordinator.shutdown(join_timeout_seconds=0.01) is False
+
+    allow_commit.set()
+    assert coordinator.shutdown(join_timeout_seconds=2.0) is True
+    assert coordinator.current_auxiliary_task_ids() == ()
+    assert len(evidence_calls) == 1
+
+
+def test_enforce_cancel_before_terminal_authorization_discards_pending_evidence() -> None:
+    cancellation = CancellationToken()
+    evidence_calls: list[dict[str, object]] = []
+    controller = JudgeModeController()
+    controller.apply_mode(EvaluationMode.ENFORCE)
+    coordinator = ModelAccessCoordinator()
+    hook, _composition = build_judge_completion_hook(
+        service=_FakeInferenceService(content='{"recommendation":"accept","confidence":1.0}'),  # type: ignore[arg-type]
+        judge_mode_controller=controller,
+        model_access_coordinator=coordinator,
+        judge_evidence_recorder=lambda **fields: evidence_calls.append(fields),
+    )
+
+    decision = hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id="req-cancel-before-evidence",
+            user_input="Q",
+            assistant_content="A",
+            judge_mode="enforce",
+            recording_mode="full",
+            enforce_presented_final=True,
+            cancellation=cancellation,
+        )
+    )
+    assert decision is not None
+    assert decision.finalize_evidence is not None
+
+    cancellation.cancel()
+    decision.finalize_evidence(True)
+    deadline = time.monotonic() + 2.0
+    while coordinator.current_background_task_id() is not None and time.monotonic() < deadline:
+        time.sleep(0.005)
+
+    assert coordinator.current_background_task_id() is None
+    assert evidence_calls == []
+
+
+def test_delayed_normal_enforce_publishes_evidence_exactly_once_after_authorization() -> None:
+    evidence_calls: list[dict[str, object]] = []
+    controller = JudgeModeController()
+    controller.apply_mode(EvaluationMode.ENFORCE)
+    coordinator = ModelAccessCoordinator()
+    hook, _composition = build_judge_completion_hook(
+        service=_FakeInferenceService(content='{"recommendation":"accept","confidence":1.0}'),  # type: ignore[arg-type]
+        judge_mode_controller=controller,
+        model_access_coordinator=coordinator,
+        judge_evidence_recorder=lambda **fields: evidence_calls.append(fields),
+    )
+
+    decision = hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id="req-enforce-evidence-once",
+            user_input="Q",
+            assistant_content="A",
+            judge_mode="enforce",
+            recording_mode="full",
+            enforce_presented_final=True,
+        )
+    )
+    assert decision is not None
+    assert decision.finalize_evidence is not None
+    # Replacement-final Governance/Guardrail and caller-side composition
+    # may legitimately take longer than the old 0.25-second Worker wait.
+    # Pending Evidence remains owned until the terminal decision; it is
+    # neither silently timed out nor published early.
+    time.sleep(0.3)
+    assert evidence_calls == []
+    decision.finalize_evidence(True)
+    decision.finalize_evidence(True)
+
+    deadline = time.monotonic() + 2.0
+    while coordinator.current_auxiliary_task_ids() and time.monotonic() < deadline:
+        time.sleep(0.005)
+    assert coordinator.current_auxiliary_task_ids() == ()
+    assert len(evidence_calls) == 1
+
+
+def test_observe_publishes_evidence_once_and_recording_off_calls_recorder_zero() -> None:
+    evidence_calls: list[dict[str, object]] = []
+    controller = JudgeModeController()
+    controller.apply_mode(EvaluationMode.OBSERVE)
+    coordinator = ModelAccessCoordinator()
+    hook, composition = build_judge_completion_hook(
+        service=_FakeInferenceService(content='{"recommendation":"accept","confidence":1.0}'),  # type: ignore[arg-type]
+        judge_mode_controller=controller,
+        model_access_coordinator=coordinator,
+        judge_evidence_recorder=lambda **fields: evidence_calls.append(fields),
+    )
+
+    hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id="req-observe-evidence-once",
+            user_input="Q",
+            assistant_content="A",
+            judge_mode="observe",
+            recording_mode="full",
+        )
+    )
+    _wait_for_result(composition)
+    deadline = time.monotonic() + 2.0
+    while coordinator.current_auxiliary_task_ids() and time.monotonic() < deadline:
+        time.sleep(0.005)
+    assert coordinator.current_auxiliary_task_ids() == ()
+    assert len(evidence_calls) == 1
+
+    off_coordinator = ModelAccessCoordinator()
+    off_hook, off_composition = build_judge_completion_hook(
+        service=_FakeInferenceService(content='{"recommendation":"accept","confidence":1.0}'),  # type: ignore[arg-type]
+        judge_mode_controller=controller,
+        model_access_coordinator=off_coordinator,
+        judge_evidence_recorder=lambda **fields: evidence_calls.append(fields),
+    )
+    off_hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id="req-observe-recording-off",
+            user_input="Q",
+            assistant_content="A",
+            judge_mode="observe",
+            recording_mode="off",
+        )
+    )
+    _wait_for_result(off_composition)
+    assert off_coordinator.current_auxiliary_task_ids() == ()
+    assert len(evidence_calls) == 1
+
+
+def test_dialogue_correction_and_citation_evidence_reach_the_real_judge_prompt() -> None:
+    controller = JudgeModeController()
+    controller.apply_mode(EvaluationMode.OBSERVE)
+    service = _FakeInferenceService(content='{"recommendation":"needs_repair","confidence":0.9}')
+    hook, composition = build_judge_completion_hook(
+        service=service,  # type: ignore[arg-type]
+        judge_mode_controller=controller,
+        model_access_coordinator=ModelAccessCoordinator(),
+    )
+    hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id="req-context-evidence",
+            user_input="No, the correct reading is Amane Kanata.",
+            assistant_content="The official reading is Tenon.",
+            dialogue_context=("assistant: The official reading is Tenon.",),
+            evidence_context=("ref-1 | official.md: Amane Kanata",),
+            judge_mode="observe",
+        )
+    )
+    _wait_for_result(composition)
+
+    prompt = service.calls[0].messages[0].content
+    assert "No, the correct reading is Amane Kanata." in prompt
+    assert "assistant: The official reading is Tenon." in prompt
+    assert "ref-1 | official.md: Amane Kanata" in prompt
+
+
 def test_needs_repair_recommendation_with_repair_enforce_resolves_eligible() -> None:
     """P6-CODEX-002 (partial, real): a real needs_repair Recommendation is
     actually passed to resolve_repair_eligibility(), not merely capable of
@@ -335,11 +675,14 @@ def test_repair_executor_is_invoked_when_eligible_and_result_is_recorded() -> No
         original_answer: str,
         before_recommendation: object,
         judge_reasoning: str,
+        dialogue_context: tuple[str, ...],
+        evidence_context: tuple[str, ...],
         governance_post_hook: object,
         guardrail_post_hook: object,
         cancellation: object = None,
         model_runtime_info: object = None,
         stage_hook: object = None,
+        persist_accepted_attempt: bool = True,
     ) -> object:
         from margpa_runtime_llm.bootstrap.repair_live_integration import RepairExecutionResult
 
@@ -358,6 +701,7 @@ def test_repair_executor_is_invoked_when_eligible_and_result_is_recorded() -> No
             accepted=True,
             new_turn_id="new-turn-1",
             rejected_reason=None,
+            presented_content="A corrected answer",
         )
 
     hook, composition = build_judge_completion_hook(
@@ -384,6 +728,54 @@ def test_repair_executor_is_invoked_when_eligible_and_result_is_recorded() -> No
     assert result.repair_outcome == "improved"
     assert result.repair_accepted is True
     assert result.repair_new_turn_id == "new-turn-1"
+
+
+def test_presented_final_enforce_returns_only_an_accepted_repair_candidate() -> None:
+    judge_controller = JudgeModeController()
+    judge_controller.apply_mode(EvaluationMode.ENFORCE)
+    repair_controller = RepairModeController()
+    repair_controller.apply_mode(RepairMode.ENFORCE)
+    service = _FakeInferenceService(
+        content='{"recommendation":"needs_repair","confidence":0.9,"reasoning":"contradiction"}'
+    )
+
+    def _repair(**kwargs: object) -> object:
+        from margpa_runtime_llm.bootstrap.repair_live_integration import RepairExecutionResult
+
+        return RepairExecutionResult(
+            request_id=str(kwargs["request_id"]),
+            outcome="improved",
+            accepted=True,
+            new_turn_id=None,
+            rejected_reason=None,
+            presented_content="Source-grounded corrected answer",
+        )
+
+    hook, composition = build_judge_completion_hook(
+        service=service,  # type: ignore[arg-type]
+        judge_mode_controller=judge_controller,
+        model_access_coordinator=ModelAccessCoordinator(),
+        repair_mode_controller=repair_controller,
+        repair_executor=_repair,  # type: ignore[arg-type]
+    )
+    decision = hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id="req-repaired-final",
+            user_input="Correct this answer",
+            assistant_content="Known failed candidate",
+            judge_mode="enforce",
+            enforce_presented_final=True,
+        )
+    )
+
+    assert decision is not None
+    assert decision.presented_content == "Source-grounded corrected answer"
+    assert decision.presentation_outcome == "repair_accepted"
+    assert decision.candidate_withheld is True
+    result = composition.last_result()
+    assert result is not None
+    assert result.repair_accepted is True
 
 
 def test_judging_state_is_observable_while_the_judge_model_call_is_in_flight() -> None:

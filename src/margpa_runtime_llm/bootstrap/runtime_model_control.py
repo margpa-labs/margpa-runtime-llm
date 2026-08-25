@@ -10,7 +10,6 @@ from pathlib import Path
 
 from margpa_runtime_llm.adapters.runtime_model_control.llama_cpp_backend import (
     LlamaCppRuntimeModelBackend,
-    compute_capability_digest,
 )
 from margpa_runtime_llm.adapters.runtime_model_control.model_definition_registry import (
     DirectoryModelDefinitionRegistry,
@@ -60,15 +59,18 @@ def build_runtime_model_controller(
     backend = LlamaCppRuntimeModelBackend(
         adapter=application.adapter,
         base_load_config=application.config.load,
-        default_max_new_tokens=application.config.generation.max_new_tokens,
     )
+    capability = backend.probe_capability(definition=application.definition)
     backend_identity = f"{runtime_info.backend_key}:{runtime_info.backend_version}"
     artifact_digest = runtime_info.artifact_digest.value
-    capability_digest = compute_capability_digest(
-        native=application.definition.model.native_context_limit,
-        backend=runtime_info.loaded_context_size,
-        deployment_verified=runtime_info.loaded_context_size,
-        max_output=application.config.generation.max_new_tokens,
+    capability_digest = capability.capability_digest
+    max_output_token_limit = min(
+        capability.max_output_token_limit,
+        max(1, runtime_info.loaded_context_size - 1),
+    )
+    current_max_new_tokens = min(
+        application.config.generation.max_new_tokens,
+        max_output_token_limit,
     )
     role_binding = RoleBinding(
         role=ModelRole.MAIN,
@@ -88,7 +90,7 @@ def build_runtime_model_controller(
         backend_identity=backend_identity,
         runtime_state=RuntimeState.ACTIVE,
         loaded_context_size=runtime_info.loaded_context_size,
-        current_max_new_tokens=application.config.generation.max_new_tokens,
+        current_max_new_tokens=current_max_new_tokens,
     )
     initial_snapshot = RuntimeModelSnapshot(
         revision=0,
@@ -101,10 +103,10 @@ def build_runtime_model_controller(
         runtime_state=RuntimeState.ACTIVE,
         loaded_context_size=runtime_info.loaded_context_size,
         model_native_context_limit=application.definition.model.native_context_limit,
-        backend_context_limit=runtime_info.loaded_context_size,
-        deployment_verified_context_limit=runtime_info.loaded_context_size,
-        max_output_token_limit=application.config.generation.max_new_tokens,
-        current_max_new_tokens=application.config.generation.max_new_tokens,
+        backend_context_limit=capability.backend_context_limit,
+        deployment_verified_context_limit=capability.deployment_verified_context_limit,
+        max_output_token_limit=max_output_token_limit,
+        current_max_new_tokens=current_max_new_tokens,
         last_transition_receipt=None,
     )
     return RuntimeModelController(
@@ -113,4 +115,5 @@ def build_runtime_model_controller(
         access_lease=model_access_coordinator,
         definitions=definitions,
         on_commit=on_commit,
+        default_max_new_tokens=application.config.generation.max_new_tokens,
     )

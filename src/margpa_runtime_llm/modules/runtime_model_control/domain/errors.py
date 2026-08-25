@@ -43,15 +43,18 @@ class RuntimeModelLoadFailure(Exception):
 
 @dataclass(frozen=True, slots=True)
 class RuntimeModelContextLimitExceeded(Exception):
-    """Requested Context Size exceeds the effective max; no reload attempted (5.1)."""
+    """Requested Context Size is outside the effective range; no reload attempted."""
 
     requested_context_size: int
     effective_max_context_size: int
+    minimum_context_size: int = 512
+    reason_code: str = "outside_effective_context_range"
 
     def __str__(self) -> str:
         return (
-            f"requested context size {self.requested_context_size} exceeds "
-            f"effective max {self.effective_max_context_size}"
+            f"requested context size {self.requested_context_size} is outside "
+            f"the effective range {self.minimum_context_size}.."
+            f"{self.effective_max_context_size} ({self.reason_code})"
         )
 
 

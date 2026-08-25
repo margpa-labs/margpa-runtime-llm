@@ -33,6 +33,25 @@ def test_prompt_marks_unknown_reference_explicitly_rather_than_omitting_it() -> 
     case = make_case().model_copy(update={"reference": None})
     prompt = build_judge_prompt(case=case, candidate_answer="anything", rubric_id="r1")
     assert "(none provided)" in prompt
+    assert "absence of a separate reference answer" in prompt
+
+
+def test_prompt_carries_user_correction_and_citation_evidence_as_distinct_sections() -> None:
+    case = make_case().model_copy(
+        update={"input": "No, the reading is Amane Kanata.", "reference": None}
+    )
+    prompt = build_judge_prompt(
+        case=case,
+        candidate_answer="The official reading is Tenon.",
+        rubric_id="r1",
+        dialogue_context=("assistant: The reading is Tenon.",),
+        evidence_context=("ref-1 | official.md: Amane Kanata",),
+    )
+    assert "Prior dialogue" in prompt
+    assert "assistant: The reading is Tenon." in prompt
+    assert "Citation evidence" in prompt
+    assert "ref-1 | official.md: Amane Kanata" in prompt
+    assert "contradiction" in prompt
 
 
 def test_prompt_instructs_a_strict_json_response_schema() -> None:
@@ -53,6 +72,42 @@ def test_decode_accepts_a_well_formed_response() -> None:
     assert response.confidence == 0.9
     assert response.execution_state is EvaluationExecutionState.COMPLETED
     assert response.reasoning == "matches"
+
+
+@pytest.mark.parametrize(
+    "raw_text",
+    [
+        '```json\n{"recommendation":"accept","confidence":0.9}\n```',
+        '<think>check the evidence</think>\n{"recommendation":"needs_repair","confidence":0.8}',
+        'Evaluation result: {"recommendation":"unknown","confidence":0.2} End.',
+    ],
+)
+def test_decode_accepts_one_strict_object_inside_known_provider_wrappers(raw_text: str) -> None:
+    response = decode_judge_output(
+        raw_text=raw_text,
+        judge_role=JudgeIndependenceClass.MAIN_SELF,
+        token_usage=1,
+        latency_ms=1,
+    )
+    assert response.execution_state is EvaluationExecutionState.COMPLETED
+
+
+@pytest.mark.parametrize(
+    "raw_text",
+    [
+        '{"recommendation":"accept","confidence":0.9} '
+        '{"recommendation":"needs_repair","confidence":0.9}',
+        '{"recommendation":"accept","confidence":0.9,"verdict":"pass"}',
+    ],
+)
+def test_decode_rejects_ambiguous_multiple_objects_and_schema_extensions(raw_text: str) -> None:
+    with pytest.raises(JudgeDecodeError):
+        decode_judge_output(
+            raw_text=raw_text,
+            judge_role=JudgeIndependenceClass.MAIN_SELF,
+            token_usage=1,
+            latency_ms=1,
+        )
 
 
 def test_decode_reasoning_is_none_when_absent() -> None:

@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import threading
+import time
 from collections.abc import Callable, Generator, Iterator
 from dataclasses import dataclass
 from typing import Protocol
@@ -40,6 +41,7 @@ from margpa_runtime_llm.modules.inference.contracts.response import (
     ResponseLanguageSource,
 )
 from margpa_runtime_llm.modules.inference.contracts.runtime import ModelRuntimeInfo
+from margpa_runtime_llm.modules.inference.domain.cancellation import CancellationToken
 from margpa_runtime_llm.modules.inference.domain.errors import (
     InferenceError,
     InferenceErrorCode,
@@ -173,17 +175,45 @@ class JudgeCompletionContext:
     assistant_content: str
     model_key: str
     model_runtime_info: ModelRuntimeInfo | None = None
+    dialogue_context: tuple[str, ...] = ()
+    evidence_context: tuple[str, ...] = ()
+    judge_mode: str | None = None
+    repair_mode: str | None = None
+    recording_mode: str | None = None
+    enforce_presented_final: bool = False
+    cancellation: CancellationToken | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class JudgeCompletionDecision:
+    """Provider-neutral result used only at the Presented Final boundary."""
+
+    presented_content: str
+    presentation_outcome: str
+    candidate_withheld: bool
+    # Ninth Rework: synchronous ENFORCE may return a Memory-only Pending
+    # Evidence payload. Only this terminal owner is allowed to authorize
+    # its external publication, after the final Cancel/Governance/
+    # Guardrail decision is known. ``False`` discards it permanently.
+    finalize_evidence: Callable[[bool], None] | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class JudgeExecutionModeSnapshot:
+    judge_mode: str
+    repair_mode: str | None = None
+    recording_mode: str | None = None
 
 
 # Called only after both Governance and Guardrail Post-checks have already
 # Allowed the content (never on a rejected/error Turn) — a mode-OFF check,
 # the actual Model Call, and any persistence are entirely the Hook
 # implementation's responsibility; this module only guarantees *when* it is
-# called and *never* uses its return value (Judge cannot affect Canonical
-# Completion, P6-ACC-018/P6-CODEX-001). A raised exception is swallowed
-# exactly like every other Hook here — a Judge bug must never break the
-# core conversation feature.
-JudgeCompletionHook = Callable[[JudgeCompletionContext], None]
+# called. OBSERVE ignores its return value; ENFORCE requires a typed decision
+# before Canonical Completion and safely substitutes a fallback if the Hook
+# raises or returns no decision.
+JudgeCompletionHook = Callable[[JudgeCompletionContext], JudgeCompletionDecision | None]
+JudgeModeSnapshotProvider = Callable[[], str | JudgeExecutionModeSnapshot]
 
 # Reuses the exact same Context shape as Judge (P6-CODEX-011, Second
 # Rework): Recording needs the identical 3 correlation/content fields and
@@ -341,6 +371,10 @@ TOKEN_LIMIT_WARNING = "最終回答を生成する前にToken上限へ到達し�
 SUMMARY_FALLBACK_WARNING = (
     "The summary could not be completed safely. The original answer is shown."
 )
+SEMANTIC_ENFORCEMENT_SAFE_FALLBACK = (
+    "The answer could not be verified safely, so it has been withheld. "
+    "Please retry or confirm the answer against an authoritative source."
+)
 CONTEXT_USAGE_NOTICE_MESSAGE_NAME = "context_usage_notice"
 EXPRESSIVE_STYLE_NOTICE_MESSAGE_NAME = "expressive_style_notice"
 
@@ -394,6 +428,7 @@ class ConversationGenerationSession:
         text_token_counter: TextTokenCounter | None,
         effective_context_size: int,
         model_runtime_info: ModelRuntimeInfo | None,
+        release_model_access: Callable[[], None],
         release: Callable[[], None],
         governance_pre_hook: GovernancePreHook | None = None,
         governance_post_hook: GovernancePostHook | None = None,
@@ -403,6 +438,9 @@ class ConversationGenerationSession:
         guardrail_context_source_hook: GuardrailContextSourceHook | None = None,
         guardrail_stream_result_hook: GuardrailStreamResultHook | None = None,
         judge_completion_hook: JudgeCompletionHook | None = None,
+        judge_mode: str = "off",
+        repair_mode: str | None = None,
+        recording_mode: str | None = None,
         recording_completion_hook: RecordingCompletionHook | None = None,
     ) -> None:
         self._request_id = request_id
@@ -421,6 +459,7 @@ class ConversationGenerationSession:
         self._text_token_counter = text_token_counter
         self._effective_context_size = effective_context_size
         self._model_runtime_info = model_runtime_info
+        self._release_model_access = release_model_access
         self._release = release
         self._governance_pre_hook = governance_pre_hook
         self._governance_post_hook = governance_post_hook
@@ -430,12 +469,17 @@ class ConversationGenerationSession:
         self._guardrail_context_source_hook = guardrail_context_source_hook
         self._guardrail_stream_result_hook = guardrail_stream_result_hook
         self._judge_completion_hook = judge_completion_hook
+        self._judge_mode = judge_mode
+        self._repair_mode = repair_mode
+        self._recording_mode = recording_mode
         self._recording_completion_hook = recording_completion_hook
         self._cancel_requested = threading.Event()
+        self._judge_cancellation = CancellationToken()
         self._finished = threading.Event()
         self._consumption_lock = threading.Lock()
         self._stream_lock = threading.Lock()
         self._active_stream: GenerationStream | None = None
+        self._pending_judge_decision: JudgeCompletionDecision | None = None
 
     @property
     def request_id(self) -> str:
@@ -453,6 +497,7 @@ class ConversationGenerationSession:
 
     def request_cancel(self) -> None:
         self._cancel_requested.set()
+        self._judge_cancellation.cancel()
 
     def wait(self, timeout: float | None = None) -> bool:
         return self._finished.wait(timeout)
@@ -461,6 +506,7 @@ class ConversationGenerationSession:
         """Legacy emergency hook; normal callers use cooperative request_cancel()."""
 
         self._cancel_requested.set()
+        self._judge_cancellation.cancel()
         with self._stream_lock:
             stream = self._active_stream
         if stream is not None:
@@ -530,6 +576,12 @@ class ConversationGenerationSession:
                 retryable=False,
             )
         finally:
+            # An unexpected caller-side failure after the synchronous
+            # ENFORCE Hook returned must not strand a publish-capable
+            # Pending Evidence payload. Every explicit Completed/Cancel/
+            # Reject path clears this slot first; only a genuinely
+            # unclassified exit reaches this final discard.
+            self._finalize_judge_evidence(self._pending_judge_decision, publish=False)
             self._finished.set()
             self._release()
 
@@ -550,7 +602,9 @@ class ConversationGenerationSession:
         result = yield from self._run_stage(
             request=self._request,
             presentation=self._presentation.start_stream(self._presentation_policy),
-            emit_deltas=True,
+            # ENFORCE must not stream an unjudged Candidate and then try to
+            # retract it. OFF/OBSERVE preserve the byte-identical live path.
+            emit_deltas=self._judge_mode != "enforce",
         )
         if result.cancelled:
             yield self._cancelled_event()
@@ -563,7 +617,7 @@ class ConversationGenerationSession:
             )
             return
         yield from self._warning_events(result.warnings)
-        yield self._completed_event(
+        yield from self._terminal_events(
             presented=result,
             original=result,
             summary=None,
@@ -625,12 +679,13 @@ class ConversationGenerationSession:
             return
 
         assert summary is not None
-        yield self._delta_event(
-            summary.final_content,
-            channel=ConversationDeltaChannel.FINAL,
-        )
+        if self._judge_mode != "enforce":
+            yield self._delta_event(
+                summary.final_content,
+                channel=ConversationDeltaChannel.FINAL,
+            )
         yield from self._warning_events(original.warnings)
-        yield self._completed_event(
+        yield from self._terminal_events(
             presented=summary,
             original=original,
             summary=summary,
@@ -842,7 +897,7 @@ class ConversationGenerationSession:
         self,
         original: _StageResult,
     ) -> Generator[ConversationEvent, None, None]:
-        if original.final_content:
+        if original.final_content and self._judge_mode != "enforce":
             yield self._delta_event(
                 original.final_content,
                 channel=ConversationDeltaChannel.FINAL,
@@ -856,7 +911,7 @@ class ConversationGenerationSession:
                 "message": SUMMARY_FALLBACK_WARNING,
             },
         )
-        yield self._completed_event(
+        yield from self._terminal_events(
             presented=original,
             original=original,
             summary=None,
@@ -916,6 +971,27 @@ class ConversationGenerationSession:
                 },
             )
 
+    def _terminal_events(
+        self,
+        *,
+        presented: _StageResult,
+        original: _StageResult,
+        summary: _StageResult | None,
+        include_summary_metadata: bool,
+    ) -> Generator[ConversationEvent, None, None]:
+        terminal = self._completed_event(
+            presented=presented,
+            original=original,
+            summary=summary,
+            include_summary_metadata=include_summary_metadata,
+        )
+        if self._judge_mode == "enforce" and terminal.event is ConversationEventType.COMPLETED:
+            assistant = terminal.data.get("assistant_message")
+            final_content = assistant.get("content") if isinstance(assistant, dict) else None
+            if isinstance(final_content, str) and final_content:
+                yield self._delta_event(final_content, channel=ConversationDeltaChannel.FINAL)
+        yield terminal
+
     def _completed_event(
         self,
         *,
@@ -930,6 +1006,40 @@ class ConversationGenerationSession:
         guardrail_rejection = self._guardrail_post_check(presented.final_content)
         if guardrail_rejection is not None:
             return guardrail_rejection
+        # Finish all same-Turn accounting before releasing only the shared
+        # Model's Main lease and invoking a Model-backed Judge. The Service's
+        # Active Request correlation remains owned by this Session until the
+        # outer ``events()`` finally block reaches a real terminal boundary.
+        context_usage = self._context_usage(original)
+        self._release_model_access()
+
+        final_content = presented.final_content
+        semantic_decision: JudgeCompletionDecision | None = None
+        if self._judge_mode == "enforce":
+            semantic_decision = self._invoke_judge_completion_hook(
+                presented.final_content,
+                enforce_presented_final=True,
+            )
+            self._pending_judge_decision = semantic_decision
+            if self._cancel_requested.is_set():
+                self._finalize_judge_evidence(semantic_decision, publish=False)
+                return self._cancelled_event()
+            final_content = (
+                semantic_decision.presented_content
+                if semantic_decision is not None and semantic_decision.presented_content.strip()
+                else SEMANTIC_ENFORCEMENT_SAFE_FALLBACK
+            )
+            # A repaired/safe replacement crosses the exact same final
+            # Governance and Guardrail gates as any ordinary candidate.
+            if final_content != presented.final_content:
+                final_rejection = self._governance_post_check(final_content)
+                if final_rejection is not None:
+                    self._finalize_judge_evidence(semantic_decision, publish=False)
+                    return final_rejection
+                final_guardrail_rejection = self._guardrail_post_check(final_content)
+                if final_guardrail_rejection is not None:
+                    self._finalize_judge_evidence(semantic_decision, publish=False)
+                    return final_guardrail_rejection
         data: dict[str, object] = {
             "request_id": self.request_id,
             "finish_reason": (
@@ -937,13 +1047,19 @@ class ConversationGenerationSession:
             ),
             "assistant_message": {
                 "role": "assistant",
-                "content": presented.final_content,
+                "content": final_content,
             },
             "usage": (
                 presented.usage.model_dump(mode="json") if presented.usage is not None else None
             ),
-            "context_usage": self._context_usage(original),
+            "context_usage": context_usage,
         }
+        if semantic_decision is not None:
+            data["semantic_evaluation"] = {
+                "mode": self._judge_mode,
+                "presentation_outcome": semantic_decision.presentation_outcome,
+                "candidate_withheld": semantic_decision.candidate_withheld,
+            }
         if self._model_runtime_info is not None:
             # P6-CODEX-013: the real Model/Backend/Artifact/Context identity
             # this specific Generation Attempt actually ran with — read here
@@ -996,41 +1112,40 @@ class ConversationGenerationSession:
                 "index_rebuilt": augmentation.index_rebuilt,
                 "warnings": [warning.model_dump(mode="json") for warning in augmentation.warnings],
             }
-        # P6-CODEX-012 (Second Rework, real-hardware finding): this Turn's
-        # own Model Access Coordinator "main" slot must be released *before*
-        # the Judge Hook below tries to acquire a "background" slot for it —
-        # `events()`'s own `finally: self._release()` does not run until
-        # this whole generator is exhausted, which is *after* this method
-        # returns its single COMPLETED event, by which point
-        # `_invoke_judge_completion_hook()` has already called
-        # `start_background()`. Without releasing here first,
-        # `start_background()` always saw this Turn's own still-held "main"
-        # slot and returned `False` — Judge silently never ran, for any
-        # Mode, on every real Turn (caught via a real Browser + real model
-        # Golden Path check, not by any Fake-Inference unit test, since
-        # those call the Hook directly and never exercise this exact
-        # release-timing relationship). Calling `_release()` again in
-        # `events()`'s `finally` afterward is a safe, idempotent no-op.
-        self._release()
-        # Recording (P6-CODEX-011): independent of Judge Mode entirely —
-        # invoked here unconditionally (the Hook itself checks Recording
-        # Mode and no-ops on OFF), never gated on whether Judge ran at all.
-        # Placed before the Judge Hook call below only for stable read
-        # order; the two never contend (Recording is pure local file I/O,
-        # never the shared Model Backend lock Judge/Repair need).
-        self._invoke_recording_completion_hook(presented.final_content)
-        # Deliberately last (P6-CODEX-006/007 real-hardware finding): this
-        # method's own `_context_usage()` call above may itself need the
-        # shared Model Backend's single generation lock (via
-        # `_text_token_counter`) when the Turn includes a System/RAG
-        # Reference message. Spawning the Judge Thread any earlier in this
-        # method raced that same-Turn token count against the
-        # just-started background Judge call — a self-collision, not a
-        # cross-Turn one — and could turn a successful completion into a
-        # spurious model_busy error. Calling this last means every other
-        # use of the shared lock for *this* Turn has already finished.
-        self._invoke_judge_completion_hook(presented.final_content)
+        # This is the last synchronous ENFORCE terminal arbitration point.
+        # A Stop observed before it wins and permanently discards Pending
+        # Evidence; otherwise this Completed Event owns authorization. The
+        # external Recorder runs on a separate tracked auxiliary Publisher,
+        # owns no Model-access lease, and never blocks this terminal path.
+        if self._judge_mode == "enforce" and self._cancel_requested.is_set():
+            self._finalize_judge_evidence(semantic_decision, publish=False)
+            return self._cancelled_event()
+        self._finalize_judge_evidence(semantic_decision, publish=True)
+        # Turn Recording records the Canonical Presented Final. Judge
+        # Evidence separately retains the evaluated raw Candidate digest.
+        self._invoke_recording_completion_hook(final_content)
+        if self._judge_mode == "observe":
+            # OBSERVE is intentionally background and cannot alter content.
+            self._invoke_judge_completion_hook(
+                presented.final_content,
+                enforce_presented_final=False,
+            )
         return ConversationEvent(event=ConversationEventType.COMPLETED, data=data)
+
+    def _finalize_judge_evidence(
+        self, decision: JudgeCompletionDecision | None, *, publish: bool
+    ) -> None:
+        if decision is None or decision.finalize_evidence is None:
+            return
+        if self._pending_judge_decision is decision:
+            self._pending_judge_decision = None
+        try:
+            decision.finalize_evidence(publish)
+        except Exception:
+            # Evidence remains non-authoritative for the Presented Final.
+            # A publication-control defect must never fabricate a different
+            # Conversation terminal or expose the withheld Candidate.
+            return
 
     def _generation_config_digest_sha512(self) -> str | None:
         """P6-CODEX-023: a canonical SHA-512 of the `GenerationParameters`
@@ -1228,36 +1343,76 @@ class ConversationGenerationSession:
             retryable=False,
         )
 
-    def _invoke_judge_completion_hook(self, assistant_content: str) -> None:
-        """Called from `_completed_event()` only after both Post-checks
-        Allowed the content (P6-CODEX-001) — a mode-OFF check and the actual
-        Model Call are entirely the Hook implementation's own concern (kept
-        out of Core, same decoupling as Governance/Guardrail). A raised
-        exception is swallowed exactly like every other Hook here."""
+    def _invoke_judge_completion_hook(
+        self, assistant_content: str, *, enforce_presented_final: bool
+    ) -> JudgeCompletionDecision | None:
+        """Invoke semantic evaluation with the one Turn-frozen Mode.
+
+        OBSERVE callers ignore the return value. ENFORCE callers require a
+        decision and fall back safely if the Hook fails or returns ``None``.
+        """
 
         if self._judge_completion_hook is None:
-            return
+            return None
         assert self._request is not None
-        user_input = next(
+        dialogue_messages = [
+            message
+            for message in self._request.messages
+            if message.role in {MessageRole.USER, MessageRole.ASSISTANT}
+            and message.name != DOCUMENTATION_REFERENCE_MESSAGE_NAME
+        ]
+        last_user_index = next(
             (
-                message.content
-                for message in reversed(self._request.messages)
-                if message.role is MessageRole.USER
+                index
+                for index in range(len(dialogue_messages) - 1, -1, -1)
+                if dialogue_messages[index].role is MessageRole.USER
             ),
-            "",
+            None,
         )
+        user_input = (
+            dialogue_messages[last_user_index].content if last_user_index is not None else ""
+        )
+        prior_dialogue = tuple(
+            f"{message.role.value}: {message.content}"
+            for index, message in enumerate(dialogue_messages)
+            if index != last_user_index
+        )
+        evidence_context = self._judge_evidence_context()
         try:
-            self._judge_completion_hook(
+            return self._judge_completion_hook(
                 JudgeCompletionContext(
                     request_id=self.request_id,
                     user_input=user_input,
                     assistant_content=assistant_content,
                     model_key=self._request.model_key,
                     model_runtime_info=self._model_runtime_info,
+                    dialogue_context=prior_dialogue,
+                    evidence_context=evidence_context,
+                    judge_mode=self._judge_mode,
+                    repair_mode=self._repair_mode,
+                    recording_mode=self._recording_mode,
+                    enforce_presented_final=enforce_presented_final,
+                    cancellation=self._judge_cancellation,
                 )
             )
         except Exception:
-            return
+            return None
+
+    def _judge_evidence_context(self) -> tuple[str, ...]:
+        augmentation = self._documentation_augmentation
+        if augmentation is None:
+            return ()
+        if augmentation.reference_blocks:
+            return tuple(
+                (
+                    f"{block.reference_id} | {block.project_relative_path} | "
+                    f"{block.heading_breadcrumb}: {block.content}"
+                )
+                for block in augmentation.reference_blocks
+            )
+        if augmentation.reference_message is not None:
+            return (augmentation.reference_message,)
+        return ()
 
     def _invoke_recording_completion_hook(self, assistant_content: str) -> None:
         """Called from `_completed_event()` unconditionally (P6-CODEX-011:
@@ -1395,6 +1550,7 @@ class ConversationGenerationService:
         guardrail_context_source_hook: GuardrailContextSourceHook | None = None,
         guardrail_stream_result_hook: GuardrailStreamResultHook | None = None,
         judge_completion_hook: JudgeCompletionHook | None = None,
+        judge_mode_snapshot_provider: JudgeModeSnapshotProvider | None = None,
         recording_completion_hook: RecordingCompletionHook | None = None,
         model_access_coordinator: ModelAccessCoordinator | None = None,
         runtime_snapshot_provider: RuntimeGenerationSnapshotProvider | None = None,
@@ -1424,6 +1580,7 @@ class ConversationGenerationService:
         self._guardrail_context_source_hook = guardrail_context_source_hook
         self._guardrail_stream_result_hook = guardrail_stream_result_hook
         self._judge_completion_hook = judge_completion_hook
+        self._judge_mode_snapshot_provider = judge_mode_snapshot_provider
         self._recording_completion_hook = recording_completion_hook
         self._model_access_coordinator = model_access_coordinator or ModelAccessCoordinator()
         self._active_lock = threading.Lock()
@@ -1473,6 +1630,7 @@ class ConversationGenerationService:
         # directly and never a fresh independent read of whatever Runtime
         # Model Control reports "now".
         runtime_snapshot = self._resolve_runtime_snapshot()
+        judge_modes = self._resolve_judge_modes()
         # P6-CODEX-010 (Second Rework): Main Turns take Priority over any
         # Background (Judge/Repair) Task already using the shared Model
         # Backend — acquire_main() waits briefly (bounded) for a
@@ -1537,6 +1695,9 @@ class ConversationGenerationService:
                 text_token_counter=self._text_token_counter,
                 effective_context_size=runtime_snapshot.effective_context_size,
                 model_runtime_info=runtime_snapshot.model_runtime_info,
+                release_model_access=lambda: self._model_access_coordinator.release_main(
+                    task_id=request_id
+                ),
                 release=lambda: self._release(request_id),
                 governance_pre_hook=self._governance_pre_hook,
                 governance_post_hook=self._governance_post_hook,
@@ -1546,6 +1707,9 @@ class ConversationGenerationService:
                 guardrail_context_source_hook=self._guardrail_context_source_hook,
                 guardrail_stream_result_hook=self._guardrail_stream_result_hook,
                 judge_completion_hook=self._judge_completion_hook,
+                judge_mode=judge_modes.judge_mode,
+                repair_mode=judge_modes.repair_mode,
+                recording_mode=judge_modes.recording_mode,
                 recording_completion_hook=self._recording_completion_hook,
             )
             with self._active_lock:
@@ -1564,12 +1728,24 @@ class ConversationGenerationService:
             return True
 
     def shutdown(self, timeout: float = 10.0) -> bool:
+        timeout = max(0.0, timeout)
+        deadline = time.monotonic() + timeout
         with self._active_lock:
             session = self._active
-        if session is None:
-            return True
-        session.request_cancel()
-        return session.wait(timeout)
+        session_clean = True
+        if session is not None:
+            session.request_cancel()
+            session_clean = session.wait(timeout)
+        if not session_clean:
+            # The active producer still owns the Main lease and may only
+            # cancel/close its native Stream on its own iteration thread.
+            # Do not permanently put the Coordinator into shutdown state:
+            # the caller must skip Adapter unload and may retry shutdown
+            # after that producer reaches its real terminal boundary.
+            return False
+        remaining = max(0.0, deadline - time.monotonic())
+        coordinator_clean = self._model_access_coordinator.shutdown(join_timeout_seconds=remaining)
+        return coordinator_clean
 
     def _resolve_runtime_snapshot(self) -> RuntimeGenerationSnapshot:
         """P6-CODEX-025: the single call site that decides what "the
@@ -1587,6 +1763,32 @@ class ConversationGenerationService:
             generation_defaults=self._generation_defaults,
             effective_context_size=self._effective_context_size,
             model_runtime_info=self._model_runtime_info,
+        )
+
+    def _resolve_judge_modes(self) -> JudgeExecutionModeSnapshot:
+        """Freeze the semantic action mode once for the whole Turn.
+
+        Legacy callers that provide a completion hook without a Mode provider
+        keep the historical observe-only behavior. A failed production Mode
+        read resolves to OFF, guaranteeing no unrequested Judge action.
+        """
+
+        if self._judge_completion_hook is None:
+            return JudgeExecutionModeSnapshot(judge_mode="off")
+        if self._judge_mode_snapshot_provider is None:
+            return JudgeExecutionModeSnapshot(judge_mode="observe")
+        try:
+            snapshot = self._judge_mode_snapshot_provider()
+        except Exception:
+            return JudgeExecutionModeSnapshot(judge_mode="off")
+        if isinstance(snapshot, JudgeExecutionModeSnapshot):
+            return (
+                snapshot
+                if snapshot.judge_mode in {"off", "observe", "enforce"}
+                else JudgeExecutionModeSnapshot(judge_mode="off")
+            )
+        return JudgeExecutionModeSnapshot(
+            judge_mode=(snapshot if snapshot in {"off", "observe", "enforce"} else "off")
         )
 
     def _build_request(
@@ -1614,35 +1816,74 @@ class ConversationGenerationService:
             and self._chat_prompt_token_counter is not None
         ):
             try:
+                usage_prompt_tokens = self._chat_prompt_token_counter(
+                    messages, value.settings.thinking_mode
+                )
+            except Exception:
+                usage_prompt_tokens = None
+            if usage_prompt_tokens is not None:
+                messages = self._inject_context_usage_notice(
+                    messages,
+                    prompt_tokens=usage_prompt_tokens,
+                )
+        requested_max_new_tokens = value.settings.max_new_tokens
+        runtime_max_new_tokens = runtime_snapshot.generation_defaults.max_new_tokens
+        if requested_max_new_tokens > runtime_max_new_tokens:
+            raise InferenceError(
+                code=InferenceErrorCode.INVALID_REQUEST,
+                safe_message="Max New Tokens exceeds the current runtime model limit.",
+                request_id=request_id,
+                model_key=runtime_snapshot.model_key,
+                details={
+                    "requested_max_new_tokens": requested_max_new_tokens,
+                    "runtime_max_new_tokens": runtime_max_new_tokens,
+                },
+            )
+        prompt_tokens: int | None = None
+        if self._chat_prompt_token_counter is not None:
+            try:
                 prompt_tokens = self._chat_prompt_token_counter(
                     messages, value.settings.thinking_mode
                 )
             except Exception:
                 prompt_tokens = None
-            if prompt_tokens is not None:
-                messages = self._inject_context_usage_notice(
-                    messages,
-                    prompt_tokens=prompt_tokens,
-                )
-        # P6-CODEX-025 (Fourth Rework): Architecture 5.2's own formula is
-        # `request_limit <= min(configured_limit, ...)` — the Runtime
-        # Override (`runtime_snapshot.generation_defaults.max_new_tokens`,
-        # sourced from `RuntimeModelController.current_max_new_tokens`) is
-        # a real ceiling this Turn's own `value.settings.max_new_tokens`
-        # can never exceed, not a value the Turn's own setting silently
-        # replaces outright. Before this fix, the Turn's setting always
-        # won verbatim regardless of the Runtime Override, so lowering
-        # Max New Tokens via the Runtime Model Control surface had zero
-        # observable effect on real Chat (the exact P6-CODEX-025 (1)
-        # symptom) — a real-hardware Chat test with the override set to 5
-        # tokens produced a full, unconstrained multi-paragraph answer
-        # under the pre-fix code.
-        effective_max_new_tokens = min(
-            value.settings.max_new_tokens, runtime_snapshot.generation_defaults.max_new_tokens
-        )
+        if (
+            prompt_tokens is not None
+            and prompt_tokens + requested_max_new_tokens > runtime_snapshot.effective_context_size
+        ):
+            raise InferenceError(
+                code=InferenceErrorCode.CONTEXT_LIMIT_EXCEEDED,
+                safe_message=(
+                    "Max New Tokens exceeds the exact remaining context for this request."
+                ),
+                request_id=request_id,
+                model_key=runtime_snapshot.model_key,
+                details={
+                    "prompt_tokens": prompt_tokens,
+                    "requested_max_new_tokens": requested_max_new_tokens,
+                    "effective_context_size": runtime_snapshot.effective_context_size,
+                    "remaining_context_tokens": max(
+                        0, runtime_snapshot.effective_context_size - prompt_tokens
+                    ),
+                },
+            )
+        if (
+            prompt_tokens is None
+            and requested_max_new_tokens >= runtime_snapshot.effective_context_size
+        ):
+            raise InferenceError(
+                code=InferenceErrorCode.CONTEXT_LIMIT_EXCEEDED,
+                safe_message="Max New Tokens leaves no room for the request prompt.",
+                request_id=request_id,
+                model_key=runtime_snapshot.model_key,
+                details={
+                    "requested_max_new_tokens": requested_max_new_tokens,
+                    "effective_context_size": runtime_snapshot.effective_context_size,
+                },
+            )
         parameters = runtime_snapshot.generation_defaults.model_copy(
             update={
-                "max_new_tokens": effective_max_new_tokens,
+                "max_new_tokens": requested_max_new_tokens,
                 "thinking_mode": value.settings.thinking_mode,
             }
         )

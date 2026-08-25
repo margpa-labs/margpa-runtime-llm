@@ -1,5 +1,6 @@
 from margpa_runtime_llm.modules.evaluation.application.evaluation_orchestrator import (
     EvaluationOrchestrator,
+    resolve_evaluation_disposition,
 )
 from margpa_runtime_llm.modules.evaluation.domain.dataset import EvaluationCase
 from margpa_runtime_llm.modules.evaluation.domain.identifiers import (
@@ -67,3 +68,41 @@ def test_enforce_mode_evaluates_and_returns_a_recommendation() -> None:
     assert result is not None
     assert result.recommendation is EvaluationRecommendation.ACCEPT
     assert evaluator.call_count == 1
+
+
+def test_disposition_proves_off_observe_and_enforce_boundaries() -> None:
+    off = resolve_evaluation_disposition(
+        mode=EvaluationMode.OFF,
+        execution_state=EvaluationExecutionState.NOT_INVOKED,
+        recommendation=EvaluationRecommendation.UNKNOWN,
+    )
+    observe = resolve_evaluation_disposition(
+        mode=EvaluationMode.OBSERVE,
+        execution_state=EvaluationExecutionState.FAILED,
+        recommendation=EvaluationRecommendation.UNKNOWN,
+    )
+    enforce_failure = resolve_evaluation_disposition(
+        mode=EvaluationMode.ENFORCE,
+        execution_state=EvaluationExecutionState.FAILED,
+        recommendation=EvaluationRecommendation.UNKNOWN,
+    )
+    enforce_repair = resolve_evaluation_disposition(
+        mode=EvaluationMode.ENFORCE,
+        execution_state=EvaluationExecutionState.COMPLETED,
+        recommendation=EvaluationRecommendation.NEEDS_REPAIR,
+    )
+    enforce_accept = resolve_evaluation_disposition(
+        mode=EvaluationMode.ENFORCE,
+        execution_state=EvaluationExecutionState.COMPLETED,
+        recommendation=EvaluationRecommendation.ACCEPT,
+    )
+
+    assert off.evaluation_action_performed is False
+    assert off.candidate_may_be_presented is True
+    assert observe.candidate_may_be_presented is True
+    assert observe.repair_requested is False
+    assert enforce_failure.candidate_may_be_presented is False
+    assert enforce_failure.repair_requested is False
+    assert enforce_repair.candidate_may_be_presented is False
+    assert enforce_repair.repair_requested is True
+    assert enforce_accept.candidate_may_be_presented is True

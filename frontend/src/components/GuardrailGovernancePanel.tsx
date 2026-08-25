@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { translate } from "../i18n/translations";
 import type { GuardrailGovernanceMode, GuardrailGovernanceStatus, UiLanguage } from "../types";
 
@@ -33,22 +32,6 @@ export default function GuardrailGovernancePanel({
   onApply,
 }: GuardrailGovernancePanelProps) {
   const status = state.status;
-  // Same lazy-initializer / re-sync pattern as RuntimeGovernancePanel
-  // (P4-CODEX-013 lineage): a Mount that already has a Server Status
-  // available (e.g. reopening the Settings Modal, which fully
-  // unmounts/remounts this component) starts selected on the real
-  // Current Mode instead of always resetting to "off".
-  const [selectedMode, setSelectedMode] = useState<GuardrailGovernanceMode>(
-    () => status?.current_mode ?? "off",
-  );
-
-  const [syncedRevision, setSyncedRevision] = useState(status?.revision);
-  if (status?.revision !== syncedRevision) {
-    setSyncedRevision(status?.revision);
-    if (status !== null && status.current_mode !== null) {
-      setSelectedMode(status.current_mode);
-    }
-  }
 
   const statusKey =
     state.capability === "loading"
@@ -110,15 +93,17 @@ export default function GuardrailGovernancePanel({
                     className="secondary"
                     type="button"
                     role="radio"
-                    aria-checked={selectedMode === descriptor.mode}
-                    disabled={unavailable}
+                    aria-checked={status.current_mode === descriptor.mode}
+                    disabled={unavailable || state.capability !== "ready"}
                     title={
                       unavailable && descriptor.unavailable_reason_code !== null
                         ? descriptor.unavailable_reason_code
                         : undefined
                     }
                     onClick={() => {
-                      setSelectedMode(descriptor.mode);
+                      if (status.current_mode !== descriptor.mode) {
+                        onApply(descriptor.mode);
+                      }
                     }}
                   >
                     {translate(language, MODE_LABEL_KEYS[descriptor.mode])}
@@ -163,19 +148,6 @@ export default function GuardrailGovernancePanel({
               ))}
             </dl>
           )}
-          <div className="configuration-actions">
-            <button
-              id="guardrail-governance-apply"
-              className="primary"
-              type="button"
-              disabled={state.capability !== "ready"}
-              onClick={() => {
-                onApply(selectedMode);
-              }}
-            >
-              {translate(language, "guardrailGovernanceApply")}
-            </button>
-          </div>
         </>
       )}
       <pre id="guardrail-governance-result" className="configuration-result" aria-live="polite">

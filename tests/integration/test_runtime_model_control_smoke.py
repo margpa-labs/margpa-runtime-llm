@@ -100,7 +100,6 @@ def test_runtime_model_controller_loads_the_real_qwen_artifact_and_resizes_conte
     backend = LlamaCppRuntimeModelBackend(
         adapter=adapter,
         base_load_config=ModelLoadConfig(context_size=4096, gpu_layers=-1),
-        default_max_new_tokens=256,
     )
     controller = RuntimeModelController(
         initial_snapshot=_empty_initial_snapshot(),

@@ -19,6 +19,8 @@ from __future__ import annotations
 from collections.abc import Callable, Iterator
 from types import TracebackType
 
+import pytest
+
 from margpa_runtime_llm.adapters.output_protocols.tagged_thinking import TaggedThinkingOutputParser
 from margpa_runtime_llm.modules.conversation.application.conversation_generation import (
     JudgeCompletionContext,
@@ -44,6 +46,7 @@ from margpa_runtime_llm.modules.inference.contracts.generation import (
     ThinkingMode,
 )
 from margpa_runtime_llm.modules.inference.contracts.response import ResponseLanguage
+from margpa_runtime_llm.modules.inference.domain.errors import InferenceError
 from margpa_runtime_llm.modules.presentation.application.thinking_presentation_service import (
     ThinkingPresentationService,
 )
@@ -126,12 +129,14 @@ def _presentation_policy() -> ResolvedThinkingPresentationPolicy:
     )
 
 
-def _conversation_input(*, content: str = "hello") -> ConversationGenerationInput:
+def _conversation_input(
+    *, content: str = "hello", max_new_tokens: int = 128
+) -> ConversationGenerationInput:
     return ConversationGenerationInput(
         messages=(ConversationMessage(role=ConversationRole.USER, content=content),),
         settings=ConversationSettings(
             response_language=ResponseLanguage.JA,
-            max_new_tokens=128,
+            max_new_tokens=max_new_tokens,
             thinking_mode=ThinkingMode.DISABLED,
             thinking_visibility=ThinkingVisibility.HIDDEN,
         ),
@@ -143,6 +148,7 @@ def _service(
     *,
     runtime_snapshot_provider: Callable[[], RuntimeGenerationSnapshot] | None = None,
     judge_completion_hook: Callable[[JudgeCompletionContext], None] | None = None,
+    chat_prompt_token_counter: Callable[..., int] | None = None,
 ) -> ConversationGenerationService:
     return ConversationGenerationService(
         inference=inference,
@@ -157,6 +163,7 @@ def _service(
         presentation_default=_presentation_policy(),
         judge_completion_hook=judge_completion_hook,
         runtime_snapshot_provider=runtime_snapshot_provider,
+        chat_prompt_token_counter=chat_prompt_token_counter,
     )
 
 
@@ -223,17 +230,9 @@ def test_live_provider_generation_defaults_reach_the_request() -> None:
     assert inference.requests[0].parameters.temperature == 0.33
 
 
-def test_runtime_max_new_tokens_ceiling_clamps_a_larger_turn_setting() -> None:
-    """P6-CODEX-025 item (1), the central real-hardware regression this
-    fix closes: Architecture 5.2's own formula is `request_limit <= min(
-    configured_limit, ...)` — the live Runtime Override
-    (`RuntimeModelController.current_max_new_tokens`, surfaced here via
-    `generation_defaults.max_new_tokens`) must be a real ceiling the
-    Turn's own `settings.max_new_tokens` can never exceed. Before this
-    fix, the Turn's own setting always won verbatim (the Runtime Override
-    was silently ignored), which a real-hardware Chat test caught
-    directly: lowering Max New Tokens to 5 via the Runtime Model Control
-    UI had zero effect on an actual multi-paragraph Chat answer."""
+def test_runtime_max_new_tokens_ceiling_rejects_a_larger_turn_setting() -> None:
+    """A stale Tab/request above the frozen Runtime ceiling is a typed
+    rejection, never a silent clamp that changes user intent."""
     inference = FakeInference()
 
     def _provider() -> RuntimeGenerationSnapshot:
@@ -246,10 +245,10 @@ def test_runtime_max_new_tokens_ceiling_clamps_a_larger_turn_setting() -> None:
 
     # _conversation_input()'s own ConversationSettings.max_new_tokens is
     # 128 — larger than the live Runtime ceiling of 5 above.
-    session = _service(inference, runtime_snapshot_provider=_provider).start(_conversation_input())
-    list(session.events())
+    with pytest.raises(InferenceError, match="current runtime model limit"):
+        _service(inference, runtime_snapshot_provider=_provider).start(_conversation_input())
 
-    assert inference.requests[0].parameters.max_new_tokens == 5
+    assert inference.requests == []
 
 
 def test_turn_setting_still_applies_when_smaller_than_the_runtime_ceiling() -> None:
@@ -272,6 +271,35 @@ def test_turn_setting_still_applies_when_smaller_than_the_runtime_ceiling() -> N
     list(session.events())
 
     assert inference.requests[0].parameters.max_new_tokens == 128
+
+
+def test_exact_remaining_context_accepts_boundary_and_rejects_one_token_over() -> None:
+    def _provider() -> RuntimeGenerationSnapshot:
+        return RuntimeGenerationSnapshot(
+            model_key="main.current-model",
+            generation_defaults=GenerationParameters(max_new_tokens=256),
+            effective_context_size=200,
+            model_runtime_info=None,
+        )
+
+    accepted_inference = FakeInference()
+    accepted = _service(
+        accepted_inference,
+        runtime_snapshot_provider=_provider,
+        chat_prompt_token_counter=lambda messages, thinking_mode: 72,
+    ).start(_conversation_input(max_new_tokens=128))
+    list(accepted.events())
+    assert accepted_inference.requests[0].parameters.max_new_tokens == 128
+
+    rejected_inference = FakeInference()
+    with pytest.raises(InferenceError, match="exact remaining context") as excinfo:
+        _service(
+            rejected_inference,
+            runtime_snapshot_provider=_provider,
+            chat_prompt_token_counter=lambda messages, thinking_mode: 73,
+        ).start(_conversation_input(max_new_tokens=128))
+    assert excinfo.value.details["remaining_context_tokens"] == 127
+    assert rejected_inference.requests == []
 
 
 def test_live_provider_model_key_reaches_the_judge_completion_context() -> None:

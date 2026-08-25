@@ -305,6 +305,29 @@ def test_shutdown_joins_the_in_flight_background_task_before_returning() -> None
     assert clean is True
 
 
+def test_shutdown_cancels_the_in_flight_background_task_before_joining() -> None:
+    """RW8-A: shutdown must actively signal the tracked Worker."""
+
+    coordinator = ModelAccessCoordinator()
+    release_gate = threading.Event()
+    cancel_called = threading.Event()
+
+    def _cancel() -> None:
+        cancel_called.set()
+        release_gate.set()
+
+    assert coordinator.start_background(
+        task_id="bg-cancellable",
+        target=lambda: _wait_for_event(release_gate),
+        cancel=_cancel,
+    )
+
+    clean = coordinator.shutdown(join_timeout_seconds=2.0)
+
+    assert cancel_called.is_set()
+    assert clean is True
+
+
 def test_shutdown_returns_false_if_background_task_outlives_join_timeout() -> None:
     """P6-CODEX-019: a caller (e.g. `web_application._close()`) must be able
     to tell a genuinely clean shutdown apart from one where the Background
@@ -321,6 +344,49 @@ def test_shutdown_returns_false_if_background_task_outlives_join_timeout() -> No
 
     assert clean is False
     release_gate.set()
+
+
+def test_auxiliary_task_is_tracked_but_never_owns_the_model_lease() -> None:
+    coordinator = ModelAccessCoordinator(main_wait_for_background_timeout_seconds=0.01)
+    entered = threading.Event()
+    release_gate = threading.Event()
+
+    def _auxiliary() -> None:
+        entered.set()
+        _wait_for_event(release_gate)
+
+    assert coordinator.start_auxiliary(task_id="evidence-1", target=_auxiliary)
+    assert entered.wait(timeout=2.0)
+    assert coordinator.current_auxiliary_task_ids() == ("evidence-1",)
+
+    # No INTERNAL_TASK_PREEMPTION_FAILED: auxiliary work is deliberately
+    # outside the model-access lease even while it remains lifecycle-owned.
+    coordinator.acquire_main(task_id="main-during-evidence")
+    coordinator.release_main(task_id="main-during-evidence")
+
+    release_gate.set()
+    assert coordinator.shutdown(join_timeout_seconds=2.0) is True
+    assert coordinator.current_auxiliary_task_ids() == ()
+
+
+def test_shutdown_refuses_false_clean_while_auxiliary_task_is_blocked() -> None:
+    coordinator = ModelAccessCoordinator()
+    entered = threading.Event()
+    release_gate = threading.Event()
+
+    def _auxiliary() -> None:
+        entered.set()
+        _wait_for_event(release_gate)
+
+    assert coordinator.start_auxiliary(task_id="evidence-blocked", target=_auxiliary)
+    assert entered.wait(timeout=2.0)
+
+    assert coordinator.shutdown(join_timeout_seconds=0.01) is False
+    assert coordinator.current_auxiliary_task_ids() == ("evidence-blocked",)
+
+    release_gate.set()
+    assert coordinator.shutdown(join_timeout_seconds=2.0) is True
+    assert coordinator.current_auxiliary_task_ids() == ()
 
 
 def test_shutdown_rejects_new_background_tasks() -> None:

@@ -65,6 +65,11 @@ class ModelAccessCoordinator:
         self._current_task_id: str | None = None
         self._current_cancel: Callable[[], None] | None = None
         self._background_thread: threading.Thread | None = None
+        # Ninth Rework: tracked auxiliary work shares this Coordinator's
+        # process lifecycle but never owns the Model-access lease. Judge
+        # Evidence publication belongs here: shutdown must see/join it,
+        # while a slow filesystem Recorder must not delay a new Main Turn.
+        self._auxiliary_threads: dict[str, threading.Thread] = {}
         self._shutting_down = False
         self._main_wait_timeout = main_wait_for_background_timeout_seconds
 
@@ -242,6 +247,52 @@ class ModelAccessCoordinator:
         with self._condition:
             return self._current_task_id if self._current_kind == "background" else None
 
+    def start_auxiliary(self, *, task_id: str, target: Callable[[], None]) -> bool:
+        """Start lifecycle-tracked work that does not access the Model.
+
+        Auxiliary Tasks are intentionally absent from ``_current_kind``:
+        they neither block nor get preempted by ``acquire_main()``. They are
+        nevertheless registered before ``shutdown()`` can observe state,
+        joined by shutdown, and rejected once shutdown begins. This is for
+        local post-Model work such as Judge Evidence publication, never for
+        inference, Repair, unload/reload, or any other Model consumer.
+        """
+
+        def _run() -> None:
+            try:
+                target()
+            except Exception:
+                _logger.exception("model access coordinator auxiliary task %r raised", task_id)
+            finally:
+                with self._condition:
+                    self._auxiliary_threads.pop(task_id, None)
+                    self._condition.notify_all()
+
+        thread = threading.Thread(
+            target=_run,
+            daemon=True,
+            name=f"model-access-auxiliary-{task_id}",
+        )
+        with self._condition:
+            if self._shutting_down or task_id in self._auxiliary_threads:
+                return False
+            try:
+                thread.start()
+            except Exception:
+                _logger.exception(
+                    "model access coordinator failed to start auxiliary task %r", task_id
+                )
+                return False
+            # Registration and Thread.start() share one held lock. The
+            # Worker may finish immediately, but its finally block cannot
+            # acquire this lock to remove itself before registration.
+            self._auxiliary_threads[task_id] = thread
+        return True
+
+    def current_auxiliary_task_ids(self) -> tuple[str, ...]:
+        with self._condition:
+            return tuple(sorted(self._auxiliary_threads))
+
     def try_acquire_switch_lease(self, *, task_id: str) -> bool:
         """P6-CODEX-034 (Fifth Rework): atomically acquires the exclusive
         Runtime Model Switch/Context Reload lease — succeeds only if
@@ -276,30 +327,48 @@ class ModelAccessCoordinator:
                 self._condition.notify_all()
 
     def shutdown(self, *, join_timeout_seconds: float = 30.0) -> bool:
-        """Stops accepting new Background Tasks and joins any in-flight one
-        before returning, so a caller's subsequent `Adapter.unload()` never
-        races a live Judge/Repair Model Call (P6-CODEX-010).
+        """Stops accepting new Background/Auxiliary Tasks and joins every
+        tracked in-flight Thread before returning, so a caller's subsequent
+        `Adapter.unload()` never races a live Judge/Repair Model Call and a
+        process shutdown never falsely reports clean while post-Model
+        Evidence publication is still running (Ninth Rework).
 
         Returns `True` only if it is actually safe to proceed to unload the
-        Adapter — i.e. no Background Task is still alive. Returns `False`
+        Adapter — i.e. no Background or Auxiliary Task is still alive. Returns `False`
         (P6-CODEX-019) if the in-flight Background Thread did not terminate
         within `join_timeout_seconds`; a caller must not call
         `Adapter.unload()` in that case (it would race a Thread that may
         still be inside a live Model Call), and should instead log this as
         a genuine shutdown anomaly and let the process-level exit handle
         reclaiming resources."""
+        join_timeout_seconds = max(0.0, join_timeout_seconds)
+        deadline = time.monotonic() + join_timeout_seconds
         with self._condition:
             self._shutting_down = True
             thread = self._background_thread
-        if thread is None:
-            return True
-        thread.join(timeout=join_timeout_seconds)
-        if thread.is_alive():
+            cancel = self._current_cancel
+            auxiliary_threads = tuple(self._auxiliary_threads.items())
+        if cancel is not None:
+            cancel()
+        clean = True
+        if thread is not None:
+            thread.join(timeout=max(0.0, deadline - time.monotonic()))
+        if thread is not None and thread.is_alive():
             _logger.error(
                 "model access coordinator: background task %r still alive after "
                 "%.1fs shutdown join timeout; refusing to report clean shutdown",
                 self._current_task_id,
                 join_timeout_seconds,
             )
-            return False
-        return True
+            clean = False
+        for task_id, auxiliary_thread in auxiliary_threads:
+            auxiliary_thread.join(timeout=max(0.0, deadline - time.monotonic()))
+            if auxiliary_thread.is_alive():
+                _logger.error(
+                    "model access coordinator: auxiliary task %r still alive after "
+                    "%.1fs shutdown join timeout; refusing to report clean shutdown",
+                    task_id,
+                    join_timeout_seconds,
+                )
+                clean = False
+        return clean

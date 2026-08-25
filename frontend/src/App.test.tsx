@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import App from "./App";
-import type { RuntimeInfo } from "./types";
+import type { RuntimeInfo, RuntimeModelStatus } from "./types";
 
 const RUNTIME_INFO: RuntimeInfo = {
   model_key: "main.qwen3-4b-q4-k-m",
@@ -23,6 +23,59 @@ const RUNTIME_INFO: RuntimeInfo = {
     provider_display_name: null,
     default_mode: "disabled",
   },
+};
+
+const RUNTIME_MODEL_STATUS: RuntimeModelStatus = {
+  enabled: true,
+  configured_startup_model_key: "main.qwen3-4b-q4-k-m",
+  revision: 7,
+  digest_sha512: "d".repeat(128),
+  runtime_state: "active",
+  loaded_context_size: 8192,
+  model_native_context_limit: 131072,
+  backend_context_limit: 131072,
+  deployment_verified_context_limit: 8192,
+  hardware_verified_context_limit: 8192,
+  effective_context_limit: 8192,
+  minimum_context_size: 512,
+  context_limit_reason_code: "deployment_hardware_verified_limit",
+  max_output_token_limit: 8191,
+  current_max_new_tokens: 1024,
+  main_model: {
+    model_key: "main.deepseek-r1-0528-qwen3-8b-q4-k-m",
+    artifact_digest: "a".repeat(128),
+    backend_identity: "llama_cpp",
+    state: "active",
+  },
+  judge_model: {
+    model_key: "main.deepseek-r1-0528-qwen3-8b-q4-k-m",
+    independence_class: "main_self",
+    state: "active",
+  },
+  guard_model: null,
+  governance_layer: null,
+  available_models: [
+    {
+      model_key: "main.qwen3-4b-q4-k-m",
+      provider: "Qwen",
+      native_context_limit: 32768,
+      backend_context_limit: 32768,
+      hardware_verified_context_limit: 8192,
+      effective_context_limit: 8192,
+      context_limit_reason_code: "deployment_hardware_verified_limit",
+      max_output_token_limit: 8191,
+    },
+    {
+      model_key: "main.deepseek-r1-0528-qwen3-8b-q4-k-m",
+      provider: "DeepSeek",
+      native_context_limit: 131072,
+      backend_context_limit: 131072,
+      hardware_verified_context_limit: 8192,
+      effective_context_limit: 8192,
+      context_limit_reason_code: "deployment_hardware_verified_limit",
+      max_output_token_limit: 8191,
+    },
+  ],
 };
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -56,6 +109,15 @@ function setRuntimeGovernanceBootstrapTag(enabled: boolean): void {
   document.head.appendChild(script);
 }
 
+function setRuntimeModelControlBootstrapTag(enabled: boolean): void {
+  document.head.querySelector("#runtime-model-control-bootstrap")?.remove();
+  const script = document.createElement("script");
+  script.id = "runtime-model-control-bootstrap";
+  script.type = "application/json";
+  script.textContent = JSON.stringify({ enabled });
+  document.head.appendChild(script);
+}
+
 function pathOf(input: RequestInfo | URL): string {
   const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
   return url.split("?")[0] ?? url;
@@ -81,6 +143,7 @@ interface FetchRoutes {
   governanceRuntime?: unknown;
   runtimeGovernanceStatus?: unknown;
   featureModesStatus?: unknown;
+  runtimeModelStatus?: RuntimeModelStatus | (() => RuntimeModelStatus);
   chatStream?: Response;
   persistentTurnStream?: Response;
   persistentDerivedStream?: Response;
@@ -88,7 +151,10 @@ interface FetchRoutes {
     string,
     { storage_revision: number; state: string; turns?: unknown[]; head_turn_id?: string | null }
   >;
-  mutation?: (path: string, body: { expected_revision?: number }) => Response;
+  mutation?: (
+    path: string,
+    body: { expected_revision?: number },
+  ) => Response | Promise<Response>;
 }
 
 function detailPayload(
@@ -129,6 +195,11 @@ function installFetchMock(routes: FetchRoutes): ReturnType<typeof vi.fn> {
           },
         ),
       );
+    }
+    if (path === "/api/v4/runtime-model/status") {
+      const configured = routes.runtimeModelStatus ?? RUNTIME_MODEL_STATUS;
+      const status = typeof configured === "function" ? configured() : configured;
+      return Promise.resolve(jsonResponse(status));
     }
     if (path === "/api/v2/conversations/runtime") {
       return Promise.resolve(jsonResponse(routes.persistentRuntime ?? { enabled: false, source_of_truth: "server" }));
@@ -239,6 +310,7 @@ describe("App", () => {
     setBootstrapTag(false);
     setGovernanceBootstrapTag(false);
     setRuntimeGovernanceBootstrapTag(false);
+    setRuntimeModelControlBootstrapTag(false);
     // The app defaults to Japanese; pin English so assertions below can use
     // one fixed set of expected strings.
     window.localStorage.setItem("margpa.ui_language.v1", "en");
@@ -249,6 +321,7 @@ describe("App", () => {
     document.head.querySelector("#configuration-bootstrap")?.remove();
     document.head.querySelector("#governance-bootstrap")?.remove();
     document.head.querySelector("#runtime-governance-bootstrap")?.remove();
+    document.head.querySelector("#runtime-model-control-bootstrap")?.remove();
     window.localStorage.clear();
   });
 
@@ -337,6 +410,155 @@ describe("App", () => {
     expect(screen.getByText("Runtime configuration control")).toBeInTheDocument();
   });
 
+  test("projects one canonical runtime-model snapshot into Sidebar and Advanced status", async () => {
+    setRuntimeModelControlBootstrapTag(true);
+    installFetchMock({ runtimeModelStatus: RUNTIME_MODEL_STATUS });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(document.querySelector("#runtime-status")?.textContent).toBe(
+        "main.deepseek-r1-0528-qwen3-8b-q4-k-m",
+      );
+    });
+    expect(document.querySelector(".sidebar-title-block")?.textContent).toContain("Context 8192");
+
+    fireEvent.click(screen.getByRole("button", { name: "Account" }));
+    fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
+
+    await waitFor(() => {
+      expect(document.querySelector("#runtime-model-status-details")).not.toBeNull();
+    });
+    const details = document.querySelector("#runtime-model-status-details");
+    expect(details?.textContent).toContain("main.qwen3-4b-q4-k-m");
+    expect(details?.textContent).toContain("main.deepseek-r1-0528-qwen3-8b-q4-k-m");
+    expect(screen.getByText("Current LLM-as-a-Judge Model")).toBeInTheDocument();
+    expect(document.querySelector("#runtime-model-context-input")).toHaveValue(8192);
+  });
+
+  test("a canonical refresh converges Sidebar and Advanced after another tab changes the model", async () => {
+    setRuntimeModelControlBootstrapTag(true);
+    const nextStatus: RuntimeModelStatus = {
+      ...RUNTIME_MODEL_STATUS,
+      revision: 8,
+      digest_sha512: "e".repeat(128),
+      loaded_context_size: 4096,
+      main_model: {
+        ...RUNTIME_MODEL_STATUS.main_model!,
+        model_key: "main.qwen3-4b-q4-k-m",
+      },
+      judge_model: {
+        ...RUNTIME_MODEL_STATUS.judge_model!,
+        model_key: "main.qwen3-4b-q4-k-m",
+      },
+    };
+    let statusReadCount = 0;
+    installFetchMock({
+      runtimeModelStatus: () => {
+        statusReadCount += 1;
+        return statusReadCount === 1 ? RUNTIME_MODEL_STATUS : nextStatus;
+      },
+    });
+
+    render(<App />);
+    await waitFor(() => {
+      expect(document.querySelector("#runtime-status")?.textContent).toContain("deepseek");
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Account" }));
+    fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
+    fireEvent.click(document.querySelector("#runtime-model-status-refresh") as Element);
+
+    await waitFor(() => {
+      expect(document.querySelector("#runtime-status")?.textContent).toBe("main.qwen3-4b-q4-k-m");
+      expect(document.querySelector("#runtime-model-context-input")).toHaveValue(4096);
+    });
+    const judgeLabel = screen.getByText("Current LLM-as-a-Judge Model");
+    expect(judgeLabel.nextElementSibling?.textContent).toBe("main.qwen3-4b-q4-k-m");
+  });
+
+  test("a stale runtime-model mutation response cannot roll back status or max-token settings", async () => {
+    setRuntimeModelControlBootstrapTag(true);
+    const newerStatus: RuntimeModelStatus = {
+      ...RUNTIME_MODEL_STATUS,
+      revision: 8,
+      digest_sha512: "e".repeat(128),
+      current_max_new_tokens: 1536,
+    };
+    const staleMutationStatus: RuntimeModelStatus = {
+      ...RUNTIME_MODEL_STATUS,
+      revision: 7,
+      digest_sha512: "f".repeat(128),
+      current_max_new_tokens: 512,
+    };
+    let statusReadCount = 0;
+    let resolveMutation = (_response: Response): void => {
+      throw new Error("runtime-model mutation was not started");
+    };
+    const staleMutationResponse = new Promise<Response>((resolve) => {
+      resolveMutation = resolve;
+    });
+    const fetchMock = installFetchMock({
+      persistentRuntime: { enabled: false, source_of_truth: "server" },
+      runtimeModelStatus: () => {
+        statusReadCount += 1;
+        return statusReadCount === 1 ? RUNTIME_MODEL_STATUS : newerStatus;
+      },
+      chatStream: sseStreamResponse([
+        { type: "start", data: { request_id: "req-runtime-model-atomic" } },
+        {
+          type: "completed",
+          data: { assistant_message: { content: "accepted" }, finish_reason: "stop" },
+        },
+      ]),
+      mutation: (path) => {
+        if (path === "/api/v4/runtime-model/max-new-tokens") {
+          return staleMutationResponse;
+        }
+        throw new Error(`unexpected mutation: ${path}`);
+      },
+    });
+
+    render(<App />);
+    await waitFor(() => {
+      expect(document.querySelector("#runtime-status")?.textContent).toContain("deepseek");
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Account" }));
+    fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
+
+    const maxTokensInput = document.querySelector(
+      "#runtime-model-max-new-tokens-input",
+    ) as HTMLInputElement;
+    fireEvent.change(maxTokensInput, { target: { value: "512" } });
+    fireEvent.click(document.querySelector("#runtime-model-max-new-tokens-apply") as Element);
+
+    fireEvent.click(document.querySelector("#runtime-model-status-refresh") as Element);
+    await waitFor(() => {
+      expect(document.querySelector("#runtime-model-status-details")?.textContent).toContain("8");
+      expect(maxTokensInput).toHaveValue(1536);
+    });
+
+    resolveMutation(jsonResponse(staleMutationStatus));
+    await waitFor(() => {
+      expect(document.querySelector("#runtime-model-status-details")?.textContent).toContain("8");
+      expect(maxTokensInput).toHaveValue(1536);
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    fireEvent.change(screen.getByLabelText("Message"), { target: { value: "hello" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("accepted")).toBeInTheDocument();
+    });
+    const chatCall = fetchMock.mock.calls.find(
+      (call) => pathOf(call[0] as RequestInfo) === "/api/v1/chat/stream",
+    );
+    const body = JSON.parse((chatCall?.[1] as RequestInit).body as string) as {
+      settings: { max_new_tokens: number };
+    };
+    expect(body.settings.max_new_tokens).toBe(1536);
+  });
+
   test("governance status stays out of the DOM and unfetched when the bootstrap tag reports disabled", async () => {
     const fetchMock = installFetchMock({});
 
@@ -366,7 +588,7 @@ describe("App", () => {
     await waitFor(() => {
       expect(document.querySelector("#governance-panel")).not.toBeNull();
     });
-    expect(screen.getByText("Governance Definitions (Phase 3)")).toBeInTheDocument();
+    expect(screen.getByText("Governance Definitions")).toBeInTheDocument();
   });
 
   test("governance apply goes through Configuration Control's apply endpoint, never a dedicated governance mutation route", async () => {
@@ -416,7 +638,6 @@ describe("App", () => {
     });
 
     fireEvent.click(screen.getByRole("radio", { name: "Observe" }));
-    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
 
     await waitFor(() => {
       expect(
@@ -473,10 +694,7 @@ describe("App", () => {
     expect(screen.getByText("Main Runtime Governance")).toBeInTheDocument();
   });
 
-  test("runtime governance mode selection visually reflects the click before Apply is even pressed", async () => {
-    // P4-CODEX-012-D / regression guard for P4-CODEX-012-A: the
-    // aria-checked transition itself (not just the eventual Apply
-    // payload) must be observable right after the click.
+  test("runtime governance selection stays canonical until immediate mutation returns", async () => {
     setRuntimeGovernanceBootstrapTag(true);
     installFetchMock({});
 
@@ -496,8 +714,9 @@ describe("App", () => {
 
     fireEvent.click(within(panel).getByRole("radio", { name: "Observe" }));
 
-    expect(within(panel).getByRole("radio", { name: "OFF" })).toHaveAttribute("aria-checked", "false");
-    expect(within(panel).getByRole("radio", { name: "Observe" })).toHaveAttribute("aria-checked", "true");
+    expect(within(panel).getByRole("radio", { name: "OFF" })).toHaveAttribute("aria-checked", "true");
+    expect(within(panel).getByRole("radio", { name: "Observe" })).toHaveAttribute("aria-checked", "false");
+    expect(within(panel).queryByRole("button", { name: "Apply" })).toBeNull();
   });
 
   test("runtime governance apply goes through Configuration Control's apply endpoint, never a dedicated runtime governance mutation route, and resyncs Status after applying", async () => {
@@ -557,7 +776,6 @@ describe("App", () => {
 
     const panel = document.querySelector("#runtime-governance-panel") as HTMLElement;
     fireEvent.click(within(panel).getByRole("radio", { name: "Observe" }));
-    fireEvent.click(within(panel).getByRole("button", { name: "Apply" }));
 
     await waitFor(() => {
       expect(applyCount).toBe(1);
@@ -585,7 +803,7 @@ describe("App", () => {
     });
   });
 
-  test("closing and reopening Settings keeps the Server's Current Mode selected, for both Phase 3 and Phase 4 Panels", async () => {
+  test("closing and reopening Settings keeps each Server Current Mode selected", async () => {
     // P4-CODEX-013: the Settings Modal fully unmounts its Panels on
     // close (`if (!open) return null`) and remounts them on reopen — a
     // remount must not silently reset the visible selection to OFF when

@@ -8,6 +8,7 @@ from .canonicalization import runtime_model_snapshot_digest
 from .identifiers import BindingState, IndependenceClass, ModelRole, RuntimeState, SwitchOutcome
 
 SHA512_PATTERN = r"^[0-9a-f]{128}$"
+MIN_RUNTIME_CONTEXT_SIZE = 512
 
 
 class RoleBinding(ImmutableContract):
@@ -52,6 +53,24 @@ class RuntimeModelSnapshot(ImmutableContract):
     max_output_token_limit: int = Field(gt=0)
     current_max_new_tokens: int = Field(gt=0)
     last_transition_receipt: TransitionReceipt | None = None
+
+    @property
+    def effective_context_limit(self) -> int:
+        return min(
+            self.model_native_context_limit,
+            self.backend_context_limit,
+            self.deployment_verified_context_limit,
+        )
+
+    @property
+    def context_limit_reason_code(self) -> str:
+        effective = self.effective_context_limit
+        if effective < self.model_native_context_limit:
+            if effective == self.deployment_verified_context_limit:
+                return "deployment_hardware_verified_limit"
+            if effective == self.backend_context_limit:
+                return "backend_limit"
+        return "model_native_limit"
 
 
 def compute_runtime_model_snapshot_digest(

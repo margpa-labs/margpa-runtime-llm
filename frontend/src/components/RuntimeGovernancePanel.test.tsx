@@ -121,12 +121,7 @@ describe("RuntimeGovernancePanel", () => {
     );
   });
 
-  // P4-CODEX-012-C: a plain initial-DOM aria-checked check cannot catch a
-  // Selector Contract mismatch between the Radio's own aria-checked state
-  // and the CSS meant to render it (P4-CODEX-012-A) — these Tests drive an
-  // actual Click and assert the transition, plus the Callback payload it
-  // eventually produces.
-  test("clicking Observe flips aria-checked and Apply hands onApply the newly selected mode", () => {
+  test("clicking Observe immediately mutates while selection stays server-canonical", () => {
     const onApply = vi.fn();
     render(
       <RuntimeGovernancePanel
@@ -145,12 +140,11 @@ describe("RuntimeGovernancePanel", () => {
 
     fireEvent.click(screen.getByRole("radio", { name: "Observe" }));
 
-    expect(screen.getByRole("radio", { name: "OFF" })).toHaveAttribute("aria-checked", "false");
-    expect(screen.getByRole("radio", { name: "Observe" })).toHaveAttribute("aria-checked", "true");
-
-    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
     expect(onApply).toHaveBeenCalledTimes(1);
     expect(onApply).toHaveBeenCalledWith("observe");
+    expect(screen.getByRole("radio", { name: "OFF" })).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByRole("radio", { name: "Observe" })).toHaveAttribute("aria-checked", "false");
+    expect(document.querySelector("#runtime-governance-apply")).toBeNull();
   });
 
   // P4-CODEX-013: a fresh Mount that already has a non-off Server Status
@@ -220,7 +214,8 @@ describe("RuntimeGovernancePanel", () => {
       />,
     );
     expect(document.querySelector("#runtime-governance-semantic-boundary-notice")).not.toBeNull();
-    expect(screen.getByText(/Phase 6/u)).toBeInTheDocument();
+    expect(screen.getByText(/Deferred/u)).toBeInTheDocument();
+    expect(screen.queryByText(/Phase 6/u)).toBeNull();
   });
 
   test("shows the per-Point Observation pass/deviation/deferred breakdown", () => {
@@ -240,7 +235,7 @@ describe("RuntimeGovernancePanel", () => {
     expect(pointRow?.textContent).toContain("Deferred (awaiting semantic evaluation) 1");
   });
 
-  test("with an Enforce-ready Snapshot, Enforce can be selected and Apply hands onApply \"enforce\"", () => {
+  test("with an Enforce-ready Snapshot, clicking Enforce calls onApply immediately", () => {
     const onApply = vi.fn();
     render(
       <RuntimeGovernancePanel
@@ -254,11 +249,9 @@ describe("RuntimeGovernancePanel", () => {
     expect(screen.getByRole("radio", { name: "Enforce" })).not.toBeDisabled();
 
     fireEvent.click(screen.getByRole("radio", { name: "Enforce" }));
-    expect(screen.getByRole("radio", { name: "Enforce" })).toHaveAttribute("aria-checked", "true");
-    expect(screen.getByRole("radio", { name: "OFF" })).toHaveAttribute("aria-checked", "false");
-
-    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
     expect(onApply).toHaveBeenCalledWith("enforce");
+    expect(screen.getByRole("radio", { name: "Enforce" })).toHaveAttribute("aria-checked", "false");
+    expect(screen.getByRole("radio", { name: "OFF" })).toHaveAttribute("aria-checked", "true");
   });
 
   test("with an Enforce-unavailable Snapshot, Enforce stays disabled and unselectable", () => {
@@ -277,8 +270,7 @@ describe("RuntimeGovernancePanel", () => {
     fireEvent.click(screen.getByRole("radio", { name: "Enforce" }));
     expect(screen.getByRole("radio", { name: "Enforce" })).toHaveAttribute("aria-checked", "false");
 
-    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
-    expect(onApply).toHaveBeenCalledWith("off");
+    expect(onApply).not.toHaveBeenCalled();
     expect(onApply).not.toHaveBeenCalledWith("enforce");
   });
 
@@ -329,7 +321,7 @@ describe("RuntimeGovernancePanel", () => {
     expect(screen.getByText("evidence_write_failed")).toBeInTheDocument();
   });
 
-  test("Apply is disabled while a refresh is in flight, even with a status already loaded", () => {
+  test("Mode selectors are disabled while a refresh is in flight", () => {
     render(
       <RuntimeGovernancePanel
         language="en"
@@ -339,7 +331,8 @@ describe("RuntimeGovernancePanel", () => {
         onApply={vi.fn()}
       />,
     );
-    expect(screen.getByRole("button", { name: "Apply" })).toBeDisabled();
+    expect(screen.getByRole("radio", { name: "OFF" })).toBeDisabled();
+    expect(screen.getByRole("radio", { name: "Observe" })).toBeDisabled();
   });
 
   test("renders nothing about the status before the first successful load", () => {

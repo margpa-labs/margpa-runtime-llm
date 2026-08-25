@@ -1,40 +1,70 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
+  ApiMutationError,
   applyRuntimeModelContext,
   applyRuntimeModelMaxNewTokens,
   applyRuntimeModelSwitch,
-  fetchRuntimeModelStatus,
 } from "../api/client";
 import { translate } from "../i18n/translations";
 import type { RuntimeModelStatus, UiLanguage } from "../types";
 
-// Unlike RuntimeGovernancePanel/GuardrailGovernancePanel, this panel owns
-// its own fetch: the Apply flows below are self-contained CAS round-trips
-// against this panel's own `status`, with no other panel or App-level
-// state depending on the result, so there is no shared-state reason to
-// lift the fetch/apply lifecycle into App.tsx the way the Governance
-// panels do.
-type LoadCapability = "loading" | "ready" | "failed";
+// App owns the canonical status fetch and polling lifecycle so Sidebar,
+// Advanced settings, mutation responses, and cross-tab refreshes all project
+// one accepted Runtime Model Snapshot. This panel only performs explicit CAS
+// mutations and returns their canonical response upward.
+type LoadCapability = "loading" | "ready" | "failed" | "disabled";
+
+export interface RuntimeModelControlState {
+  capability: LoadCapability;
+  status: RuntimeModelStatus | null;
+}
 
 interface RuntimeModelStatusPanelProps {
   language: UiLanguage;
   visible: boolean;
+  state: RuntimeModelControlState;
+  onRefresh: () => void;
+  onStatusChange: (status: RuntimeModelStatus) => void;
 }
 
 export default function RuntimeModelStatusPanel({
   language,
   visible,
+  state,
+  onRefresh,
+  onStatusChange,
 }: RuntimeModelStatusPanelProps) {
-  const [capability, setCapability] = useState<LoadCapability>("loading");
-  const [status, setStatus] = useState<RuntimeModelStatus | null>(null);
-  const [contextInput, setContextInput] = useState("");
-  const [maxTokensInput, setMaxTokensInput] = useState("");
-  const [switchTarget, setSwitchTarget] = useState("");
-  const [switchContextInput, setSwitchContextInput] = useState("");
+  const { capability, status } = state;
+  const [contextInput, setContextInput] = useState(() => String(status?.loaded_context_size ?? ""));
+  const [maxTokensInput, setMaxTokensInput] = useState(() =>
+    String(status?.current_max_new_tokens ?? ""),
+  );
+  const [switchTarget, setSwitchTarget] = useState(() => status?.main_model?.model_key ?? "");
   const [applyResultText, setApplyResultText] = useState("");
   const [applyingContext, setApplyingContext] = useState(false);
   const [applyingMaxTokens, setApplyingMaxTokens] = useState(false);
   const [applyingSwitch, setApplyingSwitch] = useState(false);
+
+  const restoreInputsFromCanonical = (): void => {
+    setContextInput(String(status?.loaded_context_size ?? ""));
+    setMaxTokensInput(String(status?.current_max_new_tokens ?? ""));
+    setSwitchTarget(status?.main_model?.model_key ?? "");
+  };
+
+  const mutationFailureText = (error: unknown): string => {
+    if (error instanceof ApiMutationError) {
+      if (error.code === "runtime_model_limit_exceeded") {
+        return error.message;
+      }
+      if (error.code === "runtime_model_revision_conflict") {
+        return translate(language, "runtimeModelConflict");
+      }
+      if (error.code === "runtime_model_busy") {
+        return translate(language, "runtimeModelBusy");
+      }
+    }
+    return translate(language, "runtimeModelApplyFailed");
+  };
 
   // Re-sync the two input fields whenever a *new* status arrives (same
   // "adjust during render" pattern as RuntimeGovernancePanel's
@@ -48,54 +78,8 @@ export default function RuntimeModelStatusPanel({
       setContextInput(String(status.loaded_context_size ?? ""));
       setMaxTokensInput(String(status.current_max_new_tokens ?? ""));
       setSwitchTarget(status.main_model?.model_key ?? "");
-      setSwitchContextInput(String(status.loaded_context_size ?? ""));
     }
   }
-
-  // Fetches without first synchronously setting "loading" — the initial
-  // `useState("loading")` already covers the on-mount case, so an Effect
-  // calling this needs no extra synchronous setState of its own (avoids
-  // react-hooks/set-state-in-effect). The Refresh button's onClick, which
-  // is an event handler rather than an Effect, explicitly resets to
-  // "loading" itself before calling this.
-  const runFetch = () => {
-    fetchRuntimeModelStatus()
-      .then((next) => {
-        setStatus(next);
-        setCapability("ready");
-      })
-      .catch(() => {
-        setStatus(null);
-        setCapability("failed");
-      });
-  };
-
-  const refresh = () => {
-    setCapability("loading");
-    runFetch();
-  };
-
-  // Used only after a failed Apply (most commonly a stale CAS token):
-  // silently re-syncs `status` if the re-fetch succeeds, but never clears
-  // an already-displayed Panel or touches `capability` on its own failure
-  // — the user still needs to see the "Failed to apply." message from the
-  // Apply call that triggered this, not have it replaced by an unrelated
-  // secondary fetch's own error.
-  const resyncAfterApplyFailure = () => {
-    fetchRuntimeModelStatus()
-      .then((next) => {
-        setStatus(next);
-      })
-      .catch(() => {
-        // Deliberately ignored — see comment above.
-      });
-  };
-
-  useEffect(() => {
-    if (visible) {
-      runFetch();
-    }
-  }, [visible]);
 
   if (!visible) {
     return null;
@@ -119,17 +103,18 @@ export default function RuntimeModelStatusPanel({
     setApplyingContext(true);
     applyRuntimeModelContext(status.revision, status.digest_sha512, requested)
       .then((next) => {
-        setStatus(next);
+        onStatusChange(next);
         setApplyResultText(translate(language, "runtimeModelApplySuccess"));
       })
-      .catch(() => {
-        setApplyResultText(translate(language, "runtimeModelApplyFailed"));
+      .catch((error: unknown) => {
+        setApplyResultText(mutationFailureText(error));
+        restoreInputsFromCanonical();
         // A failure (most commonly a stale CAS token: the Snapshot changed
         // elsewhere, e.g. another Tab) leaves this Panel's own status
         // un-refreshed, so retrying Apply would just repeat the same
         // conflict against the same stale revision/digest. Re-fetch so the
         // next Apply attempt uses the real Current CAS token.
-        resyncAfterApplyFailure();
+        onRefresh();
       })
       .finally(() => {
         setApplyingContext(false);
@@ -143,23 +128,26 @@ export default function RuntimeModelStatusPanel({
     if (!switchTarget) {
       return;
     }
-    const requested = Number.parseInt(switchContextInput, 10);
-    if (!Number.isFinite(requested) || requested <= 0) {
+    const target = status.available_models.find((model) => model.model_key === switchTarget);
+    const currentContext = status.loaded_context_size;
+    if (target === undefined || currentContext === null || currentContext <= 0) {
       return;
     }
+    const requested = Math.min(currentContext, target.effective_context_limit);
     setApplyingSwitch(true);
     applyRuntimeModelSwitch(status.revision, status.digest_sha512, switchTarget, requested)
       .then((next) => {
-        setStatus(next);
+        onStatusChange(next);
         setApplyResultText(translate(language, "runtimeModelApplySuccess"));
       })
-      .catch(() => {
-        setApplyResultText(translate(language, "runtimeModelApplyFailed"));
+      .catch((error: unknown) => {
+        setApplyResultText(mutationFailureText(error));
+        restoreInputsFromCanonical();
         // Same reasoning as applyContext/applyMaxTokens above: a failed
         // Switch (stale CAS, unregistered target, or a genuine Load
         // failure the Controller already rolled back) leaves this Panel's
         // status un-refreshed, so re-fetch before the next attempt.
-        resyncAfterApplyFailure();
+        onRefresh();
       })
       .finally(() => {
         setApplyingSwitch(false);
@@ -177,12 +165,13 @@ export default function RuntimeModelStatusPanel({
     setApplyingMaxTokens(true);
     applyRuntimeModelMaxNewTokens(status.revision, status.digest_sha512, requested)
       .then((next) => {
-        setStatus(next);
+        onStatusChange(next);
         setApplyResultText(translate(language, "runtimeModelApplySuccess"));
       })
-      .catch(() => {
-        setApplyResultText(translate(language, "runtimeModelApplyFailed"));
-        resyncAfterApplyFailure();
+      .catch((error: unknown) => {
+        setApplyResultText(mutationFailureText(error));
+        restoreInputsFromCanonical();
+        onRefresh();
       })
       .finally(() => {
         setApplyingMaxTokens(false);
@@ -205,7 +194,7 @@ export default function RuntimeModelStatusPanel({
           className="secondary"
           type="button"
           disabled={capability === "loading"}
-          onClick={refresh}
+          onClick={onRefresh}
         >
           {translate(language, "runtimeModelRefresh")}
         </button>
@@ -216,10 +205,22 @@ export default function RuntimeModelStatusPanel({
           <dl className="configuration-meta" id="runtime-model-status-details">
             <dt>{translate(language, "runtimeModelRevision")}</dt>
             <dd>{status.revision}</dd>
+            <dt>{translate(language, "runtimeModelStartupDefaultLabel")}</dt>
+            <dd>{status.configured_startup_model_key ?? "—"}</dd>
             <dt>{translate(language, "runtimeModelMainModelLabel")}</dt>
             <dd>{status.main_model?.model_key ?? "—"}</dd>
             <dt>{translate(language, "runtimeModelStateLabel")}</dt>
             <dd>{status.main_model?.state ?? status.runtime_state ?? "—"}</dd>
+            <dt>{translate(language, "runtimeModelNativeContextLabel")}</dt>
+            <dd>{status.model_native_context_limit ?? "—"}</dd>
+            <dt>{translate(language, "runtimeModelBackendContextLabel")}</dt>
+            <dd>{status.backend_context_limit ?? "—"}</dd>
+            <dt>{translate(language, "runtimeModelHardwareContextLabel")}</dt>
+            <dd>{status.hardware_verified_context_limit ?? "—"}</dd>
+            <dt>{translate(language, "runtimeModelEffectiveContextLabel")}</dt>
+            <dd>{status.effective_context_limit ?? "—"}</dd>
+            <dt>{translate(language, "runtimeModelContextReasonLabel")}</dt>
+            <dd>{status.context_limit_reason_code ?? "—"}</dd>
             <dt>{translate(language, "runtimeModelJudgeModelLabel")}</dt>
             <dd>{status.judge_model?.model_key ?? translate(language, "runtimeModelJudgeNone")}</dd>
             <dt>{translate(language, "runtimeModelGuardModelLabel")}</dt>
@@ -236,14 +237,14 @@ export default function RuntimeModelStatusPanel({
               {" ("}
               {status.loaded_context_size ?? "—"}
               {" / "}
-              {status.model_native_context_limit ?? "—"}
+              {status.effective_context_limit ?? "—"}
               {")"}
             </label>
             <input
               id="runtime-model-context-input"
               type="number"
-              min={1}
-              max={status.model_native_context_limit ?? undefined}
+              min={status.minimum_context_size ?? 1}
+              max={status.effective_context_limit ?? undefined}
               value={contextInput}
               onChange={(event) => {
                 setContextInput(event.target.value);
@@ -306,15 +307,6 @@ export default function RuntimeModelStatusPanel({
                   </option>
                 ))}
               </select>
-              <input
-                id="runtime-model-switch-context-input"
-                type="number"
-                min={1}
-                value={switchContextInput}
-                onChange={(event) => {
-                  setSwitchContextInput(event.target.value);
-                }}
-              />
               <button
                 id="runtime-model-switch-apply"
                 className="primary"

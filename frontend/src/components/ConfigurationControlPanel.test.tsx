@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
 import ConfigurationControlPanel, { type ConfigurationControlState } from "./ConfigurationControlPanel";
 import type { ConfigurationSnapshot } from "../types";
@@ -27,26 +27,26 @@ describe("ConfigurationControlPanel", () => {
         visible={false}
         state={readyState()}
         onRefresh={vi.fn()}
-        onPreview={vi.fn()}
         onApply={vi.fn()}
       />,
     );
     expect(container).toBeEmptyDOMElement();
   });
 
-  test("hides developer detail fields (revision, digest, model, context) until research mode is toggled on", () => {
+  test("hides developer details while Research Mode is off and removes old model/context controls", () => {
     const { container } = render(
       <ConfigurationControlPanel
         language="en"
         visible={true}
         state={readyState()}
         onRefresh={vi.fn()}
-        onPreview={vi.fn()}
         onApply={vi.fn()}
       />,
     );
     expect(screen.getByText("deadbeef").closest("dl")).toHaveAttribute("hidden");
-    expect(container.querySelector("#configuration-preview")).toHaveAttribute("hidden");
+    expect(container.querySelector("#configuration-model")).toBeNull();
+    expect(container.querySelector("#configuration-context")).toBeNull();
+    expect(container.querySelector("#configuration-apply")).toBeNull();
   });
 
   test("never renders the raw snapshot into an input value usable for silent submission of secrets", () => {
@@ -56,7 +56,6 @@ describe("ConfigurationControlPanel", () => {
         visible={true}
         state={readyState()}
         onRefresh={vi.fn()}
-        onPreview={vi.fn()}
         onApply={vi.fn()}
       />,
     );
@@ -68,18 +67,36 @@ describe("ConfigurationControlPanel", () => {
     }
   });
 
-  test("Apply is disabled while a refresh is in flight, even with a snapshot already loaded", () => {
+  test("Research Mode click applies immediately without optimistic canonical selection", () => {
+    const onApply = vi.fn();
+    render(
+      <ConfigurationControlPanel
+        language="en"
+        visible={true}
+        state={readyState()}
+        onRefresh={vi.fn()}
+        onApply={onApply}
+      />,
+    );
+    fireEvent.click(screen.getByRole("radio", { name: "ON" }));
+    expect(onApply).toHaveBeenCalledOnce();
+    expect(onApply).toHaveBeenCalledWith("on");
+    expect(screen.getByRole("radio", { name: "ON" })).toHaveAttribute("aria-checked", "false");
+    expect(document.querySelector("#configuration-apply")).toBeNull();
+  });
+
+  test("Mode selectors are disabled while a refresh is in flight", () => {
     render(
       <ConfigurationControlPanel
         language="en"
         visible={true}
         state={readyState({ capability: "loading" })}
         onRefresh={vi.fn()}
-        onPreview={vi.fn()}
         onApply={vi.fn()}
       />,
     );
-    expect(screen.getByRole("button", { name: "Apply Research Mode" })).toBeDisabled();
+    expect(screen.getByRole("radio", { name: "OFF" })).toBeDisabled();
+    expect(screen.getByRole("radio", { name: "ON" })).toBeDisabled();
   });
 
   test("renders nothing about the snapshot before the first successful load", () => {
@@ -89,7 +106,6 @@ describe("ConfigurationControlPanel", () => {
         visible={true}
         state={{ capability: "loading", snapshot: null, resultText: "" }}
         onRefresh={vi.fn()}
-        onPreview={vi.fn()}
         onApply={vi.fn()}
       />,
     );

@@ -23,6 +23,16 @@ export interface ApiFailure {
   message: string;
 }
 
+export class ApiMutationError extends Error {
+  readonly code: string | null;
+
+  constructor(failure: ApiFailure) {
+    super(failure.message);
+    this.name = "ApiMutationError";
+    this.code = failure.code;
+  }
+}
+
 export async function safeError(response: Response, fallbackMessage: string): Promise<ApiFailure> {
   try {
     const payload = (await response.json()) as { code?: string; message?: string };
@@ -293,7 +303,7 @@ export async function applyRuntimeModelContext(
   });
   if (!response.ok) {
     const failure = await safeError(response, "runtime_model_context_change_failed");
-    throw new Error(failure.code ?? failure.message);
+    throw new ApiMutationError(failure);
   }
   return (await response.json()) as RuntimeModelStatus;
 }
@@ -314,7 +324,7 @@ export async function applyRuntimeModelMaxNewTokens(
   });
   if (!response.ok) {
     const failure = await safeError(response, "runtime_model_max_new_tokens_change_failed");
-    throw new Error(failure.code ?? failure.message);
+    throw new ApiMutationError(failure);
   }
   return (await response.json()) as RuntimeModelStatus;
 }
@@ -337,7 +347,7 @@ export async function applyRuntimeModelSwitch(
   });
   if (!response.ok) {
     const failure = await safeError(response, "runtime_model_switch_failed");
-    throw new Error(failure.code ?? failure.message);
+    throw new ApiMutationError(failure);
   }
   return (await response.json()) as RuntimeModelStatus;
 }

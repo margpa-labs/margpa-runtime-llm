@@ -12,6 +12,7 @@ from ..domain.identifiers import EvaluationExecutionState, EvaluationRecommendat
 from ..domain.llm_judge import JudgeFailureReason, JudgeIndependenceClass, LlmJudgeResponse
 
 _VALID_RECOMMENDATIONS = {member.value for member in EvaluationRecommendation}
+_ALLOWED_FIELDS = {"recommendation", "confidence", "reasoning"}
 
 
 @dataclass(frozen=True, slots=True)
@@ -30,13 +31,15 @@ def decode_judge_output(
     latency_ms: int,
 ) -> LlmJudgeResponse:
     """Raises JudgeDecodeError on any malformed/unknown output; never guesses."""
-    try:
-        payload = json.loads(raw_text)
-    except json.JSONDecodeError as exc:
-        raise JudgeDecodeError(reason=f"not valid JSON: {exc}") from exc
+    payload = _extract_single_json_object(raw_text)
 
     if not isinstance(payload, dict):
         raise JudgeDecodeError(reason="top-level JSON value must be an object")
+    unexpected_fields = set(payload) - _ALLOWED_FIELDS
+    if unexpected_fields:
+        raise JudgeDecodeError(
+            reason=f"unexpected fields: {sorted(str(field) for field in unexpected_fields)!r}"
+        )
 
     recommendation_raw = payload.get("recommendation")
     if recommendation_raw not in _VALID_RECOMMENDATIONS:
@@ -61,6 +64,34 @@ def decode_judge_output(
         execution_state=EvaluationExecutionState.COMPLETED,
         failure_reason=None,
     )
+
+
+def _extract_single_json_object(raw_text: str) -> object:
+    """Extract one provider-wrapped JSON object without guessing semantics.
+
+    Local Qwen/DeepSeek may surround the requested object with a thinking
+    prefix, a Markdown fence, or a short explanation. We accept those wrappers
+    only because they do not alter the object. Zero objects, two objects, an
+    incomplete object, or a schema/value mismatch still fail closed.
+    """
+
+    decoder = json.JSONDecoder()
+    candidates: list[object] = []
+    cursor = 0
+    while cursor < len(raw_text):
+        object_start = raw_text.find("{", cursor)
+        if object_start < 0:
+            break
+        try:
+            candidate, consumed = decoder.raw_decode(raw_text[object_start:])
+        except json.JSONDecodeError:
+            cursor = object_start + 1
+            continue
+        candidates.append(candidate)
+        cursor = object_start + consumed
+    if len(candidates) != 1:
+        raise JudgeDecodeError(reason=f"expected exactly one JSON object, found {len(candidates)}")
+    return candidates[0]
 
 
 def decode_judge_output_fail_closed(

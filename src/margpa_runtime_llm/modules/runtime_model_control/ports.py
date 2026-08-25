@@ -16,6 +16,25 @@ class CapabilityProbeResult:
     max_output_token_limit: int
     capability_digest: str
 
+    @property
+    def effective_context_limit(self) -> int:
+        """Highest context size supported by every known active boundary."""
+        return min(
+            self.native_context_limit,
+            self.backend_context_limit,
+            self.deployment_verified_context_limit,
+        )
+
+    @property
+    def context_limit_reason_code(self) -> str:
+        effective = self.effective_context_limit
+        if effective < self.native_context_limit:
+            if effective == self.deployment_verified_context_limit:
+                return "deployment_hardware_verified_limit"
+            if effective == self.backend_context_limit:
+                return "backend_limit"
+        return "model_native_limit"
+
 
 @dataclass(frozen=True, slots=True)
 class LoadedModelHandle:

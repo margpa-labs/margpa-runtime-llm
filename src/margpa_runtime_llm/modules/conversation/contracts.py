@@ -46,7 +46,11 @@ class ExpressiveMode(StrEnum):
 
 class ConversationSettings(ImmutableContract):
     response_language: ResponseLanguage
-    max_new_tokens: int = Field(strict=True, gt=0, le=MAX_WEB_NEW_TOKENS)
+    # The current Runtime Model Snapshot owns the effective upper bound.
+    # Keeping a global 2048 ceiling here made a live model-specific control
+    # impossible; ConversationGenerationService validates this value against
+    # the frozen Attempt snapshot and exact remaining Context before inference.
+    max_new_tokens: int = Field(strict=True, gt=0)
     thinking_mode: ThinkingMode = ThinkingMode.DISABLED
     thinking_visibility: ThinkingVisibility
     summary_mode: SummaryMode = SummaryMode.OFF

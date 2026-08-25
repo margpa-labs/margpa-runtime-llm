@@ -108,6 +108,13 @@ GUARDRAIL_BOOTSTRAP_DISABLED = (
 GUARDRAIL_BOOTSTRAP_ENABLED = (
     '<script id="guardrail-bootstrap" type="application/json">{"enabled":true}</script>'
 )
+RUNTIME_MODEL_CONTROL_BOOTSTRAP_DISABLED = (
+    '<script id="runtime-model-control-bootstrap" type="application/json">'
+    '{"enabled":false}</script>'
+)
+RUNTIME_MODEL_CONTROL_BOOTSTRAP_ENABLED = (
+    '<script id="runtime-model-control-bootstrap" type="application/json">{"enabled":true}</script>'
+)
 SHUTDOWN_FAILURE_MESSAGE = "The web runtime could not shut down cleanly."
 RuntimeFactory = Callable[[], WebRuntime]
 CallNext = Callable[[Request], Awaitable[Response]]
@@ -431,6 +438,13 @@ def create_web_app(
             html = html.replace(
                 GUARDRAIL_BOOTSTRAP_DISABLED,
                 GUARDRAIL_BOOTSTRAP_ENABLED,
+            )
+        if _runtime(request).runtime_model_control is not None:
+            if html.count(RUNTIME_MODEL_CONTROL_BOOTSTRAP_DISABLED) != 1:
+                raise RuntimeError("The runtime model control bootstrap marker is invalid.")
+            html = html.replace(
+                RUNTIME_MODEL_CONTROL_BOOTSTRAP_DISABLED,
+                RUNTIME_MODEL_CONTROL_BOOTSTRAP_ENABLED,
             )
         return HTMLResponse(html)
 

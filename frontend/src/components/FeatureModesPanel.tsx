@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   applyJudgeMode,
   applyRecordingMode,
@@ -29,15 +29,32 @@ interface FeatureModesPanelProps {
   visible: boolean;
 }
 
+function mergeCanonicalStatus(
+  current: FeatureModesStatus | null,
+  incoming: FeatureModesStatus,
+): FeatureModesStatus {
+  if (current === null) {
+    return incoming;
+  }
+  const chooseIncoming = <T extends { revision: number | null }>(present: T, next: T): T =>
+    (next.revision ?? -1) >= (present.revision ?? -1) ? next : present;
+  return {
+    judge: chooseIncoming(current.judge, incoming.judge),
+    repair: chooseIncoming(current.repair, incoming.repair),
+    recording: chooseIncoming(current.recording, incoming.recording),
+  };
+}
+
 export default function FeatureModesPanel({ language, visible }: FeatureModesPanelProps) {
   const [capability, setCapability] = useState<LoadCapability>("loading");
   const [status, setStatus] = useState<FeatureModesStatus | null>(null);
   const [resultText, setResultText] = useState("");
+  const mutationQueueRef = useRef<Promise<void>>(Promise.resolve());
 
   const runFetch = () => {
     fetchFeatureModesStatus()
       .then((next) => {
-        setStatus(next);
+        setStatus((current) => mergeCanonicalStatus(current, next));
         setCapability("ready");
       })
       .catch(() => {
@@ -72,14 +89,22 @@ export default function FeatureModesPanel({ language, visible }: FeatureModesPan
     apply: (mode: string) => Promise<FeatureModesStatus>,
     requestedMode: string,
   ) => {
-    apply(requestedMode)
-      .then((next) => {
-        setStatus(next);
+    const run = async (): Promise<void> => {
+      try {
+        const next = await apply(requestedMode);
+        setStatus((current) => mergeCanonicalStatus(current, next));
         setResultText(translate(language, "featureModesApplySuccess"));
-      })
-      .catch(() => {
+      } catch {
         setResultText(translate(language, "featureModesApplyFailed"));
-      });
+        try {
+          const canonical = await fetchFeatureModesStatus();
+          setStatus((current) => mergeCanonicalStatus(current, canonical));
+        } catch {
+          // Keep the last verified snapshot and the original apply failure.
+        }
+      }
+    };
+    mutationQueueRef.current = mutationQueueRef.current.then(run, run);
   };
 
   const renderModeGroup = (
@@ -193,6 +218,15 @@ export default function FeatureModesPanel({ language, visible }: FeatureModesPan
                 {translate(language, "featureModesRepairNewTurn")}: {judge.last_result.repair_new_turn_id}
               </li>
             )}
+            {judge.last_result.presentation_outcome === undefined ||
+            judge.last_result.presentation_outcome === null ? null : (
+              <li>
+                {translate(language, "featureModesPresentationOutcome")}: {judge.last_result.presentation_outcome}
+              </li>
+            )}
+            {judge.last_result.candidate_withheld ? (
+              <li>{translate(language, "featureModesCandidateWithheld")}</li>
+            ) : null}
           </ul>
         </div>
       )}

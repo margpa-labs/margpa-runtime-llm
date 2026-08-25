@@ -86,6 +86,43 @@ describe("FeatureModesPanel", () => {
     const [url, init] = secondCall as [string, { body: string }];
     expect(url).toBe("/api/v5/feature-modes/judge");
     expect(JSON.parse(init.body)).toEqual({ requested_mode: "enforce" });
+    expect(document.querySelector("#feature-modes-judge-apply")).toBeNull();
+  });
+
+  test("rapid clicks are serialized and converge to the last server-canonical mode", async () => {
+    const observeStatus = {
+      ...allOffStatus,
+      judge: { ...allOffStatus.judge, revision: 2, current_mode: "observe" },
+    };
+    const enforceStatus = {
+      ...allOffStatus,
+      judge: { ...allOffStatus.judge, revision: 3, current_mode: "enforce" },
+    };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(allOffStatus) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(observeStatus) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(enforceStatus) });
+    vi.stubGlobal("fetch", fetchMock);
+    render(<FeatureModesPanel language="en" visible={true} />);
+    await waitFor(() => {
+      expect(document.querySelector("#feature-modes-judge-observe")).not.toBeNull();
+    });
+
+    fireEvent.click(document.querySelector("#feature-modes-judge-observe") as Element);
+    fireEvent.click(document.querySelector("#feature-modes-judge-enforce") as Element);
+
+    await waitFor(() => {
+      expect(document.querySelector("#feature-modes-judge-enforce")).toHaveAttribute(
+        "aria-checked",
+        "true",
+      );
+    });
+    const postedModes = fetchMock.mock.calls.slice(1).map((call) => {
+      const init = call[1] as RequestInit;
+      return (JSON.parse(init.body as string) as { requested_mode: string }).requested_mode;
+    });
+    expect(postedModes).toEqual(["observe", "enforce"]);
   });
 
   test("P6-CODEX-012: displays the current Judge Run state, last result, and Repair outcome", async () => {
@@ -108,6 +145,8 @@ describe("FeatureModesPanel", () => {
           repair_outcome: "improved",
           repair_accepted: true,
           repair_new_turn_id: "turn-repaired-1",
+          presentation_outcome: "repair_accepted",
+          candidate_withheld: true,
         },
       },
     };
@@ -128,6 +167,8 @@ describe("FeatureModesPanel", () => {
     expect(lastResult?.textContent).toContain("improved");
     expect(lastResult?.textContent).toContain("true");
     expect(lastResult?.textContent).toContain("turn-repaired-1");
+    expect(lastResult?.textContent).toContain("repair_accepted");
+    expect(lastResult?.textContent).toContain("failed original candidate was withheld");
   });
 
   test("P6-CODEX-012: a stale last result while a Run is in flight is labeled as such", async () => {
@@ -232,11 +273,16 @@ describe("FeatureModesPanel", () => {
     expect(evidenceOutcome?.textContent).toContain("RecordingQuotaExceeded: over limit");
   });
 
-  test("a failed apply shows the failure text without crashing", async () => {
+  test("a failed apply re-fetches canonical state and never leaves an optimistic selection", async () => {
+    const canonical = {
+      ...allOffStatus,
+      recording: { ...allOffStatus.recording, revision: 2, current_mode: "metadata" },
+    };
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(allOffStatus) })
-      .mockResolvedValueOnce({ ok: false, json: () => Promise.resolve({ code: "boom" }) });
+      .mockResolvedValueOnce({ ok: false, json: () => Promise.resolve({ code: "boom" }) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(canonical) });
     vi.stubGlobal("fetch", fetchMock);
     render(<FeatureModesPanel language="en" visible={true} />);
     await waitFor(() => {
@@ -248,5 +294,14 @@ describe("FeatureModesPanel", () => {
     await waitFor(() => {
       expect(screen.getByText("Failed to apply.")).toBeTruthy();
     });
+    expect(document.querySelector("#feature-modes-recording-full")).toHaveAttribute(
+      "aria-checked",
+      "false",
+    );
+    expect(document.querySelector("#feature-modes-recording-metadata")).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 });

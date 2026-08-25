@@ -44,6 +44,7 @@ from margpa_runtime_llm.modules.inference.domain.model_definition import ModelDe
 
 from .chat_template import LlamaCppChatTemplate
 from .error_mapping import map_finish_reason, parse_token_usage, raise_mapped_backend_error
+from .repetition import PathologicalRepetitionDetector, detect_pathological_repetition
 from .runtime_detection import (
     detect_llama_cpp_build_variant,
     detect_llama_cpp_device,
@@ -229,6 +230,18 @@ class LlamaCppModelAdapter:
                     request_id=request.request_id,
                     model_key=request.model_key,
                 )
+            if detect_pathological_repetition(content):
+                self._mark_generation_unavailable()
+                raise InferenceError(
+                    code=InferenceErrorCode.GENERATION_FAILED,
+                    safe_message=(
+                        "The model produced an unstable repetitive response and was stopped safely."
+                    ),
+                    retryable=True,
+                    request_id=request.request_id,
+                    model_key=request.model_key,
+                    details={"reason": "pathological_repetition_detected"},
+                )
             finish_reason, backend_finish_reason = map_finish_reason(choice.get("finish_reason"))
             if cancellation is not None and cancellation.is_cancelled():
                 # P6-CODEX-019: a Main-priority preemption stops the token
@@ -291,6 +304,8 @@ class LlamaCppModelAdapter:
                 on_terminal=self._end_generation,
                 fallback_prompt_tokens=prompt_tokens,
                 completion_text_token_counter=chat_template.count_text_tokens,
+                repetition_detector=PathologicalRepetitionDetector(),
+                on_pathological_output=self._mark_generation_unavailable,
             )
         except InferenceError:
             self._end_generation()
@@ -398,6 +413,18 @@ class LlamaCppModelAdapter:
                 self._state = ModelLifecycleState.LOADED
             if self._generation_lock.locked():
                 self._generation_lock.release()
+
+    def _mark_generation_unavailable(self) -> None:
+        """Trip a process-local circuit breaker for an unstable Model load.
+
+        A detected pathological loop is not treated as a clean completion and
+        the same load instance is not allowed to serve another request. A
+        controlled unload/switch may still recover or roll back normally.
+        """
+
+        with self._state_lock:
+            if self._state is ModelLifecycleState.GENERATING:
+                self._state = ModelLifecycleState.FAILED
 
     @staticmethod
     def _validate_context(

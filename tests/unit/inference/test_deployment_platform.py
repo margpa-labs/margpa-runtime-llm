@@ -385,7 +385,7 @@ def test_context_limit_is_rejected_before_native_adapter_construction(
     application_path.write_text(
         APPLICATION_PATH.read_text(encoding="utf-8").replace(
             "context_size = 4096",
-            "context_size = 40000",
+            "context_size = 50000",
             1,
         ),
         encoding="utf-8",
@@ -397,7 +397,7 @@ def test_context_limit_is_rejected_before_native_adapter_construction(
     profile_path.write_text(
         PROFILE_PATH.read_text(encoding="utf-8").replace(
             "context_size = 8192",
-            "context_size = 40000",
+            "context_size = 50000",
             1,
         ),
         encoding="utf-8",

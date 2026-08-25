@@ -53,7 +53,8 @@ chat_template_source = "gguf_metadata"
 # reports for any GGUF model it loads — verified by reading that adapter,
 # not assumed. `thinking_control` is satisfied via the soft-switch path
 # (`chat_template.py`'s `hard_switch_supported`): the embedded template was
-# independently confirmed present (2937 bytes) but does not itself contain
+# independently confirmed present (2937 characters / 3127 UTF-8 bytes)
+# but does not itself contain
 # `enable_thinking`, so a live Load will report the soft-switch Warning,
 # not a Load failure.
 required_features = [

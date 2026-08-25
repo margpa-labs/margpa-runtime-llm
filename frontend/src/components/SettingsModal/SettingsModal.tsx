@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { translate } from "../../i18n/translations";
-import type { UiLanguage } from "../../types";
+import type { RuntimeModelStatus, UiLanguage } from "../../types";
 import SettingsPanel, { type SettingsFormState } from "../SettingsPanel";
 import ConfigurationControlPanel, {
   type ConfigurationControlState,
@@ -12,7 +12,9 @@ import RuntimeGovernancePanel, {
 import GuardrailGovernancePanel, {
   type GuardrailGovernanceControlState,
 } from "../GuardrailGovernancePanel";
-import RuntimeModelStatusPanel from "../RuntimeModelStatusPanel";
+import RuntimeModelStatusPanel, {
+  type RuntimeModelControlState,
+} from "../RuntimeModelStatusPanel";
 import FeatureModesPanel from "../FeatureModesPanel";
 import type { GovernanceMode, GuardrailGovernanceMode, MainGovernanceMode } from "../../types";
 
@@ -30,7 +32,6 @@ interface SettingsModalProps {
   configurationBootstrapEnabled: boolean;
   configurationState: ConfigurationControlState;
   onConfigurationRefresh: () => void;
-  onConfigurationPreview: (patch: Record<string, unknown>) => void;
   onConfigurationApply: (researchDeveloperMode: string) => void;
   governanceBootstrapEnabled: boolean;
   governanceState: GovernanceControlState;
@@ -44,6 +45,10 @@ interface SettingsModalProps {
   guardrailGovernanceState: GuardrailGovernanceControlState;
   onGuardrailGovernanceRefresh: () => void;
   onGuardrailGovernanceApply: (requestedMode: GuardrailGovernanceMode) => void;
+  runtimeModelControlBootstrapEnabled: boolean;
+  runtimeModelControlState: RuntimeModelControlState;
+  onRuntimeModelRefresh: () => void;
+  onRuntimeModelStatusChange: (status: RuntimeModelStatus) => void;
 }
 
 type Category = "basic" | "advanced";
@@ -66,7 +71,6 @@ export default function SettingsModal({
   configurationBootstrapEnabled,
   configurationState,
   onConfigurationRefresh,
-  onConfigurationPreview,
   onConfigurationApply,
   governanceBootstrapEnabled,
   governanceState,
@@ -80,13 +84,16 @@ export default function SettingsModal({
   guardrailGovernanceState,
   onGuardrailGovernanceRefresh,
   onGuardrailGovernanceApply,
+  runtimeModelControlBootstrapEnabled,
+  runtimeModelControlState,
+  onRuntimeModelRefresh,
+  onRuntimeModelStatusChange,
 }: SettingsModalProps) {
   const [category, setCategory] = useState<Category>("basic");
-  // The Advanced tab is unconditionally shown: RuntimeModelStatusPanel has
-  // no bootstrap flag of its own (Phase 6: always available, unlike the
-  // Phase 4/5 features below which can be entirely disabled), so it alone
-  // is enough to keep the tab visible even when every other Governance
-  // feature is off.
+  // Advanced remains visible even when a server-side capability marker is
+  // disabled because Feature Modes and future advanced controls still live
+  // in this category. Individual panels remain gated by their bootstrap
+  // marker and never probe a route that the server did not expose.
 
   // Reset to "basic" every time the modal opens, adjusted during render
   // (React's documented pattern for "reset state when a prop changes")
@@ -177,16 +184,6 @@ export default function SettingsModal({
               />
             </div>
             <div hidden={category !== "advanced"}>
-              {configurationBootstrapEnabled ? (
-                <ConfigurationControlPanel
-                  language={language}
-                  visible={true}
-                  state={configurationState}
-                  onRefresh={onConfigurationRefresh}
-                  onPreview={onConfigurationPreview}
-                  onApply={onConfigurationApply}
-                />
-              ) : null}
               {governanceBootstrapEnabled ? (
                 <GovernancePanel
                   language={language}
@@ -214,8 +211,25 @@ export default function SettingsModal({
                   onApply={onGuardrailGovernanceApply}
                 />
               ) : null}
-              <RuntimeModelStatusPanel language={language} visible={category === "advanced"} />
+              {runtimeModelControlBootstrapEnabled ? (
+                <RuntimeModelStatusPanel
+                  language={language}
+                  visible={category === "advanced"}
+                  state={runtimeModelControlState}
+                  onRefresh={onRuntimeModelRefresh}
+                  onStatusChange={onRuntimeModelStatusChange}
+                />
+              ) : null}
               <FeatureModesPanel language={language} visible={category === "advanced"} />
+              {configurationBootstrapEnabled ? (
+                <ConfigurationControlPanel
+                  language={language}
+                  visible={true}
+                  state={configurationState}
+                  onRefresh={onConfigurationRefresh}
+                  onApply={onConfigurationApply}
+                />
+              ) : null}
             </div>
           </div>
         </div>

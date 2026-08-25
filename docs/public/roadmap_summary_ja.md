@@ -5,7 +5,7 @@ document_type: public_roadmap_summary
 document_state: phase_6_interim_checkpoint
 language: ja
 created_at: 2026-08-23
-updated_at: 2026-08-23 23:24 JST
+updated_at: 2026-08-25 09:10 JST
 public_author: Nazuna Research
 project: MARGPA Runtime LLM
 canonical_detailed_roadmap: docs/public/roadmap_ja.md
@@ -24,8 +24,8 @@ MARGPA Runtime LLMは、Model、RAG、Guardrail、Judge、Repair、Agent、Tool�
 | Phase 3 | 完了 | Generic Governance Definition基盤 | Provider、Manifest、Trusted Adapter、Normalized IR、Compiler、Audit／Evidenceを成立 |
 | Phase 4 | 完了 | Main Model Governance | Main Model前後のGovernance Pointと`OFF／OBSERVE／ENFORCE`を実証 |
 | Phase 5 | 完了 | Security／Policy／Authority | Guardrail、Injection検知、Policy、Authority、Approvalを独立Component化 |
-| Phase 6 | 進行中／要修正 | Judge／Repair／Observability・Model制御 | Model切替等は成立。User MacでJudge／Repair Failureを検出しRework待ち |
-| Phase 7 | 計画済み | RAG／Data Governance | Embedding、Index、Retriever、Citation Evidence、Web Search境界を設計・実装予定 |
+| Phase 6 | 進行中／要修正 | Judge／Repair／Observability・Model制御 | Model切替等は成立。GD意味Rule、独立Judge／Guard、RepairをRework予定 |
+| Phase 7 | 計画済み | RAG／Data Governance | Embedding、Retriever、Citation、Web Search、Data Controls、添付規模判定を予定 |
 | Phase 8 | 計画済み | Agent／Tool／Memory／Handoff Governance | Constitutionと実行主体のAuthority／副作用を統治予定 |
 | Phase 9 | 計画済み | Experiment／Multi-Governance研究基盤 | 構成比較、複数Governance競合、Context圧縮・観測を統合予定 |
 | Phase 10以降 | 将来研究 | Hardening／Cloud／External R&D | Audit強化、Cloud、Desktop、複数Model、外部独立R&Dを接続予定 |
@@ -83,19 +83,21 @@ LLM Runtimeの基礎
 ### Phase 6 — Judge／Repair／Model制御
 
 - Qwen既定を維持しながら、起動中のQwen／DeepSeek切替、Context Size、Max New Tokens、Runtime Identity UIを実装。
-- Judge、Repair Budget、Recording／Evidence、Status Projectionを実装候補まで進めた。
-- Conversation、Citation、Branch、二つのBrowser Tab、再起動後Qwen復帰はUser Macで確認済み。
-- 一方、実ChatでJudgeが`malformed_output`となりRepairが成立しなかった。DeepSeek Mac Q4も回答品質Acceptanceを満たさず、Phase 6は完了ではなくRework待ちである。
+- Judge、Repair Budget、Recording／Evidence、停止・Deadline・Late Worker制御を実装し、第9 Rework時点でBackend 1602件、Frontend 221件が合格。
+- Conversation、Citation、Branch、二つのBrowser Tab、再起動後Qwen復帰、StopおよびDeepSeek病的反復防止はUser Macで確認済み。
+- 一方、ARGD／DAGD意味Rule 109件は全件Deferredで、MARGPA Definitionが意味評価へ未接続だった。
+- Current JudgeはMain Model自己評価に留まり、Qwenは誤答を`accept／0.95`、DeepSeekは`malformed_output`、重いCallは`deadline_exceeded`となった。Repair成功経路も再現できていない。
+- Phase 6 Reworkでは、Semantic Rule接続、Selene、Qwen3Guard、Role Provider選択、原因別Failure、Recording相関を成立させる。Phase 6は未完了である。
 
 ### Phase 7〜9 — 知識・行動・比較研究
 
-- Phase 7で本格RAG、Data Source、Retrieval Evidence、Document InjectionおよびWeb Search境界を扱う。
+- Phase 7で本格RAG、Data Source、Retrieval Evidence、Document Injection、Web Search、データコントロールを扱う。冒頭で汎用File Attachmentの規模を判定する。
 - Phase 8でAgent、Tool、Memory、HandoffとMARGPA Constitutionを扱う。
-- Phase 9でModel／GD／RAG／Judge／Repair／Modeの構成差、複数Governance競合、Context圧縮・復旧・観測を研究する。
+- Phase 9でModel／GD／RAG／Judge／Repair／Modeの構成差、複数Governance競合、Progressive ENFORCE、Context圧縮・復旧・右側Trace観測を研究する。
 
 ### Phase 10以降 — Hardeningと外部展開
 
-- Audit改ざん耐性、Cloud／AWS、Lightning更新、Desktop Application、Responsive UIを後続Gateで扱う。
+- Audit改ざん耐性、Cloud／AWS、Lightning更新、Desktop Application、Responsive UI、動画Multimodal、Long Context、Hardware自動適応を後続Gateで扱う。
 - EASA、DLAGSA、OCILNS等の独立R&DはGeneric Port経由で接続する。
 
 ## 開発方法そのものの研究
@@ -119,6 +121,6 @@ Codex／Claude Cross-provider Handoff
 
 ## 現在地
 
-Phase 3〜5は完了。Phase 6は主要実装と自動検証を終えたが、User Mac Manual AcceptanceでJudge／Repairの実不具合を検出したため`進行中／ADJUST`で停止している。次は重大箇所の差分Rework、再Acceptance、Phase 6最小Closureであり、Phase 7はまだ開始していない。
+Phase 3〜5は完了。Phase 6は主要基盤と第7〜9 Reworkを終えたが、User Mac Manual Acceptanceで、MARGPA Semantic Rule 109件の未接続、独立Judge／Guardrail Model未接続、固定TimeoutおよびRepair Golden Path不成立を検出したため`進行中／ADJUST`である。次は中心機能の差分Rework、再Acceptance、Phase 6最小Closureであり、Phase 7はまだ開始していない。
 
 詳細は[Roadmap](roadmap_ja.md)、[Overview](overview_ja.md)、[Concept](concept_ja.md)を参照する。

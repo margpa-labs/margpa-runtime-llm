@@ -79,6 +79,25 @@ class FakeTemplateModel:
         return list(range(max(1, len(text.split()))))
 
 
+class FakeTemplateModelWithSpecialTokens(FakeTemplateModel):
+    def __init__(self, template: str, *, eos_token: str) -> None:
+        super().__init__(template)
+        self._eos_token = eos_token
+
+    def detokenize(
+        self,
+        tokens: list[int],
+        prev_tokens: list[int] | None = None,
+        special: bool = False,
+    ) -> bytes:
+        del prev_tokens
+        if special and tokens == [self.token_eos()]:
+            return self._eos_token.encode("utf-8")
+        if special and tokens == [self.token_bos()]:
+            return b"<bos>"
+        return b""
+
+
 class ClosableNativeIterator:
     def __init__(self, payloads: list[dict[str, Any]]) -> None:
         self._payloads = iter(payloads)
@@ -204,6 +223,37 @@ def test_soft_thinking_switch_is_explicitly_warned() -> None:
     assert not controller.hard_switch_supported
     assert "/no_think" in disabled.prompt
     assert controller.warnings[0].code == "thinking_soft_switch"
+
+
+def test_deepseek_literal_eos_variant_is_normalized_to_tokenizer_bytes() -> None:
+    broken_eos = "<｜end▁of▁sentence｜>"  # noqa: RUF001
+    canonical_eos = "<｜end of sentence｜>"  # noqa: RUF001
+    model = FakeTemplateModelWithSpecialTokens(broken_eos, eos_token=canonical_eos)
+    controller = LlamaCppChatTemplate(cast(Llama, model))
+
+    formatted = controller.format_prompt(
+        (ChatMessage(role=MessageRole.USER, content="hello"),),
+        ThinkingMode.MODEL_DEFAULT,
+    )
+
+    assert broken_eos not in formatted.prompt
+    assert formatted.prompt == canonical_eos
+    assert model.tokenize_calls[-1] == (canonical_eos.encode(), False, True)
+
+
+def test_qwen_eos_without_spaces_is_left_byte_identical() -> None:
+    canonical_eos = "<|im_end|>"
+    template = "{{ eos_token }}"
+    model = FakeTemplateModelWithSpecialTokens(template, eos_token=canonical_eos)
+    controller = LlamaCppChatTemplate(cast(Llama, model))
+
+    formatted = controller.format_prompt(
+        (ChatMessage(role=MessageRole.USER, content="hello"),),
+        ThinkingMode.MODEL_DEFAULT,
+    )
+
+    assert formatted.prompt == canonical_eos
+    assert model.tokenize_calls[-1] == (canonical_eos.encode(), False, True)
 
 
 def test_text_token_counter_uses_loaded_tokenizer_without_adding_bos() -> None:

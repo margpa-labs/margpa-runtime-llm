@@ -31,7 +31,7 @@ def test_context_change_reloads_the_same_model_at_the_new_size() -> None:
 def test_context_change_above_effective_max_is_rejected_without_touching_the_backend() -> None:
     controller, backend = _make_controller()
     initial = controller.snapshot()
-    effective_max = min(initial.model_native_context_limit, initial.backend_context_limit)
+    effective_max = initial.effective_context_limit
 
     with pytest.raises(RuntimeModelContextLimitExceeded) as excinfo:
         controller.request_context_change(
@@ -42,6 +42,40 @@ def test_context_change_above_effective_max_is_rejected_without_touching_the_bac
         )
 
     assert excinfo.value.effective_max_context_size == effective_max
+    assert backend.load_calls == []
+    assert backend.unload_calls == 0
+    assert controller.snapshot() == initial
+
+
+def test_context_change_at_effective_max_minus_one_and_minimum_succeeds() -> None:
+    for requested in (8191, 512):
+        controller, backend = _make_controller()
+        initial = controller.snapshot()
+
+        updated = controller.request_context_change(
+            expected_revision=initial.revision,
+            expected_digest=initial.digest_sha512,
+            transition_id=f"ctx-boundary-{requested}",
+            requested_context_size=requested,
+        )
+
+        assert updated.loaded_context_size == requested
+        assert backend.unload_calls == 1
+
+
+def test_context_change_below_minimum_is_rejected_without_backend_mutation() -> None:
+    controller, backend = _make_controller()
+    initial = controller.snapshot()
+
+    with pytest.raises(RuntimeModelContextLimitExceeded) as excinfo:
+        controller.request_context_change(
+            expected_revision=initial.revision,
+            expected_digest=initial.digest_sha512,
+            transition_id="ctx-below-minimum",
+            requested_context_size=511,
+        )
+
+    assert excinfo.value.minimum_context_size == 512
     assert backend.load_calls == []
     assert backend.unload_calls == 0
     assert controller.snapshot() == initial
@@ -95,6 +129,22 @@ def test_set_max_new_tokens_above_limit_is_rejected() -> None:
 
     assert excinfo.value.max_output_token_limit == initial.max_output_token_limit
     assert controller.snapshot() == initial
+
+
+def test_set_max_new_tokens_accepts_minimum_and_effective_maximum() -> None:
+    for requested in (1, 8191):
+        controller, backend = _make_controller()
+        initial = controller.snapshot()
+
+        updated = controller.set_max_new_tokens(
+            expected_revision=initial.revision,
+            expected_digest=initial.digest_sha512,
+            requested_max_new_tokens=requested,
+        )
+
+        assert updated.current_max_new_tokens == requested
+        assert backend.load_calls == []
+        assert backend.unload_calls == 0
 
 
 def test_set_max_new_tokens_with_stale_cas_is_rejected() -> None:

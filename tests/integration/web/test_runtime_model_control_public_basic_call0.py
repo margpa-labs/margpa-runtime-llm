@@ -305,6 +305,7 @@ async def test_status_degrades_safely_when_not_bound(local_policy: WebAccessPoli
     assert response.status_code == 200
     assert response.json() == {
         "enabled": False,
+        "configured_startup_model_key": None,
         "revision": None,
         "digest_sha512": None,
         "runtime_state": None,
@@ -312,6 +313,10 @@ async def test_status_degrades_safely_when_not_bound(local_policy: WebAccessPoli
         "model_native_context_limit": None,
         "backend_context_limit": None,
         "deployment_verified_context_limit": None,
+        "hardware_verified_context_limit": None,
+        "effective_context_limit": None,
+        "minimum_context_size": None,
+        "context_limit_reason_code": None,
         "max_output_token_limit": None,
         "current_max_new_tokens": None,
         "main_model": None,
@@ -320,6 +325,34 @@ async def test_status_degrades_safely_when_not_bound(local_policy: WebAccessPoli
         "governance_layer": None,
         "available_models": [],
     }
+
+
+@pytest.mark.asyncio
+async def test_index_marks_runtime_model_control_disabled_when_not_bound(
+    local_policy: WebAccessPolicy,
+) -> None:
+    app = create_web_app(runtime_factory=call0_runtime, access_policy=local_policy)
+    async with client_for(app) as client:
+        response = await client.get("/")
+    assert response.status_code == 200
+    assert (
+        '<script id="runtime-model-control-bootstrap" type="application/json">'
+        '{"enabled":false}</script>'
+    ) in response.text
+
+
+@pytest.mark.asyncio
+async def test_index_marks_runtime_model_control_enabled_only_when_bound(
+    local_policy: WebAccessPolicy,
+) -> None:
+    app = create_web_app(runtime_factory=bound_runtime, access_policy=local_policy)
+    async with client_for(app) as client:
+        response = await client.get("/")
+    assert response.status_code == 200
+    assert (
+        '<script id="runtime-model-control-bootstrap" type="application/json">'
+        '{"enabled":true}</script>'
+    ) in response.text
 
 
 @pytest.mark.asyncio

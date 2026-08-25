@@ -88,6 +88,14 @@ def test_judge_model_identity_is_none_when_no_judge_is_bound() -> None:
     assert identity.state is ComponentIdentityState.NONE
 
 
+def test_live_main_self_judge_projects_the_actual_current_main_model() -> None:
+    snapshot = _snapshot(role_bindings=(_main_binding(),))
+    identity = project_judge_model_identity(snapshot=snapshot, main_self_available=True)
+    assert identity.model_key == snapshot.selected_model_key
+    assert identity.independence_class is JudgeIndependenceClass.MAIN_SELF
+    assert identity.state is ComponentIdentityState.ACTIVE
+
+
 def test_judge_model_identity_reports_active_when_bound_and_independent() -> None:
     judge_binding = RoleBinding(
         role=ModelRole.JUDGE,
