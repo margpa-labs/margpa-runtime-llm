@@ -5,7 +5,7 @@ document_type: public_technology_selection
 document_state: phase_6_interim_checkpoint
 language: ja
 created_at: 2026-08-23
-updated_at: 2026-08-23 23:24 JST
+updated_at: 2026-08-25 16:21:55 JST
 public_author: Nazuna Research
 project: MARGPA Runtime LLM
 current_phase: phase_6_in_progress_adjust
@@ -41,9 +41,14 @@ MARGPA Runtime LLMは特定Model、Cloud、Vector StoreまたはAgent Framework�
 ### DeepSeek-R1-0528-Qwen3-8B GGUF Q4_K_M
 
 - Official Hugging Face SnapshotからProject外Model領域へ取得し、Q8_0 Intermediate経由でQ4_K_Mを作成。
-- Runtime Load、Qwen→DeepSeek→Qwen、会話継続および再起動後Qwen復帰は成立。
-- ただしQ8_0からの再量子化品質Caveatがあり、User Mac実Chatでは明白な誤答と訂正拒否を確認した。
-- 現時点ではResearch Candidateであり、Default／Current Promotionおよび実用品質Acceptanceは不採用。
+- User MacでのRuntime Load、Qwen→DeepSeek→Qwen、会話継続および再起動後Qwen復帰は成立し、起動中に選択・利用できる。
+- User Mac実Chatでは明白な誤答、訂正拒否、不安定な回答を確認している。ただし、原因は
+  Model固有品質、Q8_0からの再量子化Caveat、Chat Template／Generation設定／Local Runtime、および
+  未完成のGovernance／Judge／Repair／RAGの影響を分離できていない。
+- 現時点の位置付けは、**Macで選択・利用できる仮使用Model／Research Candidate**である。Startup Defaultは
+  Qwenを維持するが、DeepSeekを使用不可または改善不能と判定したものではない。
+- Phase 6のSemantic Governance／Dedicated Judge／Guard、Phase 7のRAG／Web Search、および後続のRuntime／Artifact比較による
+  改善・原因切り分け後に、Default昇格と実用品質Acceptanceを再判定する。
 
 ### DeepSeek-V4-Flash-0731
 
@@ -51,11 +56,25 @@ MARGPA Runtime LLMは特定Model、Cloud、Vector StoreまたはAgent Framework�
 - Mac Localでの実用Load対象には大きすぎるため、Local Currentへ昇格しない。
 - AWS／GPU Server／Backend／Cost Gate成立後に再評価する。
 
+### DeepSeek-V4-Pro-0813
+
+- `deepseek-ai/DeepSeek-V4-Pro-0813`を、DeepSeek-V4-Flash-0731より上位の将来比較Candidate／
+  Research-only Ceilingとして保持する。
+- Official Repositoryは確認済みだが、現ProjectではModel Download、Local Load、Conversion／Quantization、
+  Benchmark、Current Promotionを行っていない。
+- Mac Localの実用対象とはせず、大規模GPU Server／Cloud、vLLM／SGLang等のBackend、Resource／Cost／
+  License／Security Gate成立後に、Flash、他ModelおよびGovernance構成と比較する。
+
 ### Guard／Judge Model
 
-- Current Guardは専用Modelを持たず、Rule／Pattern Base Detectorを採用。
-- Current LLM-as-a-Judgeは専用Artifact未採用。Phase 6ではMain ModelのRole-separated `main_self`実験を行ったが、実ChatでStructured Output Failureを検出しRework待ち。
-- Candidate名だけでCurrent／Availableと表示しない。
+- Current GuardはRule／Pattern Base Detector。専用Guardとして
+  `Qwen.Qwen3Guard-Gen-0.6B.Q8_0.gguf`のLocal Artifactは取得済みで、Phase 6 Remaining Reworkで
+  Runtime Adapter、Provider選択、`OFF／OBSERVE／ENFORCE`、品質／Latency Gateへ接続する。
+- Current LLM-as-a-JudgeはMain Modelを使うRole-separated `main_self`。専用Judgeとして
+  `Selene-1-Mini-Llama-3.1-8B-Q5_K_M.gguf`のLocal Artifactは取得済みで、Phase 6 Remaining Reworkで
+  Dedicated Judge Adapter、Provider選択、Semantic Rule評価、Repair後再評価へ接続する。
+- 両Artifactは既に実装対象として選定済みであり、無期限にCurrent構成のまま維持する計画ではない。
+  ただし、Runtime接続とUser Mac Acceptance前にCurrent／Active／Availableとは表示しない。
 
 ## 4. Architecture選定
 
@@ -84,15 +103,15 @@ MARGPA Runtime LLMは特定Model、Cloud、Vector StoreまたはAgent Framework�
 | LangChain／LangGraph | 未採用 | Current Domain／Portで必要契約を明示実装。Agent／Workflow要件成立後に便益を再評価 |
 | LlamaIndex | 未採用 | Phase 2 Previewには過剰。Phase 7のCorpus／Index要件と比較して判断 |
 | FAISS／Chroma／Qdrant | 未採用 | 本格Embedding／Vector StoreはPhase 7 Scope。規模、Persistence、Filter、運用Costで比較予定 |
-| Dedicated Guard Model | 未採用 | Deterministic GuardをBaseline化。Exact Artifact／Quality／Latency Gate前にCurrentを捏造しない |
-| Dedicated Judge Model | 未採用 | Candidate未Acceptance。まずMain-self Judge／Repair Contractを安定化する |
-| DeepSeek Mac Q4のDefault昇格 | 不採用 | Load／Switchは成立したが、Current User Mac回答品質が実用Acceptanceを満たさない |
-| DeepSeek V4のMac Local Load | 不採用 | Artifact規模とMac Resource条件が不適合。Server／Cloud候補として保持 |
+| `Qwen.Qwen3Guard-Gen-0.6B.Q8_0.gguf`のCurrent Guard昇格 | Local Artifact取得済み／Phase 6 Rework接続予定／Current未昇格 | Dedicated Guard候補として選定済み。Runtime Adapter、Provider Lifecycle、Quality／Latency／User Mac Acceptance前にCurrentを捏造しない |
+| `Selene-1-Mini-Llama-3.1-8B-Q5_K_M.gguf`のCurrent Judge昇格 | Local Artifact取得済み／Phase 6 Rework接続予定／Current未昇格 | Dedicated Judge候補として選定済み。Structured Output、Semantic Rule評価、Repair後再評価、Resource／User Mac Acceptance前にCurrentを捏造しない |
+| DeepSeek Mac Q4のDefault昇格 | 現時点で保留／Macで使える仮使用Model | Load／Switch／会話継続は成立。現在の回答は不安定だが、量子化、Runtime、Governance、Judge／Repair、RAGの原因切り分けが未完了のため、改善不能または最終不採用とは判定しない |
+| DeepSeek-V4-Flash-0731／DeepSeek-V4-Pro-0813のMac Local Load | 不採用 | Artifact規模とMac Resource条件が不適合。FlashはServer／Cloud候補、Proはその上位のResearch-only Ceilingとして保持 |
 | Public Conversation Persistence | 未採用 | Privacy、Ownership、Authentication、Retention、Costを明示Gateなしで有効化しない |
 | Online Learning | 未採用 | User Conversationから暗黙にWeight更新しない。Trainingは独立Dataset／Run／Approvalで扱う |
 
 ## 7. Current Status
 
-Phase 3 Generic Definition、Phase 4 Main Governance、Phase 5 Guardrail／Policy／AuthorityはAccepted。Phase 6のModel切替、Runtime Identity、Recording等は実装候補まで進んだが、User MacでJudge `malformed_output`とRepair未成立を確認したため、Phase 6全体は`進行中／ADJUST`である。
+Phase 3 Generic Definition、Phase 4 Main Governance、Phase 5 Guardrail／Policy／AuthorityはAccepted。Phase 6のModel切替、Runtime Identity、Recording等は実装済みで、Repair実行・採用経路もUser Macで一度観測した。一方、修復後回答は依然として誤っており、ARGD／DAGD Semantic Ruleは未接続、Current JudgeはMain-self、Dedicated Guard／JudgeはRuntime未接続である。そのためPhase 6全体は`進行中／ADJUST`である。
 
 本書はPhase 6途中CheckpointのPublic要約であり、Phase 9 Closure時にSource、Lockfile、Model Definition、RAG、Agent／Tool、Experiment Runtime、採用／不採用Decisionを再Inventoryして更新する。
