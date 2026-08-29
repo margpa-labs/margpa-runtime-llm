@@ -220,7 +220,8 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help=(
             "Enable loopback-only Phase 6 Judge/Repair/Recording Mode toggles "
-            "(Default Mode off for all three; no live Generation-path effect)"
+            "(Default Mode off for all three; OBSERVE/ENFORCE Judge and Repair "
+            "do call the live Generation path — P6-RR-P-WU-005)"
         ),
     )
     return parser

@@ -27,6 +27,7 @@ from pydantic import BaseModel, ConfigDict
 from margpa_runtime_llm.modules.runtime_governance.domain import (
     MAIN_MODEL_POST_POINT_ID,
     MAIN_MODEL_PRE_POINT_ID,
+    Observation,
     ObservationOutcome,
 )
 
@@ -34,7 +35,6 @@ from .contracts import WebRuntime
 
 if TYPE_CHECKING:
     from margpa_runtime_llm.bootstrap.runtime_governance import RuntimeGovernanceComposition
-    from margpa_runtime_llm.modules.runtime_governance.domain import StandardGovernanceResult
 
 RUNTIME_GOVERNANCE_API_PREFIX = "/api/v3/runtime-governance"
 
@@ -68,6 +68,7 @@ class GovernancePointStatusResponse(_RuntimeGovernanceContract):
     observation_count: int | None = None
     pass_count: int | None = None
     deviation_count: int | None = None
+    unknown_count: int | None = None
     deferred_count: int | None = None
 
 
@@ -92,25 +93,27 @@ class MainGovernanceStatusResponse(_RuntimeGovernanceContract):
     evidence: GovernanceEvidenceStatusResponse | None = None
 
 
-def _observation_summary(result: StandardGovernanceResult) -> tuple[int, int, int, int]:
-    """One-pass, non-re-evaluating Count over the already-computed
-    `result.observations` — `pass_count`/`deviation_count`/
-    `deferred_count` only ever increment on an exact known
+def _observation_summary(observations: tuple[Observation, ...]) -> tuple[int, int, int, int, int]:
+    """One-pass, non-re-evaluating Count over an already-computed
+    Observation set — each count only ever increments on an exact known
     `ObservationOutcome` match; an Outcome this projection doesn't
     recognize (e.g. a future addition) still counts toward the Total but
-    is never folded into `pass_count` (P4-CODEX-013 §3.3 Security)."""
+    is never folded into a specific bucket (P4-CODEX-013 §3.3 Security)."""
 
     pass_count = 0
     deviation_count = 0
+    unknown_count = 0
     deferred_count = 0
-    for observation in result.observations:
+    for observation in observations:
         if observation.outcome is ObservationOutcome.PASS:
             pass_count += 1
         elif observation.outcome is ObservationOutcome.DEVIATION:
             deviation_count += 1
+        elif observation.outcome is ObservationOutcome.UNKNOWN:
+            unknown_count += 1
         elif observation.outcome is ObservationOutcome.DEFERRED_TO_SEMANTIC_EVALUATOR:
             deferred_count += 1
-    return len(result.observations), pass_count, deviation_count, deferred_count
+    return len(observations), pass_count, deviation_count, unknown_count, deferred_count
 
 
 def _point_status(
@@ -119,7 +122,32 @@ def _point_status(
     result = composition.last_result_for(point_id=point_id)
     if result is None:
         return GovernancePointStatusResponse(point_id=point_id)
-    observation_count, pass_count, deviation_count, deferred_count = _observation_summary(result)
+    observations = result.observations
+    if point_id == MAIN_MODEL_POST_POINT_ID:
+        # P6-RR-R3-WU-006 (Post-Claude Independent Review Rework, resolves
+        # part of P6-CODEX-064 / N-WU-004): `result.observations` here is
+        # the Structural-only set frozen at Post-hook time — it never
+        # updates again, so a Deferred-to-Semantic-Evaluator placeholder
+        # stayed Deferred forever even after real Semantic evaluation
+        # completed (P6-GOV-017's "Deferred (semantic evaluation pending) 109" that never
+        # resolves). `SemanticRuntimeCoordinator.latest_evidence()` already
+        # guards against a late/stale Turn overwriting a newer one
+        # internally (`record_response()`'s own request_id/generation
+        # check) — using its `merged_observations` here, only for the
+        # POST Point (Semantic Criteria evaluate the Candidate Answer,
+        # which does not exist yet at PRE time — PRE's own Deferred count
+        # is an honest, permanent reflection of that ordering, not a bug),
+        # projects the real outcome once available instead of the frozen
+        # placeholder. `latest_evidence() is None` (not yet recorded, or
+        # the previous Turn's Dispatch was preempted/cancelled before
+        # recording) falls back to the Structural-only set exactly as
+        # before this Rework — never a fabricated or stale substitution.
+        evidence = composition.semantic_runtime.latest_evidence()
+        if evidence is not None:
+            observations = evidence.merged_observations
+    observation_count, pass_count, deviation_count, unknown_count, deferred_count = (
+        _observation_summary(observations)
+    )
     return GovernancePointStatusResponse(
         point_id=point_id,
         execution_state=result.execution_state.value,
@@ -133,6 +161,7 @@ def _point_status(
         observation_count=observation_count,
         pass_count=pass_count,
         deviation_count=deviation_count,
+        unknown_count=unknown_count,
         deferred_count=deferred_count,
     )
 

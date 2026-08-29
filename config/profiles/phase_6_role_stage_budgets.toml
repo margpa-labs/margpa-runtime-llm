@@ -1,0 +1,43 @@
+schema_version = "1"
+
+[[profiles]]
+profile_id = "local_macos_main_self_judge_v1"
+role = "judge"
+provider_id = "main.self"
+hardware_profile = "local.macos-arm64.metal"
+verification_state = "configured_not_hardware_verified"
+load_budget_ms = 180000
+prompt_build_budget_ms = 5000
+inference_budget_ms = 120000
+decode_budget_ms = 5000
+repair_generation_budget_ms = 180000
+rejudge_budget_ms = 120000
+cancel_grace_ms = 10000
+
+[[profiles]]
+profile_id = "local_macos_selene_judge_v1"
+role = "judge"
+provider_id = "judge.selene-1-mini-llama-3.1-8b-q5-k-m"
+hardware_profile = "local.macos-arm64.metal"
+verification_state = "configured_not_hardware_verified"
+load_budget_ms = 180000
+prompt_build_budget_ms = 5000
+inference_budget_ms = 120000
+decode_budget_ms = 5000
+repair_generation_budget_ms = 180000
+rejudge_budget_ms = 120000
+cancel_grace_ms = 10000
+
+[[profiles]]
+profile_id = "local_macos_qwen3guard_v1"
+role = "guard"
+provider_id = "guard.qwen3guard-gen-0.6b-q8-0"
+hardware_profile = "local.macos-arm64.metal"
+verification_state = "configured_not_hardware_verified"
+load_budget_ms = 180000
+prompt_build_budget_ms = 5000
+inference_budget_ms = 120000
+decode_budget_ms = 5000
+repair_generation_budget_ms = 180000
+rejudge_budget_ms = 120000
+cancel_grace_ms = 10000

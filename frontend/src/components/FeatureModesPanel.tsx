@@ -69,9 +69,12 @@ export default function FeatureModesPanel({ language, visible }: FeatureModesPan
   };
 
   useEffect(() => {
-    if (visible) {
-      runFetch();
-    }
+    if (!visible) return;
+    runFetch();
+    const intervalId = window.setInterval(runFetch, 2_000);
+    return () => {
+      window.clearInterval(intervalId);
+    };
   }, [visible]);
 
   if (!visible) {
@@ -163,75 +166,103 @@ export default function FeatureModesPanel({ language, visible }: FeatureModesPan
     }
   };
 
-  const renderJudgeStatus = (judge: JudgeModeSnapshot) => (
-    <div id="feature-modes-judge-status" className="configuration-result">
+  const renderJudgeStatus = (judge: JudgeModeSnapshot) => {
+    const historical = judge.last_result === null && judge.historical_last_result != null;
+    const lastResult = judge.last_result ?? judge.historical_last_result ?? null;
+    return (
+      <div id="feature-modes-judge-status" className="configuration-result">
       <p id="feature-modes-judge-state">
         {translate(language, "featureModesJudgeStateLabel")}:{" "}
         {translate(language, judgeStateKey(judge.state))}
       </p>
-      {judge.last_result === null ? null : (
+      {lastResult === null ? null : (
         <div id="feature-modes-judge-last-result">
           <p>
             {translate(language, "featureModesJudgeResultLabel")}
-            {/* P6-CODEX-020 (Third Rework): staleness is judged by comparing
-                Request Identity, not by `state === "running"` alone —
-                `queued_or_skipped` can just as validly leave `last_result`
-                referring to an earlier, different Turn. */}
-            {judge.current_request_id !== judge.last_result.request_id
+            {historical || judge.current_request_id !== lastResult.request_id
               ? ` ${translate(language, "featureModesJudgeResultStale")}`
               : ""}
           </p>
           <ul>
+            <li>Request ID: {lastResult.request_id}</li>
             <li>
-              {translate(language, "featureModesJudgeRecommendation")}: {judge.last_result.recommendation}
+              {translate(language, "featureModesJudgeRecommendation")}: {lastResult.recommendation}
             </li>
             <li>
               {translate(language, "featureModesJudgeConfidence")}:{" "}
-              {judge.last_result.confidence.toFixed(2)}
+              {lastResult.confidence.toFixed(2)}
             </li>
             <li>
-              {translate(language, "featureModesJudgeExecutionState")}: {judge.last_result.execution_state}
+              {translate(language, "featureModesJudgeExecutionState")}: {lastResult.execution_state}
             </li>
-            {judge.last_result.failure_reason === null ? null : (
+            {lastResult.started_at == null ? null : <li>Started: {lastResult.started_at}</li>}
+            {lastResult.completed_at == null ? null : <li>Completed: {lastResult.completed_at}</li>}
+            <li>Configured Provider: {lastResult.configured_provider ?? "none"}</li>
+            <li>Active Provider: {lastResult.active_provider ?? "none"}</li>
+            <li>Executed Provider: {lastResult.executed_provider ?? "none"}</li>
+            {lastResult.budget_profile == null ? null : (
+              <li>Budget: {lastResult.budget_profile}</li>
+            )}
+            {lastResult.frozen_judge_mode == null ? null : (
               <li>
-                {translate(language, "featureModesJudgeFailureReason")}: {judge.last_result.failure_reason}
+                Frozen Modes: main={lastResult.frozen_main_mode ?? "unknown"}, guard=
+                {lastResult.frozen_guard_mode ?? "unknown"}, judge={lastResult.frozen_judge_mode},
+                repair={lastResult.frozen_repair_mode ?? "off"}, recording=
+                {lastResult.recording_mode ?? "off"}
               </li>
             )}
-            {judge.last_result.repair_eligibility === null ? null : (
+            {lastResult.criteria_selected === undefined ? null : (
               <li>
-                {translate(language, "featureModesRepairEligibility")}: {judge.last_result.repair_eligibility}
+                Criteria: selected={lastResult.criteria_selected}, evaluated=
+                {lastResult.criteria_evaluated ?? 0}, passed={lastResult.criteria_passed ?? 0},
+                deviated={lastResult.criteria_deviated ?? 0}, unknown=
+                {lastResult.criteria_unknown ?? 0}, not_applicable=
+                {lastResult.criteria_not_applicable ?? 0}, deferred=
+                {lastResult.criteria_deferred ?? 0}
               </li>
             )}
-            {judge.last_result.repair_outcome === null ? null : (
+            {lastResult.failure_reason === null ? null : (
               <li>
-                {translate(language, "featureModesRepairOutcome")}: {judge.last_result.repair_outcome}
+                {translate(language, "featureModesJudgeFailureReason")}: {lastResult.failure_reason}
               </li>
             )}
-            {judge.last_result.repair_accepted === null ? null : (
+            {lastResult.failure_message == null ? null : <li>{lastResult.failure_message}</li>}
+            {lastResult.repair_eligibility === null ? null : (
+              <li>
+                {translate(language, "featureModesRepairEligibility")}: {lastResult.repair_eligibility}
+              </li>
+            )}
+            {lastResult.repair_outcome === null ? null : (
+              <li>
+                {translate(language, "featureModesRepairOutcome")}: {lastResult.repair_outcome}
+              </li>
+            )}
+            {lastResult.repair_accepted === null ? null : (
               <li>
                 {translate(language, "featureModesRepairAccepted")}:{" "}
-                {String(judge.last_result.repair_accepted)}
+                {String(lastResult.repair_accepted)}
               </li>
             )}
-            {judge.last_result.repair_new_turn_id === null ? null : (
+            {lastResult.repair_new_turn_id === null ? null : (
               <li>
-                {translate(language, "featureModesRepairNewTurn")}: {judge.last_result.repair_new_turn_id}
+                {translate(language, "featureModesRepairNewTurn")}: {lastResult.repair_new_turn_id}
               </li>
             )}
-            {judge.last_result.presentation_outcome === undefined ||
-            judge.last_result.presentation_outcome === null ? null : (
+            {lastResult.presentation_outcome === undefined ||
+            lastResult.presentation_outcome === null ? null : (
               <li>
-                {translate(language, "featureModesPresentationOutcome")}: {judge.last_result.presentation_outcome}
+                {translate(language, "featureModesPresentationOutcome")}: {lastResult.presentation_outcome}
               </li>
             )}
-            {judge.last_result.candidate_withheld ? (
+            {lastResult.candidate_withheld ? (
               <li>{translate(language, "featureModesCandidateWithheld")}</li>
             ) : null}
           </ul>
         </div>
       )}
-    </div>
-  );
+      </div>
+    );
+  };
 
   const renderRecordingOutcome = (
     idPrefix: string,
@@ -245,8 +276,82 @@ export default function FeatureModesPanel({ language, visible }: FeatureModesPan
         : outcome.ok
           ? translate(language, "featureModesRecordingOutcomeOk")
           : `${translate(language, "featureModesRecordingOutcomeDegraded")} (${outcome.degraded_reason ?? ""})`}
+      {outcome === null ? "" : ` [${outcome.request_id}]`}
     </p>
   );
+
+  const renderRecordingCorrelation = () => {
+    if (status === null) return null;
+    const judge = status.judge;
+    const result = judge.last_result;
+    const derivedRequestId =
+      result !== null && judge.current_request_id === result.request_id ? result.request_id : null;
+    const correlation = status.recording.correlation;
+    const requestId = correlation?.request_id ?? derivedRequestId;
+    const turnOutcome = status.recording.last_outcome;
+    const evidenceOutcome = status.recording.judge_evidence_last_outcome;
+    const turnCurrent = correlation?.current_turn ?? (
+      turnOutcome !== null && turnOutcome.request_id === requestId ? turnOutcome : null
+    );
+    const evidenceCurrent = correlation?.current_judge_evidence ?? (
+      evidenceOutcome !== null && evidenceOutcome.request_id === requestId ? evidenceOutcome : null
+    );
+    const unmatched = [
+      turnOutcome !== null && turnOutcome.request_id !== requestId
+        ? { kind: "turn" as const, outcome: turnOutcome }
+        : null,
+      evidenceOutcome !== null && evidenceOutcome.request_id !== requestId
+        ? { kind: "judge_evidence" as const, outcome: evidenceOutcome }
+        : null,
+    ].filter(
+      (
+        item,
+      ): item is {
+        kind: "turn" | "judge_evidence";
+        outcome: RecordingOutcome;
+      } => item !== null,
+    );
+    const current = correlation?.current ?? null;
+    return (
+      <div id="feature-modes-recording-correlation-summary" className="configuration-result">
+        <p id="feature-modes-recording-correlation-request">
+          Request ID: {requestId ?? "none"}
+        </p>
+        {current === null ? null : (
+          <p id="feature-modes-recording-correlation-status">
+            Status: {current.status}
+            {current.started_at ? ` (started ${current.started_at})` : ""}
+            {current.completed_at ? ` (completed ${current.completed_at})` : ""}
+          </p>
+        )}
+        {renderRecordingOutcome(
+          "feature-modes-recording-turn-outcome",
+          "featureModesRecordingLastOutcomeLabel",
+          turnCurrent,
+        )}
+        {renderRecordingOutcome(
+          "feature-modes-recording-judge-evidence-outcome",
+          "featureModesJudgeEvidenceOutcomeLabel",
+          evidenceCurrent,
+        )}
+        {unmatched.length === 0 ? null : (
+          <ul id="feature-modes-recording-unmatched">
+            {unmatched.map(({ kind, outcome }) => (
+              <li key={`${kind}:${outcome.request_id}:${outcome.degraded_reason ?? "ok"}`}>
+                {translate(
+                  language,
+                  kind === "turn"
+                    ? "featureModesHistoricalTurnRecording"
+                    : "featureModesHistoricalJudgeEvidenceRecording",
+                )}
+                : {outcome.request_id}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+  };
 
   return (
     <section
@@ -294,16 +399,7 @@ export default function FeatureModesPanel({ language, visible }: FeatureModesPan
             status.recording.current_mode,
             applyRecordingMode,
           )}
-          {renderRecordingOutcome(
-            "feature-modes-recording-turn-outcome",
-            "featureModesRecordingLastOutcomeLabel",
-            status.recording.last_outcome,
-          )}
-          {renderRecordingOutcome(
-            "feature-modes-recording-judge-evidence-outcome",
-            "featureModesJudgeEvidenceOutcomeLabel",
-            status.recording.judge_evidence_last_outcome,
-          )}
+          {renderRecordingCorrelation()}
           <pre id="feature-modes-result" className="configuration-result" aria-live="polite">
             {resultText}
           </pre>

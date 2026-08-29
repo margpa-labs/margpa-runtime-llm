@@ -16,6 +16,9 @@ existing structural IR until their own Typed Adapter exists.
 
 from __future__ import annotations
 
+import hashlib
+import json
+
 from margpa_runtime_llm.modules.runtime_governance.domain import (
     EvaluationMethod,
     ExecutionDescriptor,
@@ -24,11 +27,26 @@ from margpa_runtime_llm.modules.runtime_governance.domain import (
 _MAX_SUMMARY_CHARS = 500
 
 
-def build_argd_dagd_descriptors(content: dict[str, object]) -> tuple[ExecutionDescriptor, ...]:
-    return (*_argd_descriptors(content), *_dagd_descriptors(content))
+def build_argd_dagd_descriptors(
+    content: dict[str, object], *, source_definition_digest_sha512: str | None = None
+) -> tuple[ExecutionDescriptor, ...]:
+    source_digest = (
+        source_definition_digest_sha512
+        or hashlib.sha512(
+            json.dumps(content, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode(
+                "utf-8"
+            )
+        ).hexdigest()
+    )
+    return (
+        *_argd_descriptors(content, source_definition_digest_sha512=source_digest),
+        *_dagd_descriptors(content, source_definition_digest_sha512=source_digest),
+    )
 
 
-def _argd_descriptors(content: dict[str, object]) -> tuple[ExecutionDescriptor, ...]:
+def _argd_descriptors(
+    content: dict[str, object], *, source_definition_digest_sha512: str
+) -> tuple[ExecutionDescriptor, ...]:
     argd = content.get("argd")
     if not isinstance(argd, dict):
         return ()
@@ -57,6 +75,10 @@ def _argd_descriptors(content: dict[str, object]) -> tuple[ExecutionDescriptor, 
                         "$.argd.axiomatic_reasoning_governance_definition."
                         f"response_generation_priorities.{section_key}[{index}]"
                     ),
+                    source_definition_digest_sha512=source_definition_digest_sha512,
+                    source_text_digest_sha512=hashlib.sha512(
+                        rule_content.encode("utf-8")
+                    ).hexdigest(),
                     domain_tag=tag if isinstance(tag, str) and tag else None,
                     summary=rule_content[:_MAX_SUMMARY_CHARS],
                     evaluation_method=EvaluationMethod.REQUIRES_SEMANTIC_EVALUATOR,
@@ -65,7 +87,9 @@ def _argd_descriptors(content: dict[str, object]) -> tuple[ExecutionDescriptor, 
     return tuple(descriptors)
 
 
-def _dagd_descriptors(content: dict[str, object]) -> tuple[ExecutionDescriptor, ...]:
+def _dagd_descriptors(
+    content: dict[str, object], *, source_definition_digest_sha512: str
+) -> tuple[ExecutionDescriptor, ...]:
     dagd = content.get("dagd")
     if not isinstance(dagd, dict):
         return ()
@@ -93,6 +117,8 @@ def _dagd_descriptors(content: dict[str, object]) -> tuple[ExecutionDescriptor, 
                         "$.dagd.declarative_ai_governance_definition."
                         f"constraints.prohibited_behaviors.{group_key}[{index}]"
                     ),
+                    source_definition_digest_sha512=source_definition_digest_sha512,
+                    source_text_digest_sha512=hashlib.sha512(behavior.encode("utf-8")).hexdigest(),
                     domain_tag=group_key,
                     summary=f"prohibited behavior: {behavior}"[:_MAX_SUMMARY_CHARS],
                     evaluation_method=EvaluationMethod.REQUIRES_SEMANTIC_EVALUATOR,

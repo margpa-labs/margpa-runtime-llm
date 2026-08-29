@@ -127,6 +127,9 @@ describe("RuntimeModelStatusPanel", () => {
     expect(screen.getByText("Effective Context Maximum").nextElementSibling?.textContent).toBe(
       "8192",
     );
+    expect(screen.getByText("Current Guardrail Model").nextElementSibling?.textContent).toBe(
+      "Not configured",
+    );
     expect(document.querySelector("#runtime-model-context-input")).toHaveAttribute("min", "512");
     expect(document.querySelector("#runtime-model-context-input")).toHaveAttribute("max", "8192");
   });

@@ -30,6 +30,13 @@ class JudgeIndependenceClass(StrEnum):
     SHARED_ARTIFACT = "shared_artifact"
     INDEPENDENT_ARTIFACT = "independent_artifact"
     UNAVAILABLE = "unavailable"
+    # P6-RR-N-WU-001 (Production Wiring Delta): Built-in Deterministic is not
+    # a Model at all (zero LLM Calls) — reporting it as MAIN_SELF or
+    # INDEPENDENT_ARTIFACT would misidentify a real Model Judge that never
+    # ran (P6-CODEX-047). Additive member; every existing branch over this
+    # enum already falls through an explicit `else`/default, so this alone
+    # changes no prior behavior.
+    BUILT_IN = "built_in"
 
 
 class JudgeFailureReason(StrEnum):
@@ -40,6 +47,20 @@ class JudgeFailureReason(StrEnum):
     MALFORMED_OUTPUT = "malformed_output"
     MODEL_SWITCH_CONFLICT = "model_switch_conflict"
     COST_LIMIT_EXCEEDED = "cost_limit_exceeded"
+
+
+class JudgeCriterionDisposition(StrEnum):
+    PASS = "pass"
+    DEVIATION = "deviation"
+    UNKNOWN = "unknown"
+
+
+class JudgeCriterionResult(ImmutableContract):
+    criterion_id: str = Field(min_length=1, max_length=192)
+    disposition: JudgeCriterionDisposition
+    confidence: float = Field(ge=0.0, le=1.0)
+    reason_code: str | None = Field(default=None, max_length=128)
+    evidence_refs: tuple[str, ...] = Field(default_factory=tuple, max_length=32)
 
 
 class LlmJudgeRequest(ImmutableContract):
@@ -67,6 +88,7 @@ class LlmJudgeResponse(ImmutableContract):
     malformed `reasoning` value never fails the decode) — it exists to carry
     human/Repair-readable context, not to gate acceptance."""
     dimension_results: tuple[DimensionResult, ...] = ()
+    criterion_results: tuple[JudgeCriterionResult, ...] = ()
     token_usage: int = Field(ge=0)
     latency_ms: int = Field(ge=0)
     cost_estimate: float | None = Field(default=None, ge=0.0)

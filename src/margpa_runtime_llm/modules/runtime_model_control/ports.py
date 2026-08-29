@@ -5,6 +5,9 @@ from typing import Protocol, runtime_checkable
 
 from margpa_runtime_llm.modules.inference.domain.model_definition import ModelDefinition
 
+from .domain.identifiers import ModelRole
+from .domain.provider_selection import ProviderOption
+
 
 @dataclass(frozen=True, slots=True)
 class CapabilityProbeResult:
@@ -93,3 +96,27 @@ class ModelDefinitionResolverPort(Protocol):
         available_models()` — the Runtime Switch surface a user picks a
         target `model_key` from)."""
         ...
+
+
+@runtime_checkable
+class RoleProviderAdapterPort(Protocol):
+    @property
+    def provider_id(self) -> str: ...
+
+    def preflight(self) -> tuple[bool, str | None]: ...
+
+    def load(self) -> None: ...
+
+    def unload(self) -> None: ...
+
+
+@runtime_checkable
+class RoleAdapterFactoryPort(Protocol):
+    def create(self, *, role: ModelRole, option: ProviderOption) -> RoleProviderAdapterPort: ...
+
+
+@runtime_checkable
+class RoleResourceGatePort(Protocol):
+    def allow_activation(
+        self, *, role: ModelRole, option: ProviderOption
+    ) -> tuple[bool, str | None]: ...

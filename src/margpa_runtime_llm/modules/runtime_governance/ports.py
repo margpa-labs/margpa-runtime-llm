@@ -10,7 +10,14 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
-from .domain import BudgetSnapshot, ExecutedAction, ExecutionDescriptor, Observation
+from .domain import (
+    BudgetSnapshot,
+    ExecutedAction,
+    ExecutionDescriptor,
+    Observation,
+    SemanticEvaluationRequest,
+    SemanticEvaluationResponse,
+)
 
 
 @runtime_checkable
@@ -47,3 +54,10 @@ class ActionAdapterPort(Protocol):
     fault may raise, and callers must never record that as success."""
 
     def execute(self, *, action_id: str, point_id: str, stage: str) -> ExecutedAction: ...
+
+
+@runtime_checkable
+class SemanticEvaluatorPort(Protocol):
+    """Evaluates normalized criteria with one explicitly selected provider."""
+
+    def evaluate(self, *, request: SemanticEvaluationRequest) -> SemanticEvaluationResponse: ...

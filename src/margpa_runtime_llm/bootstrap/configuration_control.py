@@ -19,9 +19,22 @@ from margpa_runtime_llm.modules.configuration_control import (
     RecordingHookDescriptor,
     ResearchDeveloperMode,
 )
+from margpa_runtime_llm.modules.evaluation.application.judge_mode_controller import (
+    JudgeModeController,
+)
 from margpa_runtime_llm.modules.governance_definitions.domain import GovernanceMode
 from margpa_runtime_llm.modules.governance_definitions.runtime import (
     GovernanceDefinitionsRuntime,
+)
+from margpa_runtime_llm.modules.runtime_model_control.application.role_lifecycle_manager import (
+    ModeReadResult,
+    RoleProviderLifecycleManager,
+)
+from margpa_runtime_llm.modules.runtime_model_control.domain.identifiers import ModelRole
+from margpa_runtime_llm.modules.runtime_model_control.domain.provider_selection import (
+    ProviderRuntimeState,
+    ProviderSelectionError,
+    ProviderSelectionErrorCode,
 )
 from margpa_runtime_llm.web.access_profiles import DocumentationRagEffectiveState
 
@@ -94,10 +107,71 @@ class _GuardrailGovernanceModeApplierAdapter:
     Adapter is the *only* caller of `apply_mode()` this Composition Root
     wires — no separate direct-Apply route exists alongside it."""
 
-    def __init__(self, composition: GuardrailGovernanceComposition) -> None:
+    def __init__(
+        self,
+        composition: GuardrailGovernanceComposition,
+        role_lifecycle: RoleProviderLifecycleManager | None = None,
+        judge_mode_control: JudgeModeController | None = None,
+    ) -> None:
         self._composition = composition
+        self._role_lifecycle = role_lifecycle
+        self._judge_mode_control = judge_mode_control
+
+    def _read_judge_mode(self) -> ModeReadResult:
+        controller = self._judge_mode_control
+        if controller is None:
+            return ModeReadResult(revision=None, value="off")
+        snapshot = controller.mode_snapshot()
+        return ModeReadResult(revision=snapshot.revision, value=snapshot.current_mode.value)
+
+    def _read_guard_mode(self) -> ModeReadResult:
+        snapshot = self._composition.mode_controller.mode_snapshot()
+        return ModeReadResult(revision=snapshot.revision, value=snapshot.current_mode.value)
 
     def apply(self, mode: GuardrailGovernanceControlMode) -> GuardrailGovernanceHookDescriptor:
+        if self._role_lifecycle is not None:
+            # P6-RR-R13-WU-001..004 (Post-Claude Independent Review
+            # Rework, resolves P6-CODEX-074/069/062): same Unified Role
+            # Transition Transaction as the Judge Mode-Apply route — Mode
+            # commit happens inside `RoleProviderLifecycleManager`'s own
+            # Lock, in the same call as Activation/Deactivation, never a
+            # separate later `apply_mode()` call outside that Lock.
+            def _commit_guard_mode() -> None:
+                self._composition.mode_controller.apply_mode(GovernanceMode(mode.value))
+
+            # P6-RR-R17-WU-001..004 (resolves P6-CODEX-080): the returned
+            # CompositeRoleStatus's `guard_mode` is read *inside* the same
+            # Lock the Transition itself just ran under — this Response is
+            # built directly from it, never from the separate, later
+            # `self._composition.mode_controller.mode_snapshot()` re-read
+            # this Adapter previously performed after releasing the Lock
+            # (which could legitimately observe a *different* concurrent
+            # request's Mode change than the one this call just committed).
+            composite = self._role_lifecycle.apply_mode_transition(
+                role=ModelRole.GUARD,
+                target_mode_is_off=mode is GuardrailGovernanceControlMode.OFF,
+                commit_mode=_commit_guard_mode,
+                read_judge_mode=self._read_judge_mode,
+                read_guard_mode=self._read_guard_mode,
+            )
+            if mode is not GuardrailGovernanceControlMode.OFF:
+                guard = next(
+                    item for item in composite.provider.selections if item.role is ModelRole.GUARD
+                )
+                if guard.state is not ProviderRuntimeState.ACTIVE:
+                    raise ProviderSelectionError(
+                        code=ProviderSelectionErrorCode.ACTIVATION_FAILED,
+                        safe_message=(
+                            "The configured Guard provider could not be activated: "
+                            f"{guard.failure_reason or guard.state.value}"
+                        ),
+                    )
+            return GuardrailGovernanceHookDescriptor(
+                component_key="guardrail_governance_mode",
+                allowed_modes=_GUARDRAIL_GOVERNANCE_ALLOWED_MODES,
+                current_mode=GuardrailGovernanceControlMode(composite.guard_mode.value),
+                available=True,
+            )
         snapshot = self._composition.mode_controller.apply_mode(GovernanceMode(mode.value))
         return GuardrailGovernanceHookDescriptor(
             component_key="guardrail_governance_mode",
@@ -117,6 +191,8 @@ def build_configuration_control(
     governance_definitions_runtime: GovernanceDefinitionsRuntime | None = None,
     runtime_governance_composition: RuntimeGovernanceComposition | None = None,
     guardrail_governance_composition: GuardrailGovernanceComposition | None = None,
+    role_provider_lifecycle: RoleProviderLifecycleManager | None = None,
+    judge_mode_control: JudgeModeController | None = None,
 ) -> ConfigurationControlService:
     """Project the finite safe startup allowlist into a process-local service."""
 
@@ -264,7 +340,9 @@ def build_configuration_control(
             ),
         )
         guardrail_governance_mode_applier = _GuardrailGovernanceModeApplierAdapter(
-            guardrail_governance_composition
+            guardrail_governance_composition,
+            role_provider_lifecycle,
+            judge_mode_control,
         )
     return ConfigurationControlService(
         fields=fields,

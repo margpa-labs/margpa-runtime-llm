@@ -1,0 +1,46 @@
+schema_version = "2"
+model_key = "guard.qwen3guard-gen-0.6b-q8-0"
+logical_role = "guard"
+enabled = true
+
+[source]
+provider = "Qwen"
+distribution_repository = "Qwen/Qwen3Guard-Gen-0.6B"
+upstream_model = "Qwen/Qwen3Guard-Gen-0.6B"
+
+[artifact]
+relative_path = "guard/qwen3guard-gen-0.6b/gguf/Qwen.Qwen3Guard-Gen-0.6B.Q8_0.gguf"
+file_name = "Qwen.Qwen3Guard-Gen-0.6B.Q8_0.gguf"
+format = "gguf"
+quantization = "Q8_0"
+size_bytes = 804753472
+sha512 = "0b8d213fd487980ce2667acaaf042d228486d9b467cd90ab6bfbe490527fa1b51d7a318af593bc920d59f5b22759196c09eaf8cba1974766ab170e6d6f6c19cb"
+
+[backend]
+backend_key = "llama_cpp"
+required_version = "0.3.34"
+
+[model]
+architecture = "qwen3"
+native_context_limit = 32768
+chat_template_source = "gguf_metadata"
+
+[capabilities]
+required_features = [
+  "chat",
+  "streaming",
+  "cooperative_cancel",
+  "stop_sequences",
+  "seed",
+  "token_usage",
+  "model_metadata",
+  "chat_template",
+]
+optional_features = ["gpu_offload"]
+
+[verification]
+state = "phase_6_remaining_rework_identity_frozen_runtime_load_pending"
+provenance_complete = false
+
+[output_protocol.thinking]
+parser_key = "plain_text_v1"

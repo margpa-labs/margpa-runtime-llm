@@ -23,6 +23,22 @@ CATEGORY_TOOL_ABUSE = "tool_abuse"
 CATEGORY_AUTHORITY_SPOOFING = "authority_spoofing"
 CATEGORY_UNSAFE_CONTENT = "unsafe_content"
 CATEGORY_UNKNOWN_UNRESOLVED = "unknown_unresolved"
+# P6-RR-R23 (Post-Codex Independent Review Rework, resolves P6-CODEX-087):
+# the remaining 7 of Qwen3Guard's 9 official Category labels (`Jailbreak`
+# and `PII` already had internal IDs above) — sourced from the official
+# QwenLM/Qwen3Guard GitHub Repository README `## Safety Categories`
+# section (exact Commit/Digest recorded in `config/guardrail/qwen3guard/
+# manifest.json`). `Jailbreak` maps to the existing `CATEGORY_JAILBREAK`
+# and is Input/Context-only (never a valid Output Candidate label — see
+# `qwen3guard_manifest.py`'s per-Target Category Set); the other 8 apply
+# to both Input/Context and Output Candidate.
+CATEGORY_VIOLENT = "violent"
+CATEGORY_NON_VIOLENT_ILLEGAL_ACTS = "non_violent_illegal_acts"
+CATEGORY_SEXUAL_CONTENT = "sexual_content"
+CATEGORY_SUICIDE_SELF_HARM = "suicide_self_harm"
+CATEGORY_UNETHICAL_ACTS = "unethical_acts"
+CATEGORY_POLITICALLY_SENSITIVE_TOPICS = "politically_sensitive_topics"
+CATEGORY_COPYRIGHT_VIOLATION = "copyright_violation"
 
 _INITIAL_CATEGORY_IDS = (
     CATEGORY_PROMPT_INJECTION,
@@ -33,6 +49,13 @@ _INITIAL_CATEGORY_IDS = (
     CATEGORY_AUTHORITY_SPOOFING,
     CATEGORY_UNSAFE_CONTENT,
     CATEGORY_UNKNOWN_UNRESOLVED,
+    CATEGORY_VIOLENT,
+    CATEGORY_NON_VIOLENT_ILLEGAL_ACTS,
+    CATEGORY_SEXUAL_CONTENT,
+    CATEGORY_SUICIDE_SELF_HARM,
+    CATEGORY_UNETHICAL_ACTS,
+    CATEGORY_POLITICALLY_SENSITIVE_TOPICS,
+    CATEGORY_COPYRIGHT_VIOLATION,
 )
 
 

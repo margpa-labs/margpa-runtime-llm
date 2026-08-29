@@ -63,6 +63,28 @@ class DetectionOutcome(StrEnum):
     ERROR = "error"
 
 
+class ModelDetectionProvenance(ImmutableContract):
+    """P6-RR-R27 (Post-Codex Independent Review Rework, resolves
+    P6-CODEX-091): typed Identity for a Model-backed Detection — the
+    exact `model_id`/upstream Revision/Artifact Digest/Contract Manifest
+    Digest/Label Schema ID the real Model Call that produced this
+    Detection actually ran under. Optional on `GuardDetection` and
+    populated only by Model-backed Detectors (currently Qwen3Guard);
+    every purely deterministic/pattern Detector leaves it at its default
+    `None`, so this stays additive and never touches Generic Detector
+    compatibility. `Qwen3GuardClassification` already carried every one
+    of these fields — Codex's Review found `Qwen3GuardDetectorAdapter.
+    detect()` discarded them when narrowing to the Generic `GuardDetection`
+    shape, so real Provider Identity never reached the Guardrail Result/
+    Evidence trail at all."""
+
+    model_id: str = Field(min_length=1, max_length=128)
+    exact_revision: str = Field(min_length=1, max_length=128)
+    artifact_digest_sha512: str | None = Field(default=None, pattern=_SHA512_HEX_PATTERN)
+    contract_manifest_digest_sha512: str | None = Field(default=None, pattern=_SHA512_HEX_PATTERN)
+    label_schema_id: str = Field(min_length=1, max_length=128)
+
+
 class GuardDetection(ImmutableContract):
     detection_id: str = Field(min_length=1, max_length=128, pattern=IDENTIFIER_PATTERN)
     detector_id: str = Field(min_length=1, max_length=128, pattern=IDENTIFIER_PATTERN)
@@ -74,6 +96,9 @@ class GuardDetection(ImmutableContract):
     # matched text, only Bounds (P5-EVD-002/ADR-5-007).
     typed_spans: tuple[TypedSpan, ...] = Field(default_factory=tuple, max_length=64)
     safe_reason_code: str | None = Field(default=None, max_length=64, pattern=IDENTIFIER_PATTERN)
+    # P6-RR-R27 (resolves P6-CODEX-091): optional Typed Provenance — see
+    # `ModelDetectionProvenance` above for why this stays additive.
+    model_provenance: ModelDetectionProvenance | None = None
 
 
 class PolicyApplicability(StrEnum):

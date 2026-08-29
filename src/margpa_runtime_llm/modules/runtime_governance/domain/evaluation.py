@@ -38,6 +38,8 @@ class ExecutionDescriptor(ImmutableContract):
     descriptor_id: str = Field(min_length=1, max_length=128, pattern=_IDENTIFIER_PATTERN)
     source_definition_id: str = Field(min_length=1, max_length=128, pattern=_IDENTIFIER_PATTERN)
     source_pointer: str = Field(min_length=1, max_length=256)
+    source_definition_digest_sha512: str | None = Field(default=None, pattern=r"^[0-9a-f]{128}$")
+    source_text_digest_sha512: str | None = Field(default=None, pattern=r"^[0-9a-f]{128}$")
     domain_tag: str | None = Field(default=None, max_length=32, pattern=_IDENTIFIER_PATTERN)
     summary: str = Field(min_length=1, max_length=512)
     evaluation_method: EvaluationMethod

@@ -13,6 +13,8 @@ import type {
   PersistentMutationResponse,
   PersistentRuntimeResponse,
   FeatureModesStatus,
+  ProviderRole,
+  ProviderSelectionStatus,
   RuntimeGovernanceStatus,
   RuntimeInfo,
   RuntimeModelStatus,
@@ -386,6 +388,36 @@ export function applyRepairMode(requestedMode: string): Promise<FeatureModesStat
 
 export function applyRecordingMode(requestedMode: string): Promise<FeatureModesStatus> {
   return applyFeatureMode("recording", requestedMode);
+}
+
+export async function fetchProviderSelectionStatus(): Promise<ProviderSelectionStatus> {
+  const response = await fetch("/api/v6/provider-selection", { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("provider_selection_status_unavailable");
+  }
+  return (await response.json()) as ProviderSelectionStatus;
+}
+
+export async function applyProviderSelection(
+  role: ProviderRole,
+  providerId: string,
+  expectedRevision: number,
+  expectedDigest: string,
+): Promise<ProviderSelectionStatus> {
+  const response = await fetch(`/api/v6/provider-selection/${role}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      provider_id: providerId,
+      expected_revision: expectedRevision,
+      expected_digest: expectedDigest,
+    }),
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new ApiMutationError(await safeError(response, "provider_selection_apply_failed"));
+  }
+  return (await response.json()) as ProviderSelectionStatus;
 }
 
 export async function fetchGuardrailGovernanceStatus(): Promise<GuardrailGovernanceStatus> {

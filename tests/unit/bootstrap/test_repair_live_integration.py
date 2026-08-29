@@ -57,6 +57,7 @@ from margpa_runtime_llm.modules.documentation_rag.contracts import (
     DocumentationRagMode,
 )
 from margpa_runtime_llm.modules.evaluation.domain.identifiers import EvaluationRecommendation
+from margpa_runtime_llm.modules.evaluation.domain.llm_judge import JudgeIndependenceClass
 from margpa_runtime_llm.modules.inference.contracts.generation import (
     FinishReason,
     GenerationRequest,
@@ -307,6 +308,39 @@ def test_presented_final_repair_needs_no_persisted_source_and_returns_content() 
     rejudge_prompt = service.calls[1].messages[0].content
     assert "ref-1 | official.md: Amane Kanata" in repair_prompt
     assert "ref-1 | official.md: Amane Kanata" in rejudge_prompt
+    assert "Violated criteria and prohibited errors" in repair_prompt
+
+
+def test_repair_rejudge_uses_explicit_selected_judge_service_identity() -> None:
+    main_service = _FakeRepairService(repair_content="Corrected answer")
+    selected_judge_service = _FakeRepairService(
+        rejudge_content='{"recommendation": "accept", "confidence": 0.9}'
+    )
+
+    result = attempt_live_repair(
+        service=main_service,  # type: ignore[arg-type]
+        model_key="main.test-model",
+        rejudge_service=selected_judge_service,  # type: ignore[arg-type]
+        rejudge_model_key="judge.selene-test",
+        rejudge_role=JudgeIndependenceClass.INDEPENDENT_ARTIFACT,
+        persistent=None,
+        request_id="selected-rejudge-1",
+        user_input="Question",
+        original_answer="Original",
+        before_recommendation=EvaluationRecommendation.NEEDS_REPAIR,
+        judge_reasoning="criterion=semantic.argd.evidence.1; evidence=ref-1",
+        governance_post_hook=None,
+        guardrail_post_hook=None,
+        persist_accepted_attempt=False,
+    )
+
+    assert result is not None
+    assert result.accepted is True
+    assert len(main_service.calls) == 1
+    assert len(selected_judge_service.calls) == 1
+    assert selected_judge_service.calls[0].model_key == "judge.selene-test"
+    assert result.rejudge_model_identity == "judge.selene-test"
+    assert result.rejudge_role == "independent_artifact"
 
 
 def test_repair_generation_failure_is_a_typed_rejection(tmp_path: Path) -> None:

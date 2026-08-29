@@ -38,6 +38,10 @@ from margpa_runtime_llm.modules.runtime_model_control.domain.errors import (
     RuntimeModelRollbackFailure,
     RuntimeModelTargetNotRegistered,
 )
+from margpa_runtime_llm.modules.runtime_model_control.domain.provider_selection import (
+    ProviderSelectionError,
+    ProviderSelectionErrorCode,
+)
 
 from .access_profiles import (
     DisabledPublicControlPolicy,
@@ -66,6 +70,7 @@ from .persistent_routes import (
     create_persistent_router,
     persistent_error_response,
 )
+from .provider_selection_routes import create_provider_selection_router
 from .runtime_composition_routes import (
     RuntimeCompositionWebError,
     create_runtime_composition_router,
@@ -313,6 +318,32 @@ def create_web_app(
         del request
         return runtime_model_control_web_error_response(exc)
 
+    @app.exception_handler(ProviderSelectionError)
+    async def provider_selection_error(
+        request: Request, exc: ProviderSelectionError
+    ) -> JSONResponse:
+        del request
+        status_code = (
+            409
+            if exc.code
+            in (
+                ProviderSelectionErrorCode.REVISION_CONFLICT,
+                ProviderSelectionErrorCode.ACTIVE_TURN,
+                ProviderSelectionErrorCode.ACTIVATION_FAILED,
+            )
+            else 404
+            if exc.code is ProviderSelectionErrorCode.UNKNOWN_PROVIDER
+            else 422
+        )
+        content: dict[str, object] = {
+            "code": f"provider_selection_{exc.code.value}",
+            "message": exc.safe_message,
+        }
+        if exc.current_snapshot is not None:
+            content["current_revision"] = exc.current_snapshot.revision
+            content["current_digest"] = exc.current_snapshot.digest_sha512
+        return JSONResponse(status_code=status_code, content=content)
+
     @app.exception_handler(RuntimeModelRevisionConflict)
     @app.exception_handler(RuntimeModelContextLimitExceeded)
     @app.exception_handler(RuntimeModelMaxNewTokensExceeded)
@@ -512,6 +543,7 @@ def create_web_app(
     app.include_router(create_guardrail_governance_router())
     app.include_router(create_runtime_model_control_router())
     app.include_router(create_feature_modes_router())
+    app.include_router(create_provider_selection_router())
 
     app.mount("/assets", StaticFiles(directory=STATIC_ROOT), name="assets")
     return app

@@ -5,6 +5,8 @@ so a caller can compute a stable prompt_digest from the returned text
 without storing the raw prompt itself as normal Evidence.
 """
 
+from dataclasses import dataclass
+
 from ..domain.dataset import EvaluationCase
 
 _RESPONSE_FORMAT_INSTRUCTION = (
@@ -17,6 +19,30 @@ _RESPONSE_FORMAT_INSTRUCTION = (
     "insufficient to evaluate the candidate; the absence of a separate reference answer "
     'does not by itself require "unknown".'
 )
+
+
+@dataclass(frozen=True, slots=True)
+class JudgePromptCriterion:
+    criterion_id: str
+    instruction: str
+    evaluation_method: str
+    source_pointer: str
+
+
+def _semantic_response_instruction(criteria: tuple[JudgePromptCriterion, ...]) -> str:
+    ids = ", ".join(item.criterion_id for item in criteria)
+    return (
+        "Return one JSON object matching this schema: "
+        '{"recommendation": "accept" | "needs_repair" | "unknown", '
+        '"confidence": <number 0.0..1.0>, "reasoning": "<short string>", '
+        '"criterion_results": [{"criterion_id": "<exact id>", '
+        '"disposition": "pass" | "deviation" | "unknown", '
+        '"confidence": <number 0.0..1.0>, "reason_code": "<short code>", '
+        '"evidence_refs": ["<short reference>"]}]}. '
+        f"Return exactly one criterion_results entry for every exact id: {ids}. "
+        'Any material criterion deviation requires recommendation "needs_repair"; '
+        'any unknown criterion forbids recommendation "accept".'
+    )
 
 
 def _bounded_section(*, heading: str, values: tuple[str, ...]) -> str:
@@ -32,6 +58,7 @@ def build_judge_prompt(
     rubric_id: str,
     dialogue_context: tuple[str, ...] = (),
     evidence_context: tuple[str, ...] = (),
+    semantic_criteria: tuple[JudgePromptCriterion, ...] = (),
 ) -> str:
     """Build the one bounded semantic-evaluation prompt.
 
@@ -47,6 +74,21 @@ def build_judge_prompt(
         else "Reference answer: (none provided)"
     )
     criteria_line = "Criteria: " + ", ".join(case.criteria)
+    semantic_section = ""
+    response_instruction = _RESPONSE_FORMAT_INSTRUCTION
+    if semantic_criteria:
+        semantic_section = (
+            "Semantic criteria:\n"
+            + "\n".join(
+                (
+                    f"- id={item.criterion_id}; method={item.evaluation_method}; "
+                    f"source={item.source_pointer}; instruction={item.instruction}"
+                )
+                for item in semantic_criteria
+            )
+            + "\n"
+        )
+        response_instruction = _semantic_response_instruction(semantic_criteria)
     return (
         f"Rubric: {rubric_id}\n"
         "Task: Evaluate the candidate against the current User request, the prior dialogue, "
@@ -58,6 +100,7 @@ def build_judge_prompt(
         f"{reference_line}\n"
         f"{_bounded_section(heading='Citation evidence', values=evidence_context)}\n"
         f"{criteria_line}\n"
+        f"{semantic_section}"
         f"Candidate answer: {candidate_answer}\n"
-        f"{_RESPONSE_FORMAT_INSTRUCTION}"
+        f"{response_instruction}"
     )

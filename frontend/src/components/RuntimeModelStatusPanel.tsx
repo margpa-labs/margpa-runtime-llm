@@ -289,8 +289,16 @@ export default function RuntimeModelStatusPanel({
               {translate(language, "runtimeModelApply")}
             </button>
           </div>
+          {/* P6-RR-P-WU-004 (Production Wiring Delta item 1): this Legacy
+              `/api/v4/runtime-model/switch` Dropdown duplicates the Main
+              Provider Selection Panel's own switch (which drives the real
+              CAS Transaction via `/api/v6/provider-selection/main` and
+              stays in sync with Configured/Active there) — kept, not
+              deleted, and its own Apply Contract still works if
+              re-enabled, but hidden from the normal Advanced Mode surface
+              to avoid two divergent "switch Main" controls. */}
           {status.available_models.length > 0 && (
-            <div className="configuration-controls">
+            <div className="configuration-controls" hidden>
               <label htmlFor="runtime-model-switch-select">
                 {translate(language, "runtimeModelSwitchLabel")}
               </label>

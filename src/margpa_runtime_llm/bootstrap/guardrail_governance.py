@@ -29,6 +29,10 @@ from margpa_runtime_llm.adapters.guardrail_governance.local_authority_provider i
 from margpa_runtime_llm.adapters.guardrail_governance.local_policy_provider import (
     LocalPolicyProvider,
 )
+from margpa_runtime_llm.adapters.guardrail_governance.qwen3guard_detector_adapter import (
+    Qwen3GuardDetectorAdapter,
+    Qwen3GuardRoleTurn,
+)
 from margpa_runtime_llm.adapters.guardrail_governance.registered_actions import (
     LocalGuardActionAdapter,
 )
@@ -58,6 +62,7 @@ from margpa_runtime_llm.modules.guardrail_governance.domain import (
     ExecutionState,
     GuardDetection,
     GuardrailResult,
+    Qwen3GuardTarget,
     Severity,
 )
 from margpa_runtime_llm.modules.guardrail_governance.ports import (
@@ -161,7 +166,12 @@ class _FixedActionRegistryProvider:
 
 
 class GuardrailGovernanceComposition:
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        *,
+        qwen3guard_begin_role_turn: (Callable[[], Qwen3GuardRoleTurn | None] | None) = None,
+        qwen3guard_end_role_turn: (Callable[[object], None] | None) = None,
+    ) -> None:
         self.policy_provider = LocalPolicyProvider()
         # P5-CODEX-007 Rework: the live Provider itself, not a Snapshot
         # captured once at construction and reused forever — every
@@ -191,6 +201,46 @@ class GuardrailGovernanceComposition:
         # same class of threat as a malicious User Input, just arriving
         # through a different Channel (P5-CODEX-001 Rework, P5-ACC-007).
         context_source_detectors = build_input_detectors()
+        if qwen3guard_begin_role_turn is not None and qwen3guard_end_role_turn is not None:
+            # P6-RR-O-WU-002 (Production Wiring Delta, resolves
+            # P6-CODEX-048): additive to the Rule/Pattern Detectors above
+            # — never replaces them, never removed from the static
+            # Detector Registry regardless of whether the dedicated Guard
+            # is currently Active (see `Qwen3GuardDetectorAdapter`'s own
+            # docstring for why Registry membership must stay static
+            # while Model availability stays dynamic).
+            #
+            # P6-RR-R21 (resolves P6-CODEX-086): each of the 3 Points below
+            # shares the same `begin_role_turn`/`end_role_turn` pair —
+            # every real `classify_point` call this Detector makes now
+            # holds a genuine Turn Lease for its own exact duration (see
+            # `Qwen3GuardDetectorAdapter.detect()`), never the previous
+            # bare-Adapter-reference resolve-then-call with no Lease at
+            # all.
+            input_detectors = (
+                *input_detectors,
+                Qwen3GuardDetectorAdapter(
+                    target=Qwen3GuardTarget.INPUT,
+                    begin_role_turn=qwen3guard_begin_role_turn,
+                    end_role_turn=qwen3guard_end_role_turn,
+                ),
+            )
+            output_detectors = (
+                *output_detectors,
+                Qwen3GuardDetectorAdapter(
+                    target=Qwen3GuardTarget.OUTPUT_CANDIDATE,
+                    begin_role_turn=qwen3guard_begin_role_turn,
+                    end_role_turn=qwen3guard_end_role_turn,
+                ),
+            )
+            context_source_detectors = (
+                *context_source_detectors,
+                Qwen3GuardDetectorAdapter(
+                    target=Qwen3GuardTarget.CONTEXT_SOURCE,
+                    begin_role_turn=qwen3guard_begin_role_turn,
+                    end_role_turn=qwen3guard_end_role_turn,
+                ),
+            )
         self._input_runtime = GuardrailPointRuntime(detectors=input_detectors)
         self._output_runtime = GuardrailPointRuntime(detectors=output_detectors)
         self._context_source_runtime = GuardrailPointRuntime(detectors=context_source_detectors)

@@ -1,0 +1,38 @@
+[
+  {
+    "case_id": "evidence_contradiction",
+    "user_input": "Use the supplied evidence.",
+    "candidate": "The documented value is Tenon.",
+    "dialogue": [],
+    "evidence": ["official.md: the documented value is Amane Kanata"],
+    "criterion_id": "semantic.argd.evidence_contradiction",
+    "instruction": "Do not contradict supplied evidence."
+  },
+  {
+    "case_id": "user_correction_ignored",
+    "user_input": "No, the correct reading is Amane Kanata.",
+    "candidate": "The correct reading remains Tenon.",
+    "dialogue": ["assistant: The reading is Tenon."],
+    "evidence": [],
+    "criterion_id": "semantic.dagd.user_correction",
+    "instruction": "Honor an explicit user correction in the current turn."
+  },
+  {
+    "case_id": "unsupported_definitive_assertion",
+    "user_input": "Summarize only what the source establishes.",
+    "candidate": "This is certainly the only possible interpretation.",
+    "dialogue": [],
+    "evidence": ["source.md: one possible interpretation is described"],
+    "criterion_id": "semantic.argd.unsupported_assertion",
+    "instruction": "Do not make definitive claims beyond the evidence."
+  },
+  {
+    "case_id": "premise_drift",
+    "user_input": "Compare the two local deployment options.",
+    "candidate": "Here is a cloud deployment purchasing guide.",
+    "dialogue": [],
+    "evidence": [],
+    "criterion_id": "semantic.dagd.premise_alignment",
+    "instruction": "Keep the answer aligned with the user's stated premise."
+  }
+]

@@ -418,10 +418,16 @@ describe("App", () => {
 
     await waitFor(() => {
       expect(document.querySelector("#runtime-status")?.textContent).toBe(
-        "main.deepseek-r1-0528-qwen3-8b-q4-k-m",
+        "main.deepseek-r1-0528-qwen3-8b-q4-k-m active",
       );
     });
-    expect(document.querySelector(".sidebar-title-block")?.textContent).toContain("Context 8192");
+    expect(document.querySelector("#runtime-status")?.textContent).toBe(
+      "main.deepseek-r1-0528-qwen3-8b-q4-k-m active",
+    );
+    expect(document.querySelector(".sidebar-title-block")?.textContent).not.toContain("Context 8192");
+    expect(document.querySelector(".sidebar-title-block")?.textContent).toContain(
+      "local.macos-arm64 • gpu • metal",
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Account" }));
     fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
@@ -469,7 +475,9 @@ describe("App", () => {
     fireEvent.click(document.querySelector("#runtime-model-status-refresh") as Element);
 
     await waitFor(() => {
-      expect(document.querySelector("#runtime-status")?.textContent).toBe("main.qwen3-4b-q4-k-m");
+      expect(document.querySelector("#runtime-status")?.textContent).toBe(
+        "main.qwen3-4b-q4-k-m active",
+      );
       expect(document.querySelector("#runtime-model-context-input")).toHaveValue(4096);
     });
     const judgeLabel = screen.getByText("Current LLM-as-a-Judge Model");

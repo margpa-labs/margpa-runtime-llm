@@ -5,9 +5,9 @@ document_id: current_documentation_index
 status: current
 language: ja
 created_at: 2026-07-26 15:16:24 JST
-updated_at: 2026-08-22 21:13:08 JST
+updated_at: 2026-08-29 17:14:22 JST
 owner: プロジェクト責任者兼設計統括者役
-active_phase: phase_6_ready_for_backup_not_armed
+active_phase: phase_7_ready
 rag_default: true
 ```
 
@@ -37,7 +37,8 @@ Phase 2-F Final Gate      : COMPLETE／FINAL INSPECTION PASS／LIGHTNING DEFERRE
 Phase 3                  : COMPLETE／ACCEPTED／CLOSED
 Phase 4                  : COMPLETE／ACCEPTED／CLOSED
 Phase 5                  : COMPLETE／ACCEPTED／CLOSED／MAC ACCEPTANCE PASS
-Phase 6                  : DESIGN ACCEPTED／FROZEN／READY_FOR_BACKUP／NOT ARMED
+Phase 6                  : SPECIAL MINIMAL CLOSED／KNOWN DEBT DEFERRED／TECHNICAL CORE ADJUST
+Phase 7                  : DESIGN ACCEPTED／FROZEN／READY／PREFLIGHT PENDING
 Combined Control Role     : ACTIVE／PROJECT RESPONSIBILITY AND DESIGN GOVERNANCE COMBINED
 Automation Profile       : BOUNDED UNIT／VALIDATED／NO PROMOTION
 Large Backup              : USER REPORTED COMPLETE／PRIVATE ASSET OUTSIDE AI GATE
@@ -46,7 +47,7 @@ Provider Capability       : TASK MANAGEMENT／BOUNDED READ／ONE CREATE PASS
 Pilot Result              : WU-002 ACCEPTED／WU-003 ADJUST REQUIRED／WU-004 ACCEPTED
 Restart Dual Consent      : COMPLETED FOR WU-004／WORK UNIT CLOSED
 Multi-provider Use        : PHASE 2-E BOUNDED EXPERIMENT EXECUTED／NO GENERAL PROMOTION
-Automation Control State : OFF／PHASE 6 BACKUP PENDING
+Automation Control State : OFF／PHASE 7 PREFLIGHT PENDING
 Permission Hardening     : UNDECIDED／NOT AUTHORIZED
 Mechanical Enforcement  : RESEARCH CANDIDATES／NOT IMPLEMENTED
 ```
@@ -60,7 +61,7 @@ Mechanical Enforcement  : RESEARCH CANDIDATES／NOT IMPLEMENTED
 - [Runtime Governance仕様書](governance/runtime_governance_specification_ja.md)
 - [Project Continuity Master](project_continuity/project_continuity_master_ja.md)
 
-## Active Phase — Phase 6 READY_FOR_BACKUP／Not Armed
+## Active Phase — Phase 7 READY／Preflight Pending
 
 - [Phase 5 Index](../phases/phase_5/phase_index_ja.md)
 - [Phase 5 Final Independent Review](../phases/phase_5/handoffs/phase_5_codex_final_independent_review_acceptance_ja_20260822195345.md)
@@ -77,8 +78,17 @@ Mechanical Enforcement  : RESEARCH CANDIDATES／NOT IMPLEMENTED
 - [Phase 6 Controller Design Review](../phases/phase_6/history/operations/phase_6_controller_design_review_ja_20260822211308.md)
 - [Phase 6 Exact Design Freeze](../phases/phase_6/history/operations/phase_6_exact_design_freeze_ja_20260822211308.md)
 - [Phase 6 READY_FOR_BACKUP Receipt](../phases/phase_6/history/operations/phase_6_ready_for_backup_receipt_ja_20260822211308.md)
+- [Phase 6 Special Minimal Closure](../phases/phase_6/history/operations/phase_6_special_minimal_closure_with_known_debt_ja_20260829171422.md)
+- [Phase 6／7 Recovery](../phases/phase_6/history/index/phase_6_special_minimal_closure_and_phase_7_ready_recovery_ja_20260829171422.md)
+- [Current Unresolved Registry](../shared/未解決/current_unresolved_findings_registry_ja.md)
+- [Phase 7 Index](../phases/phase_7/phase_index_ja.md)
+- [Phase 7 Requirements](../phases/phase_7/requirements/phase_7_requirements_ja.md)
+- [Phase 7 Architecture](../phases/phase_7/architecture/phase_7_architecture_ja.md)
+- [Phase 7 ADR](../phases/phase_7/adr/phase_7_adr_ja.md)
+- [Phase 7 Execution Plan](../phases/phase_7/operations/phase_7_execution_plan_ja.md)
+- [Phase 7 Acceptance](../phases/phase_7/operations/phase_7_acceptance_matrix_ja.md)
 
-Phase 5はClaude実装、Codex独立Review／Exact Rework、User Mac Manual AcceptanceおよびMinimal Closureを経て`COMPLETE／ACCEPTED／CLOSED`となった。Phase 6統合Design PackageはController Review後に`ACCEPTED／FROZEN／READY_FOR_BACKUP`となったが、`ARMED`または実装許可ではない。次はUser Backupであり、その後にResolved Model Root Authority、Activation Preflight、Controller `ARMED`および後続User Startを必要とする。
+Phase 6は周辺基盤と指定UI修正を成立させた一方、Selene、Qwen3Guard、Semantic 109件、Judge／Repairを未解決Registryへ保持し、技術合格ではない特殊最小Closureを完了した。Phase 7は設計・工程・AcceptanceがAccepted／Frozenで、Closure Commit／Push、BackupおよびPreflight後にClaude Exact Handoffから開始する。
 
 ## Completed Phase Reference — Phase 2
 

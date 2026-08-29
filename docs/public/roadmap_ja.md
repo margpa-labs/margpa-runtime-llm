@@ -5,7 +5,7 @@ document_type: public_roadmap
 document_state: current
 language: ja
 created_at: 2026-07-22
-updated_at: 2026-08-25 09:10:18 JST
+updated_at: 2026-08-29 17:14:22 JST
 public_author: Nazuna Research
 project: MARGPA Runtime LLM
 ```
@@ -209,15 +209,16 @@ Phase 4 Runtime Governance            : Complete／Accepted／Closed／Mac Manua
 Phase 4 Structural／Semantic Boundary: Structural Enforce Accepted／Semantic Rules Deferred to Phase 6
 Phase 5 Guardrail Runtime             : Complete／Accepted／Closed／Mac Acceptance Passed
 Phase 6 Integrated Design             : Accepted／Frozen／Implementation Executed
-Phase 6 Automated Verification        : Ninth Rework COMPLETE_CANDIDATE／Backend 1602 Passed／Frontend 221 Passed
-Phase 6 User Mac Acceptance           : ADJUST／Semantic Definition 109件Deferred／Independent Judge未成立
+Phase 6 Automated Verification        : R25～R28 Candidate／Backend 1811 Passed／Frontend 231 Passed／UI差分54 Passed
+Phase 6 User Mac Acceptance           : ADJUST／Semantic 109件Deferred／Dedicated Judge・Guard／Repair未成立
 Phase 6 Runtime Model Control         : Qwen Default／Qwen↔DeepSeek Switch／Restart Reset Passed
 Phase 6 Conversation Compatibility    : Two-tab Reload／Conversation／Citation／Branch Passed
 Phase 6 Context／Token Control         : Dynamic Apply Passed／Mac Verified Effective Maximum 8192／UI Follow-up Reserved
 Phase 6 Judge／Repair                  : main_self基盤のみ／誤答accept・Malformed・Deadline／Repair Golden Path未成立
 Phase 6 Guard／Judge Dedicated Model  : Qwen3Guard／Selene Artifact候補あり／Runtime Provider未接続
-Phase 6 Recording                     : Write Path Passed／Request ID・時刻・Mode相関表示不足
-Phase 6 Closure                       : BLOCKED／Functional Rework Required
+Phase 6 Recording                     : Request Correlation／Stop／Historical Label Passed
+Phase 6 Closure                       : Special Minimal Closure／Known Debt Deferred／Technical Core ADJUST
+Phase 7                               : Design Accepted／Frozen／READY／Implementation Preflight Pending
 High-performance Main Model Expansion : DeepSeek Mac Q4 Switch／反復防止Passed／回答品質・Judge品質Failed
 AWS Deployment Foundation             : Deferred to Phase 10以降／Phase 6～9から分離
 Optional English Documentation        : Formally Deferred／Non-blocking／History Excluded
@@ -227,7 +228,9 @@ Phase 3、4、5は最小Closureにより`COMPLETE／ACCEPTED／CLOSED`となっ�
 
 一方、実Chatでは、Phase 4／5からPhase 6へ送ったARGD／DAGD Semantic Rule 109件が依然として全件`Deferred（意味評価待ち）`であり、MARGPA Governance Definitionsが回答品質のEvaluation／Action／Repairへ接続されていないことが確定した。Current Live Judgeは選択中Main Modelを`main_self`として再利用し、Qwenの明白な誤答を`accept／0.95`と自己承認する一方、DeepSeekは`malformed_output`、重いCallは固定30秒の`deadline_exceeded`へ至った。Repair ENFORCEの再現可能な有界Golden Pathも成立していない。
 
-Phase 6 Reworkでは、Semantic DescriptorからEvaluation Criteriaへの実接続、Selene Dedicated Judge、Qwen3Guard Safety Provider、Main／Guardrail／Judgeの独立Provider選択、`None`／Built-in Provider、Model／Deployment別Timeout、原因別・言語別Failure、最新RecordingのRequest ID／日時／Mode相関を必須とする。DeepSeek Mac Q4はLoad／Switchと病的反復防止を確認したが、Main／Judge回答品質Acceptanceは満たさず、Research CandidateのままDefaultへ昇格しない。したがってPhase 6は`In Progress／ADJUST`、Closureは`BLOCKED`、Phase 7は未開始である。
+後続ReworkでProvider Registry、Lifecycle、Budget、Failure、Recording相関等の基盤は拡張したが、最終User MacではSelene／Qwen3Guardが`Active none`、Semantic 109件が全件Deferred、Built-in Judgeが`evaluated 0`、Repair Golden Pathが未成立だった。DeepSeek Mac Q4はLoad／Switchと病的反復防止を確認したが、Main／Judge回答品質Acceptanceは満たさず、Research CandidateのままDefaultへ昇格しない。
+
+Userは金銭、利用可能量、Portfolio TimingおよびPoC／MVP停止線を考慮し、これらを解決済みとせずStable未解決Registryへ保持したまま、Phase 6を`Special Minimal Closure／Known Debt Deferred`として閉じ、Phase 7へ進むことを決定した。これはPhase 6中心Milestoneの技術合格ではなく、Phase 7を雑に作る許可でもない。Phase 7はRAG／Web検索／Citation／Data Governanceの中心経路を丁寧かつBoundedに成立させる。
 
 以下のPhase 1／2詳細は成立過程のCurrent-to-date説明として保持する。最新の短い入口は[Roadmap要約版](roadmap_summary_ja.md)、技術判断は[技術選定](technology_selection_ja.md)を参照する。
 
@@ -1173,7 +1176,7 @@ Tool PermissionはModel判断を正本にせず、決定論的Policyと既存権
 
 ## 12. Phase 6 — Judge, Evaluation, Repair, and Observability
 
-**State: `In Progress／User Mac Acceptance ADJUST／Rework Pending`**
+**State: `Special Minimal Closure／Known Debt Deferred／Technical Core ADJUST`**
 
 回答の評価、修復、状態表示を独立Componentとして追加し、Governanceの効果と失敗を測定可能にする。
 
@@ -1256,14 +1259,14 @@ MacのCurrent Deployment ProfileはContext `8192`をVerified Maximumとして維
 
 > **Measurable Safety, Evaluation, and Repair Runtime**
 
-Phase 6 Closureには、109件一律Deferredの解消、Dedicated Judge／Guardrail Provider実動、明示Provider選択、
-再現可能なRepair Golden Path、理由別FailureおよびRequest-correlated Recording Summaryが必要である。
+当初Milestoneに必要だったSemantic 109件、Dedicated Judge／GuardrailおよびRepair Golden Pathは未成立であり、
+技術合格へ昇格しない。成立範囲、未解決、User Overrideおよび次Phaseへの影響を正確に固定した特殊最小Closureである。
 
 ---
 
 ## 13. Phase 7 — RAG and Data Governance
 
-**State: `Planned`**
+**State: `Design Accepted／Frozen／READY／Preflight Pending`**
 
 外部知識を単にPromptへ追加するのではなく、Sourceと採用理由を追跡できるKnowledge Layerとして構成する。
 
@@ -1336,7 +1339,9 @@ LLMを回答生成器から実行主体へ拡張する。ただし、Agent化を
 
 Agent／Toolの本格実装前に、Phase 2・3 Pilotまでに蓄積した絶対禁止事項、Docs規則、Authority、Mutation、Handoff、Review、Recovery、Backup、Git、Cost、停止条件、IncidentおよびNear Miss EvidenceをLosslessに再整理し、章立てした統合憲法体系を作成する。
 
-`docs/project/shared/constitution/`を他Projectへ配置し、Project固有Manifestを設定するだけで同等の開発体制を再構築できるPortable Packageを目標とする。単一巨大Markdownではなく、正本Index、章別Rule、Rule ID、Manifest、Role別Constitution View、SchemaおよびTemplateへ分割する。Normative CoreはCodex固有ToolへHard-codeせず、Codex DesktopとClaude CodeのCapability差をProvider Adapterへ分離する。
+Phase 8では、既にAcceptedなBounded Constitution ViewによるResearch Previewを先行可能とする。Phase 3〜9の全Docsを対象とした`docs/project/shared/constitution/`の完全Lossless編纂と、他Projectへ移植する`Portable Autonomous Development Governance Package`（`PADG Package`）の完成はPhase 10 READYの独立Gateとし、Phase 8 Previewを完全Package完成と表記しない。
+
+完全編纂時は、単一巨大Markdownではなく、正本Index、章別Rule、Rule ID、Manifest、Role別Constitution View、SchemaおよびTemplateへ分割する。Normative CoreはProvider固有ToolへHard-codeせず、`common/`と`providers/codex/`、`providers/claude/`、`providers/copilot/`を分離する。Copilot固有Ruleは実測前に推測で作らない。
 
 Constitution ViewはRole、Phase、TaskおよびProviderに必要な条文だけを同一Revision／Digestの正本から生成する派生Artifactとする。ViewはAuthorityを追加できず、Stale Revision、Digest不一致またはRule Conflict時はFail-closedとする。将来はRule抽出と検証を行う`Constitution Compiler`へ発展可能な構造を予約する。
 
@@ -1357,6 +1362,20 @@ Agentおよび各Toolには、機能本体のON／OFFと分離した「憲法有
 - State／Memory
 - Handoff
 - Completion Check
+
+### MARGPA Development Agent Research Preview／Foundation予約
+
+Phase 8では、仮称`MARGPA Development Agent`（`MARGPA Dev Agent`）の完成級Level 1を主張せず、`Governed Agentic Execution Prototype`としてUIを含むResearch Preview／Foundationを構築する。通常ChatとDev Agentを切り替えるUI、表示名から独立した安定Capability ID、Run／Step／State、Tool Registry／Tool Port、MCP Client Adapter Port、Approval／Autonomy Profile、Authorization Envelope、製品Runtime用`constitution/` Hook、Agent／Tool Governance Point、Generic GD Hook、Stop／Cancel／Budget／AuditおよびFake／Deterministic Toolによる実行証明を対象とする。
+
+Approval Harnessは、Manual Approval、Risk-based Approval、事前に許可されたExact Envelope内では定義済みGateまで逐次確認しないEnvelope Autonomous／Gate-only Confirmation、およびPlan Onlyを比較可能にする。Envelope AutonomousもAuthority Bypassではなく、Constitution、Platform Security、OS Sandbox、Access Control、既存Authority、Secret／Privacy境界および法令を解除しない。Envelope外、Authority不明、重大IncidentまたはTrue Stop Conditionでは停止する。
+
+MCPはAgent Coreへ直結せず、`Tool Port → Tool Registry → Native Tool Adapter／MCP Client Adapter → Permission／Constitution／Approval／Budget Gate → Execution／Evidence`の交換可能境界を通す。Phase 8はAdapter Port、Capability MetadataおよびFakeまたは限定Reference Adapterまでを候補とし、Generic Server Discovery、Remote Authentication、OAuth、一般Remote Side Effectおよび完全互換RuntimeはPhase 10以降へ送る。
+
+既存の17 JSON Source／18 Logical Governance Definitionは、ARGD／DAGDだけでなく、`orchestration/`、`conditional_watchdogs/`、`decision_pipelines/`および`ordinary/`を含めてAgent EventへGenericに選択・Bindingする。AAGD、SEGD、DCAGD、PMOGD、CDOGD、DAAGD、SPPGD、SDAGD、SDMRGD、AISGD、ACRGD、AIRGDおよびOMRGD等は候補だが、Agent Coreへ固有名をHard-codeせず、GDの存在、選択、評価、推奨、Authority、Approvalおよび実行を分離する。
+
+`docs/project/shared/constitution/`の開発運用／移植用Constitutionと、製品Runtimeへ埋め込む`margpa-runtime-llm/constitution/`のAgent／Tool用Constitutionを混同しない。Capability名と内部Topologyも分離し、`Single Agent`、`Multi-Task`、`Parent／Child`、`Dynamic Sub-Agent`または`Multi-Agent Organization`は後続Evidenceで選ぶ。表示名は後から変更可能にし、内部Capability ID、Schema RevisionおよびEvidence Identityは明示Migrationなしに変更しない。
+
+Phase 8ではFake／Deterministic／限定Local Toolを中心に検証し、Level 1正式完成、Generic MCP、多数の実Tool、Dynamic Sub-Agent、長時間完全自律、広範なGit／Network／Deploy、Production-grade Planningまたは実案件完遂をCompletion Claimに含めない。Level 1正式完成とLevel 2／3はPhase 10以降へ送る。本予約だけでPhase 8開始、Tool実行、外部接続またはAuthority付与を行わない。
 
 ### Temporal Authority／Scheduled Autonomous Workflow予約
 
@@ -1891,6 +1910,28 @@ Phase 9後半の優先候補へ前倒しした。Phase 9時点の利用可能量
 Phase 10以降の本予約に残し、未実装を完了と表記しない。
 
 現在Phase 10へ予約しているHardening、Platform、Model、UI、ML、外部R&Dおよび追加研究群は規模が大きい。依存関係と研究境界が十分明確になった段階で、Phase 11以降の複数Phaseへ再分割する。現時点では番号、境界または実装順を確定せず、Phase 10予約を削除・圧縮しない。
+
+### 16.12 Autonomous Engineering Agent Capability Completion
+
+Phase 8の`MARGPA Development Agent Research Preview／Foundation`を土台に、次の仮称Capability LevelsをPhase 10以降の独立Programで完成・検証する。
+
+1. Level 1 — `MARGPA Development Agent`／`MARGPA Dev Agent`：Design Support、Implementation、Test、Fix／Repairを統治された開発実行主体として安定運用する。
+2. Level 2 — `MARGPA End-to-End Autonomous Engineering Agent`／`MARGPA EEAE Agent`：Consulting、Discovery、Problem Definition、Research、Requirements、Architecture、Implementation、Verification、ReleaseおよびDeploymentまで一案件を完遂する。
+3. Level 3 — `MARGPA Full-Cycle Autonomous Engineering Agent`／`MARGPA FCAE Agent`：完成後もOperate、Monitor、Evaluate、Repair、Improve、Re-architect、Migrate／RetireおよびNext Cycleまで継続運営する。
+
+Capability名はSystem全体の遂行範囲を表し、内部実装を単一Agentへ固定しない。Single Agent、Parent／Child、Dynamic Sub-AgentおよびMulti-Agent Organizationを比較し、Generic MCP、実Tool Provider、Remote／Cloud Runtime、Cost／Latency／Resource Budget、Incident RecoveryおよびHuman SovereigntyをLevel別Acceptanceで検証する。名称は仮名であり、安定Internal Capability IDと表示Metadataを分離することで後から変更可能にする。
+
+Level 1の正式完成もPhase 8ではなく本節で扱う。名称だけでLevelを昇格させず、Capability Contract、実案件Evidence、Failure Boundary、Hardware／Deployment適合およびUser Acceptanceが成立した場合だけ完成を主張する。
+
+### 16.13 Portable Autonomous Development Governance Package
+
+Phase 10 READYでは、Phase 3〜9のCurrent／Phase／History／Shared／Automation／Cross-provider／Compaction／Role／Authority／Evidenceを先にLossless Compilationし、その後に全Docsを二周走査する。第1周でSource Inventory、`docs/project/shared/constitution/`のCanonical CandidateおよびPADG Package初版を作り、第2周では全Sourceを再走査してInventory漏れ、誤分類、旧Ruleの誤昇格、Provenance、SanitizationおよびSource Coverageを監査する。必要な訂正は第1版を消さず、新RevisionとGap Audit Evidenceを伴う第2版として作成する。
+
+`docs/project/shared/`はProject横断の開発統治知識が集積した重点Source Corpusとし、StableだけでなくHistoryも含めて全FileをInventory対象とする。Automation、Cross-provider Handoff、Manual／Auto Compaction Recovery、Agent／Task間Role分離、Codexタスク間通信、Claude Long-run、Authority、Docs Lifecycle、Incident、Evidence、Resource Limit、Git、Backup、ClosureおよびProvider Memory非依存を重点的に抽出する。
+
+Repository内Canonical SourceとPortable Packageの双方で、`common/`と`providers/codex/`、`providers/claude/`、`providers/copilot/`を分離する。Common Contractを現Providerの最小公倍数へ縮退させず、Providerが未対応のCapabilityはManifestで明示する。Copilot Directoryは将来併用と移植性検証のため予約するが、実測前のProvider固有挙動を捏造しない。
+
+正式名称は`Portable Autonomous Development Governance Package`、短縮名は`PADG Package`、Directory ID候補は`portable-autonomous-development-governance-package`とする。Automation／Cross-provider／Agent Orchestration／Compaction Recovery／Role Separation／Authority／Evidence／Development Constitutionを対象とし、`Autonomous`を無制限Authorityと解釈しない。Package作成先候補の親DirectoryへのWrite、公開および配布は、その時点のUserによるExact Gateなしに実行しない。
 
 ### Phase 10 Milestone
 

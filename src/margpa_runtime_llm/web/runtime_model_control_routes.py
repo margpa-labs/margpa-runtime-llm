@@ -35,6 +35,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
+from margpa_runtime_llm.modules.evaluation.domain.llm_judge import JudgeIndependenceClass
 from margpa_runtime_llm.modules.runtime_model_control.application.runtime_model_controller import (
     RuntimeModelController,
 )
@@ -47,10 +48,18 @@ from margpa_runtime_llm.modules.runtime_model_control.domain.errors import (
     RuntimeModelRollbackFailure,
     RuntimeModelTargetNotRegistered,
 )
+from margpa_runtime_llm.modules.runtime_model_control.domain.provider_selection import (
+    ProviderIndependence,
+    ProviderRuntimeState,
+    RoleProviderSelection,
+)
 from margpa_runtime_llm.modules.runtime_model_control.domain.snapshot import (
     MIN_RUNTIME_CONTEXT_SIZE,
 )
 from margpa_runtime_llm.modules.runtime_observability.projection.component_identity_projection import (  # noqa: E501
+    ComponentIdentityState,
+    GuardModelIdentity,
+    JudgeModelIdentity,
     project_governance_layer_identity,
     project_guard_model_identity,
     project_judge_model_identity,
@@ -60,6 +69,69 @@ from margpa_runtime_llm.modules.runtime_observability.projection.component_ident
 from .contracts import WebRuntime
 
 RUNTIME_MODEL_CONTROL_API_PREFIX = "/api/v4/runtime-model"
+
+_PROVIDER_STATE_TO_IDENTITY_STATE: dict[ProviderRuntimeState, ComponentIdentityState] = {
+    ProviderRuntimeState.NONE: ComponentIdentityState.NONE,
+    ProviderRuntimeState.CONFIGURED: ComponentIdentityState.NONE,
+    ProviderRuntimeState.UNAVAILABLE: ComponentIdentityState.UNAVAILABLE,
+    ProviderRuntimeState.LOADING: ComponentIdentityState.LOADING,
+    ProviderRuntimeState.ACTIVE: ComponentIdentityState.ACTIVE,
+    ProviderRuntimeState.DEGRADED: ComponentIdentityState.DEGRADED,
+    ProviderRuntimeState.FAILED: ComponentIdentityState.UNAVAILABLE,
+}
+
+_PROVIDER_INDEPENDENCE_TO_JUDGE_CLASS: dict[ProviderIndependence, JudgeIndependenceClass] = {
+    ProviderIndependence.NONE: JudgeIndependenceClass.UNAVAILABLE,
+    ProviderIndependence.SELF: JudgeIndependenceClass.MAIN_SELF,
+    ProviderIndependence.BUILT_IN: JudgeIndependenceClass.BUILT_IN,
+    ProviderIndependence.INDEPENDENT_SAME_FAMILY: JudgeIndependenceClass.SHARED_ARTIFACT,
+    ProviderIndependence.INDEPENDENT_OTHER_MODEL: JudgeIndependenceClass.INDEPENDENT_ARTIFACT,
+    ProviderIndependence.UNAVAILABLE: JudgeIndependenceClass.UNAVAILABLE,
+}
+
+
+def _judge_identity_from_provider_selection(
+    selection: RoleProviderSelection,
+) -> JudgeModelIdentity:
+    """P6-CODEX-050: sources Judge Identity from the same Provider Selection
+    Controller the Advanced Mode panel itself reads, instead of the legacy
+    Phase 4 `RuntimeModelSnapshot.role_bindings` (which never learned about
+    Selene/Built-in/explicit-Main-as-Judge selections). `model_key` reports
+    the *Active*, never the merely Configured, Provider (Base Handoff /
+    P6-RR-DELTA §4.1: never infer Executed from Configured)."""
+    return JudgeModelIdentity(
+        model_key=selection.active_provider,
+        independence_class=_PROVIDER_INDEPENDENCE_TO_JUDGE_CLASS[selection.independence],
+        state=_PROVIDER_STATE_TO_IDENTITY_STATE[selection.state],
+    )
+
+
+def _guard_identity_from_provider_selection(
+    selection: RoleProviderSelection,
+) -> GuardModelIdentity:
+    """P6-CODEX-050: Guard Identity no longer hardcodes `model_id=None`
+    regardless of what is actually selected/active — it reflects the same
+    Role Provider Selection state Judge now does. `exact_revision`/
+    `artifact_digest_sha512` stay `None` here (Package M does not itself
+    read the loaded dedicated Adapter's own Artifact Identity); Package O's
+    real invocation wiring is the eventual source for those two fields once
+    a real Qwen3Guard Load is Authority-granted and Active. Built-in is a
+    Provider *Type*, never a digest-bearing Model Artifact, so it is exempt
+    from the ACTIVE-requires-digest rule below (mirrors `project_guard_
+    model_identity`'s own INVALID-without-digest guard, P6-CODEX-014)."""
+    if selection.independence is ProviderIndependence.BUILT_IN or selection.active_provider is None:
+        return GuardModelIdentity(
+            model_id=selection.active_provider,
+            exact_revision=None,
+            artifact_digest_sha512=None,
+            state=_PROVIDER_STATE_TO_IDENTITY_STATE[selection.state],
+        )
+    return GuardModelIdentity(
+        model_id=selection.active_provider,
+        exact_revision=None,
+        artifact_digest_sha512=None,
+        state=ComponentIdentityState.INVALID,
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -167,16 +239,33 @@ def _project_status(request: Request) -> RuntimeModelStatusResponse:
         return RuntimeModelStatusResponse(enabled=False)
     snapshot = controller.snapshot()
     main_identity = project_main_model_identity(snapshot=snapshot)
-    judge_identity = project_judge_model_identity(
-        snapshot=snapshot,
-        main_self_available=runtime.judge_governance_composition is not None,
-    )
-    # Guard Model has no bound Safety Model Artifact in Production as of
-    # Phase 5 (UnavailableSafetyModelAdapter) — model_id=None is the honest
-    # current value, never fabricated (P6-ACC-024A/P6-CODEX-005).
-    guard_identity = project_guard_model_identity(
-        model_id=None, exact_revision=None, artifact_digest_sha512=None
-    )
+    provider_selection = runtime.provider_selection_control
+    if provider_selection is not None:
+        # P6-CODEX-050 (Production Wiring Delta): Judge/Guard Identity now
+        # comes from the same Role Provider Selection state the Advanced
+        # Mode Provider Selection panel reads — never the legacy Phase 4
+        # role_bindings/hardcoded-None projection below, which predates
+        # Selene/Qwen3Guard/Built-in/explicit-Main-Judge selection entirely.
+        provider_snapshot = provider_selection.snapshot()
+        judge_selection = next(
+            item for item in provider_snapshot.selections if item.role.value == "judge"
+        )
+        guard_selection = next(
+            item for item in provider_snapshot.selections if item.role.value == "guard"
+        )
+        judge_identity = _judge_identity_from_provider_selection(judge_selection)
+        guard_identity = _guard_identity_from_provider_selection(guard_selection)
+    else:
+        judge_identity = project_judge_model_identity(
+            snapshot=snapshot,
+            main_self_available=runtime.judge_governance_composition is not None,
+        )
+        # Guard Model has no bound Safety Model Artifact in Production as of
+        # Phase 5 (UnavailableSafetyModelAdapter) — model_id=None is the
+        # honest current value, never fabricated (P6-ACC-024A/P6-CODEX-005).
+        guard_identity = project_guard_model_identity(
+            model_id=None, exact_revision=None, artifact_digest_sha512=None
+        )
     runtime_governance_composition = runtime.runtime_governance_composition
     governance_layer_identity = project_governance_layer_identity(
         package_id=(

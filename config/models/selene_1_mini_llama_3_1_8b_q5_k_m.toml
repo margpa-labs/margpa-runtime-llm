@@ -1,0 +1,46 @@
+schema_version = "2"
+model_key = "judge.selene-1-mini-llama-3.1-8b-q5-k-m"
+logical_role = "judge"
+enabled = true
+
+[source]
+provider = "AtlaAI"
+distribution_repository = "AtlaAI/Selene-1-Mini-Llama-3.1-8B"
+upstream_model = "AtlaAI/Selene-1-Mini-Llama-3.1-8B"
+
+[artifact]
+relative_path = "judge/selene-1-mini-llama-3.1-8b/gguf/Selene-1-Mini-Llama-3.1-8B-Q5_K_M.gguf"
+file_name = "Selene-1-Mini-Llama-3.1-8B-Q5_K_M.gguf"
+format = "gguf"
+quantization = "Q5_K_M"
+size_bytes = 5732992896
+sha512 = "6d5472911fc347d51a73e57077dd34353c3e134a0af67b0dbe4e4df7d980e3246f0253ee16e5a241a41904d37e73ab3ba11ce5d800de37b9adddb2ada9b6c50d"
+
+[backend]
+backend_key = "llama_cpp"
+required_version = "0.3.34"
+
+[model]
+architecture = "llama"
+native_context_limit = 32768
+chat_template_source = "gguf_metadata"
+
+[capabilities]
+required_features = [
+  "chat",
+  "streaming",
+  "cooperative_cancel",
+  "stop_sequences",
+  "seed",
+  "token_usage",
+  "model_metadata",
+  "chat_template",
+]
+optional_features = ["gpu_offload", "json_schema"]
+
+[verification]
+state = "phase_6_remaining_rework_identity_frozen_runtime_load_pending"
+provenance_complete = false
+
+[output_protocol.thinking]
+parser_key = "plain_text_v1"

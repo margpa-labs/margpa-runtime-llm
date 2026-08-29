@@ -227,6 +227,30 @@ export interface JudgeLastResult {
   repair_new_turn_id: string | null;
   presentation_outcome?: string | null;
   candidate_withheld?: boolean;
+  started_at?: string | null;
+  completed_at?: string | null;
+  frozen_main_mode?: string | null;
+  frozen_guard_mode?: string | null;
+  frozen_judge_mode?: string | null;
+  frozen_repair_mode?: string | null;
+  recording_mode?: string | null;
+  configured_provider?: string | null;
+  active_provider?: string | null;
+  executed_provider?: string | null;
+  budget_profile?: string | null;
+  criteria_selected?: number;
+  criteria_evaluated?: number;
+  criteria_passed?: number;
+  criteria_deviated?: number;
+  criteria_unknown?: number;
+  criteria_not_applicable?: number;
+  criteria_deferred?: number;
+  judge_outcome?: string | null;
+  final_disposition?: string | null;
+  failure_message?: string | null;
+  failure_language?: string | null;
+  repair_rejudge_provider?: string | null;
+  repair_rejudge_role?: string | null;
 }
 
 export interface JudgeModeSnapshot extends FeatureModeSnapshot {
@@ -253,6 +277,7 @@ export interface JudgeModeSnapshot extends FeatureModeSnapshot {
     | null;
   current_request_id: string | null;
   last_result: JudgeLastResult | null;
+  historical_last_result?: JudgeLastResult | null;
 }
 
 export interface RecordingOutcome {
@@ -261,15 +286,79 @@ export interface RecordingOutcome {
   degraded_reason: string | null;
 }
 
+// P6-RR-R19-WU-001..004 (Post-Claude Independent Review Rework, resolves
+// P6-CODEX-082): the Server-side single Join of Turn Metadata (from the
+// shared Request Correlation Registry, valid from the instant a Turn
+// starts, not only once it completes), Judge Result, and both Recording
+// Outcomes for the Current Request.
+export interface RequestCorrelationSummary {
+  request_id: string;
+  status: "pending" | "completed" | "cancelled" | "failed";
+  started_at: string;
+  completed_at: string | null;
+  judge_result: JudgeLastResult | null;
+  turn_recording: RecordingOutcome | null;
+  judge_evidence_recording: RecordingOutcome | null;
+}
+
 export interface RecordingModeSnapshot extends FeatureModeSnapshot {
   last_outcome: RecordingOutcome | null;
   judge_evidence_last_outcome: RecordingOutcome | null;
+  correlation?: {
+    request_id: string | null;
+    current: RequestCorrelationSummary | null;
+    current_turn: RecordingOutcome | null;
+    current_judge_evidence: RecordingOutcome | null;
+    historical_or_unmatched: RecordingOutcome[];
+  } | null;
 }
 
 export interface FeatureModesStatus {
   judge: JudgeModeSnapshot;
   repair: FeatureModeSnapshot;
   recording: RecordingModeSnapshot;
+}
+
+export type ProviderRole = "main" | "guard" | "judge";
+
+export interface ProviderStageBudget {
+  profile_id: string;
+  verification_state: string;
+  load_budget_ms: number;
+  prompt_build_budget_ms: number;
+  inference_budget_ms: number;
+  decode_budget_ms: number;
+  repair_generation_budget_ms: number;
+  rejudge_budget_ms: number;
+  cancel_grace_ms: number;
+}
+
+export interface ProviderOption {
+  provider_id: string;
+  role: ProviderRole;
+  kind: "none" | "built_in" | "model";
+  display_name: string;
+  enabled: boolean;
+  model_key: string | null;
+}
+
+export interface RoleProviderSelection {
+  role: ProviderRole;
+  configured_provider: string;
+  active_provider: string | null;
+  state: string;
+  independence: string;
+  failure_reason: string | null;
+  failure_at: string | null;
+  budget: ProviderStageBudget | null;
+}
+
+export interface ProviderSelectionStatus {
+  enabled: boolean;
+  revision: number | null;
+  digest_sha512: string | null;
+  selections: RoleProviderSelection[];
+  options: ProviderOption[];
 }
 
 export interface RuntimeModelAvailableModel {

@@ -8,6 +8,7 @@ import threading
 import time
 from collections.abc import Callable, Generator, Iterator
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from typing import Protocol
 from uuid import uuid4
 
@@ -60,6 +61,7 @@ from margpa_runtime_llm.modules.presentation.contracts.thinking import (
 from margpa_runtime_llm.modules.summarization.public import SummarizationConfig, SummaryMode
 from margpa_runtime_llm.orchestration.response_language import (
     compose_conversation_generation_messages,
+    resolve_effective_response_language,
 )
 from margpa_runtime_llm.orchestration.summarization import compose_summary_messages
 
@@ -182,6 +184,17 @@ class JudgeCompletionContext:
     recording_mode: str | None = None
     enforce_presented_final: bool = False
     cancellation: CancellationToken | None = None
+    response_language: str = "en"
+    """P6-RR-R14-WU-006/007 (Post-Claude Independent Review Rework,
+    resolves P6-CODEX-076): the Turn's own frozen Response Language
+    (`ConversationGenerationSession._response_language`, set once at
+    `start()`), independent of whether a Semantic Snapshot exists. A
+    Judge Hook must never derive its user-facing Failure Language from
+    the Semantic Snapshot — Main Runtime Governance can be OFF (no
+    Snapshot at all) while Judge is independently ENFORCE/OBSERVE, and
+    even when a Snapshot exists its own `language` field historically
+    reflected a static bootstrap-time config default, not this specific
+    Turn's actual selected language."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -224,6 +237,26 @@ JudgeModeSnapshotProvider = Callable[[], str | JudgeExecutionModeSnapshot]
 # orthogonality, ADR-6-013) — the two Hooks are stored and invoked
 # separately so toggling one Mode OFF never silently starves the other.
 RecordingCompletionHook = Callable[[JudgeCompletionContext], None]
+
+# P6-RR-R19-WU-001..004 (Post-Claude Independent Review Rework, resolves
+# P6-CODEX-082): plain Callables, matching the Hook pattern above exactly
+# — this module (the pure Application layer) never imports a concrete
+# Registry type from `bootstrap/`; the Composition Root wires a real
+# `RequestCorrelationRegistry`'s methods in as these two Hooks instead,
+# the same way it wires `judge_completion_hook`/`recording_completion_
+# hook`. `RequestCorrelationBeginHook` fires once, synchronously, the
+# instant a Turn starts (before Judge/Repair/Recording ever run) — the
+# fix's whole point is that "Current" becomes valid immediately, not only
+# once a Turn's own Recording Hook eventually writes a record.
+# `RequestCorrelationTerminalHook` fires exactly once per Turn, from
+# `events()`'s own guaranteed `finally` block, regardless of which exit
+# path (Completed/Cancelled/Failed) a Turn actually takes.
+RequestCorrelationBeginHook = Callable[[str, str], None]
+"""``(request_id, started_at) -> None``"""
+
+RequestCorrelationTerminalHook = Callable[[str, str, str], None]
+"""``(request_id, status, completed_at) -> None`` — `status` is one of
+``"completed"``/``"cancelled"``/``"failed"``."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -375,6 +408,23 @@ SEMANTIC_ENFORCEMENT_SAFE_FALLBACK = (
     "The answer could not be verified safely, so it has been withheld. "
     "Please retry or confirm the answer against an authoritative source."
 )
+
+
+def _semantic_enforcement_safe_fallback(language: ResponseLanguage) -> str:
+    """Return the only fallback available when a Hook supplied no decision.
+
+    Judge-owned failures supply their more specific frozen-language
+    presentation. This narrow conversation-owned fallback covers only a Hook
+    exception, ``None``, or an empty decision.
+    """
+    if language is ResponseLanguage.JA:
+        return (
+            "回答を安全に検証できなかったため、表示を保留しました。"
+            "再試行するか、信頼できる情報源で確認してください。"
+        )
+    return SEMANTIC_ENFORCEMENT_SAFE_FALLBACK
+
+
 CONTEXT_USAGE_NOTICE_MESSAGE_NAME = "context_usage_notice"
 EXPRESSIVE_STYLE_NOTICE_MESSAGE_NAME = "expressive_style_notice"
 
@@ -442,6 +492,7 @@ class ConversationGenerationSession:
         repair_mode: str | None = None,
         recording_mode: str | None = None,
         recording_completion_hook: RecordingCompletionHook | None = None,
+        request_correlation_terminal: RequestCorrelationTerminalHook | None = None,
     ) -> None:
         self._request_id = request_id
         self._request = request
@@ -451,6 +502,13 @@ class ConversationGenerationSession:
         self._summarization = summarization
         self._summary_mode = summary_mode
         self._response_language = response_language
+        # P6-RR-R18-WU-004..006 (Post-Claude Independent Review Rework,
+        # resolves P6-CODEX-083): AUTO's effective ja/en value is resolved
+        # once, lazily, on first access (see `_effective_response_language()`
+        # below) and cached here — every Judge/Repair/Rejudge/Failure
+        # Presentation call site within this Turn reads the identical
+        # resolved value, never a fresh per-call re-derivation.
+        self._effective_response_language_cache: ResponseLanguage | None = None
         self._documentation_augmentation = documentation_augmentation
         self._documentation_rag = documentation_rag
         self._documentation_query = documentation_query
@@ -473,6 +531,12 @@ class ConversationGenerationSession:
         self._repair_mode = repair_mode
         self._recording_mode = recording_mode
         self._recording_completion_hook = recording_completion_hook
+        self._request_correlation_terminal = request_correlation_terminal
+        # P6-RR-R19-WU-001..004 (resolves P6-CODEX-082): defaults to
+        # "failed" — a genuinely unclassified exit (an exception escaping
+        # every explicit Completed/Cancelled/Error path below) must never
+        # be silently reported as a successful Turn.
+        self._terminal_status = "failed"
         self._cancel_requested = threading.Event()
         self._judge_cancellation = CancellationToken()
         self._finished = threading.Event()
@@ -582,6 +646,21 @@ class ConversationGenerationSession:
             # Reject path clears this slot first; only a genuinely
             # unclassified exit reaches this final discard.
             self._finalize_judge_evidence(self._pending_judge_decision, publish=False)
+            # P6-RR-R19-WU-001..004 (Post-Claude Independent Review
+            # Rework, resolves P6-CODEX-082): the one guaranteed Terminal
+            # boundary for this Turn, regardless of which explicit exit
+            # path (Completed/Cancelled/Error) or unclassified exception
+            # actually produced it — `self._terminal_status` was set at
+            # the exact point whichever of those paths committed.
+            if self._request_correlation_terminal is not None:
+                try:
+                    self._request_correlation_terminal(
+                        self.request_id,
+                        self._terminal_status,
+                        datetime.now(UTC).isoformat(),
+                    )
+                except Exception:
+                    pass
             self._finished.set()
             self._release()
 
@@ -1027,7 +1106,7 @@ class ConversationGenerationSession:
             final_content = (
                 semantic_decision.presented_content
                 if semantic_decision is not None and semantic_decision.presented_content.strip()
-                else SEMANTIC_ENFORCEMENT_SAFE_FALLBACK
+                else _semantic_enforcement_safe_fallback(self._effective_response_language())
             )
             # A repaired/safe replacement crosses the exact same final
             # Governance and Guardrail gates as any ordinary candidate.
@@ -1130,6 +1209,7 @@ class ConversationGenerationSession:
                 presented.final_content,
                 enforce_presented_final=False,
             )
+        self._terminal_status = "completed"
         return ConversationEvent(event=ConversationEventType.COMPLETED, data=data)
 
     def _finalize_judge_evidence(
@@ -1249,6 +1329,7 @@ class ConversationGenerationSession:
         )
 
     def _cancelled_event(self) -> ConversationEvent:
+        self._terminal_status = "cancelled"
         return ConversationEvent(
             event=ConversationEventType.CANCELLED,
             data={"request_id": self.request_id, "state": "cancelled"},
@@ -1343,6 +1424,36 @@ class ConversationGenerationSession:
             retryable=False,
         )
 
+    def _effective_response_language(self) -> ResponseLanguage:
+        """P6-RR-R18-WU-004..006 (Post-Claude Independent Review Rework,
+        resolves P6-CODEX-083): the one concrete ja/en value every
+        Judge/Repair/Rejudge/Failure-Presentation call site in this
+        Session must use — `self._response_language` alone is not enough
+        whenever it is `ResponseLanguage.AUTO`, which a naive `is JA ->
+        ja else en` binary check (the previous behavior this replaces)
+        silently collapsed to `en` regardless of the Turn's actual
+        User Input language. Resolved once, from this Turn's own frozen
+        Request, and cached — every caller within the same Turn observes
+        the identical value."""
+        if self._effective_response_language_cache is not None:
+            return self._effective_response_language_cache
+        if self._response_language is not ResponseLanguage.AUTO or self._request is None:
+            resolved = self._response_language
+        else:
+            user_input = next(
+                (
+                    message.content
+                    for message in reversed(self._request.messages)
+                    if message.role is MessageRole.USER
+                ),
+                "",
+            )
+            resolved = resolve_effective_response_language(
+                language=self._response_language, user_input=user_input
+            )
+        self._effective_response_language_cache = resolved
+        return resolved
+
     def _invoke_judge_completion_hook(
         self, assistant_content: str, *, enforce_presented_final: bool
     ) -> JudgeCompletionDecision | None:
@@ -1393,6 +1504,7 @@ class ConversationGenerationSession:
                     recording_mode=self._recording_mode,
                     enforce_presented_final=enforce_presented_final,
                     cancellation=self._judge_cancellation,
+                    response_language=self._effective_response_language().value,
                 )
             )
         except Exception:
@@ -1439,6 +1551,14 @@ class ConversationGenerationSession:
                     assistant_content=assistant_content,
                     model_key=self._request.model_key,
                     model_runtime_info=self._model_runtime_info,
+                    # P6-RR-R15-WU-005 (Post-Claude Independent Review
+                    # Rework, resolves half of P6-CODEX-077): this Turn's
+                    # own Frozen Recording Mode, set once at `start()` —
+                    # never left for the Hook to re-read the Live
+                    # Controller at write time, which could disagree with
+                    # what Judge Evidence (already Frozen-mode-based)
+                    # recorded for the identical Turn.
+                    recording_mode=self._recording_mode,
                 )
             )
         except Exception:
@@ -1481,6 +1601,7 @@ class ConversationGenerationSession:
         )
 
     def _error_event(self, *, code: str, message: str, retryable: bool) -> ConversationEvent:
+        self._terminal_status = "failed"
         return ConversationEvent(
             event=ConversationEventType.ERROR,
             data={
@@ -1554,6 +1675,8 @@ class ConversationGenerationService:
         recording_completion_hook: RecordingCompletionHook | None = None,
         model_access_coordinator: ModelAccessCoordinator | None = None,
         runtime_snapshot_provider: RuntimeGenerationSnapshotProvider | None = None,
+        request_correlation_begin: RequestCorrelationBeginHook | None = None,
+        request_correlation_terminal: RequestCorrelationTerminalHook | None = None,
     ) -> None:
         self._inference = inference
         self._presentation = presentation
@@ -1582,6 +1705,8 @@ class ConversationGenerationService:
         self._judge_completion_hook = judge_completion_hook
         self._judge_mode_snapshot_provider = judge_mode_snapshot_provider
         self._recording_completion_hook = recording_completion_hook
+        self._request_correlation_begin = request_correlation_begin
+        self._request_correlation_terminal = request_correlation_terminal
         self._model_access_coordinator = model_access_coordinator or ModelAccessCoordinator()
         self._active_lock = threading.Lock()
         self._active: ConversationGenerationSession | None = None
@@ -1619,6 +1744,19 @@ class ConversationGenerationService:
                     safe_message="Documentation RAG is unavailable in this runtime.",
                 )
         request_id = str(uuid4())
+        # P6-RR-R19-WU-001..004 (Post-Claude Independent Review Rework,
+        # resolves P6-CODEX-082): registered as Current the instant this
+        # Turn starts — before Judge/Repair/Recording ever run, and
+        # before the (possibly slow) Runtime Snapshot/Documentation
+        # Retrieval/Judge Mode resolution below even begins. A concurrent
+        # Status reader must never see the *previous* Turn as Current
+        # merely because this one hasn't reached its own Recording Hook
+        # yet.
+        if self._request_correlation_begin is not None:
+            try:
+                self._request_correlation_begin(request_id, datetime.now(UTC).isoformat())
+            except Exception:
+                pass
         # P6-CODEX-025 (Fourth Rework): resolved exactly once per Attempt,
         # here at Main Turn start — never re-read mid-Attempt (Requirements
         # "実行中Attemptの途中で値を変えない"). Every downstream consumer of
@@ -1711,12 +1849,25 @@ class ConversationGenerationService:
                 repair_mode=judge_modes.repair_mode,
                 recording_mode=judge_modes.recording_mode,
                 recording_completion_hook=self._recording_completion_hook,
+                request_correlation_terminal=self._request_correlation_terminal,
             )
             with self._active_lock:
                 self._active = session
             return session
         except BaseException:
             self._model_access_coordinator.release_main(task_id=request_id)
+            # P6-RR-R19-WU-001..004: `start()` itself failed before a
+            # Session/its `events()` generator ever came to exist — that
+            # generator's own `finally` (the normal Terminal boundary)
+            # will never run for this `request_id`, so it must be marked
+            # here instead, or it would linger "pending" forever.
+            if self._request_correlation_terminal is not None:
+                try:
+                    self._request_correlation_terminal(
+                        request_id, "failed", datetime.now(UTC).isoformat()
+                    )
+                except Exception:
+                    pass
             raise
 
     def cancel(self, request_id: str) -> bool:

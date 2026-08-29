@@ -15,24 +15,20 @@ interface ConfigurationControlPanelProps {
   onApply: (researchDeveloperMode: string) => void;
 }
 
-// Display order deliberately doesn't mirror the snapshot's own field order:
-// related keys (the two conversation_storage_* fields, the two
-// application-sourced max_new_tokens/selected_model fields) are grouped
-// together, and research_developer_mode / acceleration_api lead their
-// respective columns. This is why the columns are rendered explicitly by
-// key instead of via a single `snapshot.fields.map(...)` pass.
+// Display order deliberately doesn't mirror the snapshot's own field order.
+// P6-RR-P-WU-004 (Production Wiring Delta item 5): the User-specified 3:3
+// split — left groups the two conversation_storage_* fields with
+// profile_key, right groups the three runtime/hardware identity fields.
+// `research_developer_mode` is intentionally excluded from both columns
+// (item 4): its own OFF/ON Control is hidden (item 3), not deleted, and
+// its Backend Contract (`onApply`) is untouched.
 const LEFT_COLUMN_FIELD_KEYS = [
-  "research_developer_mode",
+  "conversation_storage_kind",
+  "conversation_storage_version",
   "profile_key",
 ];
 
-const RIGHT_COLUMN_FIELD_KEYS = [
-  "acceleration_api",
-  "backend_kind",
-  "device_kind",
-  "conversation_storage_kind",
-  "conversation_storage_version",
-];
+const RIGHT_COLUMN_FIELD_KEYS = ["acceleration_api", "backend_kind", "device_kind"];
 
 export default function ConfigurationControlPanel({
   language,
@@ -44,7 +40,12 @@ export default function ConfigurationControlPanel({
   const snapshot = state.snapshot;
   const researchField = snapshot?.fields.find((item) => item.key === "research_developer_mode") ?? null;
 
-  const developerDetailsVisible = researchField?.value === "on";
+  // P6-RR-P-WU-004 (Production Wiring Delta item 3): details render
+  // unconditionally now — the prior `researchField?.value === "on"` gate
+  // is removed from visibility (the OFF/ON Control itself is hidden
+  // below, not deleted; the Backend Toggle Contract still exists and
+  // still drives `onApply`, so a future Rollback only needs to un-hide
+  // the Control, not rebuild it).
   const statusKey =
     state.capability === "loading"
       ? "configurationLoading"
@@ -76,13 +77,13 @@ export default function ConfigurationControlPanel({
       <p id="configuration-status">{translate(language, statusKey)}</p>
       {snapshot === null ? null : (
         <>
-          <dl className="configuration-meta" hidden={!developerDetailsVisible}>
+          <dl className="configuration-meta">
             <dt>{translate(language, "configurationRevision")}</dt>
             <dd>{snapshot.revision}</dd>
             <dt>{translate(language, "configurationDigest")}</dt>
             <dd>{snapshot.digest_sha512}</dd>
           </dl>
-          <div className="configuration-fields" role="list" hidden={!developerDetailsVisible}>
+          <div className="configuration-fields" role="list">
             {[LEFT_COLUMN_FIELD_KEYS, RIGHT_COLUMN_FIELD_KEYS].map((columnKeys, columnIndex) => (
               <div className="configuration-fields-column" key={columnIndex}>
                 {columnKeys.map((key) => {
@@ -103,7 +104,7 @@ export default function ConfigurationControlPanel({
               </div>
             ))}
           </div>
-          <div className="configuration-controls">
+          <div className="configuration-controls" hidden>
             <div
               className="configuration-toggle"
               role="radiogroup"

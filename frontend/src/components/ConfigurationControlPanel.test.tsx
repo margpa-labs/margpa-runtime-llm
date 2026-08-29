@@ -33,7 +33,7 @@ describe("ConfigurationControlPanel", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  test("hides developer details while Research Mode is off and removes old model/context controls", () => {
+  test("shows developer details unconditionally (P6-RR-P-WU-004 item 3) and removes old model/context controls", () => {
     const { container } = render(
       <ConfigurationControlPanel
         language="en"
@@ -43,10 +43,45 @@ describe("ConfigurationControlPanel", () => {
         onApply={vi.fn()}
       />,
     );
-    expect(screen.getByText("deadbeef").closest("dl")).toHaveAttribute("hidden");
+    expect(screen.getByText("deadbeef").closest("dl")).not.toHaveAttribute("hidden");
     expect(container.querySelector("#configuration-model")).toBeNull();
     expect(container.querySelector("#configuration-context")).toBeNull();
     expect(container.querySelector("#configuration-apply")).toBeNull();
+  });
+
+  test("Research Mode Control is hidden but not deleted (P6-RR-P-WU-004 item 3)", () => {
+    render(
+      <ConfigurationControlPanel
+        language="en"
+        visible={true}
+        state={readyState()}
+        onRefresh={vi.fn()}
+        onApply={vi.fn()}
+      />,
+    );
+    expect(screen.queryByRole("radio", { name: "ON" })).toBeNull();
+    expect(screen.getByRole("radio", { name: "ON", hidden: true })).toHaveAttribute(
+      "aria-checked",
+      "false",
+    );
+  });
+
+  test("research_developer_mode field itself is excluded from both field columns (item 4)", () => {
+    const { container } = render(
+      <ConfigurationControlPanel
+        language="en"
+        visible={true}
+        state={readyState()}
+        onRefresh={vi.fn()}
+        onApply={vi.fn()}
+      />,
+    );
+    expect(container.querySelector('[role="listitem"] strong')?.textContent).not.toBe(
+      "research_developer_mode",
+    );
+    for (const strong of container.querySelectorAll('[role="listitem"] strong')) {
+      expect(strong.textContent).not.toBe("research_developer_mode");
+    }
   });
 
   test("never renders the raw snapshot into an input value usable for silent submission of secrets", () => {
@@ -78,10 +113,13 @@ describe("ConfigurationControlPanel", () => {
         onApply={onApply}
       />,
     );
-    fireEvent.click(screen.getByRole("radio", { name: "ON" }));
+    fireEvent.click(screen.getByRole("radio", { name: "ON", hidden: true }));
     expect(onApply).toHaveBeenCalledOnce();
     expect(onApply).toHaveBeenCalledWith("on");
-    expect(screen.getByRole("radio", { name: "ON" })).toHaveAttribute("aria-checked", "false");
+    expect(screen.getByRole("radio", { name: "ON", hidden: true })).toHaveAttribute(
+      "aria-checked",
+      "false",
+    );
     expect(document.querySelector("#configuration-apply")).toBeNull();
   });
 
@@ -95,8 +133,8 @@ describe("ConfigurationControlPanel", () => {
         onApply={vi.fn()}
       />,
     );
-    expect(screen.getByRole("radio", { name: "OFF" })).toBeDisabled();
-    expect(screen.getByRole("radio", { name: "ON" })).toBeDisabled();
+    expect(screen.getByRole("radio", { name: "OFF", hidden: true })).toBeDisabled();
+    expect(screen.getByRole("radio", { name: "ON", hidden: true })).toBeDisabled();
   });
 
   test("renders nothing about the snapshot before the first successful load", () => {

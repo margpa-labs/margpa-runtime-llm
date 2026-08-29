@@ -9,10 +9,23 @@ import json
 from dataclasses import dataclass
 
 from ..domain.identifiers import EvaluationExecutionState, EvaluationRecommendation
-from ..domain.llm_judge import JudgeFailureReason, JudgeIndependenceClass, LlmJudgeResponse
+from ..domain.llm_judge import (
+    JudgeCriterionDisposition,
+    JudgeCriterionResult,
+    JudgeFailureReason,
+    JudgeIndependenceClass,
+    LlmJudgeResponse,
+)
 
 _VALID_RECOMMENDATIONS = {member.value for member in EvaluationRecommendation}
 _ALLOWED_FIELDS = {"recommendation", "confidence", "reasoning"}
+_CRITERION_ALLOWED_FIELDS = {
+    "criterion_id",
+    "disposition",
+    "confidence",
+    "reason_code",
+    "evidence_refs",
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -29,13 +42,15 @@ def decode_judge_output(
     judge_role: JudgeIndependenceClass,
     token_usage: int,
     latency_ms: int,
+    expected_criterion_ids: tuple[str, ...] = (),
 ) -> LlmJudgeResponse:
     """Raises JudgeDecodeError on any malformed/unknown output; never guesses."""
     payload = _extract_single_json_object(raw_text)
 
     if not isinstance(payload, dict):
         raise JudgeDecodeError(reason="top-level JSON value must be an object")
-    unexpected_fields = set(payload) - _ALLOWED_FIELDS
+    allowed_fields = _ALLOWED_FIELDS | ({"criterion_results"} if expected_criterion_ids else set())
+    unexpected_fields = set(payload) - allowed_fields
     if unexpected_fields:
         raise JudgeDecodeError(
             reason=f"unexpected fields: {sorted(str(field) for field in unexpected_fields)!r}"
@@ -53,12 +68,28 @@ def decode_judge_output(
 
     reasoning_raw = payload.get("reasoning")
     reasoning = reasoning_raw if isinstance(reasoning_raw, str) and reasoning_raw.strip() else None
+    criterion_results = _decode_criterion_results(
+        payload.get("criterion_results"), expected_criterion_ids=expected_criterion_ids
+    )
+    dispositions = {item.disposition for item in criterion_results}
+    if recommendation_raw == EvaluationRecommendation.ACCEPT.value and (
+        JudgeCriterionDisposition.DEVIATION in dispositions
+        or JudgeCriterionDisposition.UNKNOWN in dispositions
+    ):
+        raise JudgeDecodeError(reason="recommendation contradicts criterion results")
+    if (
+        recommendation_raw == EvaluationRecommendation.NEEDS_REPAIR.value
+        and criterion_results
+        and JudgeCriterionDisposition.DEVIATION not in dispositions
+    ):
+        raise JudgeDecodeError(reason="repair recommendation has no deviated criterion")
 
     return LlmJudgeResponse(
         judge_role=judge_role,
         recommendation=EvaluationRecommendation(recommendation_raw),
         confidence=float(confidence_raw),
         reasoning=reasoning,
+        criterion_results=criterion_results,
         token_usage=token_usage,
         latency_ms=latency_ms,
         execution_state=EvaluationExecutionState.COMPLETED,
@@ -94,12 +125,69 @@ def _extract_single_json_object(raw_text: str) -> object:
     return candidates[0]
 
 
+def _decode_criterion_results(
+    value: object, *, expected_criterion_ids: tuple[str, ...]
+) -> tuple[JudgeCriterionResult, ...]:
+    if not expected_criterion_ids:
+        return ()
+    if len(set(expected_criterion_ids)) != len(expected_criterion_ids):
+        raise JudgeDecodeError(reason="expected criterion ids are not unique")
+    if not isinstance(value, list):
+        raise JudgeDecodeError(reason="criterion_results must be an array")
+    decoded: dict[str, JudgeCriterionResult] = {}
+    for item in value:
+        if not isinstance(item, dict):
+            raise JudgeDecodeError(reason="criterion result must be an object")
+        unexpected = set(item) - _CRITERION_ALLOWED_FIELDS
+        if unexpected:
+            raise JudgeDecodeError(reason=f"unexpected criterion fields: {sorted(unexpected)!r}")
+        criterion_id = item.get("criterion_id")
+        if not isinstance(criterion_id, str) or criterion_id not in expected_criterion_ids:
+            raise JudgeDecodeError(reason=f"unexpected criterion id: {criterion_id!r}")
+        if criterion_id in decoded:
+            raise JudgeDecodeError(reason=f"duplicate criterion id: {criterion_id!r}")
+        disposition = item.get("disposition")
+        if not isinstance(disposition, str):
+            raise JudgeDecodeError(reason="criterion disposition must be a string")
+        try:
+            typed_disposition = JudgeCriterionDisposition(disposition)
+        except (TypeError, ValueError):
+            raise JudgeDecodeError(
+                reason=f"invalid criterion disposition: {disposition!r}"
+            ) from None
+        confidence = item.get("confidence")
+        if not isinstance(confidence, int | float) or isinstance(confidence, bool):
+            raise JudgeDecodeError(reason="criterion confidence must be a number")
+        if not 0.0 <= float(confidence) <= 1.0:
+            raise JudgeDecodeError(reason="criterion confidence is outside [0,1]")
+        reason_code = item.get("reason_code")
+        if reason_code is not None and not isinstance(reason_code, str):
+            raise JudgeDecodeError(reason="criterion reason_code must be a string or null")
+        evidence_refs = item.get("evidence_refs", [])
+        if not isinstance(evidence_refs, list) or not all(
+            isinstance(reference, str) for reference in evidence_refs
+        ):
+            raise JudgeDecodeError(reason="criterion evidence_refs must be a string array")
+        decoded[criterion_id] = JudgeCriterionResult(
+            criterion_id=criterion_id,
+            disposition=typed_disposition,
+            confidence=float(confidence),
+            reason_code=reason_code,
+            evidence_refs=tuple(evidence_refs),
+        )
+    missing = set(expected_criterion_ids) - set(decoded)
+    if missing:
+        raise JudgeDecodeError(reason=f"missing criterion ids: {sorted(missing)!r}")
+    return tuple(decoded[criterion_id] for criterion_id in expected_criterion_ids)
+
+
 def decode_judge_output_fail_closed(
     *,
     raw_text: str,
     judge_role: JudgeIndependenceClass,
     token_usage: int,
     latency_ms: int,
+    expected_criterion_ids: tuple[str, ...] = (),
 ) -> LlmJudgeResponse:
     """Never raises: converts a JudgeDecodeError into a typed FAILED response.
 
@@ -113,6 +201,7 @@ def decode_judge_output_fail_closed(
             judge_role=judge_role,
             token_usage=token_usage,
             latency_ms=latency_ms,
+            expected_criterion_ids=expected_criterion_ids,
         )
     except JudgeDecodeError:
         return LlmJudgeResponse(

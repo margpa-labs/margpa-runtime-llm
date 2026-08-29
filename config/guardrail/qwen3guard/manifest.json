@@ -1,0 +1,59 @@
+{
+  "schema_version": "1",
+  "provider_id": "guard.qwen3guard-gen-0.6b-q8-0",
+  "label_schema_id": "qwen3guard_gen_frozen_line_protocol_v1",
+  "verified_official_contract": true,
+  "retrieval_status": "fetched_p6_rr_r23_read_only_official_sources",
+  "huggingface_source": {
+    "repository": "Qwen/Qwen3Guard-Gen-0.6B",
+    "source_url": "https://huggingface.co/Qwen/Qwen3Guard-Gen-0.6B/raw/fada3b2f655b89601929198343c94cd2f64d93cc/tokenizer_config.json",
+    "exact_revision": "fada3b2f655b89601929198343c94cd2f64d93cc",
+    "source_file": "tokenizer_config.json",
+    "source_sha512": "3ad26646bb8fe326f2781a995f4b1c3375b1cccfa5a06419c7d3b05fea5728b04cddf2dd739c7bfdf430dfc369a4431704df2fdbb55f02dcb2964481264248df",
+    "retrieved_at": "2026-08-28T23:55:52Z"
+  },
+  "github_source": {
+    "repository": "QwenLM/Qwen3Guard",
+    "source_url": "https://raw.githubusercontent.com/QwenLM/Qwen3Guard/6a52eca94b3d2aedb8aebd36baa353828d4166f1/README.md",
+    "exact_revision": "6a52eca94b3d2aedb8aebd36baa353828d4166f1",
+    "source_file": "README.md",
+    "source_sha512": "0fda11e35c0cd33237d6108baae4a6c0d3eca93e71ac8b8d294ad8f5a69c99b14f754622d03bf2c833a5e544ffa50dd7b33198b839f47361ccb0a5d0b580d31c",
+    "retrieved_at": "2026-08-28T23:55:52Z"
+  },
+  "safety_labels": ["Safe", "Unsafe", "Controversial"],
+  "refusal_labels": ["Yes", "No"],
+  "input_context_required_fields": ["Safety", "Categories"],
+  "output_candidate_required_fields": ["Safety", "Categories", "Refusal"],
+  "input_context_categories": [
+    "Violent",
+    "Non-violent Illegal Acts",
+    "Sexual Content or Sexual Acts",
+    "PII",
+    "Suicide & Self-Harm",
+    "Unethical Acts",
+    "Politically Sensitive Topics",
+    "Copyright Violation",
+    "Jailbreak"
+  ],
+  "output_candidate_categories": [
+    "Violent",
+    "Non-violent Illegal Acts",
+    "Sexual Content or Sexual Acts",
+    "PII",
+    "Suicide & Self-Harm",
+    "Unethical Acts",
+    "Politically Sensitive Topics",
+    "Copyright Violation"
+  ],
+  "category_id_mapping": {
+    "Violent": "violent",
+    "Non-violent Illegal Acts": "non_violent_illegal_acts",
+    "Sexual Content or Sexual Acts": "sexual_content",
+    "PII": "pii",
+    "Suicide & Self-Harm": "suicide_self_harm",
+    "Unethical Acts": "unethical_acts",
+    "Politically Sensitive Topics": "politically_sensitive_topics",
+    "Copyright Violation": "copyright_violation",
+    "Jailbreak": "jailbreak"
+  }
+}

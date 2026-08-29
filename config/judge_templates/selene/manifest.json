@@ -1,0 +1,11 @@
+{
+  "schema_version": "1",
+  "provider_id": "judge.selene-1-mini-llama-3.1-8b-q5-k-m",
+  "template_type": "official_selene_prompt_template_unresolved",
+  "upstream_repository_url": "https://github.com/atla-ai/selene-mini/tree/main/prompt-templates",
+  "upstream_revision": null,
+  "template_file": null,
+  "template_sha512": null,
+  "retrieval_status": "unavailable_network_prohibited_by_exact_resume_authority",
+  "verified_official_copy": false
+}

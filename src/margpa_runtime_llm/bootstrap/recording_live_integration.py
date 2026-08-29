@@ -93,7 +93,24 @@ def build_recording_completion_hook(
     state = RecordingCompositionState()
 
     def hook(context: JudgeCompletionContext) -> None:
-        mode = recording_mode_controller.mode_snapshot().current_mode
+        # P6-RR-R15-WU-005 (Post-Claude Independent Review Rework,
+        # resolves half of P6-CODEX-077): prefer this Turn's own Frozen
+        # Recording Mode (`context.recording_mode`, set once at Turn
+        # `start()` — see `ConversationGenerationSession.
+        # _invoke_recording_completion_hook()`) over a Live re-read of
+        # `recording_mode_controller` here, on whatever Thread/Timing this
+        # Hook actually runs on. A Live re-read let Turn Recording and
+        # Judge Evidence (already Frozen-mode-based) silently disagree
+        # about which Mode applied to the identical Turn if Recording Mode
+        # changed mid-Turn. Only a genuinely absent/unrecognized Frozen
+        # value (a caller that never set it, e.g. an older direct test)
+        # falls back to the Live Controller, exactly the previous
+        # behavior for that narrower case.
+        mode = (
+            RecordingMode(context.recording_mode)
+            if context.recording_mode in {member.value for member in RecordingMode}
+            else recording_mode_controller.mode_snapshot().current_mode
+        )
         if mode is RecordingMode.OFF:
             return
         # P6-CODEX-025 (Fourth Rework): the provider receives this Attempt's
@@ -172,7 +189,6 @@ def build_judge_evidence_recorder(
         mode = recording_mode
         if mode is RecordingMode.OFF:
             return
-        evidence_request_id = f"{request_id}-judge-evidence"
         metadata_fields: dict[str, MetadataValue] = {
             "artifact_kind": "judge_run_evidence",
             "model_identity": model_identity,
@@ -219,7 +235,7 @@ def build_judge_evidence_recorder(
         service = RecordingService(mode=mode, writer=writer)
         try:
             service.record(
-                request_id=evidence_request_id,
+                request_id=request_id,
                 timestamp=datetime.now(UTC).isoformat(),
                 metadata_fields=metadata_fields,
                 # The raw Prompt/Reasoning text is never persisted as
@@ -229,10 +245,8 @@ def build_judge_evidence_recorder(
                 presented_answer=None,
             )
         except _RecordingFailure as exc:
-            state.record_degraded(
-                request_id=evidence_request_id, reason=f"{type(exc).__name__}: {exc}"
-            )
+            state.record_degraded(request_id=request_id, reason=f"{type(exc).__name__}: {exc}")
             return
-        state.record_ok(request_id=evidence_request_id)
+        state.record_ok(request_id=request_id)
 
     return record_judge_evidence, state

@@ -55,6 +55,7 @@ class Severity(StrEnum):
 class ObservationOutcome(StrEnum):
     PASS = "pass"
     DEVIATION = "deviation"
+    UNKNOWN = "unknown"
     DEFERRED_TO_SEMANTIC_EVALUATOR = "deferred_to_semantic_evaluator"
 
 

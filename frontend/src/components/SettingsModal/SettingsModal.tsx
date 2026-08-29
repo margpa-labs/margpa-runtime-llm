@@ -16,6 +16,7 @@ import RuntimeModelStatusPanel, {
   type RuntimeModelControlState,
 } from "../RuntimeModelStatusPanel";
 import FeatureModesPanel from "../FeatureModesPanel";
+import ProviderSelectionPanel from "../ProviderSelectionPanel";
 import type { GovernanceMode, GuardrailGovernanceMode, MainGovernanceMode } from "../../types";
 
 interface SettingsModalProps {
@@ -211,6 +212,11 @@ export default function SettingsModal({
                   onApply={onGuardrailGovernanceApply}
                 />
               ) : null}
+              {/* P6-RR-P-WU-004 (Production Wiring Delta item 2): Judge/
+                  Repair/Recording -> Model Status -> Role Provider Selection
+                  -> Runtime Control, User-specified Bounded Advanced Mode
+                  order. */}
+              <FeatureModesPanel language={language} visible={category === "advanced"} />
               {runtimeModelControlBootstrapEnabled ? (
                 <RuntimeModelStatusPanel
                   language={language}
@@ -220,7 +226,7 @@ export default function SettingsModal({
                   onStatusChange={onRuntimeModelStatusChange}
                 />
               ) : null}
-              <FeatureModesPanel language={language} visible={category === "advanced"} />
+              <ProviderSelectionPanel language={language} visible={category === "advanced"} />
               {configurationBootstrapEnabled ? (
                 <ConfigurationControlPanel
                   language={language}

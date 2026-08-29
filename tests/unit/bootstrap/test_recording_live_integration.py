@@ -167,7 +167,7 @@ def test_judge_evidence_is_written_to_a_distinct_file_with_real_provenance(
 
     files = list(tmp_path.glob("*.json"))
     assert len(files) == 1
-    assert files[0].name == "req-judge-1-judge-evidence.json"
+    assert files[0].name == "req-judge-1.json"
     payload = json.loads(files[0].read_text())
     fields = payload["metadata_fields"]
     assert fields["artifact_kind"] == "judge_run_evidence"
@@ -230,9 +230,7 @@ def test_judge_evidence_never_collides_with_the_turn_level_recording_file(
     )
 
     assert [p.name for p in (tmp_path / "evaluations").glob("*.json")] == ["req-shared-1.json"]
-    assert [p.name for p in (tmp_path / "evidence").glob("*.json")] == [
-        "req-shared-1-judge-evidence.json"
-    ]
+    assert [p.name for p in (tmp_path / "evidence").glob("*.json")] == ["req-shared-1.json"]
 
 
 def test_recording_mode_is_frozen_at_hook_invocation_time(tmp_path: Path) -> None:
@@ -259,3 +257,61 @@ def test_recording_mode_is_frozen_at_hook_invocation_time(tmp_path: Path) -> Non
     )
 
     assert list(tmp_path.glob("*.json")) == [tmp_path / "req-mode-1.json"]
+
+
+def test_frozen_recording_mode_off_suppresses_write_despite_live_full(
+    tmp_path: Path,
+) -> None:
+    """P6-RR-R15-WU-005 (resolves half of P6-CODEX-077): the Turn's own
+    Frozen `context.recording_mode` (set once at Turn `start()`) must win
+    over whatever the live Controller says by the time this Hook actually
+    runs. A Turn that started while Recording was OFF must never be
+    recorded just because Mode flipped to FULL before its Hook call."""
+    controller = RecordingModeController()
+    controller.apply_mode(RecordingMode.FULL)  # live state disagrees with the frozen one
+    writer = LocalFilesystemRecordingWriter(base_dir=tmp_path, max_total_bytes=10_000)
+    hook, state = build_recording_completion_hook(
+        recording_mode_controller=controller, writer=writer
+    )
+
+    hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id="req-frozen-off-1",
+            user_input="Q",
+            assistant_content="A",
+            recording_mode=RecordingMode.OFF.value,
+        )
+    )
+
+    assert list(tmp_path.glob("*.json")) == []
+    assert state.last_outcome() is None
+
+
+def test_frozen_recording_mode_full_writes_despite_live_off(tmp_path: Path) -> None:
+    """The converse of the above: a Turn that started while Recording was
+    FULL must still be recorded even if Mode has already flipped back to
+    OFF by the time this Hook call runs — the Frozen value from Turn start
+    is authoritative, not a live re-read on whatever Thread/Timing the
+    Hook happens to execute on."""
+    controller = RecordingModeController()
+    controller.apply_mode(RecordingMode.OFF)  # live state disagrees with the frozen one
+    writer = LocalFilesystemRecordingWriter(base_dir=tmp_path, max_total_bytes=10_000)
+    hook, state = build_recording_completion_hook(
+        recording_mode_controller=controller, writer=writer
+    )
+
+    hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id="req-frozen-full-1",
+            user_input="Q",
+            assistant_content="A",
+            recording_mode=RecordingMode.FULL.value,
+        )
+    )
+
+    assert list(tmp_path.glob("*.json")) == [tmp_path / "req-frozen-full-1.json"]
+    outcome = state.last_outcome()
+    assert outcome is not None
+    assert outcome.ok is True

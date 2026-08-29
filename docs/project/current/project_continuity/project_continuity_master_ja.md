@@ -5,9 +5,9 @@ document_id: project_continuity_master
 status: current
 language: ja
 created_at: 2026-07-26 15:16:24 JST
-updated_at: 2026-08-22 21:13:08 JST
+updated_at: 2026-08-29 17:14:22 JST
 owner: Nazuna Research
-active_phase: phase_6_ready_for_backup_not_armed
+active_phase: phase_7_ready
 public_repository_eligible: true
 rag_default: true
 ```
@@ -46,12 +46,13 @@ Phase 2-E Cross-provider      : TECHNICAL・HANDOFF SUCCESS／GOVERNANCE VIOLATI
 Phase 3                       : COMPLETE／ACCEPTED／CLOSED
 Phase 4                       : COMPLETE／ACCEPTED／CLOSED
 Phase 5                       : COMPLETE／ACCEPTED／CLOSED／MAC ACCEPTANCE PASS
-Phase 6                       : DESIGN ACCEPTED／FROZEN／READY_FOR_BACKUP／NOT ARMED
+Phase 6                       : SPECIAL MINIMAL CLOSED／KNOWN DEBT DEFERRED／TECHNICAL CORE ADJUST
+Phase 7                       : DESIGN ACCEPTED／FROZEN／READY／PREFLIGHT PENDING
 ```
 
 Phase 1でmacOS MetalとLightning Linux x86_64 Pure CPUのCLI／Web Runtimeを成立させ、ユーザーによるMac／Lightning Web Acceptance、Basic認証、停止、再送信、New Chat、Language、Summary、Thinking、Copy、BusyおよびPublic URL確認を完了した。
 
-Phase 1-exはFinal Docs、Final Lossless、二種のRecovery、Full Test／Static Gate、Backup、Commit／PushおよびLocal／Origin／GitHub一致を通過し、ユーザー確認を含めComplete／Acceptedである。Git基盤と通常運用経路もAccepted／Operationalである。Phase 2-0 Automation Pilot、Phase 2-A～2-Eの実装、Mac AcceptanceおよびPhase 2-F Final Closureは完了した。Phase 2は`COMPLETE／ACCEPTED`、Phase 3とPhase 4は実装、独立Review、Exact Reworkおよび最小Closureを完了した`COMPLETE／ACCEPTED／CLOSED`である。Phase 5もClaude実装、Codex独立Review、Exact Rework、User Mac AcceptanceおよびMinimal Closureを完了し、`COMPLETE／ACCEPTED／CLOSED`となった。Phase 6統合Design PackageはController Review後に`ACCEPTED／FROZEN／READY_FOR_BACKUP`となったが、`ARMED`または実装許可ではない。
+Phase 1-exはFinal Docs、Final Lossless、二種のRecovery、Full Test／Static Gate、Backup、Commit／PushおよびLocal／Origin／GitHub一致を通過し、ユーザー確認を含めComplete／Acceptedである。Git基盤と通常運用経路もAccepted／Operationalである。Phase 2-0 Automation Pilot、Phase 2-A～2-Eの実装、Mac AcceptanceおよびPhase 2-F Final Closureは完了した。Phase 2は`COMPLETE／ACCEPTED`、Phase 3〜5は最小Closure済みである。Phase 6はRuntime Model Control、Recording、Stop等を成立させた一方、Selene、Qwen3Guard、Semantic 109件、Judge／Repairを未解決として保持し、User判断による特殊最小Closureを完了した。Phase 7はRAG／Web検索／Data Governanceの設計、工程およびAcceptanceをFreezeした`READY`状態である。
 
 ## 3. Current Runtime
 
@@ -63,9 +64,9 @@ Local Python     : 3.13.14
 Lightning Python : 3.12.11
 UI               : FastAPI Minimal Web
 Storage          : Browser Memory v1／Local SQLite Persistent Conversation v2 Opt-in
-Governance       : Phase 3 Definition／Phase 4 Main Runtime Governance accepted
+Governance       : Phase 3 Definition／Phase 4 Main Runtime Governance／Phase 6 known semantic debt
 Guardrail        : Phase 5 deterministic runtime accepted／OFF・OBSERVE・ENFORCE
-Documentation RAG: Local Project Corpus／Lightning Public Corpus／Persistent Citation Candidate
+Documentation RAG: Local Project Corpus／Lightning Public Corpus／Persistent Citation accepted／Phase 7 expansion ready
 Git Working Root : margpa-runtime-llm／main
 ```
 

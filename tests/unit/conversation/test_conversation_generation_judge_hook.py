@@ -134,11 +134,13 @@ def _presentation_policy() -> ResolvedThinkingPresentationPolicy:
     )
 
 
-def _conversation_input(*, content: str = "hello") -> ConversationGenerationInput:
+def _conversation_input(
+    *, content: str = "hello", response_language: ResponseLanguage = ResponseLanguage.JA
+) -> ConversationGenerationInput:
     return ConversationGenerationInput(
         messages=(ConversationMessage(role=ConversationRole.USER, content=content),),
         settings=ConversationSettings(
-            response_language=ResponseLanguage.JA,
+            response_language=response_language,
             max_new_tokens=128,
             thinking_mode=ThinkingMode.DISABLED,
             thinking_visibility=ThinkingVisibility.HIDDEN,
@@ -156,6 +158,8 @@ def _service(
     guardrail_post_hook: Callable[[str], tuple[bool, str]] | None = None,
     text_token_counter: Callable[[str], int] | None = None,
     model_access_coordinator: ModelAccessCoordinator | None = None,
+    request_correlation_begin: Callable[[str, str], None] | None = None,
+    request_correlation_terminal: Callable[[str, str, str], None] | None = None,
 ) -> ConversationGenerationService:
     return ConversationGenerationService(
         inference=inference,
@@ -173,6 +177,8 @@ def _service(
         judge_mode_snapshot_provider=judge_mode_snapshot_provider,
         text_token_counter=text_token_counter,
         model_access_coordinator=model_access_coordinator,
+        request_correlation_begin=request_correlation_begin,
+        request_correlation_terminal=request_correlation_terminal,
     )
 
 
@@ -210,6 +216,50 @@ def test_judge_hook_receives_the_correlated_request_user_input_and_answer() -> N
     assert completed.data["assistant_message"] == {"role": "assistant", "content": "answer"}
 
 
+def test_judge_hook_response_language_auto_resolves_to_ja_for_japanese_input() -> None:
+    """P6-RR-R18-WU-004..006 (Post-Claude Independent Review Rework,
+    resolves P6-CODEX-083): `ResponseLanguage.AUTO` must not collapse to
+    `en` regardless of the User's actual input language — the previous
+    `is JA -> ja else en` binary check did exactly that. A Japanese User
+    Turn with AUTO must resolve the Hook Context's `response_language`
+    to `ja`."""
+    inference = FakeInference()
+    calls: list[JudgeCompletionContext] = []
+
+    def _spy(context: JudgeCompletionContext) -> None:
+        calls.append(context)
+
+    session = _service(inference, judge_completion_hook=_spy).start(
+        _conversation_input(
+            content="今日の天気を教えてください", response_language=ResponseLanguage.AUTO
+        )
+    )
+    list(session.events())
+
+    assert len(calls) == 1
+    assert calls[0].response_language == "ja"
+
+
+def test_judge_hook_response_language_auto_resolves_to_en_for_english_input() -> None:
+    """The converse of the above: AUTO with an English User Turn must
+    resolve to `en`, not just default there incidentally."""
+    inference = FakeInference()
+    calls: list[JudgeCompletionContext] = []
+
+    def _spy(context: JudgeCompletionContext) -> None:
+        calls.append(context)
+
+    session = _service(inference, judge_completion_hook=_spy).start(
+        _conversation_input(
+            content="What is today's weather?", response_language=ResponseLanguage.AUTO
+        )
+    )
+    list(session.events())
+
+    assert len(calls) == 1
+    assert calls[0].response_language == "en"
+
+
 def test_judge_hook_is_never_called_when_guardrail_post_check_rejects() -> None:
     inference = FakeInference()
     calls: list[JudgeCompletionContext] = []
@@ -227,6 +277,112 @@ def test_judge_hook_is_never_called_when_guardrail_post_check_rejects() -> None:
 
     assert ConversationEventType.COMPLETED not in _event_types(events)
     assert calls == []
+
+
+def test_request_correlation_begin_fires_before_judge_hook_with_the_turn_request_id() -> None:
+    """P6-RR-R19-WU-001..004 (Post-Claude Independent Review Rework,
+    resolves P6-CODEX-082): the Begin Hook must fire at Turn start —
+    before Judge (or Recording) ever runs — with exactly this Turn's own
+    `request_id`, so a concurrent Status reader's "Current" anchor is
+    valid from the very first moment of the Turn, not only after it
+    completes."""
+    inference = FakeInference()
+    begin_calls: list[tuple[str, str]] = []
+    order: list[str] = []
+
+    def _on_begin(request_id: str, started_at: str) -> None:
+        begin_calls.append((request_id, started_at))
+        order.append("begin")
+
+    def _judge_hook(context: JudgeCompletionContext) -> None:
+        order.append("judge")
+
+    session = _service(
+        inference,
+        judge_completion_hook=_judge_hook,
+        request_correlation_begin=_on_begin,
+    ).start(_conversation_input())
+    list(session.events())
+
+    assert len(begin_calls) == 1
+    assert begin_calls[0][0] == session.request_id
+    assert begin_calls[0][1]  # a non-empty ISO timestamp
+    assert order == ["begin", "judge"]
+
+
+def test_request_correlation_terminal_fires_once_completed_for_a_normal_turn() -> None:
+    inference = FakeInference()
+    terminal_calls: list[tuple[str, str, str]] = []
+
+    session = _service(
+        inference,
+        request_correlation_terminal=lambda rid, status, at: terminal_calls.append(
+            (rid, status, at)
+        ),
+    ).start(_conversation_input())
+    list(session.events())
+
+    assert len(terminal_calls) == 1
+    assert terminal_calls[0][0] == session.request_id
+    assert terminal_calls[0][1] == "completed"
+    assert terminal_calls[0][2]
+
+
+def test_request_correlation_terminal_fires_failed_when_guardrail_rejects() -> None:
+    inference = FakeInference()
+    terminal_calls: list[tuple[str, str, str]] = []
+
+    def _reject(content: str) -> tuple[bool, str]:
+        return True, "guardrail_reject_output"
+
+    session = _service(
+        inference,
+        guardrail_post_hook=_reject,
+        request_correlation_terminal=lambda rid, status, at: terminal_calls.append(
+            (rid, status, at)
+        ),
+    ).start(_conversation_input())
+    list(session.events())
+
+    assert len(terminal_calls) == 1
+    assert terminal_calls[0][1] == "failed"
+
+
+def test_request_correlation_terminal_fires_cancelled_when_the_user_cancels() -> None:
+    entered = threading.Event()
+    terminal_calls: list[tuple[str, str, str]] = []
+
+    def _slow_enforce(context: JudgeCompletionContext) -> JudgeCompletionDecision:
+        assert context.cancellation is not None
+        entered.set()
+        assert context.cancellation.wait(timeout=2.0)
+        return JudgeCompletionDecision(
+            presented_content=SEMANTIC_ENFORCEMENT_SAFE_FALLBACK,
+            presentation_outcome="safe_fallback",
+            candidate_withheld=True,
+            finalize_evidence=lambda _published: None,
+        )
+
+    service = _service(
+        FakeInference(),
+        judge_completion_hook=_slow_enforce,
+        judge_mode_snapshot_provider=lambda: "enforce",
+        request_correlation_terminal=lambda rid, status, at: terminal_calls.append(
+            (rid, status, at)
+        ),
+    )
+    session = service.start(_conversation_input())
+    events: list[ConversationEvent] = []
+    consumer = threading.Thread(target=lambda: events.extend(session.events()))
+    consumer.start()
+
+    assert entered.wait(timeout=2.0)
+    assert service.cancel(session.request_id) is True
+    consumer.join(timeout=2.0)
+
+    assert not consumer.is_alive()
+    assert len(terminal_calls) == 1
+    assert terminal_calls[0] == (session.request_id, "cancelled", terminal_calls[0][2])
 
 
 def test_judge_hook_exception_never_breaks_the_completed_event() -> None:
@@ -343,9 +499,44 @@ def test_enforce_hook_failure_converges_to_safe_user_facing_final() -> None:
     completed = next(event for event in events if event.event is ConversationEventType.COMPLETED)
     assert completed.data["assistant_message"] == {
         "role": "assistant",
-        "content": SEMANTIC_ENFORCEMENT_SAFE_FALLBACK,
+        "content": (
+            "回答を安全に検証できなかったため、表示を保留しました。"
+            "再試行するか、信頼できる情報源で確認してください。"
+        ),
     }
     assert "internal judge detail" not in str(completed.data)
+
+
+def test_enforce_hook_failure_with_auto_and_japanese_input_uses_the_japanese_fallback() -> None:
+    """P6-RR-R18-WU-004..006 (resolves P6-CODEX-083): the previous
+    `is JA -> ja else en` binary check would have shown the *English*
+    Safe Fallback here even though this Turn's own User Input is
+    Japanese and `response_language` is AUTO — the exact regression this
+    Package closes."""
+    inference = FakeInference()
+
+    def _explode(_context: JudgeCompletionContext) -> JudgeCompletionDecision:
+        raise RuntimeError("internal judge detail")
+
+    session = _service(
+        inference,
+        judge_completion_hook=_explode,
+        judge_mode_snapshot_provider=lambda: "enforce",
+    ).start(
+        _conversation_input(
+            content="今日の天気を教えてください", response_language=ResponseLanguage.AUTO
+        )
+    )
+    events = list(session.events())
+    completed = next(event for event in events if event.event is ConversationEventType.COMPLETED)
+    assert completed.data["assistant_message"] == {
+        "role": "assistant",
+        "content": (
+            "回答を安全に検証できなかったため、表示を保留しました。"
+            "再試行するか、信頼できる情報源で確認してください。"
+        ),
+    }
+    assert completed.data["assistant_message"]["content"] != SEMANTIC_ENFORCEMENT_SAFE_FALLBACK
 
 
 def test_off_mode_has_zero_judge_actions() -> None:

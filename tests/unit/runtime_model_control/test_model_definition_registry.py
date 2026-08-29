@@ -43,4 +43,6 @@ def test_all_definitions_lists_every_registered_toml_file() -> None:
     assert {definition.model_key for definition in definitions} == {
         "main.qwen3-4b-q4-k-m",
         "main.deepseek-r1-0528-qwen3-8b-q4-k-m",
+        "judge.selene-1-mini-llama-3.1-8b-q5-k-m",
+        "guard.qwen3guard-gen-0.6b-q8-0",
     }

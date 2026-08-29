@@ -208,3 +208,26 @@ Phase 7 READY後、Requirements／Architecture／ADR／Execution Plan／Acceptan
 - `docs/project/shared/history/planned_work/phase_7_phase_9_phase_10_closure_ready_sequence_correction_ja_20260823192316.md` — Phase 7 READY以降の順序予約。
 - `docs/project/shared/history/planned_work/phase_6_interim_and_phase_9_final_roadmap_summary_reader_facing_requirements_ja_20260823185543.md` — Phase 7 Public Summary要件。
 - U.S. Copyright Office, Circular 33 — Names／Titles／Short PhrasesとCopyrightの一般的説明。
+
+## 11. 2026-08-29 Settings Web検索Control追記予約
+
+Phase 7でWeb検索機能を実装する際、通常Settingsの「設定」画面へWeb検索の`OFF／ON` Controlを追加する。
+
+配置は、**要約ModeおよびRAG設定が置かれている列**とし、要約Modeより上、すなわち当該列の最上段へ置く。Advanced Modeだけに閉じたControlにはしない。
+
+```text
+設定
+  Web検索              OFF | ON   # 当該列の最上段
+  要約Mode             ...
+  RAG設定              ...
+```
+
+初期値は`OFF`とする。`OFF`の間はWeb検索、Query送信、Web取得および外部Network Callを実行せず、ModelがWeb検索を実行したかのような表示やClaimも行わない。
+
+この`OFF／ON`はユーザー向けの検索機能有効化Controlである。既に予約済みのManual／Automatic起動方式、Web Evidence Governanceの`OFF／OBSERVE／ENFORCE`、Provider、Query／Context送信範囲およびData Controlsとは責務を混同せず、Phase 7 Exact Designで整合させる。
+
+本追記はUser Decisionに基づくUI／Default予約であり、現時点のWeb検索実装、Network AccessまたはProvider利用を許可しない。
+
+### 11.1 Control形式の補足
+
+Web検索の`OFF／ON` Controlは独自のDropdown、Checkboxまたは別形式Buttonを新設せず、**同じ列にある要約ModeおよびRAG設定と同一のToggle切替Button／Component**を使用する。配置、寸法、選択状態、操作感およびVisual Styleも既存2 Controlと揃え、Web検索だけ異なるUI表現にしない。

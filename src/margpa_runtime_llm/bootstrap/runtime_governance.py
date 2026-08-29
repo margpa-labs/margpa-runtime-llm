@@ -40,6 +40,9 @@ from margpa_runtime_llm.adapters.runtime_governance.reference_definition_adapter
     build_argd_dagd_descriptors,
 )
 from margpa_runtime_llm.adapters.runtime_governance.registered_actions import LocalActionAdapter
+from margpa_runtime_llm.adapters.runtime_governance.semantic_criterion_adapter import (
+    compile_argd_dagd_semantic_criteria,
+)
 from margpa_runtime_llm.bootstrap.governance_definitions import (
     build_reference_bundle_adapter_registry,
 )
@@ -71,6 +74,7 @@ from margpa_runtime_llm.modules.runtime_governance.application import (
     BoundGovernancePlanCache,
     GovernancePointRuntime,
     MainGovernanceModeController,
+    SemanticRuntimeCoordinator,
     bind,
 )
 from margpa_runtime_llm.modules.runtime_governance.application import (
@@ -93,6 +97,11 @@ from margpa_runtime_llm.modules.runtime_governance.domain import (
     PolicySnapshot,
     RecommendedAction,
     RuntimeCapabilitySnapshot,
+    SemanticDeferredReason,
+    SemanticEvaluationResponse,
+    SemanticProviderState,
+    SemanticRuntimeEvidence,
+    SemanticTurnSnapshot,
     StandardGovernanceResult,
 )
 from margpa_runtime_llm.modules.runtime_governance.ports import ActionAdapterPort
@@ -128,6 +137,20 @@ class ReferenceDescriptorLoadResult:
     source_plan_digest_sha512: str | None = None
     """Digest of the same `CompiledPlan`; `None` under the same
     conditions as `source_plan_id`."""
+
+
+@dataclass(frozen=True, slots=True)
+class SemanticRuntimeBindingContext:
+    """Live configuration captured once by ``main_model.pre`` per Turn."""
+
+    language: str = "en"
+    judge_mode: str = "off"
+    repair_mode: str = "off"
+    configured_provider: str = "none"
+    active_provider: str | None = None
+    provider_state: SemanticProviderState = SemanticProviderState.NONE
+    budget_profile: str = "local_macos_default"
+    max_criteria: int = 32
 
 
 def _compile_reference_source_plan(
@@ -223,8 +246,19 @@ def load_reference_descriptors(
     source_plan_id, source_plan_digest_sha512 = _compile_reference_source_plan(
         result, capability=capability, authority=authority
     )
+    manifest = result.manifest
+    if manifest is None:
+        return ReferenceDescriptorLoadResult((), "invalid_bundle", "manifest_missing")
+    source_digest = next(
+        (
+            entry.content_digest_sha512
+            for entry in manifest.source_entries
+            if entry.source_id == _ARGD_DAGD_SOURCE_ID
+        ),
+        None,
+    )
     return ReferenceDescriptorLoadResult(
-        build_argd_dagd_descriptors(content),
+        build_argd_dagd_descriptors(content, source_definition_digest_sha512=source_digest),
         "loaded",
         None,
         source_plan_id=source_plan_id,
@@ -285,6 +319,13 @@ class RuntimeGovernanceComposition:
         self.capability = capability
         self._capability_lock = threading.Lock()
         self.descriptors = descriptors
+        self.semantic_compile_result = compile_argd_dagd_semantic_criteria(descriptors)
+        self.semantic_runtime = SemanticRuntimeCoordinator(
+            criteria=self.semantic_compile_result.criteria
+        )
+        self._semantic_context_provider: Callable[[], SemanticRuntimeBindingContext] = (
+            SemanticRuntimeBindingContext
+        )
         # Only meaningful when `descriptors` is empty; `None` means "no
         # descriptors, no further diagnostic" (`bind()` falls back to a
         # generic reason in that case).
@@ -346,6 +387,61 @@ class RuntimeGovernanceComposition:
         # matching `Definitions 0 + enforce: unsupported` (P4-CODEX-004).
         self.mode_controller = MainGovernanceModeController(
             enforce_ready=self.bind_point(point_id=MAIN_MODEL_PRE_POINT_ID).executable
+        )
+
+    def set_semantic_context_provider(
+        self, provider: Callable[[], SemanticRuntimeBindingContext]
+    ) -> None:
+        self._semantic_context_provider = provider
+
+    def semantic_enforce_readiness(self) -> tuple[bool, str | None]:
+        try:
+            context = self._semantic_context_provider()
+        except Exception:
+            return False, "semantic_context_unavailable"
+        if context.judge_mode != "enforce":
+            return False, "judge_enforce_required"
+        if context.configured_provider == "none":
+            return False, "judge_provider_none"
+        if (
+            context.provider_state is not SemanticProviderState.ACTIVE
+            or context.active_provider is None
+        ):
+            return False, "judge_provider_unavailable"
+        return True, None
+
+    def begin_semantic_turn(self, *, request_id: str, main_mode: str) -> SemanticTurnSnapshot:
+        context = self._semantic_context_provider()
+        return self.semantic_runtime.begin(
+            request_id=request_id,
+            language=context.language,
+            main_mode=main_mode,
+            judge_mode=context.judge_mode,
+            repair_mode=context.repair_mode,
+            configured_provider=context.configured_provider,
+            active_provider=context.active_provider,
+            provider_state=context.provider_state,
+            budget_profile=context.budget_profile,
+            max_criteria=context.max_criteria,
+        )
+
+    def record_semantic_response(
+        self, *, response: SemanticEvaluationResponse
+    ) -> SemanticRuntimeEvidence | None:
+        result = self.last_result_for(point_id=MAIN_MODEL_POST_POINT_ID)
+        return self.semantic_runtime.record_response(
+            response=response,
+            structural=(result.observations if result is not None else ()),
+        )
+
+    def record_semantic_deferred(
+        self, *, request_id: str, reason: SemanticDeferredReason
+    ) -> SemanticRuntimeEvidence | None:
+        result = self.last_result_for(point_id=MAIN_MODEL_POST_POINT_ID)
+        return self.semantic_runtime.record_deferred(
+            request_id=request_id,
+            reason=reason,
+            structural=(result.observations if result is not None else ()),
         )
 
     def rebind_capability(self, *, capability: RuntimeCapabilitySnapshot) -> None:
@@ -746,6 +842,12 @@ def build_main_model_governance_hooks(
                 mode=mode,
             )
         try:
+            # P6-RR-C: the request identity and every mutable semantic
+            # selection are frozen at the same pre-generation boundary as
+            # the structural Binding. The post hook has no request-id
+            # parameter by design, so it consumes this single-active-Main-
+            # turn snapshot instead of re-reading live settings mid-turn.
+            composition.begin_semantic_turn(request_id=request.request_id, main_mode=mode)
             # P4-CODEX-011 §1.1: `observe` now Binds too, using the same
             # current Source Plan/Capability/Authority/Policy/Budget/
             # Registry as `enforce` — a Valid-Bundle Observe Result now

@@ -97,6 +97,44 @@ def compose_conversation_generation_messages(
     return tuple(output)
 
 
+# P6-RR-R18-WU-004..006 (Post-Claude Independent Review Rework, resolves
+# P6-CODEX-083): character-script ranges used only to deterministically
+# resolve `ResponseLanguage.AUTO` into a concrete ja/en value for the
+# surfaces that need exactly one (Judge, Repair, Rejudge, Failure
+# Presentation) — never for the Main Candidate Answer itself, which
+# already lets the Model freely mirror the User's language under AUTO
+# (`_instruction_for(AUTO)` above deliberately emits no instruction).
+_JAPANESE_SCRIPT_RANGES = (
+    (0x3040, 0x309F),  # Hiragana
+    (0x30A0, 0x30FF),  # Katakana
+    (0x4E00, 0x9FFF),  # CJK Unified Ideographs
+    (0x3400, 0x4DBF),  # CJK Unified Ideographs Extension A
+    (0xFF66, 0xFF9F),  # Halfwidth Katakana
+)
+
+
+def _contains_japanese_script(text: str) -> bool:
+    return any(
+        any(start <= ord(character) <= end for start, end in _JAPANESE_SCRIPT_RANGES)
+        for character in text
+    )
+
+
+def resolve_effective_response_language(
+    *, language: ResponseLanguage, user_input: str
+) -> ResponseLanguage:
+    """P6-RR-R18-WU-004..006 (resolves P6-CODEX-083): `AUTO` is not a
+    valid *effective* language for Judge/Repair/Rejudge/Failure
+    Presentation — those surfaces need one concrete `ja`/`en` value,
+    decided once, deterministically, from information available at Turn
+    start (this Turn's own User Input), never silently collapsed to
+    `en` the way a naive `language is ResponseLanguage.JA -> ja else en`
+    binary check would. `JA`/`EN` pass through unchanged."""
+    if language is not ResponseLanguage.AUTO:
+        return language
+    return ResponseLanguage.JA if _contains_japanese_script(user_input) else ResponseLanguage.EN
+
+
 def _validate_language(value: ResponseLanguage | str) -> ResponseLanguage:
     try:
         return ResponseLanguage(value)

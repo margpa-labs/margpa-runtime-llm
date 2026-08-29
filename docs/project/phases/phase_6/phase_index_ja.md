@@ -1,16 +1,16 @@
 # MARGPA Runtime LLM Phase 6 Index
 
     document_id: phase_6_index
-    status: accepted_frozen_active
+    status: special_minimal_closed_with_known_debt
     phase: phase_6
-    active_subphase: phase_6_a_toolchain_authority_refresh
+    active_subphase: none
     language: ja
     recorded_at: 2026-08-22 22:08:04 JST
     owner_role: プロジェクト責任者兼設計統括者役
     execution_provider_candidate: claude_code
-    implementation_authorized: true_within_frozen_phase_6_scope
-    automation_control_state: ON
-    git_mutation_authorized: false
+    implementation_authorized: false_closed
+    automation_control_state: OFF
+    git_mutation_authorized: user_authorized_for_closure
     design_accepted: true
     design_frozen: true
 
@@ -18,16 +18,19 @@
 
 Phase 5のTechnical ReviewとUser Mac AcceptanceはPASSした。Prompt Injection Markerに対し、OBSERVEはMatch 1／Action 0でModel生成を継続し、ENFORCEはMatch 1／Action 1でguardrail_reject_inputとしてModel Call前停止した。設定再OpenとServer再起動もPASSした。
 
-Phase 5はMinimal Closureを完了し、`COMPLETE／ACCEPTED／CLOSED`となった。Phase 6統合Design Package、User Backup、Exact Model Authority、Activation Preflight／ARMEDおよびUser Startが成立し、Automationは`ON`へ移行した。Claude ReportではP6-0-WU-001〜004とP6-A-WU-001が完了し、P6-A-WU-002のPython Conversion Dependency不足で一時停止した。UserはProject-local `.venv`へのOfficial PyPI Dependency Acquisitionを限定承認し、Authority Waitを解消した。Current Source／Testの独立ReviewはPhase 6-Jで行う。
+Phase 6は多数のRework、Controller ReviewおよびUser Mac Manualを経た。Runtime Model Control、Conversation継続、Recording、Stopおよび周辺基盤は成立したが、Selene／Qwen3Guard実Activation、Semantic 109件、Built-in Judge評価およびRepair Golden Pathは未成立だった。
+
+Userは未解決をStable Registryへ保持し、技術合格へ昇格しないまま、Resource／Portfolio／PoC MVP優先による特殊最小ClosureとPhase 7移行を明示決定した。
 
     Phase 5 Technical Review : PASS
     Phase 5 Mac Acceptance   : PASS
     Phase 5 Closure          : COMPLETE／ACCEPTED／CLOSED
     Phase 6 Design           : ACCEPTED／FROZEN
-    Phase 6 State            : ACTIVE／P6-A TOOLCHAIN AUTHORITY REFRESH
-    Phase 6 Implementation   : AUTHORIZED WITHIN FROZEN SCOPE
-    Automation               : ON
-    Git／External            : NOT AUTHORIZED
+    Phase 6 State            : SPECIAL MINIMAL CLOSED／KNOWN DEBT DEFERRED
+    Phase 6 Technical Core   : ADJUST／NOT FULLY ACCEPTED
+    Phase 6 Implementation   : CLOSED
+    Automation               : OFF
+    Phase 7                  : DESIGN ACCEPTED／FROZEN／READY
 
 ## 2. Goal
 
@@ -140,9 +143,7 @@ Claude担当候補は6-0〜6-I、Codex／User担当は6-J。
 
 ## 8. Next Safe Action
 
-Claude側設計統括者役はSix-document Recovery Set、最新Recovery、Current DiffおよびTest Evidenceを再照合する。既存Phase 6-B着手分を破壊せず、P6-A-WU-002へ復帰してProject-local `.venv`のConversion Dependencyを導入し、P6-I-WU-004／COMPLETE_CANDIDATEまで連結実行する。
-
-Phase 6-J、Git、Phase 7、Model Download、AWSまたは本Receipt外Networkへ進まない。
+Phase 7 READY Sequenceに従い、Closure Commit／Push、Backup、Preflightを完了してから、Phase 7 Exact HandoffのP7-0へ進む。Phase 6既知DebtをPhase 7 Executorが無断修正しない。
 
 ## 9. Predecessor Closure
 
@@ -162,3 +163,12 @@ Phase 6-J、Git、Phase 7、Model Download、AWSまたは本Receipt外Networkへ
 - [Dependency Acquisition Authority Receipt](history/operations/phase_6_dependency_acquisition_authority_receipt_ja_20260822220804.md)
 - [Phase 6-0 Entry Recovery](history/index/phase_6_0_entry_reconciliation_and_freeze_recovery_ja_20260822214550.md)
 - [Phase 6-A Toolchain Authority Wait](history/index/phase_6_a_wu001_toolchain_blocked_deferral_ja_20260822215600.md)
+
+## 11. Final Special Minimal Closure
+
+- [User Mac Core Failure／Claim Correction](history/operations/phase_6_gov026_user_mac_final_core_manual_acceptance_failure_and_controller_claim_correction_ja_20260829164049.md)
+- [User Override／Phase 7 Progression](history/operations/phase_6_gov027_user_override_ui_only_and_phase_7_progression_ja_20260829164947.md)
+- [Special Minimal Closure](history/operations/phase_6_special_minimal_closure_with_known_debt_ja_20260829171422.md)
+- [Closure／Phase 7 READY Recovery](history/index/phase_6_special_minimal_closure_and_phase_7_ready_recovery_ja_20260829171422.md)
+- [Current Unresolved Registry](../../shared/未解決/current_unresolved_findings_registry_ja.md)
+- [Phase 7 Index](../phase_7/phase_index_ja.md)

@@ -26,6 +26,7 @@ from margpa_runtime_llm.modules.inference.contracts.generation import (
 )
 from margpa_runtime_llm.modules.inference.contracts.messages import ChatMessage, MessageRole
 from margpa_runtime_llm.modules.inference.contracts.response import ResponseLanguage
+from margpa_runtime_llm.modules.inference.contracts.runtime import ModelLoadConfig
 from margpa_runtime_llm.modules.inference.domain.errors import InferenceError
 from margpa_runtime_llm.modules.presentation.contracts.thinking import (
     ResolvedThinkingPresentationPolicy,
@@ -701,6 +702,115 @@ def test_web_runtime_builds_a_real_runtime_governance_composition_when_enabled(
 
     assert runtime.runtime_governance_composition is not None
     assert runtime.runtime_governance_composition.mode_controller.current_mode_value() == "off"
+    runtime.close()
+
+
+def test_web_runtime_builds_a_real_request_correlation_registry_when_feature_modes_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """P6-RR-R20-WU-004 (Post-Claude Independent Review Rework): the
+    actual `build_phase1_web_runtime()` wiring, not just a hand-built
+    `WebRuntime`/`ConversationGenerationService` pair (every other Test
+    of this Package's own `request_correlation_begin`/`_terminal` Hooks
+    is unit-level), must produce a bound `request_correlation_registry`
+    when Feature Modes is enabled, and the Registry it binds must be the
+    exact same instance the Conversation Service's own Begin/Terminal
+    Hooks were wired to — proven here by starting one real Turn and
+    observing it land in the Registry via `WebRuntime`'s own reference."""
+    from margpa_runtime_llm.modules.conversation.contracts import (
+        ConversationMessage,
+        ConversationRole,
+        ConversationSettings,
+    )
+    from margpa_runtime_llm.modules.conversation.public import ConversationGenerationInput
+
+    class FakeLoadedService:
+        runtime_info = SimpleNamespace(
+            model_key="main.qwen3-4b-q4-k-m",
+            backend_key="metal",
+            loaded_context_size=4096,
+            effective_capabilities=SimpleNamespace(features=frozenset()),
+            device_kind="gpu",
+            acceleration_api="metal",
+        )
+
+        def count_text_tokens(self, text: str) -> int:
+            return len(text.split())
+
+        def count_chat_prompt_tokens(
+            self, messages: tuple[ChatMessage, ...], thinking_mode: ThinkingMode
+        ) -> int:
+            del messages, thinking_mode
+            return 0
+
+        def stream(self, request: object) -> object:
+            raise AssertionError("no real Generation is needed for this Test")
+
+    presentation = ResolvedThinkingPresentationPolicy(
+        visibility=ThinkingVisibility.HIDDEN,
+        display_label="推論過程",
+        persistence=ThinkingPersistence.DISABLED,
+        visibility_source=ThinkingPresentationSource.APPLICATION,
+        display_label_source=ThinkingPresentationSource.APPLICATION,
+        persistence_source=ThinkingPresentationSource.APPLICATION,
+    )
+    config = SimpleNamespace(
+        selected_model="main.qwen3-4b-q4-k-m",
+        profile_key="mac.local",
+        model_root=PROJECT_ROOT,
+        load=ModelLoadConfig(),
+        generation=GenerationParameters(max_new_tokens=2048),
+        response=SimpleNamespace(language=ResponseLanguage.JA),
+        presentation=presentation,
+        summarization=SummarizationConfig(),
+    )
+    application = cast(
+        Phase1Application,
+        SimpleNamespace(
+            service=FakeLoadedService(),
+            config=config,
+            presentation_service=object(),
+            close=lambda: None,
+        ),
+    )
+    monkeypatch.setattr(
+        web_application_module,
+        "build_phase1_application",
+        lambda **_kwargs: application,
+    )
+
+    runtime = build_phase1_web_runtime(
+        project_root=PROJECT_ROOT,
+        profile_path=None,
+        registry_path=PROJECT_ROOT / "config/models/qwen3_4b_q4_k_m.toml",
+        feature_modes_enabled=True,
+    )
+
+    assert runtime.request_correlation_registry is not None
+    assert runtime.request_correlation_registry.current_request_id() is None
+
+    session = runtime.conversation.start(
+        ConversationGenerationInput(
+            messages=(ConversationMessage(role=ConversationRole.USER, content="hello"),),
+            settings=ConversationSettings(
+                response_language=ResponseLanguage.JA,
+                max_new_tokens=16,
+                thinking_mode=ThinkingMode.DISABLED,
+                thinking_visibility=ThinkingVisibility.HIDDEN,
+            ),
+        )
+    )
+
+    assert runtime.request_correlation_registry.current_request_id() == session.request_id
+
+    # Drain the Session to its own real Terminal boundary (the Fake
+    # Service's `.stream()` raises, which `events()` itself catches and
+    # turns into an Error Event) so `runtime.close()` below does not
+    # block on `shutdown()`'s own Session-wait timeout for a Session that
+    # was started but never consumed.
+    list(session.events())
+    assert runtime.request_correlation_registry.entry_for(session.request_id) is not None
+    assert runtime.request_correlation_registry.entry_for(session.request_id).status == "failed"  # type: ignore[union-attr]
     runtime.close()
 
 

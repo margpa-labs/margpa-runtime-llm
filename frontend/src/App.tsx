@@ -297,9 +297,10 @@ export default function App() {
         if (cancelledRef.current) return;
         setRuntimeStatus({
           kind: "metadata",
-          text: [runtime.model_key, runtime.profile_key, runtime.device_kind, runtime.acceleration_api].join(
-            " · ",
-          ),
+          text: [
+            `${runtime.model_key} active`,
+            [runtime.profile_key, runtime.device_kind, runtime.acceleration_api].join(" • "),
+          ].join(" · "),
         });
         setSettingsForm((previous) => ({
           ...previous,
@@ -447,15 +448,21 @@ export default function App() {
           return;
         }
         if (!response.ok) {
-          throw new Error("configuration_mode_apply_failed");
+          throw new api.ApiMutationError(
+            await api.safeError(response, "configuration_mode_apply_failed"),
+          );
         }
         await loadConfigurationControl();
         if (refreshRelated !== undefined) {
           await refreshRelated();
         }
         setResult(t(successKey));
-      } catch {
-        setResult(t(failureKey));
+      } catch (error) {
+        setResult(
+          error instanceof api.ApiMutationError
+            ? `${t(failureKey)} [${error.code ?? "configuration_mode_apply_failed"}] ${error.message}`
+            : t(failureKey),
+        );
         await loadConfigurationControl();
         if (refreshRelated !== undefined) {
           await refreshRelated();
@@ -577,12 +584,20 @@ export default function App() {
       if (sequence !== guardrailGovernanceLoadSequenceRef.current) {
         return;
       }
-      setGuardrailGovernanceState({ capability: "ready", status, resultText: "" });
+      setGuardrailGovernanceState((previous) => ({
+        capability: "ready",
+        status,
+        resultText: previous.resultText,
+      }));
     } catch {
       if (sequence !== guardrailGovernanceLoadSequenceRef.current) {
         return;
       }
-      setGuardrailGovernanceState({ capability: "failed", status: null, resultText: "" });
+      setGuardrailGovernanceState((previous) => ({
+        capability: "failed",
+        status: null,
+        resultText: previous.resultText,
+      }));
     }
     // guardrailGovernanceBootstrapEnabled is set once (lazy useState init)
     // and never updated again, so this callback is effectively stable.
@@ -1245,14 +1260,22 @@ export default function App() {
     ? t("documentationRagNote")
     : t("documentationRagUnavailable");
   const currentRuntimeModel = runtimeModelControlState.status;
+  // The live Current Model/Active pair below must not drop
+  // the static Profile/Device/Acceleration info the Bootstrap Runtime
+  // Snapshot already carries in `runtimeStatus.text` (its own first
+  // segment there is the Bootstrap-time model_key, superseded here by the
+  // Live one, so only the trailing segments are reused).
+  const bootstrapEnvironment =
+    runtimeStatus.kind === "metadata" && runtimeStatus.text !== null
+      ? runtimeStatus.text.split(" · ").slice(1)
+      : [];
   const sidebarRuntimeStatus =
     currentRuntimeModel?.enabled === true && currentRuntimeModel.main_model !== null
       ? {
           kind: "metadata" as const,
           text: [
-            currentRuntimeModel.main_model.model_key,
-            currentRuntimeModel.main_model.state,
-            `Context ${String(currentRuntimeModel.loaded_context_size ?? "—")}`,
+            `${currentRuntimeModel.main_model.model_key} ${currentRuntimeModel.main_model.state}`,
+            ...bootstrapEnvironment,
           ].join(" · "),
         }
       : runtimeStatus;
