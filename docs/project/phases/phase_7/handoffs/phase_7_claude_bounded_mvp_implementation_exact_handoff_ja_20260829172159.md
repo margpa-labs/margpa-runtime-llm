@@ -3,7 +3,7 @@
 ```yaml
 document_id: phase_7_claude_bounded_mvp_implementation_exact_handoff_20260829172159
 document_type: exact_execution_handoff
-document_state: prepared_pending_preflight_activation
+document_state: active_execution_contract
 language: ja
 created_at: 2026-08-29 17:21:59 JST
 provider: Claude
@@ -14,7 +14,9 @@ authority_owner: Nazuna Research
 controller: Codex project responsible and design governor role
 maximum_claim: COMPLETE_CANDIDATE
 fresh_task_required: false
-implementation_authority: false_until_preflight_activation
+implementation_authority: true
+activated_at: 2026-08-29 17:34:28 JST
+activation_receipt: docs/project/phases/phase_7/history/operations/phase_7_preflight_and_start_activation_receipt_ja_20260829173428.md
 ```
 
 ## 1. Objective
@@ -222,4 +224,6 @@ Phase 7 Closure、Git、Backup、Roadmap、Phase 8へ進まず、Return後は停
 
 ## 10. Activation
 
-本HandoffはPreflight Receiptで`implementation_authority: true`へ昇格し、Controllerが開始宣言を提示した時点でActive Execution Contractとなる。
+Phase 7 Preflightは合格し、ユーザーの本Turnによる開始Authorityも成立した。本Handoffは`implementation_authority: true`のActive Execution Contractである。
+
+実Source MutationはControllerが提示する単一の開始指示をExecutorへ送った時点から開始する。Fresh Task化、Authority初期化または三段階Receiptは要求しない。
