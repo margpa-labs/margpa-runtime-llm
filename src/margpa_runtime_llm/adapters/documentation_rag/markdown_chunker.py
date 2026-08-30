@@ -114,6 +114,9 @@ class DeterministicMarkdownChunker:
                     document_sha512=document.manifest.document_sha512,
                     character_count=len(bounded),
                     split_from_oversized_block=oversized or len(content) > len(bounded),
+                    corpus_source_class=document.manifest.corpus_source_class,
+                    document_title=document.manifest.document_title,
+                    storage_display_path=document.manifest.storage_display_path,
                 )
             )
         return tuple(chunks)

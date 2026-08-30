@@ -1305,9 +1305,9 @@ describe("App", () => {
     expect(document.querySelector("#sidebar")).toHaveAttribute("data-visible", "true");
   });
 
-  test("resuming a non-selected conversation from the sidebar fetches that conversation's own revision, not the open one's", async () => {
+  test("archiving a non-selected conversation from the sidebar fetches that conversation's own revision, not the open one's", async () => {
     const mutation = vi.fn((path: string, body: { expected_revision?: number }) => {
-      expect(path).toBe("/api/v2/conversations/target-conversation/resume");
+      expect(path).toBe("/api/v2/conversations/target-conversation/archive");
       expect(body.expected_revision).toBe(42);
       return jsonResponse({ detail: detailPayload("target-conversation", 43, "active") });
     });
@@ -1347,7 +1347,7 @@ describe("App", () => {
     const targetItem = document.querySelectorAll<HTMLElement>(".chat-list-item")[1];
     if (targetItem === undefined) throw new Error("expected a second chat list item");
     fireEvent.click(within(targetItem).getByRole("button", { name: "Chat options" }));
-    fireEvent.click(within(targetItem).getByRole("menuitem", { name: "Resume" }));
+    fireEvent.click(within(targetItem).getByRole("menuitem", { name: "Archive" }));
 
     await waitFor(() => {
       expect(mutation).toHaveBeenCalled();

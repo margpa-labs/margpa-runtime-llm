@@ -109,7 +109,20 @@ export function detailToMessages(
         isFinal: true,
         citations:
           turn.citations?.available === true
-            ? { citations: turn.citations.citations, warnings: [] }
+            ? {
+                citations: turn.citations.citations,
+                // P7-RW5-A (P7-CODEX-014): reconstructs a NO_HIT "no
+                // current grounds" display from the persisted
+                // `warning_codes` alone - `citations` itself stays empty
+                // for that Grounding State, and `CitationsSection`'s
+                // `EmptyCitations` already resolves a known code (e.g.
+                // `documentation_no_hit`) through the same
+                // `knownServerMessages` table the Live SSE path uses, so
+                // an empty `message` here is never actually shown. When
+                // `citations` is non-empty (the ordinary Grounded case),
+                // this array is unused by the rendering logic below.
+                warnings: turn.citations.warning_codes.map((code) => ({ code, message: "" })),
+              }
             : null,
         turnActions,
         requestId: turn.request_id ?? null,

@@ -488,9 +488,11 @@ def test_macos_arm64_local_profile_binds_documentation_adapter(
         project_root: Path,
         defaults_path: Path,
         feature_path: Path,
+        local_corpus_registry: object | None = None,
     ) -> LocalDocumentationRagComposition:
         nonlocal builder_calls
         builder_calls += 1
+        del local_corpus_registry
         composition = build_local_documentation_rag(
             project_root=project_root,
             defaults_path=defaults_path,

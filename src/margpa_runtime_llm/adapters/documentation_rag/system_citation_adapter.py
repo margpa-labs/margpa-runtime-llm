@@ -31,6 +31,9 @@ class SystemCitationAdapter:
                     retrieval_score=selected.score,
                     selected_order=len(citations) + 1,
                     truncated=block.truncated,
+                    source_class=block.source_class,
+                    document_title=block.document_title,
+                    storage_display_path=block.storage_display_path,
                 )
             )
         return tuple(citations)

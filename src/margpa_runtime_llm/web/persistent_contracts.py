@@ -118,11 +118,19 @@ class PersistentMessageResponse(_PersistentContract):
 class PersistentCitationResponse(_PersistentContract):
     """Same safe projection shape as the live SSE `retrieval` event."""
 
+    source_class: str
     project_relative_path: str
     heading_breadcrumb: str
+    chunk_id: str
+    document_sha512: str
     retrieval_score: float
     selected_order: int
     truncated: bool = False
+    # P7-RW5-B/C: carried unchanged from `DocumentationCitation` - `None`
+    # for Project Docs and for any Citation persisted before these fields
+    # existed (lossless decode of an older record).
+    document_title: str | None = None
+    storage_display_path: str | None = None
 
 
 class PersistentTurnCitationsResponse(_PersistentContract):
@@ -131,6 +139,13 @@ class PersistentTurnCitationsResponse(_PersistentContract):
     available: bool
     unavailable_reason: Literal["unsupported_schema_version", "corrupt_record"] | None = None
     citations: tuple[PersistentCitationResponse, ...] = ()
+    # P7-RW5-A (P7-CODEX-014): reuses `PersistedTurnCitationEvidence.
+    # warning_codes` unchanged - lets a Persistent Detail reload rebuild
+    # the same NO_HIT "no current grounds" display the Live SSE `retrieval`
+    # event already showed, even though `citations` itself stays empty for
+    # that Grounding State. Always `()` for a Turn whose citations are
+    # non-empty (no behavior change there).
+    warning_codes: tuple[str, ...] = ()
 
 
 class PersistentTurnResponse(_PersistentContract):
@@ -200,14 +215,20 @@ def _project_turn_citations(
         available=True,
         citations=tuple(
             PersistentCitationResponse(
+                source_class=citation.source_class,
                 project_relative_path=citation.project_relative_path,
                 heading_breadcrumb=citation.heading_breadcrumb,
+                chunk_id=citation.chunk_id,
+                document_sha512=citation.document_sha512,
                 retrieval_score=citation.retrieval_score,
                 selected_order=citation.selected_order,
                 truncated=citation.truncated,
+                document_title=citation.document_title,
+                storage_display_path=citation.storage_display_path,
             )
             for citation in entry.citations
         ),
+        warning_codes=entry.warning_codes,
     )
 
 

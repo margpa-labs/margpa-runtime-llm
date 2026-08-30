@@ -5,9 +5,9 @@ document_id: current_documentation_index
 status: current
 language: ja
 created_at: 2026-07-26 15:16:24 JST
-updated_at: 2026-08-29 17:14:22 JST
+updated_at: 2026-08-30 19:18:06 JST
 owner: プロジェクト責任者兼設計統括者役
-active_phase: phase_7_ready
+active_phase: phase_8_ready_not_started
 rag_default: true
 ```
 
@@ -38,7 +38,8 @@ Phase 3                  : COMPLETE／ACCEPTED／CLOSED
 Phase 4                  : COMPLETE／ACCEPTED／CLOSED
 Phase 5                  : COMPLETE／ACCEPTED／CLOSED／MAC ACCEPTANCE PASS
 Phase 6                  : SPECIAL MINIMAL CLOSED／KNOWN DEBT DEFERRED／TECHNICAL CORE ADJUST
-Phase 7                  : DESIGN ACCEPTED／FROZEN／READY／PREFLIGHT PENDING
+Phase 7                  : COMPLETE／ACCEPTED／CLOSED／REAL WEB DEFERRED TO PHASE 11+
+Phase 8                  : DESIGN ACCEPTED／FROZEN／READY／NOT STARTED
 Combined Control Role     : ACTIVE／PROJECT RESPONSIBILITY AND DESIGN GOVERNANCE COMBINED
 Automation Profile       : BOUNDED UNIT／VALIDATED／NO PROMOTION
 Large Backup              : USER REPORTED COMPLETE／PRIVATE ASSET OUTSIDE AI GATE
@@ -47,7 +48,7 @@ Provider Capability       : TASK MANAGEMENT／BOUNDED READ／ONE CREATE PASS
 Pilot Result              : WU-002 ACCEPTED／WU-003 ADJUST REQUIRED／WU-004 ACCEPTED
 Restart Dual Consent      : COMPLETED FOR WU-004／WORK UNIT CLOSED
 Multi-provider Use        : PHASE 2-E BOUNDED EXPERIMENT EXECUTED／NO GENERAL PROMOTION
-Automation Control State : OFF／PHASE 7 PREFLIGHT PENDING
+Automation Control State : BOUNDED HANDOFF ACTIVE／EXECUTOR RUNNING
 Permission Hardening     : UNDECIDED／NOT AUTHORIZED
 Mechanical Enforcement  : RESEARCH CANDIDATES／NOT IMPLEMENTED
 ```
@@ -61,7 +62,7 @@ Mechanical Enforcement  : RESEARCH CANDIDATES／NOT IMPLEMENTED
 - [Runtime Governance仕様書](governance/runtime_governance_specification_ja.md)
 - [Project Continuity Master](project_continuity/project_continuity_master_ja.md)
 
-## Active Phase — Phase 7 READY／Preflight Pending
+## Active Phase — Phase 8 READY／Not Started
 
 - [Phase 5 Index](../phases/phase_5/phase_index_ja.md)
 - [Phase 5 Final Independent Review](../phases/phase_5/handoffs/phase_5_codex_final_independent_review_acceptance_ja_20260822195345.md)
@@ -79,6 +80,7 @@ Mechanical Enforcement  : RESEARCH CANDIDATES／NOT IMPLEMENTED
 - [Phase 6 Exact Design Freeze](../phases/phase_6/history/operations/phase_6_exact_design_freeze_ja_20260822211308.md)
 - [Phase 6 READY_FOR_BACKUP Receipt](../phases/phase_6/history/operations/phase_6_ready_for_backup_receipt_ja_20260822211308.md)
 - [Phase 6 Special Minimal Closure](../phases/phase_6/history/operations/phase_6_special_minimal_closure_with_known_debt_ja_20260829171422.md)
+- [Phase 6難度回顧／後続Phase再配置Evidence](../phases/phase_6/history/operations/phase_6_governance_semantic_runtime_difficulty_retrospective_and_phase_10_transfer_ja_20260829175551.md)
 - [Phase 6／7 Recovery](../phases/phase_6/history/index/phase_6_special_minimal_closure_and_phase_7_ready_recovery_ja_20260829171422.md)
 - [Current Unresolved Registry](../shared/未解決/current_unresolved_findings_registry_ja.md)
 - [Phase 7 Index](../phases/phase_7/phase_index_ja.md)
@@ -87,8 +89,22 @@ Mechanical Enforcement  : RESEARCH CANDIDATES／NOT IMPLEMENTED
 - [Phase 7 ADR](../phases/phase_7/adr/phase_7_adr_ja.md)
 - [Phase 7 Execution Plan](../phases/phase_7/operations/phase_7_execution_plan_ja.md)
 - [Phase 7 Acceptance](../phases/phase_7/operations/phase_7_acceptance_matrix_ja.md)
+- [Phase 7 Claude Exact Return](../phases/phase_7/handoffs/phase_7_claude_bounded_mvp_implementation_exact_return_handoff_ja_20260829191047.md)
+- [Phase 7 Controller Bounded Review](../phases/phase_7/history/operations/phase_7_codex_controller_bounded_independent_review_adjust_ja_20260829215534.md)
+- [Phase 7 External Web Phase 11以降延期Decision](../phases/phase_7/history/operations/phase_7_external_web_runtime_phase_11_plus_deferral_decision_ja_20260829222647.md)
+- [Phase 11以降 Governed External Web Runtime予約](../shared/history/planned_work/phase_11_plus_governed_external_web_knowledge_runtime_reservation_ja_20260829222647.md)
+- [Phase 7 Claude Non-Web Closure Alignment Exact Handoff](../phases/phase_7/handoffs/phase_7_claude_non_web_closure_alignment_exact_differential_handoff_ja_20260829224014.md)
+- [Phase 7 User Mac Final Manual Acceptance](../phases/phase_7/history/operations/phase_7_user_mac_final_rag_citation_context_freshness_manual_acceptance_ja_20260830190930.md)
+- [Phase 7 Minimal Final Closure](../phases/phase_7/history/operations/phase_7_minimal_final_closure_ja_20260830191806.md)
+- [Phase 7／8 Recovery](../phases/phase_7/history/index/phase_7_final_closure_and_phase_8_ready_recovery_ja_20260830191806.md)
+- [Phase 8 Index](../phases/phase_8/phase_index_ja.md)
+- [Phase 8 Requirements](../phases/phase_8/requirements/phase_8_requirements_ja.md)
+- [Phase 8 Architecture](../phases/phase_8/architecture/phase_8_architecture_ja.md)
+- [Phase 8 Execution Plan](../phases/phase_8/operations/phase_8_execution_plan_ja.md)
+- [Phase 8 Acceptance Matrix](../phases/phase_8/operations/phase_8_acceptance_matrix_ja.md)
+- [Phase 8 READY Receipt](../phases/phase_8/history/operations/phase_8_ready_receipt_ja_20260830191806.md)
 
-Phase 6は周辺基盤と指定UI修正を成立させた一方、Selene、Qwen3Guard、Semantic 109件、Judge／Repairを未解決Registryへ保持し、技術合格ではない特殊最小Closureを完了した。Phase 7は設計・工程・AcceptanceがAccepted／Frozenで、Closure Commit／Push、BackupおよびPreflight後にClaude Exact Handoffから開始する。
+Phase 6は周辺基盤と指定UI修正を成立させた一方、Selene、Qwen3Guard、Semantic 109件、Judge／Repairを未解決Registryへ保持し、技術合格ではない特殊最小Closureを完了した。未達のDedicated Provider／Semantic RuntimeはPhase 9へ移管し、Phase 7〜8ではRule／Pattern Base GuardrailとBuilt-in Deterministic JudgeまたはNone／OFFを暫定Baselineとする。Phase 7ではLocal Corpus／Citation／Data ControlsとWeb Port／Security Scaffoldを実装し、User Mac Manual Acceptance後にClosedとなった。実General Web SearchはPhase 11以降へ延期し、明示貼付URL EvidenceとAgent／Tool／暫定Constitution Research FoundationをPhase 8のREADY Scopeとする。
 
 ## Completed Phase Reference — Phase 2
 

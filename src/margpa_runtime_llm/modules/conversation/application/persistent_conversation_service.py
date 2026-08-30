@@ -75,6 +75,27 @@ def _recovery_operation_id(label: str) -> ConversationOperationId:
     return ConversationOperationId(value=digest)
 
 
+# P7-RW2-C (P7-CODEX-009): deterministically derived from the caller's own
+# `append_operation_id` (stable for the lifetime of one `generate_turn`/
+# `generate_derived_turn` call, including its own internal CAS retries) so a
+# retried identical request derives the identical lazy-resume identity —
+# `operation_was_applied()` then recognizes it as already-done instead of
+# attempting a second Active Session, the same idempotency guarantee every
+# other Persistent mutation in this module already relies on.
+def _lazy_resume_operation_id(seed: ConversationOperationId) -> ConversationOperationId:
+    digest = hashlib.sha512(
+        f"margpa:conversation-lazy-resume-operation:v1:{seed.value}".encode()
+    ).hexdigest()
+    return ConversationOperationId(value=digest)
+
+
+def _lazy_resume_session_id(seed: ConversationOperationId) -> ConversationSessionId:
+    digest = hashlib.sha512(
+        f"margpa:conversation-lazy-resume-session:v1:{seed.value}".encode()
+    ).hexdigest()
+    return ConversationSessionId(value=digest)
+
+
 def _decode_attempt_provenance(raw: object) -> ConversationTurnProvenance | None:
     """Best-effort (P6-CODEX-013): `raw` is whatever a COMPLETED
     `ConversationEvent.data.get("attempt_provenance")` happened to carry —
@@ -636,6 +657,66 @@ class PersistentConversationService:
         self._commit(candidate, operation_id=operation_id, expected_revision=expected_revision)
         return self._require(conversation_id)
 
+    # P7-RW2-C (P7-CODEX-009): bounded like `_recover_one`'s own CAS retry
+    # loop — a lazy resume attempt and the append it unblocks are two
+    # separate sequential commits, so a concurrent request racing on the
+    # same Conversation can make either one see a stale revision; on that
+    # exact, narrow CONFLICT this re-reads canonical state and tries again,
+    # never more than `_LAZY_RESUME_RETRIES` extra times.
+    _LAZY_RESUME_RETRIES = 2
+
+    def _ensure_active_session(
+        self,
+        *,
+        conversation_id: ConversationId,
+        stored: StoredConversation,
+        seed_operation_id: ConversationOperationId,
+    ) -> StoredConversation:
+        """Resume in place, lazily, only when genuinely needed.
+
+        Never for an Archived/Deleted Conversation (`state is not ACTIVE`
+        short-circuits below, matching `resume_conversation`'s own guard).
+        Never a duplicate Active Session — an existing Active Session
+        short-circuits below too, and the deterministic
+        `_lazy_resume_operation_id` plus `resume_conversation`'s own
+        "no existing Active Session" check keep a concurrent racer from
+        creating a second one (see the CONFLICT/INVALID_LIFECYCLE handling
+        below). Does not touch an existing Interrupted Turn's own state or
+        content — that remains whatever `_recover_one` left it as.
+        """
+
+        snapshot = stored.conversation
+        if snapshot.state is not ConversationState.ACTIVE:
+            return stored
+        if any(item.state is ConversationSessionState.ACTIVE for item in snapshot.sessions):
+            return stored
+        resume_operation_id = _lazy_resume_operation_id(seed_operation_id)
+        if self.operation_was_applied(resume_operation_id):
+            return self._require(conversation_id)
+        try:
+            return self.resume_conversation(
+                conversation_id=conversation_id,
+                session_id=_lazy_resume_session_id(seed_operation_id),
+                operation_id=resume_operation_id,
+                expected_revision=stored.storage_revision,
+            )
+        except ConversationStorageError as exc:
+            if exc.code is ConversationStorageErrorCode.CONFLICT:
+                # A concurrent request already mutated the Conversation
+                # (very likely its own successful resume) — re-read rather
+                # than treat this as a failure; the caller's own retry loop
+                # re-evaluates whether a Session is now Active.
+                return self._require(conversation_id)
+            raise
+        except PersistentConversationError as exc:
+            if exc.code is PersistentConversationErrorCode.INVALID_LIFECYCLE:
+                # A concurrent request's resume landed between our read
+                # above and this attempt (still the pre-commit revision, so
+                # no CONFLICT, but `resume_conversation`'s own "no existing
+                # Active Session" guard now fires instead).
+                return self._require(conversation_id)
+            raise
+
     def generate_turn(
         self,
         *,
@@ -650,19 +731,38 @@ class PersistentConversationService:
                 code=PersistentConversationErrorCode.STORAGE_NOT_READY,
                 safe_message="Persistent conversation service is not ready.",
             )
-        initial = (
-            self._require(conversation_id)
-            if expected_revision is None
-            else self._require_revision(conversation_id, expected_revision)
-        )
-        pending = self.append_user_turn(
-            conversation_id=conversation_id,
-            turn_id=identities.turn_id,
-            user_message_id=identities.user_message_id,
-            content=content,
-            operation_id=identities.append_operation_id,
-            expected_revision=initial.storage_revision,
-        )
+        revision: int | None = expected_revision
+        for attempt in range(self._LAZY_RESUME_RETRIES + 1):
+            try:
+                initial = (
+                    self._require(conversation_id)
+                    if revision is None
+                    else self._require_revision(conversation_id, revision)
+                )
+                initial = self._ensure_active_session(
+                    conversation_id=conversation_id,
+                    stored=initial,
+                    seed_operation_id=identities.append_operation_id,
+                )
+                pending = self.append_user_turn(
+                    conversation_id=conversation_id,
+                    turn_id=identities.turn_id,
+                    user_message_id=identities.user_message_id,
+                    content=content,
+                    operation_id=identities.append_operation_id,
+                    expected_revision=initial.storage_revision,
+                )
+                break
+            except ConversationStorageError as exc:
+                if (
+                    exc.code is ConversationStorageErrorCode.CONFLICT
+                    and attempt < self._LAZY_RESUME_RETRIES
+                ):
+                    revision = None
+                    continue
+                raise
+        else:
+            raise self._invalid_lifecycle()
         yield from self._generate_pending_turn(
             conversation_id=conversation_id,
             pending=pending,
@@ -685,15 +785,39 @@ class PersistentConversationService:
                 code=PersistentConversationErrorCode.STORAGE_NOT_READY,
                 safe_message="Persistent conversation service is not ready.",
             )
-        pending = self.append_derived_turn(
-            conversation_id=conversation_id,
-            source_turn_id=source_turn_id,
-            origin=origin,
-            turn_id=identities.turn_id,
-            user_message_id=identities.user_message_id,
-            operation_id=identities.append_operation_id,
-            expected_revision=expected_revision,
-        )
+        revision: int | None = expected_revision
+        for attempt in range(self._LAZY_RESUME_RETRIES + 1):
+            try:
+                initial = (
+                    self._require(conversation_id)
+                    if revision is None
+                    else self._require_revision(conversation_id, revision)
+                )
+                initial = self._ensure_active_session(
+                    conversation_id=conversation_id,
+                    stored=initial,
+                    seed_operation_id=identities.append_operation_id,
+                )
+                pending = self.append_derived_turn(
+                    conversation_id=conversation_id,
+                    source_turn_id=source_turn_id,
+                    origin=origin,
+                    turn_id=identities.turn_id,
+                    user_message_id=identities.user_message_id,
+                    operation_id=identities.append_operation_id,
+                    expected_revision=initial.storage_revision,
+                )
+                break
+            except ConversationStorageError as exc:
+                if (
+                    exc.code is ConversationStorageErrorCode.CONFLICT
+                    and attempt < self._LAZY_RESUME_RETRIES
+                ):
+                    revision = None
+                    continue
+                raise
+        else:
+            raise self._invalid_lifecycle()
         yield from self._generate_pending_turn(
             conversation_id=conversation_id,
             pending=pending,

@@ -39,8 +39,19 @@ export interface ServerWarning {
 }
 
 export interface Citation {
+  source_class: string;
   project_relative_path: string;
   heading_breadcrumb: string | null;
+  chunk_id: string;
+  document_sha512: string;
+  retrieval_score: number;
+  selected_order: number;
+  truncated: boolean;
+  // P7-RW5-B/C: only ever populated for a Local Corpus Citation
+  // (`source_class === "local_corpus"`) - `null` for Project Docs and for
+  // any Citation persisted before these fields existed.
+  document_title: string | null;
+  storage_display_path: string | null;
 }
 
 export interface CitationEvidence {
@@ -426,6 +437,98 @@ export interface GuardrailGovernanceStatus {
   points: GuardrailPointStatus[];
 }
 
+// --- Local Corpus (Phase 7-B) ---
+
+export type LocalCorpusDocumentState = "active" | "deleted";
+
+export interface LocalCorpusDocumentSummary {
+  document_id: string;
+  state: LocalCorpusDocumentState;
+  title: string;
+  content_sha512: string;
+  character_count: number;
+  current_revision: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LocalCorpusDocument extends LocalCorpusDocumentSummary {
+  content: string;
+}
+
+export interface LocalCorpusDocumentList {
+  documents: LocalCorpusDocumentSummary[];
+}
+
+// --- Web Search (Phase 7-E/F) ---
+
+export type WebSearchActivation = "disabled" | "manual" | "automatic";
+export type WebEvidenceGovernanceMode = "off" | "observe" | "enforce";
+
+export interface WebEvidenceItem {
+  evidence_id: string;
+  canonical_url: string;
+  title: string;
+  provider_key: string;
+  source_authority: string;
+  snippet: string;
+  fetched: boolean;
+  fetched_content: string | null;
+  withheld_by_governance: boolean;
+  fetched_at: string | null;
+  content_type: string | null;
+  prompt_injection_detected: boolean;
+  rejected: boolean;
+  rejection_reason: string | null;
+}
+
+export interface WebCitationItem {
+  citation_id: string;
+  canonical_url: string;
+  title: string;
+  provider_key: string;
+  source_authority: string;
+  fetched_at: string | null;
+  selected_order: number;
+}
+
+export interface WebSearchResult {
+  request_id: string;
+  activation: WebSearchActivation;
+  governance_mode: WebEvidenceGovernanceMode;
+  evidence: WebEvidenceItem[];
+  citations: WebCitationItem[];
+  should_generate_with_evidence: boolean;
+  failure_reason: string | null;
+  network_calls_made: number;
+}
+
+export interface WebSearchRuntimeResponse {
+  enabled: boolean;
+  governance_mode: WebEvidenceGovernanceMode;
+}
+
+// --- Data Controls (Phase 7-G) ---
+
+export interface DataControlConsent {
+  external_query_transmission_consent: boolean;
+  feedback_research_use: boolean;
+  synthetic_data_use: boolean;
+  future_training_export: boolean;
+  updated_at: string;
+}
+
+export interface DataControlRetentionFact {
+  source_class: string;
+  retained: boolean;
+  description: string;
+}
+
+export interface DataControlPolicy {
+  consent: DataControlConsent;
+  retention_facts: DataControlRetentionFact[];
+}
+
 // --- Persistent conversations (v2) ---
 
 export interface PersistentConversationSummary {
@@ -449,6 +552,11 @@ export interface PersistentTurnMessage {
 export interface PersistentTurnCitations {
   available: boolean;
   citations: Citation[];
+  // P7-RW5-A: reuses `PersistedTurnCitationEvidence.warning_codes` - lets a
+  // Persistent Detail reload reconstruct a NO_HIT "no current grounds"
+  // display even though `citations` itself stays empty for that Grounding
+  // State.
+  warning_codes: string[];
 }
 
 export interface PersistentTurn {

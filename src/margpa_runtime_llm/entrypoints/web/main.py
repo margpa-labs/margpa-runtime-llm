@@ -12,6 +12,8 @@ from pathlib import Path
 
 import uvicorn
 
+from margpa_runtime_llm.adapters.data_controls import JsonFileDataControlConsentStore
+from margpa_runtime_llm.adapters.documentation_rag import JsonFileLocalCorpusRegistry
 from margpa_runtime_llm.bootstrap.audit_evidence import build_generation_observer
 from margpa_runtime_llm.bootstrap.documentation_rag import (
     build_documentation_rag,
@@ -21,14 +23,19 @@ from margpa_runtime_llm.bootstrap.governance_definitions import (
     build_governance_definitions_runtime,
 )
 from margpa_runtime_llm.bootstrap.web_application import build_phase1_web_runtime
+from margpa_runtime_llm.bootstrap.web_knowledge import build_web_knowledge_service
 from margpa_runtime_llm.modules.conversation.adapters import (
     LocalConversationPersistenceSettings,
 )
 from margpa_runtime_llm.modules.conversation.domain import ConversationScopeId
+from margpa_runtime_llm.modules.data_controls.ports import DataControlConsentStorePort
 from margpa_runtime_llm.modules.documentation_rag.contracts import (
     DocumentationRagAvailability,
     DocumentationRagMode,
     DocumentationRagPlatform,
+)
+from margpa_runtime_llm.modules.documentation_rag.local_corpus_ports import (
+    LocalCorpusRegistryPort,
 )
 from margpa_runtime_llm.modules.governance_definitions.runtime import (
     GovernanceDefinitionsRuntime,
@@ -37,6 +44,7 @@ from margpa_runtime_llm.modules.inference.domain.errors import (
     InferenceError,
     InferenceErrorCode,
 )
+from margpa_runtime_llm.modules.web_knowledge.contracts import WebEvidenceGovernanceMode
 from margpa_runtime_llm.web.access_profiles import (
     DocumentationRagCapability,
     DocumentationRagFeatureMode,
@@ -224,6 +232,76 @@ def build_parser() -> argparse.ArgumentParser:
             "do call the live Generation path — P6-RR-P-WU-005)"
         ),
     )
+    parser.add_argument(
+        "--phase-7-local-corpus",
+        action="store_true",
+        help=(
+            "Enable loopback-only Phase 7 Local Corpus document register/update/"
+            "delete (P7-B), composed into Documentation RAG retrieval alongside "
+            "the fixed project documentation corpus"
+        ),
+    )
+    parser.add_argument(
+        "--local-corpus-runtime-data-root",
+        type=Path,
+        metavar="RUNTIME_DATA_ROOT",
+        help=(
+            "Absolute server-owned runtime-data root for the Local Corpus "
+            "registry (default: same as --conversation-runtime-data-root, "
+            "else <project root>/runtime_data)"
+        ),
+    )
+    parser.add_argument(
+        "--local-corpus-scope-id",
+        metavar="SCOPE_ID",
+        help=(
+            "Local Corpus storage scope identity (default: --conversation-scope-id, else 'default')"
+        ),
+    )
+    parser.add_argument(
+        "--phase-7-web-search",
+        action="store_true",
+        help=(
+            "Enable loopback-only Phase 7 Governed Web Search/Fetch (P7-E/F). "
+            "Manual activation only (initial value OFF; client requests explicit "
+            "activation per call). Uses a Fixture Search/Fetch Provider pair — "
+            "no real Search API is configured in this Task."
+        ),
+    )
+    parser.add_argument(
+        "--phase-7-web-search-governance-mode",
+        choices=["off", "observe", "enforce"],
+        default="off",
+        metavar="MODE",
+        help="Web Evidence Governance mode for Document Prompt Injection Detection (default: off)",
+    )
+    parser.add_argument(
+        "--phase-7-data-controls",
+        action="store_true",
+        help=(
+            "Enable loopback-only Phase 7 Data Controls (P7-G): per-Purpose "
+            "Consent (Feedback/Synthetic/Training Export, default OFF) and "
+            "read-only Retention facts"
+        ),
+    )
+    parser.add_argument(
+        "--data-controls-runtime-data-root",
+        type=Path,
+        metavar="RUNTIME_DATA_ROOT",
+        help=(
+            "Absolute server-owned runtime-data root for the Data Controls "
+            "consent store (default: --conversation-runtime-data-root, else "
+            "<project root>/runtime_data)"
+        ),
+    )
+    parser.add_argument(
+        "--data-controls-scope-id",
+        metavar="SCOPE_ID",
+        help=(
+            "Data Controls storage scope identity "
+            "(default: --conversation-scope-id, else 'default')"
+        ),
+    )
     return parser
 
 
@@ -279,6 +357,24 @@ def main(argv: Sequence[str] | None = None) -> int:
             access_mode=web_access_profile.access.mode,
             authentication_required=access_policy.authentication_required,
         )
+        local_corpus_enabled = _local_corpus_enabled(
+            enabled=args.phase_7_local_corpus,
+            host=args.host,
+            access_mode=web_access_profile.access.mode,
+            authentication_required=access_policy.authentication_required,
+        )
+        web_search_enabled = _web_search_enabled(
+            enabled=args.phase_7_web_search,
+            host=args.host,
+            access_mode=web_access_profile.access.mode,
+            authentication_required=access_policy.authentication_required,
+        )
+        data_controls_enabled = _data_controls_enabled(
+            enabled=args.phase_7_data_controls,
+            host=args.host,
+            access_mode=web_access_profile.access.mode,
+            authentication_required=access_policy.authentication_required,
+        )
         conversation_persistence_settings = _conversation_persistence_settings(
             enabled=args.conversation_persistence,
             runtime_data_root=args.conversation_runtime_data_root,
@@ -289,6 +385,36 @@ def main(argv: Sequence[str] | None = None) -> int:
             authentication_required=access_policy.authentication_required,
         )
         control_policy = build_disabled_control_policy(web_access_profile)
+        local_corpus_registry: LocalCorpusRegistryPort | None = None
+        if local_corpus_enabled:
+            local_corpus_runtime_data_root, local_corpus_scope_id = _local_corpus_registry_settings(
+                runtime_data_root=args.local_corpus_runtime_data_root,
+                scope_id=args.local_corpus_scope_id,
+                conversation_runtime_data_root=args.conversation_runtime_data_root,
+                conversation_scope_id=args.conversation_scope_id,
+                project_root=PROJECT_ROOT,
+            )
+            local_corpus_registry = JsonFileLocalCorpusRegistry(
+                runtime_data_root=local_corpus_runtime_data_root,
+                scope_key=local_corpus_scope_id,
+            )
+        web_knowledge_service = build_web_knowledge_service() if web_search_enabled else None
+        web_search_governance_mode = WebEvidenceGovernanceMode(
+            args.phase_7_web_search_governance_mode
+        )
+        data_controls_store: DataControlConsentStorePort | None = None
+        if data_controls_enabled:
+            data_controls_runtime_data_root, data_controls_scope_id = _data_controls_settings(
+                runtime_data_root=args.data_controls_runtime_data_root,
+                scope_id=args.data_controls_scope_id,
+                conversation_runtime_data_root=args.conversation_runtime_data_root,
+                conversation_scope_id=args.conversation_scope_id,
+                project_root=PROJECT_ROOT,
+            )
+            data_controls_store = JsonFileDataControlConsentStore(
+                runtime_data_root=data_controls_runtime_data_root,
+                scope_key=data_controls_scope_id,
+            )
         documentation_rag = None
         documentation_rag_default_mode = DocumentationRagMode.DISABLED
         documentation_rag_provider_display_name = None
@@ -306,6 +432,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     platform_observation=(
                         observed_platform.value if observed_platform is not None else "unsupported"
                     ),
+                    local_corpus_registry=local_corpus_registry,
                 )
             elif (
                 web_access_profile.access.mode is WebExposureMode.LOCAL
@@ -315,6 +442,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     project_root=PROJECT_ROOT,
                     defaults_path=DEFAULT_DOCUMENTATION_RAG_DEFAULTS,
                     feature_path=DEFAULT_LOCAL_DOCUMENTATION_RAG_PROFILE,
+                    local_corpus_registry=local_corpus_registry,
                 )
         if documentation_composition is not None:
             documentation_rag = documentation_composition.orchestrator
@@ -377,6 +505,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             guardrail_governance_enabled=guardrail_governance_enabled,
             runtime_model_control_enabled=runtime_model_control_enabled,
             feature_modes_enabled=feature_modes_enabled,
+            local_corpus_registry=local_corpus_registry,
+            web_knowledge_service=web_knowledge_service,
+            web_search_governance_mode=web_search_governance_mode,
+            data_controls_store=data_controls_store,
         )
         app = create_web_app(
             runtime_factory=runtime_factory,
@@ -633,6 +765,103 @@ def _runtime_model_control_enabled(
             safe_message=(
                 "Phase 6 Runtime Model Control requires local loopback access and explicit opt-in."
             ),
+        )
+    return True
+
+
+def _local_corpus_enabled(
+    *,
+    enabled: bool,
+    host: str,
+    access_mode: WebExposureMode,
+    authentication_required: bool,
+) -> bool:
+    if not enabled:
+        return False
+    if (
+        access_mode is not WebExposureMode.LOCAL
+        or authentication_required
+        or not _is_loopback_host(host)
+    ):
+        raise InferenceError(
+            code=InferenceErrorCode.INVALID_CONFIGURATION,
+            safe_message=(
+                "Phase 7 Local Corpus requires local loopback access and explicit opt-in."
+            ),
+        )
+    return True
+
+
+def _local_corpus_registry_settings(
+    *,
+    runtime_data_root: Path | None,
+    scope_id: str | None,
+    conversation_runtime_data_root: Path | None,
+    conversation_scope_id: str | None,
+    project_root: Path,
+) -> tuple[Path, str]:
+    resolved_root = (
+        runtime_data_root or conversation_runtime_data_root or (project_root / "runtime_data")
+    )
+    resolved_scope = scope_id or conversation_scope_id or "default"
+    return resolved_root, resolved_scope
+
+
+def _data_controls_enabled(
+    *,
+    enabled: bool,
+    host: str,
+    access_mode: WebExposureMode,
+    authentication_required: bool,
+) -> bool:
+    if not enabled:
+        return False
+    if (
+        access_mode is not WebExposureMode.LOCAL
+        or authentication_required
+        or not _is_loopback_host(host)
+    ):
+        raise InferenceError(
+            code=InferenceErrorCode.INVALID_CONFIGURATION,
+            safe_message=(
+                "Phase 7 Data Controls requires local loopback access and explicit opt-in."
+            ),
+        )
+    return True
+
+
+def _data_controls_settings(
+    *,
+    runtime_data_root: Path | None,
+    scope_id: str | None,
+    conversation_runtime_data_root: Path | None,
+    conversation_scope_id: str | None,
+    project_root: Path,
+) -> tuple[Path, str]:
+    resolved_root = (
+        runtime_data_root or conversation_runtime_data_root or (project_root / "runtime_data")
+    )
+    resolved_scope = scope_id or conversation_scope_id or "default"
+    return resolved_root, resolved_scope
+
+
+def _web_search_enabled(
+    *,
+    enabled: bool,
+    host: str,
+    access_mode: WebExposureMode,
+    authentication_required: bool,
+) -> bool:
+    if not enabled:
+        return False
+    if (
+        access_mode is not WebExposureMode.LOCAL
+        or authentication_required
+        or not _is_loopback_host(host)
+    ):
+        raise InferenceError(
+            code=InferenceErrorCode.INVALID_CONFIGURATION,
+            safe_message=("Phase 7 Web Search requires local loopback access and explicit opt-in."),
         )
     return True
 

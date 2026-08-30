@@ -17,6 +17,9 @@ from margpa_runtime_llm.adapters.output_protocols.plain_text import PlainTextOut
 from margpa_runtime_llm.adapters.output_protocols.tagged_thinking import (
     TaggedThinkingOutputParser,
 )
+from margpa_runtime_llm.modules.conversation.application.conversation_generation import (
+    NO_HIT_FRESHNESS_INSTRUCTION,
+)
 from margpa_runtime_llm.modules.conversation.public import (
     TOKEN_LIMIT_WARNING,
     ContextUsagePromptInjectionMode,
@@ -38,6 +41,7 @@ from margpa_runtime_llm.modules.documentation_rag.contracts import (
     DocumentationRagAvailability,
     DocumentationRagMode,
     DocumentationRagRequestContext,
+    DocumentationReferenceBlock,
     DocumentationRetrievalState,
     DocumentationWarning,
 )
@@ -211,6 +215,53 @@ class RecordingContextualRag:
         )
 
 
+class IdentifierNoHitRag:
+    """P7-RW3-B (P7-CODEX-013 §7.3): NO_HIT with a named high-signal
+    Subject (`identifier_subject_count=1`) and zero retrieved evidence -
+    the exact condition `_identifier_no_hit_denied()` gates on."""
+
+    def augment_with_context(
+        self,
+        query_text: str,
+        request_context: DocumentationRagRequestContext,
+        *,
+        cancelled: CancellationCheck | None = None,
+    ) -> DocumentationAugmentation:
+        del cancelled
+        return DocumentationAugmentation(
+            state=DocumentationRetrievalState.ENABLED,
+            should_generate=True,
+            evidence=DocumentationEvidence(
+                query_digest=hashlib.sha512(query_text.encode()).hexdigest(),
+                corpus_manifest_digest=hashlib.sha512(b"manifest").hexdigest(),
+                retriever_key="test",
+                retriever_version="1",
+                base_prompt_used=request_context.system_history_current_prompt_tokens,
+                base_prompt_unit=request_context.prompt_measurement_unit,
+                base_prompt_exact=request_context.prompt_token_count_exact,
+                context_budget=0,
+                context_budget_unit=DocumentationMeasurementUnit.TOKENS,
+                context_used=0,
+                context_measurement_unit=DocumentationMeasurementUnit.TOKENS,
+                context_measurement_limit=0,
+                context_token_budget_used=True,
+                retrieved_chunk_count=0,
+                assembled_block_count=0,
+                identifier_subject_count=1,
+                retrieval_covered_subject_count=0,
+                retrieval_uncovered_subject_count=1,
+                covered_subject_count=0,
+                uncovered_subject_count=1,
+                grounding_state=DocumentationGroundingState.NO_HIT,
+                generation_allowed=True,
+                retrieval_duration_ms=0,
+            ),
+            document_count=1,
+            selected_chunk_count=0,
+            duration_ms=0,
+        )
+
+
 class BudgetAwareGroundedRag:
     _definitions: ClassVar[dict[str, str]] = {
         "EASA": (
@@ -328,6 +379,90 @@ class BudgetAwareGroundedRag:
                     "uncovered_subject_count": 0,
                     "grounding_state": DocumentationGroundingState.GROUNDED_READY,
                     "generation_allowed": True,
+                }
+            ),
+            document_count=1,
+            selected_chunk_count=1,
+            duration_ms=0.0,
+        )
+
+
+class GroundedCodeRag:
+    """P7-RW3-C (P7-CODEX-012): a minimal always-`GROUNDED_READY` fixture
+    whose Current Evidence names one concrete Code-shaped Identifier
+    (`CEDAR-25123`) - used by the Grounding Consistency Check tests
+    below to exercise a real Candidate against real Evidence content."""
+
+    EVIDENCE_CONTENT = "Nazuna Probe Orionの検証コードは CEDAR-25123 である。"
+
+    def augment_with_context(
+        self,
+        query_text: str,
+        request_context: DocumentationRagRequestContext,
+        *,
+        cancelled: CancellationCheck | None = None,
+    ) -> DocumentationAugmentation:
+        del cancelled
+        chunk_id = hashlib.sha512(b"grounded-code-probe-chunk").hexdigest()
+        document_digest = hashlib.sha512(b"grounded-code-probe-document").hexdigest()
+        reference_message = (
+            f"{REFERENCE_INSTRUCTION}\n\n[REFERENCE ref-1]\n"
+            "Path: local-corpus/margpa-manual-probe-8.md\n"
+            f"Heading: MARGPA Manual Probe 8\nContent:\n{self.EVIDENCE_CONTENT}\n"
+            "[/REFERENCE ref-1]"
+        )
+        block = DocumentationReferenceBlock(
+            reference_id="ref-1",
+            project_relative_path="local-corpus/margpa-manual-probe-8.md",
+            heading_breadcrumb="MARGPA Manual Probe 8",
+            chunk_id=chunk_id,
+            content=self.EVIDENCE_CONTENT,
+            measured_size=len(self.EVIDENCE_CONTENT),
+            measurement_unit=DocumentationMeasurementUnit.TOKENS,
+        )
+        citation = DocumentationCitation(
+            citation_id="citation-1",
+            project_relative_path="local-corpus/margpa-manual-probe-8.md",
+            heading_breadcrumb="MARGPA Manual Probe 8",
+            chunk_id=chunk_id,
+            document_sha512=document_digest,
+            retrieval_score=3.0,
+            selected_order=1,
+        )
+        return DocumentationAugmentation(
+            state=DocumentationRetrievalState.ENABLED,
+            should_generate=True,
+            reference_message=reference_message,
+            citations=(citation,),
+            reference_blocks=(block,),
+            evidence=DocumentationEvidence.model_validate(
+                {
+                    "query_digest": hashlib.sha512(query_text.encode()).hexdigest(),
+                    "corpus_manifest_digest": hashlib.sha512(b"manifest").hexdigest(),
+                    "retriever_key": "test_grounded_code",
+                    "retriever_version": "1",
+                    "selected_chunk_ids": (chunk_id,),
+                    "selected_document_digests": (document_digest,),
+                    "selected_scores": (3.0,),
+                    "base_prompt_used": request_context.system_history_current_prompt_tokens,
+                    "base_prompt_unit": DocumentationMeasurementUnit.TOKENS,
+                    "base_prompt_exact": request_context.prompt_token_count_exact,
+                    "context_budget": 768,
+                    "context_budget_unit": DocumentationMeasurementUnit.TOKENS,
+                    "context_used": len(self.EVIDENCE_CONTENT),
+                    "context_measurement_unit": DocumentationMeasurementUnit.TOKENS,
+                    "context_measurement_limit": 768,
+                    "context_token_budget_used": True,
+                    "retrieved_chunk_count": 1,
+                    "assembled_block_count": 1,
+                    "identifier_subject_count": 1,
+                    "retrieval_covered_subject_count": 1,
+                    "retrieval_uncovered_subject_count": 0,
+                    "covered_subject_count": 1,
+                    "uncovered_subject_count": 0,
+                    "grounding_state": DocumentationGroundingState.GROUNDED_READY,
+                    "generation_allowed": True,
+                    "retrieval_duration_ms": 0.0,
                 }
             ),
             document_count=1,
@@ -577,6 +712,92 @@ def test_documentation_request_context_uses_effective_context_history_and_reques
     )
 
 
+def test_no_hit_splices_a_freshness_notice_and_still_generates() -> None:
+    """P7-RW2-B (P7-CODEX-008): NO_HIT never carries a `reference_message`,
+    but the model must still receive an explicit "no current evidence"
+    notice rather than only the raw conversation History (which may hold a
+    now-stale earlier answer) - and it must still be allowed to answer
+    ordinary out-of-corpus questions (`should_generate=True` is preserved).
+    """
+
+    inference = FakeInference()
+    rag = RecordingContextualRag()
+    generation = ConversationGenerationService(
+        inference=inference,
+        presentation=ThinkingPresentationService(PlainTextOutputParser()),
+        model_key="main.model",
+        generation_defaults=GenerationParameters(),
+        response_language_default=ResponseLanguage.JA,
+        presentation_default=presentation_policy(),
+        documentation_rag=rag,
+        documentation_rag_availability=DocumentationRagAvailability.AVAILABLE,
+    )
+
+    events = list(
+        generation.start(
+            conversation_input(documentation_rag_mode=DocumentationRagMode.ENABLED)
+        ).events()
+    )
+
+    assert event_types(events)[-1] == ConversationEventType.COMPLETED
+    request = inference.requests[0]
+    # P7-RW3-C (P7-CODEX-012): the Notice now sits immediately before the
+    # Current User Message, *after* every Historical Turn - not right
+    # after System/before all History (the previous, Handoff-flagged order
+    # a Model was observed to weigh less than a nearer stale Historical
+    # Assistant Turn).
+    notice = request.messages[-2]
+    assert notice.role is MessageRole.TOOL
+    assert notice.name == "documentation_no_hit_notice"
+    assert notice.content == NO_HIT_FRESHNESS_INSTRUCTION
+    assert "現在の根拠" in notice.content
+    assert request.messages[-1].role is MessageRole.USER
+    assert request.messages[-1].content == "next"
+    # The real conversation History still precedes it, untouched, right
+    # after System.
+    assert [message.content for message in request.messages[1:-2]] == [
+        "first",
+        "prior answer",
+    ]
+
+
+def test_identifier_no_hit_denies_generation_with_a_fixed_presentation() -> None:
+    """P7-RW3-B (P7-CODEX-013 §7.3): unlike ordinary NO_HIT (the previous
+    test above), a query naming a high-signal Identifier/Subject with
+    zero Current Corpus Evidence must converge to a fixed Presentation
+    *before* any Inference Call - the Main Model is never given the
+    chance to fabricate a plausible-looking value from its own General
+    Knowledge or Conversation History."""
+
+    inference = FakeInference()
+    rag = IdentifierNoHitRag()
+    generation = ConversationGenerationService(
+        inference=inference,
+        presentation=ThinkingPresentationService(PlainTextOutputParser()),
+        model_key="main.model",
+        generation_defaults=GenerationParameters(),
+        response_language_default=ResponseLanguage.JA,
+        presentation_default=presentation_policy(),
+        documentation_rag=rag,
+        documentation_rag_availability=DocumentationRagAvailability.AVAILABLE,
+    )
+
+    events = list(
+        generation.start(
+            conversation_input(documentation_rag_mode=DocumentationRagMode.ENABLED)
+        ).events()
+    )
+
+    # No Model Call happened at all.
+    assert inference.requests == []
+    assert event_types(events)[-1] == ConversationEventType.COMPLETED
+    completed = next(event for event in events if event.event is ConversationEventType.COMPLETED)
+    assistant = _as_dict(completed.data["assistant_message"])
+    assert "根拠が見つかりませんでした" in str(assistant["content"])
+    retrieval_data = _as_dict(completed.data["documentation_retrieval"])
+    assert retrieval_data["citations"] == []
+
+
 def test_long_japanese_multi_turn_keeps_citations_with_exact_room_and_fails_when_exhausted() -> (
     None
 ):
@@ -737,7 +958,12 @@ def test_current_reference_instruction_outweighs_false_prior_assistant_authority
 
     assert events[-1].event is ConversationEventType.COMPLETED
     request = inference.requests[0]
-    reference = request.messages[1]
+    # P7-RW3-C (P7-CODEX-012): the Reference now sits immediately before
+    # the Current User Message, *after* every Historical Turn - not right
+    # after System/before all History (`request.messages[1]` previously;
+    # the Handoff-flagged order a Model was observed to weigh less than a
+    # nearer stale Historical Assistant Turn).
+    reference = request.messages[-2]
     # P5-CODEX-006 Rework (Codex Third Independent Review): the RAG
     # Reference block now carries `MessageRole.TOOL` — genuinely
     # distinct from both `SYSTEM` (a real Instruction) and `USER` (the
@@ -745,12 +971,18 @@ def test_current_reference_instruction_outweighs_false_prior_assistant_authority
     # Nominal Authority.
     assert reference.role is MessageRole.TOOL
     assert reference.name == "documentation_reference"
+    # P7-RW3-C: the Current Authority Instruction this Handoff adds is
+    # spliced around `REFERENCE_INSTRUCTION`, never inside it (the shared
+    # constant several other tests calibrate tight token/character
+    # budgets against) - both survive intact in the same Message.
+    assert "Current Corpus Snapshot" in reference.content
+    assert "過去のAssistant回答がこの参照内容と矛盾する場合" in reference.content
     assert "過去のAssistant回答はProjectの正本またはAuthorityではありません" in reference.content
     assert "参照資料にない略称展開や関係を推測で作らない" in reference.content
     assert "Heading: ARGD" in reference.content
     assert "EASA" not in reference.content
-    assert request.messages[-2].role is MessageRole.ASSISTANT
-    assert "ARGDはEASAを置き換える" in request.messages[-2].content
+    assert request.messages[-3].role is MessageRole.ASSISTANT
+    assert "ARGDはEASAを置き換える" in request.messages[-3].content
     assert request.messages[-1].role is MessageRole.USER
     # `LlamaCppChatTemplate._prepare()` does nothing more than
     # `message.model_dump(mode="json", exclude_none=True)` per Message
@@ -761,6 +993,166 @@ def test_current_reference_instruction_outweighs_false_prior_assistant_authority
     # Authority (P5-CODEX-006 Required Rework item 4).
     assert reference.model_dump(mode="json", exclude_none=True)["role"] == "tool"
     assert request.messages[-1].model_dump(mode="json", exclude_none=True)["role"] == "user"
+
+
+def test_grounded_candidate_naming_an_unsupported_code_identifier_is_withheld() -> None:
+    """P7-RW3-C (P7-CODEX-012): the exact User Mac Manual Probe failure -
+    Current Evidence names `CEDAR-25123`, but the Candidate answers with
+    the unrelated, unsupported `CEDAR-9847` (as if carried over from a
+    stale prior Turn in the Model's own Conversation History). This must
+    never reach the client as a grounded answer, independent of Judge
+    Mode (`judge_mode` stays "off" here - no Judge Hook is wired at
+    all)."""
+
+    inference = FakeInference(lambda: FakeStream(text_deltas=("CEDAR-9847 です。",)))
+    rag = GroundedCodeRag()
+    generation = ConversationGenerationService(
+        inference=inference,
+        presentation=ThinkingPresentationService(PlainTextOutputParser()),
+        model_key="main.model",
+        generation_defaults=GenerationParameters(max_new_tokens=128),
+        response_language_default=ResponseLanguage.JA,
+        presentation_default=presentation_policy(),
+        documentation_rag=rag,
+        documentation_rag_availability=DocumentationRagAvailability.AVAILABLE,
+    )
+
+    events = list(
+        generation.start(
+            conversation_input(documentation_rag_mode=DocumentationRagMode.ENABLED)
+        ).events()
+    )
+
+    # The raw hallucinated Candidate must never be streamed live - a
+    # Grounded RAG Turn is buffered, so only the (replaced) Safe
+    # Grounding Failure text is bulk-delivered once, right before
+    # COMPLETED (never a live-streamed-then-retracted Delta).
+    deltas = [event for event in events if event.event is ConversationEventType.DELTA]
+    assert len(deltas) == 1
+    assert "CEDAR-9847" not in str(deltas[0].data["text"])
+    warnings = [event for event in events if event.event is ConversationEventType.WARNING]
+    assert any(
+        warning.data["code"] == "grounding_consistency_safe_fallback" for warning in warnings
+    )
+    completed = next(event for event in events if event.event is ConversationEventType.COMPLETED)
+    assistant = _as_dict(completed.data["assistant_message"])
+    assert "CEDAR-9847" not in str(assistant["content"])
+
+
+def test_grounded_candidate_using_only_evidence_identifiers_is_presented_unchanged() -> None:
+    """The Consistency Check must not false-positive on an ordinary
+    grounded answer that only cites the Code the Current Evidence
+    actually contains."""
+
+    inference = FakeInference(lambda: FakeStream(text_deltas=("検証コードは CEDAR-25123 です。",)))
+    rag = GroundedCodeRag()
+    generation = ConversationGenerationService(
+        inference=inference,
+        presentation=ThinkingPresentationService(PlainTextOutputParser()),
+        model_key="main.model",
+        generation_defaults=GenerationParameters(max_new_tokens=128),
+        response_language_default=ResponseLanguage.JA,
+        presentation_default=presentation_policy(),
+        documentation_rag=rag,
+        documentation_rag_availability=DocumentationRagAvailability.AVAILABLE,
+    )
+
+    events = list(
+        generation.start(
+            conversation_input(documentation_rag_mode=DocumentationRagMode.ENABLED)
+        ).events()
+    )
+
+    warnings = [event for event in events if event.event is ConversationEventType.WARNING]
+    assert not any(
+        warning.data["code"] == "grounding_consistency_safe_fallback" for warning in warnings
+    )
+    completed = next(event for event in events if event.event is ConversationEventType.COMPLETED)
+    assistant = _as_dict(completed.data["assistant_message"])
+    assert "CEDAR-25123" in str(assistant["content"])
+
+
+def test_no_hit_candidate_naming_a_code_shaped_identifier_is_withheld() -> None:
+    """P7-RW4 (Codex Controller Independent Review, P7-CODEX-013's
+    remaining path): a plain NO_HIT Turn (`identifier_subject_count=0` -
+    the Query itself named no high-signal Subject, so
+    `_identifier_no_hit_denied()` never fires and a real Inference Call
+    happens) whose Candidate nonetheless names a Code-shaped Identifier
+    must be withheld exactly like a Grounded Turn's Consistency Check -
+    the same `CEDAR-9847` failure, but for the residual path a
+    compound Subject like `Nazuna Probe Orion` takes after its
+    Document is deleted (its individual words are not
+    `identifier_subject_count` high-signal, so the pre-Inference gate
+    does not cover it)."""
+
+    inference = FakeInference(lambda: FakeStream(text_deltas=("CEDAR-9847 です。",)))
+    rag = RecordingContextualRag()
+    generation = ConversationGenerationService(
+        inference=inference,
+        presentation=ThinkingPresentationService(PlainTextOutputParser()),
+        model_key="main.model",
+        generation_defaults=GenerationParameters(max_new_tokens=128),
+        response_language_default=ResponseLanguage.JA,
+        presentation_default=presentation_policy(),
+        documentation_rag=rag,
+        documentation_rag_availability=DocumentationRagAvailability.AVAILABLE,
+    )
+
+    events = list(
+        generation.start(
+            conversation_input(documentation_rag_mode=DocumentationRagMode.ENABLED)
+        ).events()
+    )
+
+    # A real Inference Call did happen (unlike the pre-Inference Identifier
+    # NO_HIT Denial path) - but its Candidate was never streamed live and
+    # never presented.
+    assert inference.requests != []
+    deltas = [event for event in events if event.event is ConversationEventType.DELTA]
+    assert len(deltas) == 1
+    assert "CEDAR-9847" not in str(deltas[0].data["text"])
+    warnings = [event for event in events if event.event is ConversationEventType.WARNING]
+    assert any(
+        warning.data["code"] == "grounding_consistency_safe_fallback" for warning in warnings
+    )
+    completed = next(event for event in events if event.event is ConversationEventType.COMPLETED)
+    assistant = _as_dict(completed.data["assistant_message"])
+    assert "CEDAR-9847" not in str(assistant["content"])
+    retrieval_data = _as_dict(completed.data["documentation_retrieval"])
+    assert retrieval_data["citations"] == []
+
+
+def test_no_hit_candidate_without_a_code_shaped_identifier_is_presented_unchanged() -> None:
+    """The NO_HIT Consistency Check must not false-positive on an
+    ordinary out-of-corpus answer that never names any Code-shaped
+    Identifier at all - the common chit-chat NO_HIT case."""
+
+    inference = FakeInference(lambda: FakeStream(text_deltas=("特に決まった値はありません。",)))
+    rag = RecordingContextualRag()
+    generation = ConversationGenerationService(
+        inference=inference,
+        presentation=ThinkingPresentationService(PlainTextOutputParser()),
+        model_key="main.model",
+        generation_defaults=GenerationParameters(max_new_tokens=128),
+        response_language_default=ResponseLanguage.JA,
+        presentation_default=presentation_policy(),
+        documentation_rag=rag,
+        documentation_rag_availability=DocumentationRagAvailability.AVAILABLE,
+    )
+
+    events = list(
+        generation.start(
+            conversation_input(documentation_rag_mode=DocumentationRagMode.ENABLED)
+        ).events()
+    )
+
+    warnings = [event for event in events if event.event is ConversationEventType.WARNING]
+    assert not any(
+        warning.data["code"] == "grounding_consistency_safe_fallback" for warning in warnings
+    )
+    completed = next(event for event in events if event.event is ConversationEventType.COMPLETED)
+    assistant = _as_dict(completed.data["assistant_message"])
+    assert "特に決まった値はありません。" in str(assistant["content"])
 
 
 def test_hidden_thinking_never_enters_display_payload_or_canonical_history() -> None:
@@ -1105,7 +1497,13 @@ def test_context_usage_breakdown_uses_text_token_counter_and_effective_context_s
 
 
 def test_context_usage_breakdown_separates_rag_reference_from_system_prompt() -> None:
-    usage = TokenUsage(prompt_tokens=500, completion_tokens=50, total_tokens=550)
+    # P7-RW3-C (P7-CODEX-012): `prompt_tokens` must comfortably exceed the
+    # Reference Message's own length now that `CURRENT_EVIDENCE_AUTHORITY_
+    # INSTRUCTION` is prepended to it at splice time - this fake `usage`
+    # is an arbitrary backend-reported total decoupled from real message
+    # content length, not one of the tight token/character budgets other
+    # tests calibrate against, so it is simply raised here.
+    usage = TokenUsage(prompt_tokens=2000, completion_tokens=50, total_tokens=2050)
     inference = FakeInference(lambda: FakeStream(usage=usage))
     rag = BudgetAwareGroundedRag()
     generation = ConversationGenerationService(
@@ -1142,7 +1540,7 @@ def test_context_usage_breakdown_separates_rag_reference_from_system_prompt() ->
     assert reference_message.name == "documentation_reference"
     assert breakdown["rag_context_tokens"] == len(reference_message.content)
     assert breakdown["system_prompt_tokens"] == len(JAPANESE_RESPONSE_INSTRUCTION)
-    assert breakdown["conversation_history_tokens"] == 500 - (
+    assert breakdown["conversation_history_tokens"] == 2000 - (
         breakdown["rag_context_tokens"] + breakdown["system_prompt_tokens"]
     )
 

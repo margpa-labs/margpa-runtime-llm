@@ -43,6 +43,7 @@ from margpa_runtime_llm.modules.documentation_rag.contracts import (
     DocumentationMeasurementUnit,
     DocumentationRagMode,
     DocumentationRetrievalState,
+    DocumentationWarning,
     PersistedTurnCitationEvidence,
 )
 from margpa_runtime_llm.modules.inference.contracts.generation import ThinkingMode
@@ -317,6 +318,117 @@ def test_branch_select_does_not_mutate_citation_rows(tmp_path: Path) -> None:
 
     after = service.get_conversation_citations(CID)
     assert after == before
+
+
+def _no_hit_augmentation() -> DocumentationAugmentation:
+    sha = "f" * 128
+    evidence = DocumentationEvidence(
+        query_digest=sha,
+        corpus_manifest_digest=sha,
+        retriever_key="bm25",
+        retriever_version="1",
+        base_prompt_unit=DocumentationMeasurementUnit.TOKENS,
+        context_budget=100,
+        context_budget_unit=DocumentationMeasurementUnit.TOKENS,
+        context_used=0,
+        context_measurement_unit=DocumentationMeasurementUnit.TOKENS,
+        context_measurement_limit=100,
+        context_token_budget_used=True,
+        retrieved_chunk_count=0,
+        assembled_block_count=0,
+        identifier_subject_count=0,
+        retrieval_covered_subject_count=0,
+        retrieval_uncovered_subject_count=0,
+        covered_subject_count=0,
+        uncovered_subject_count=0,
+        grounding_state=DocumentationGroundingState.NO_HIT,
+        generation_allowed=True,
+        retrieval_duration_ms=1.0,
+    )
+    return DocumentationAugmentation(
+        state=DocumentationRetrievalState.ENABLED,
+        should_generate=True,
+        evidence=evidence,
+        warnings=(DocumentationWarning(code="documentation_no_hit", message="no evidence"),),
+        document_count=0,
+        selected_chunk_count=0,
+        duration_ms=1.0,
+    )
+
+
+class NoHitCitingSession:
+    """P7-RW5-A (P7-CODEX-014): a real NO_HIT Turn - zero Citations, one
+    `documentation_no_hit` Warning - contrasted with `NoCitationSession`
+    below (RAG disabled: no `DocumentationAugmentation` at all). Both reach
+    `complete_generation()` with empty `citations`, but only NO_HIT is real
+    Evidence worth persisting."""
+
+    def __init__(self, request_id: str, answer: str) -> None:
+        self.request_id = request_id
+        self.answer = answer
+        self.documentation_augmentation = _no_hit_augmentation()
+
+    def events(self) -> Iterator[ConversationEvent]:
+        yield ConversationEvent(
+            event=ConversationEventType.COMPLETED,
+            data={
+                "request_id": self.request_id,
+                "assistant_message": {"role": "assistant", "content": self.answer},
+            },
+        )
+
+
+class NoHitCitingGeneration:
+    def __init__(self, answer: str = "no current grounds") -> None:
+        self.answer = answer
+        self.calls = 0
+
+    def start(self, _: object) -> NoHitCitingSession:
+        self.calls += 1
+        return NoHitCitingSession(f"request-{self.calls}", self.answer)
+
+
+def test_no_hit_turn_persists_zero_citation_evidence_and_survives_restart(
+    tmp_path: Path,
+) -> None:
+    """P7-RW5-A (P7-CODEX-014): unlike RAG disabled (`test_rag_disabled_
+    turn_reports_not_present_not_corrupt` below), a NO_HIT Turn's
+    Grounding State/Warning Codes must actually be written - previously
+    `build_turn_citation_evidence()` treated "zero Citations" as
+    equivalent to "nothing to persist" for every State, including NO_HIT,
+    so a Persistent Detail reload silently lost the NO_HIT evidence a Live
+    SSE `retrieval` event had already shown."""
+    root = tmp_path / "runtime-data"
+    generation = NoHitCitingGeneration()
+    service = _new_service(root, generation)
+    service.create_conversation(
+        conversation_id=CID,
+        session_id=ConversationSessionId(value="session-1"),
+        operation_id=op("create"),
+    )
+    events = tuple(
+        service.generate_turn(
+            conversation_id=CID,
+            content="question with no current grounds",
+            settings=_settings(),
+            identities=_identities("1"),
+        )
+    )
+    assert events[-1].event is ConversationEventType.COMPLETED
+
+    result = service.get_conversation_citations(CID).get("turn-1")
+    assert isinstance(result, PersistedTurnCitationEvidence)
+    assert result.grounding_state is DocumentationGroundingState.NO_HIT
+    assert result.citations == ()
+    assert result.warning_codes == ("documentation_no_hit",)
+
+    # Simulate a server restart: a brand-new adapter instance, no in-memory state carried over.
+    reopened = SQLiteConversationStore(runtime_data_root=root, bound_scope_id=SCOPE)
+    reopened.open_ready_store()
+    reopened_result = reopened.get_turn_citations(CID.value, "turn-1")
+    assert isinstance(reopened_result, PersistedTurnCitationEvidence)
+    assert reopened_result.grounding_state is DocumentationGroundingState.NO_HIT
+    assert reopened_result.warning_codes == ("documentation_no_hit",)
 
 
 def test_rag_disabled_turn_reports_not_present_not_corrupt(tmp_path: Path) -> None:

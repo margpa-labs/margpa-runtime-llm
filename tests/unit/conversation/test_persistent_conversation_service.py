@@ -40,6 +40,7 @@ from margpa_runtime_llm.modules.conversation.domain import (
 from margpa_runtime_llm.modules.conversation.ports import (
     CommitConversation,
     ConversationCommitReceipt,
+    StoredConversation,
 )
 from margpa_runtime_llm.modules.documentation_rag.contracts import DocumentationRagMode
 from margpa_runtime_llm.modules.inference.contracts.generation import ThinkingMode
@@ -344,6 +345,234 @@ def test_generate_requires_completed_recovery_gate(tmp_path: Path) -> None:
             )
         )
     assert captured.value.code is PersistentConversationErrorCode.STORAGE_NOT_READY
+
+
+def _active_sessions(stored: StoredConversation) -> list[ConversationSessionState]:
+    return [
+        session.state
+        for session in stored.conversation.sessions
+        if session.state is ConversationSessionState.ACTIVE
+    ]
+
+
+def test_lazy_resume_on_restart_allows_first_send_without_manual_resume(
+    tmp_path: Path,
+) -> None:
+    """P7-RW2-C (P7-CODEX-009): Restart leaves the Conversation ACTIVE with
+    no Active Session (via `recover_incomplete_conversations`, unchanged).
+    The next `generate_turn` must succeed on its own - no manual `resume`
+    call anywhere in this Test - and the Turn/Session `recover_incomplete_
+    conversations` Interrupted must stay exactly as Interrupted left them.
+    """
+
+    service, store, _ = make_service(tmp_path, (completed_event(),))
+    created = service.create_conversation(
+        conversation_id=CID,
+        session_id=ConversationSessionId(value="session-1"),
+        operation_id=op("create"),
+    )
+    service.append_user_turn(
+        conversation_id=CID,
+        turn_id=ConversationTurnId(value="turn-1"),
+        user_message_id=ConversationMessageId(value="message-user-1"),
+        content="hello",
+        operation_id=op("append-1"),
+        expected_revision=created.storage_revision,
+    )
+    service.recover_incomplete_conversations()
+    after_restart = store.get(SCOPE, CID)
+    assert after_restart.conversation.sessions[0].state is ConversationSessionState.INTERRUPTED  # type: ignore[union-attr]
+    assert after_restart.conversation.turns[0].state is ConversationTurnState.INTERRUPTED  # type: ignore[union-attr]
+
+    events = list(
+        service.generate_turn(
+            conversation_id=CID,
+            content="second message, no manual resume",
+            settings=settings(),
+            identities=PersistentGenerationIdentities(
+                turn_id=ConversationTurnId(value="turn-2"),
+                user_message_id=ConversationMessageId(value="message-user-2"),
+                assistant_message_id=ConversationMessageId(value="message-assistant-2"),
+                append_operation_id=op("append-2"),
+                start_operation_id=op("start-2"),
+                terminal_operation_id=op("terminal-2"),
+            ),
+        )
+    )
+    assert any(event.event is ConversationEventType.COMPLETED for event in events)
+
+    final = store.get(SCOPE, CID)
+    assert len(final.conversation.sessions) == 2  # type: ignore[union-attr]
+    assert final.conversation.sessions[0].state is ConversationSessionState.INTERRUPTED  # type: ignore[union-attr]
+    assert final.conversation.sessions[1].state is ConversationSessionState.ACTIVE  # type: ignore[union-attr]
+    turn_states = {
+        turn.turn_id.value: turn.state
+        for turn in final.conversation.turns  # type: ignore[union-attr]
+    }
+    assert turn_states["turn-1"] is ConversationTurnState.INTERRUPTED
+    assert turn_states["turn-2"] is ConversationTurnState.COMPLETED
+
+
+def test_lazy_resume_on_unarchive_allows_first_send_without_manual_resume(
+    tmp_path: Path,
+) -> None:
+    """P7-RW2-C (P7-CODEX-009): unarchiving flips `state` back to ACTIVE but
+    never reopens a Session (`set_archived` force-closed it on the way in) -
+    the next `generate_turn` must still succeed with no manual resume."""
+
+    service, store, _ = make_service(tmp_path, (completed_event(),))
+    created = service.create_conversation(
+        conversation_id=CID,
+        session_id=ConversationSessionId(value="session-1"),
+        operation_id=op("create"),
+    )
+    archived = service.set_archived(
+        conversation_id=CID,
+        operation_id=op("archive"),
+        expected_revision=created.storage_revision,
+        archived=True,
+    )
+    assert archived.conversation.sessions[0].state is ConversationSessionState.CLOSED
+    unarchived = service.set_archived(
+        conversation_id=CID,
+        operation_id=op("unarchive"),
+        expected_revision=archived.storage_revision,
+        archived=False,
+    )
+    assert _active_sessions(unarchived) == []
+
+    service.recover_incomplete_conversations()
+    events = list(
+        service.generate_turn(
+            conversation_id=CID,
+            content="first message after unarchive",
+            settings=settings(),
+            identities=identities(),
+        )
+    )
+    assert any(event.event is ConversationEventType.COMPLETED for event in events)
+    final = store.get(SCOPE, CID)
+    assert final is not None
+    assert len(_active_sessions(final)) == 1
+
+
+def test_archived_conversation_creates_zero_sessions_and_still_denies_send(
+    tmp_path: Path,
+) -> None:
+    """P7-RW2-C: an Archived Conversation is never auto-resumed - the send
+    still fails, and lazy resume must not have created any new Session."""
+
+    service, store, _ = make_service(tmp_path, (completed_event(),))
+    created = service.create_conversation(
+        conversation_id=CID,
+        session_id=ConversationSessionId(value="session-1"),
+        operation_id=op("create"),
+    )
+    archived = service.set_archived(
+        conversation_id=CID,
+        operation_id=op("archive"),
+        expected_revision=created.storage_revision,
+        archived=True,
+    )
+    session_count_before = len(archived.conversation.sessions)
+
+    service.recover_incomplete_conversations()
+    with pytest.raises(PersistentConversationError) as captured:
+        list(
+            service.generate_turn(
+                conversation_id=CID,
+                content="must not send into an Archived conversation",
+                settings=settings(),
+                identities=identities(),
+                expected_revision=archived.storage_revision,
+            )
+        )
+    assert captured.value.code is PersistentConversationErrorCode.INVALID_LIFECYCLE
+
+    final = store.get(SCOPE, CID)
+    assert final is not None
+    assert len(final.conversation.sessions) == session_count_before
+    assert _active_sessions(final) == []
+
+
+def test_double_tab_stale_revision_race_ends_with_exactly_one_active_session(
+    tmp_path: Path,
+) -> None:
+    """P7-RW2-C: two Tabs both read the Conversation right after Restart (the
+    same stale revision, no Active Session yet) and both try to send. The
+    first send's lazy resume plus append both commit; the second send's own
+    `_require_revision` check on that now-stale revision fails CONFLICT,
+    the retry loop re-reads canonical state, finds the Session the first
+    Tab already resumed, and appends its own Turn onto that same Session -
+    never creating a second one.
+    """
+
+    service, store, _ = make_service(tmp_path, (completed_event(),))
+    created = service.create_conversation(
+        conversation_id=CID,
+        session_id=ConversationSessionId(value="session-1"),
+        operation_id=op("create"),
+    )
+    service.append_user_turn(
+        conversation_id=CID,
+        turn_id=ConversationTurnId(value="turn-1"),
+        user_message_id=ConversationMessageId(value="message-user-1"),
+        content="hello",
+        operation_id=op("append-1"),
+        expected_revision=created.storage_revision,
+    )
+    service.recover_incomplete_conversations()
+    stale = store.get(SCOPE, CID)
+    stale_revision = stale.storage_revision  # type: ignore[union-attr]
+
+    tab_a_identities = PersistentGenerationIdentities(
+        turn_id=ConversationTurnId(value="turn-tab-a"),
+        user_message_id=ConversationMessageId(value="message-user-tab-a"),
+        assistant_message_id=ConversationMessageId(value="message-assistant-tab-a"),
+        append_operation_id=op("append-tab-a"),
+        start_operation_id=op("start-tab-a"),
+        terminal_operation_id=op("terminal-tab-a"),
+    )
+    tab_b_identities = PersistentGenerationIdentities(
+        turn_id=ConversationTurnId(value="turn-tab-b"),
+        user_message_id=ConversationMessageId(value="message-user-tab-b"),
+        assistant_message_id=ConversationMessageId(value="message-assistant-tab-b"),
+        append_operation_id=op("append-tab-b"),
+        start_operation_id=op("start-tab-b"),
+        terminal_operation_id=op("terminal-tab-b"),
+    )
+
+    events_a = list(
+        service.generate_turn(
+            conversation_id=CID,
+            content="tab a",
+            settings=settings(),
+            identities=tab_a_identities,
+            expected_revision=stale_revision,
+        )
+    )
+    assert any(event.event is ConversationEventType.COMPLETED for event in events_a)
+
+    events_b = list(
+        service.generate_turn(
+            conversation_id=CID,
+            content="tab b, same stale revision",
+            settings=settings(),
+            identities=tab_b_identities,
+            expected_revision=stale_revision,
+        )
+    )
+    assert any(event.event is ConversationEventType.COMPLETED for event in events_b)
+
+    final = store.get(SCOPE, CID)
+    assert final is not None
+    assert len(_active_sessions(final)) == 1
+    lazy_resumed_sessions = [
+        session
+        for session in final.conversation.sessions
+        if session.session_id.value not in {"session-1"}
+    ]
+    assert len(lazy_resumed_sessions) == 1
 
 
 class FailingTerminalStore(SQLiteConversationStore):

@@ -493,3 +493,178 @@ def test_english_prose_noise_consumes_no_subject_coverage_slots(
     assert result.covered_subject_count == 3
     assert result.uncovered_subject_count == 0
     assert {item.chunk for item in result.selected} == set(canonical)
+
+
+# --- P7-RW2-B (P7-CODEX-008): the "Nazuna Probe Orion" Manual Probe, turned
+# into a deterministic Regression Fixture per the Handoff (§7.3). None of
+# "Nazuna"/"Probe"/"Orion" is individually high-signal (no digits, no
+# all-caps run, no internal separator), so this exercises the top-k backfill
+# identifier-overlap guard directly, not `subject_identifiers`. ---
+
+_PROBE_QUERY = "Nazuna Probe Orionの検証コードは？"  # noqa: RUF001
+
+
+def _unrelated_noise(count: int = 6) -> tuple[DocumentationChunk, ...]:
+    return tuple(
+        chunk(
+            path=f"docs/project/phases/phase_1/noise_{index}_ja.md",
+            heading=f"Phase 1 の一般説明 {index}",
+            content=("この項目について詳しく説明してください。現在の状況と概要を確認します。") * 3,
+        )
+        for index in range(count)
+    )
+
+
+def test_backfill_excludes_chunks_unrelated_to_named_identifiers_after_deletion() -> None:
+    """The registered probe document has been soft-deleted; only unrelated
+    Project Docs noise remains in the corpus. Re-asking the exact same
+    question that used to be grounded must NOT backfill an irrelevant
+    chunk just to fill top-k - it must come back empty (NO_HIT), not a
+    false GROUNDED_READY with unsupported citations."""
+
+    engine = retriever()
+    index = engine.build(
+        cache_key="post-delete-cache",
+        corpus_manifest_digest="a" * 128,
+        chunker_key="test_chunker",
+        chunker_version="1",
+        chunks=_unrelated_noise(),
+    )
+
+    result = engine.retrieve(index, query(_PROBE_QUERY, top_k=4))
+
+    assert result.selected == ()
+
+
+def test_backfill_still_finds_the_matching_document_when_it_exists() -> None:
+    """Same probe query, but the document is still registered - the fix
+    must not block genuinely matching evidence, only unrelated backfill."""
+
+    probe = chunk(
+        path="local-corpus/margpa-manual-probe-7.md",
+        heading="MARGPA Manual Probe 7",
+        content="Nazuna Probe Orionの検証コードは CEDAR-7319 である。",
+        priority=CorpusPriority.CURRENT,
+    )
+    engine = retriever()
+    index = engine.build(
+        cache_key="pre-delete-cache",
+        corpus_manifest_digest="b" * 128,
+        chunker_key="test_chunker",
+        chunker_version="1",
+        chunks=(probe, *_unrelated_noise()),
+    )
+
+    result = engine.retrieve(index, query(_PROBE_QUERY, top_k=4))
+
+    assert probe in {item.chunk for item in result.selected}
+
+
+def test_backfill_is_unaffected_when_the_query_has_no_identifier_tokens() -> None:
+    """A pure natural-language query with no Latin identifier tokens at all
+    must keep filling top-k with its best generic lexical matches exactly
+    as before - the guard only ever activates when the query actually
+    names Latin identifier-like terms."""
+
+    engine = retriever()
+    index = engine.build(
+        cache_key="no-identifier-cache",
+        corpus_manifest_digest="c" * 128,
+        chunker_key="test_chunker",
+        chunker_version="1",
+        chunks=_unrelated_noise(),
+    )
+
+    result = engine.retrieve(
+        index,
+        query("この項目について教えてください", top_k=4),
+    )
+
+    assert len(result.selected) > 0
+
+
+# --- P7-RW3-B (P7-CODEX-013): the User Mac Manual Probe found P7-RW2-B's
+# "any overlap" backfill guard still too weak - a Phase 1 Project Docs
+# chunk that happened to share only the single word "Nazuna" (not "Probe"
+# or "Orion") still got backfilled as if it were supporting evidence. These
+# tighten the guard to a coverage-ratio ("at least half the query's
+# identifier tokens") threshold and lock in both edges: a minority share is
+# now excluded, a majority share is still admitted. ---
+
+
+def test_backfill_excludes_a_chunk_sharing_only_a_minority_of_named_identifiers() -> None:
+    """The exact P7-CODEX-013 failure: a Phase 1 Project Docs chunk that
+    shares the single word "Nazuna" (e.g. a project-name mention) but
+    neither "Probe" nor "Orion" must not be backfilled into Top-k for the
+    Probe query - P7-RW2-B's "any overlap" guard let exactly this kind of
+    one-word coincidence through."""
+
+    partial_overlap = chunk(
+        path="docs/project/phases/phase_1/acceptance_gate_ja.md",
+        heading="Phase 1 Acceptance Gate",
+        content="Nazunaは本Projectの名称の一部であり、Acceptance Gateの管理主体です。" * 2,
+    )
+    engine = retriever()
+    index = engine.build(
+        cache_key="minority-overlap-cache",
+        corpus_manifest_digest="a" * 128,
+        chunker_key="test_chunker",
+        chunker_version="1",
+        chunks=(partial_overlap, *_unrelated_noise()),
+    )
+
+    result = engine.retrieve(index, query(_PROBE_QUERY, top_k=4))
+
+    assert partial_overlap not in {item.chunk for item in result.selected}
+
+
+def test_backfill_admits_a_chunk_sharing_a_majority_of_named_identifiers() -> None:
+    """Two of the query's three identifier tokens ("Nazuna" + "Probe", not
+    "Orion") is enough for the coverage-ratio guard to admit a chunk -
+    only a *minority* share (the P7-CODEX-013 one-of-three case above)
+    must be excluded, not any partial share at all."""
+
+    majority_overlap = chunk(
+        path="local-corpus/margpa-manual-probe-8.md",
+        heading="MARGPA Manual Probe 8",
+        content="Nazuna Probeチームが管理する別件の記録です。" * 2,
+    )
+    engine = retriever()
+    index = engine.build(
+        cache_key="majority-overlap-cache",
+        corpus_manifest_digest="a" * 128,
+        chunker_key="test_chunker",
+        chunker_version="1",
+        chunks=(majority_overlap, *_unrelated_noise()),
+    )
+
+    result = engine.retrieve(index, query(_PROBE_QUERY, top_k=4))
+
+    assert majority_overlap in {item.chunk for item in result.selected}
+
+
+def test_backfill_admits_a_chunk_matching_half_the_query_identifier_tokens() -> None:
+    """ "What is Runtime Governance?" must keep working: its 4 identifier
+    tokens are "what"/"is"/"runtime"/"governance", and a real doc's own
+    heading plus prose legitimately supplies only "runtime"/"governance"
+    literally - exactly half. The coverage-ratio guard must still admit
+    this ordinary English question, not just reject the false-grounding
+    case above."""
+
+    canonical = chunk(
+        path="docs/project/current/architecture_ja.md",
+        heading="Runtime Governance",
+        content="ARGD compiler and deterministic governance.",
+    )
+    engine = retriever()
+    index = engine.build(
+        cache_key="half-overlap-cache",
+        corpus_manifest_digest="a" * 128,
+        chunker_key="test_chunker",
+        chunker_version="1",
+        chunks=(canonical, *_unrelated_noise()),
+    )
+
+    result = engine.retrieve(index, query("What is Runtime Governance?", top_k=4))
+
+    assert canonical in {item.chunk for item in result.selected}

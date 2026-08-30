@@ -43,9 +43,13 @@ from margpa_runtime_llm.modules.conversation.domain import (
     ConversationStorageErrorCode,
 )
 from margpa_runtime_llm.modules.conversation.public import ConversationGenerationService
+from margpa_runtime_llm.modules.data_controls.ports import DataControlConsentStorePort
 from margpa_runtime_llm.modules.documentation_rag.contracts import (
     DocumentationRagAvailability,
     DocumentationRagMode,
+)
+from margpa_runtime_llm.modules.documentation_rag.local_corpus_ports import (
+    LocalCorpusRegistryPort,
 )
 from margpa_runtime_llm.modules.documentation_rag.ports import (
     ContextualRagOrchestratorPort,
@@ -104,6 +108,8 @@ from margpa_runtime_llm.modules.runtime_model_control.domain.snapshot import Run
 from margpa_runtime_llm.modules.runtime_observability.application.recording_mode_controller import (
     RecordingModeController,
 )
+from margpa_runtime_llm.modules.web_knowledge.application import WebKnowledgeService
+from margpa_runtime_llm.modules.web_knowledge.contracts import WebEvidenceGovernanceMode
 from margpa_runtime_llm.web.access_profiles import DocumentationRagEffectiveState
 from margpa_runtime_llm.web.contracts import (
     DocumentationRagRuntimeSnapshot,
@@ -242,6 +248,10 @@ def build_phase1_web_runtime(
     guardrail_governance_enabled: bool = False,
     runtime_model_control_enabled: bool = False,
     feature_modes_enabled: bool = False,
+    local_corpus_registry: LocalCorpusRegistryPort | None = None,
+    web_knowledge_service: WebKnowledgeService | None = None,
+    web_search_governance_mode: WebEvidenceGovernanceMode = WebEvidenceGovernanceMode.OFF,
+    data_controls_store: DataControlConsentStorePort | None = None,
 ) -> WebRuntime:
     application: Phase1Application | None = None
     try:
@@ -970,6 +980,10 @@ def build_phase1_web_runtime(
             judge_evidence_recording_composition=judge_evidence_recording_composition,
             request_correlation_registry=request_correlation_registry,
             tracked_stage_registry=tracked_stage_registry,
+            local_corpus_registry=local_corpus_registry,
+            web_knowledge_service=web_knowledge_service,
+            web_search_governance_mode=web_search_governance_mode,
+            data_controls_store=data_controls_store,
         )
     except BaseException:
         if application is not None:

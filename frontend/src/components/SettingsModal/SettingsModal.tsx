@@ -17,6 +17,10 @@ import RuntimeModelStatusPanel, {
 } from "../RuntimeModelStatusPanel";
 import FeatureModesPanel from "../FeatureModesPanel";
 import ProviderSelectionPanel from "../ProviderSelectionPanel";
+import LocalCorpusPanel, { type LocalCorpusState } from "../LocalCorpusPanel";
+import WebSearchPanel, { type WebSearchPanelState } from "../WebSearchPanel";
+import DataControlsPanel, { type DataControlsState } from "../DataControlsPanel";
+import type { DataControlConsentState } from "../DataControlsPanel";
 import type { GovernanceMode, GuardrailGovernanceMode, MainGovernanceMode } from "../../types";
 
 interface SettingsModalProps {
@@ -50,9 +54,27 @@ interface SettingsModalProps {
   runtimeModelControlState: RuntimeModelControlState;
   onRuntimeModelRefresh: () => void;
   onRuntimeModelStatusChange: (status: RuntimeModelStatus) => void;
+  localCorpusBootstrapEnabled: boolean;
+  localCorpusState: LocalCorpusState;
+  onLocalCorpusRefresh: () => void;
+  onLocalCorpusRegister: (title: string, content: string) => void;
+  onLocalCorpusUpdate: (documentId: string, title: string, content: string) => void;
+  onLocalCorpusDelete: (documentId: string) => void;
+  onLocalCorpusEditRequest: (
+    documentId: string,
+  ) => Promise<{ title: string; content: string } | null>;
+  webSearchBootstrapEnabled: boolean;
+  webSearchToggleEnabled: boolean;
+  webSearchState: WebSearchPanelState;
+  onWebSearch: (query: string) => void;
+  dataControlsBootstrapEnabled: boolean;
+  dataControlsState: DataControlsState;
+  onDataControlsRefresh: () => void;
+  onDataControlsToggle: (key: keyof DataControlConsentState, value: boolean) => void;
+  onDataControlsReset: () => void;
 }
 
-type Category = "basic" | "advanced";
+type Category = "basic" | "advanced" | "data_controls";
 
 // A left-nav / right-content shell, deliberately built as a small category
 // list rather than a single flat panel: today it only has two entries
@@ -89,6 +111,22 @@ export default function SettingsModal({
   runtimeModelControlState,
   onRuntimeModelRefresh,
   onRuntimeModelStatusChange,
+  localCorpusBootstrapEnabled,
+  localCorpusState,
+  onLocalCorpusRefresh,
+  onLocalCorpusRegister,
+  onLocalCorpusUpdate,
+  onLocalCorpusDelete,
+  onLocalCorpusEditRequest,
+  webSearchBootstrapEnabled,
+  webSearchToggleEnabled,
+  webSearchState,
+  onWebSearch,
+  dataControlsBootstrapEnabled,
+  dataControlsState,
+  onDataControlsRefresh,
+  onDataControlsToggle,
+  onDataControlsReset,
 }: SettingsModalProps) {
   const [category, setCategory] = useState<Category>("basic");
   // Advanced remains visible even when a server-side capability marker is
@@ -170,6 +208,18 @@ export default function SettingsModal({
             >
               {translate(language, "advancedModeLabel")}
             </button>
+            {dataControlsBootstrapEnabled ? (
+              <button
+                type="button"
+                className="secondary"
+                aria-current={category === "data_controls"}
+                onClick={() => {
+                  setCategory("data_controls");
+                }}
+              >
+                {translate(language, "dataControlsMenuLabel")}
+              </button>
+            ) : null}
           </nav>
           <div className="settings-modal-content">
             <div hidden={category !== "basic"}>
@@ -227,6 +277,27 @@ export default function SettingsModal({
                 />
               ) : null}
               <ProviderSelectionPanel language={language} visible={category === "advanced"} />
+              {localCorpusBootstrapEnabled ? (
+                <LocalCorpusPanel
+                  language={language}
+                  visible={true}
+                  state={localCorpusState}
+                  onRefresh={onLocalCorpusRefresh}
+                  onRegister={onLocalCorpusRegister}
+                  onUpdate={onLocalCorpusUpdate}
+                  onDelete={onLocalCorpusDelete}
+                  onEditRequest={onLocalCorpusEditRequest}
+                />
+              ) : null}
+              {webSearchBootstrapEnabled ? (
+                <WebSearchPanel
+                  language={language}
+                  visible={true}
+                  toggleEnabled={webSearchToggleEnabled}
+                  state={webSearchState}
+                  onSearch={onWebSearch}
+                />
+              ) : null}
               {configurationBootstrapEnabled ? (
                 <ConfigurationControlPanel
                   language={language}
@@ -237,6 +308,18 @@ export default function SettingsModal({
                 />
               ) : null}
             </div>
+            {dataControlsBootstrapEnabled ? (
+              <div hidden={category !== "data_controls"}>
+                <DataControlsPanel
+                  language={language}
+                  visible={true}
+                  state={dataControlsState}
+                  onRefresh={onDataControlsRefresh}
+                  onToggle={onDataControlsToggle}
+                  onReset={onDataControlsReset}
+                />
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

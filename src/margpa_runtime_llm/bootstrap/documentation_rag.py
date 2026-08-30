@@ -15,9 +15,11 @@ from pydantic import BaseModel, ValidationError
 from margpa_runtime_llm.adapters.documentation_rag import (
     Bm25DocumentationRetriever,
     BoundedDocumentationContextAssembler,
+    CompositeDocumentSource,
     DeterministicMarkdownChunker,
     ExplicitMarkdownDocumentSource,
     InMemoryLexicalIndexStore,
+    LocalCorpusDocumentSource,
     LocalMarkdownDocumentSource,
     SystemCitationAdapter,
 )
@@ -28,11 +30,18 @@ from margpa_runtime_llm.modules.documentation_rag.application import (
     DocumentationRagApplicationService,
 )
 from margpa_runtime_llm.modules.documentation_rag.contracts import (
+    DOCUMENTATION_RAG_CITATION_SOURCE_CLASS,
     DocumentationRagDefaultsConfig,
     DocumentationRagFeatureConfig,
     DocumentationRagPlatform,
     LightningPublicDocumentationRagFeatureConfig,
     LocalDocumentationRagFeatureConfig,
+)
+from margpa_runtime_llm.modules.documentation_rag.local_corpus_contracts import (
+    LOCAL_CORPUS_SOURCE_CLASS,
+)
+from margpa_runtime_llm.modules.documentation_rag.local_corpus_ports import (
+    LocalCorpusRegistryPort,
 )
 from margpa_runtime_llm.modules.documentation_rag.ports import (
     ContextualRagOrchestratorPort,
@@ -84,6 +93,7 @@ def build_documentation_rag(
     feature_path: Path,
     access_mode: str,
     platform_observation: str,
+    local_corpus_registry: LocalCorpusRegistryPort | None = None,
 ) -> DocumentationRagComposition:
     defaults = _load_toml_model(defaults_path, DocumentationRagDefaultsConfig)
     feature = _load_feature_profile(feature_path)
@@ -95,6 +105,20 @@ def build_documentation_rag(
             project_root=project_root,
             feature=feature,
         )
+        # Phase 7 (P7-B): the mutable Local Corpus is composed in only for
+        # the real local developer runtime (`access_mode == "local"`) — the
+        # Lightning public container profile below has no writable per-user
+        # storage guarantee and stays exactly Phase 2 behavior.
+        if local_corpus_registry is not None:
+            source = CompositeDocumentSource(
+                sources_by_class={
+                    DOCUMENTATION_RAG_CITATION_SOURCE_CLASS: source,
+                    LOCAL_CORPUS_SOURCE_CLASS: LocalCorpusDocumentSource(
+                        registry=local_corpus_registry,
+                        project_root=project_root,
+                    ),
+                }
+            )
     else:
         if (
             access_mode not in feature.allowed_access_modes
@@ -118,6 +142,7 @@ def build_local_documentation_rag(
     project_root: Path,
     defaults_path: Path,
     feature_path: Path,
+    local_corpus_registry: LocalCorpusRegistryPort | None = None,
 ) -> LocalDocumentationRagComposition:
     return build_documentation_rag(
         project_root=project_root,
@@ -125,6 +150,7 @@ def build_local_documentation_rag(
         feature_path=feature_path,
         access_mode="local",
         platform_observation=DocumentationRagPlatform.MACOS_ARM64,
+        local_corpus_registry=local_corpus_registry,
     )
 
 

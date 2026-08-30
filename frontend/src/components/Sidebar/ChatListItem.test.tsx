@@ -45,11 +45,11 @@ describe("ChatListItem", () => {
     expect(screen.getByRole("button", { name: "My renamed chat" })).toBeInTheDocument();
   });
 
-  test("an active conversation with no active session offers Resume, Archive, Rename, and Delete", () => {
+  test("an active conversation's menu offers Archive, Rename, and Delete", () => {
     render(
       <ChatListItem
         language="en"
-        item={item({ state: "active", has_active_session: false })}
+        item={item({ state: "active" })}
         selected={false}
         onSelect={vi.fn()}
         onAction={vi.fn()}
@@ -57,29 +57,12 @@ describe("ChatListItem", () => {
       />,
     );
     fireEvent.click(screen.getByRole("button", { name: "Chat options" }));
-    expect(screen.getByRole("menuitem", { name: "Resume" })).toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: "Archive" })).toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: "Rename" })).toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: "Delete" })).toBeInTheDocument();
   });
 
-  test("an active conversation that already has an active session offers no Resume", () => {
-    render(
-      <ChatListItem
-        language="en"
-        item={item({ state: "active", has_active_session: true })}
-        selected={false}
-        onSelect={vi.fn()}
-        onAction={vi.fn()}
-        onRename={vi.fn()}
-      />,
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Chat options" }));
-    expect(screen.queryByRole("menuitem", { name: "Resume" })).toBeNull();
-    expect(screen.getByRole("menuitem", { name: "Archive" })).toBeInTheDocument();
-  });
-
-  test("an archived conversation's menu offers only Unarchive, no Resume", () => {
+  test("an archived conversation's menu offers only Unarchive", () => {
     render(
       <ChatListItem
         language="en"
@@ -91,7 +74,6 @@ describe("ChatListItem", () => {
       />,
     );
     fireEvent.click(screen.getByRole("button", { name: "Chat options" }));
-    expect(screen.queryByRole("menuitem", { name: "Resume" })).toBeNull();
     expect(screen.getByRole("menuitem", { name: "Unarchive" })).toBeInTheDocument();
   });
 

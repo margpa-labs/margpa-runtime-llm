@@ -12,6 +12,7 @@ const SETTINGS_FORM: SettingsFormState = {
   maxNewTokens: "2048",
   thinkingMode: false,
   thinkingVisibility: false,
+  webSearchMode: "disabled",
   summaryMode: "off",
   documentationRagMode: "disabled",
   injectContextUsage: false,
@@ -120,6 +121,27 @@ function baseProps(overrides: Partial<Parameters<typeof SettingsModal>[0]> = {})
     runtimeModelControlState: { capability: "loading" as const, status: null },
     onRuntimeModelRefresh: vi.fn(),
     onRuntimeModelStatusChange: vi.fn(),
+    localCorpusBootstrapEnabled: true,
+    localCorpusState: { capability: "loading" as const, documents: [], resultText: "" },
+    onLocalCorpusRefresh: vi.fn(),
+    onLocalCorpusRegister: vi.fn(),
+    onLocalCorpusUpdate: vi.fn(),
+    onLocalCorpusDelete: vi.fn(),
+    onLocalCorpusEditRequest: vi.fn(),
+    webSearchBootstrapEnabled: true,
+    webSearchToggleEnabled: false,
+    webSearchState: { capability: "idle" as const, result: null, resultText: "" },
+    onWebSearch: vi.fn(),
+    dataControlsBootstrapEnabled: true,
+    dataControlsState: {
+      capability: "loading" as const,
+      consent: null,
+      retentionFacts: [],
+      resultText: "",
+    },
+    onDataControlsRefresh: vi.fn(),
+    onDataControlsToggle: vi.fn(),
+    onDataControlsReset: vi.fn(),
     ...overrides,
   };
 }
@@ -135,6 +157,17 @@ describe("SettingsModal", () => {
     expect(document.querySelector("#settings")).not.toBeNull();
     expect(document.querySelector("#settings")?.closest("div")).not.toHaveAttribute("hidden");
     expect(document.querySelector("#configuration-panel")?.closest("div")).toHaveAttribute("hidden");
+  });
+
+  test("Web search Toggle appears in basic Settings, defaults to OFF, and sits above the Summary Mode row", () => {
+    render(<SettingsModal {...baseProps()} />);
+    const webSearchOff = document.querySelector("#web-search-mode-off")?.closest("label")?.querySelector("input");
+    expect(webSearchOff).toBeChecked();
+    expect(
+      document.querySelector("#web-search-mode-label")?.compareDocumentPosition(
+        document.querySelector("#summary-mode-label") as Node,
+      ),
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
   test("switching to Advanced Mode reveals Runtime configuration control and hides basic settings", () => {
@@ -225,6 +258,43 @@ describe("SettingsModal", () => {
     expect(document.querySelector("#configuration-panel")).toBeNull();
     expect(document.querySelector("#governance-panel")).toBeNull();
     expect(document.querySelector("#runtime-governance-panel")).toBeNull();
+  });
+
+  test("Advanced Mode renders the Local Corpus panel when its bootstrap is enabled", () => {
+    render(<SettingsModal {...baseProps()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
+    expect(document.querySelector("#local-corpus-panel")).not.toBeNull();
+  });
+
+  test("Advanced Mode omits the Local Corpus panel when its bootstrap is disabled", () => {
+    render(<SettingsModal {...baseProps({ localCorpusBootstrapEnabled: false })} />);
+    fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
+    expect(document.querySelector("#local-corpus-panel")).toBeNull();
+  });
+
+  test("Advanced Mode renders the Web Search panel when its bootstrap is enabled", () => {
+    render(<SettingsModal {...baseProps()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
+    expect(document.querySelector("#web-search-panel")).not.toBeNull();
+  });
+
+  test("Advanced Mode omits the Web Search panel when its bootstrap is disabled", () => {
+    render(<SettingsModal {...baseProps({ webSearchBootstrapEnabled: false })} />);
+    fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
+    expect(document.querySelector("#web-search-panel")).toBeNull();
+  });
+
+  test("Data Controls nav tab renders when its bootstrap is enabled and switches content", () => {
+    render(<SettingsModal {...baseProps()} />);
+    expect(screen.getByRole("button", { name: "Data controls" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Data controls" }));
+    expect(document.querySelector("#data-controls-panel")).not.toBeNull();
+    expect(document.querySelector("#settings")?.closest("div")).toHaveAttribute("hidden");
+  });
+
+  test("Data Controls nav tab is omitted when its bootstrap is disabled", () => {
+    render(<SettingsModal {...baseProps({ dataControlsBootstrapEnabled: false })} />);
+    expect(screen.queryByRole("button", { name: "Data controls" })).toBeNull();
   });
 
   test("switching to Advanced Mode reveals the Governance Definitions panel", () => {

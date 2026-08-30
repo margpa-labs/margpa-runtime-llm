@@ -6,6 +6,7 @@ export interface SettingsFormState {
   maxNewTokens: string;
   thinkingMode: boolean;
   thinkingVisibility: boolean;
+  webSearchMode: string;
   summaryMode: string;
   documentationRagMode: string;
   injectContextUsage: boolean;
@@ -140,6 +141,38 @@ export default function SettingsPanel({
           </p>
         </div>
         <div className="settings-column settings-column-right">
+          <fieldset className="summary-control">
+            <legend id="web-search-mode-label">{translate(language, "webSearchModeLabel")}</legend>
+            <div className="segmented-control">
+              <label>
+                <input
+                  type="radio"
+                  name="web-search-mode"
+                  value="disabled"
+                  checked={form.webSearchMode === "disabled"}
+                  onChange={() => {
+                    onChange({ ...form, webSearchMode: "disabled" });
+                  }}
+                />
+                <span id="web-search-mode-off">{translate(language, "webSearchOff")}</span>
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="web-search-mode"
+                  value="manual"
+                  checked={form.webSearchMode === "manual"}
+                  onChange={() => {
+                    onChange({ ...form, webSearchMode: "manual" });
+                  }}
+                />
+                <span id="web-search-mode-on">{translate(language, "webSearchOn")}</span>
+              </label>
+            </div>
+          </fieldset>
+          <p id="web-search-note" className="setting-note">
+            {translate(language, "webSearchNote")}
+          </p>
           <fieldset className="summary-control">
             <legend id="summary-mode-label">{translate(language, "summaryModeLabel")}</legend>
             <div className="segmented-control">

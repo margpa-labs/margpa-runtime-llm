@@ -5,9 +5,9 @@ document_id: project_continuity_master
 status: current
 language: ja
 created_at: 2026-07-26 15:16:24 JST
-updated_at: 2026-08-29 17:14:22 JST
+updated_at: 2026-08-30 19:18:06 JST
 owner: Nazuna Research
-active_phase: phase_7_ready
+active_phase: phase_8_ready_not_started
 public_repository_eligible: true
 rag_default: true
 ```
@@ -47,12 +47,13 @@ Phase 3                       : COMPLETE／ACCEPTED／CLOSED
 Phase 4                       : COMPLETE／ACCEPTED／CLOSED
 Phase 5                       : COMPLETE／ACCEPTED／CLOSED／MAC ACCEPTANCE PASS
 Phase 6                       : SPECIAL MINIMAL CLOSED／KNOWN DEBT DEFERRED／TECHNICAL CORE ADJUST
-Phase 7                       : DESIGN ACCEPTED／FROZEN／READY／PREFLIGHT PENDING
+Phase 7                       : COMPLETE／ACCEPTED／CLOSED／USER MAC PASS
+Phase 8                       : DESIGN ACCEPTED／FROZEN／READY／NOT STARTED
 ```
 
 Phase 1でmacOS MetalとLightning Linux x86_64 Pure CPUのCLI／Web Runtimeを成立させ、ユーザーによるMac／Lightning Web Acceptance、Basic認証、停止、再送信、New Chat、Language、Summary、Thinking、Copy、BusyおよびPublic URL確認を完了した。
 
-Phase 1-exはFinal Docs、Final Lossless、二種のRecovery、Full Test／Static Gate、Backup、Commit／PushおよびLocal／Origin／GitHub一致を通過し、ユーザー確認を含めComplete／Acceptedである。Git基盤と通常運用経路もAccepted／Operationalである。Phase 2-0 Automation Pilot、Phase 2-A～2-Eの実装、Mac AcceptanceおよびPhase 2-F Final Closureは完了した。Phase 2は`COMPLETE／ACCEPTED`、Phase 3〜5は最小Closure済みである。Phase 6はRuntime Model Control、Recording、Stop等を成立させた一方、Selene、Qwen3Guard、Semantic 109件、Judge／Repairを未解決として保持し、User判断による特殊最小Closureを完了した。Phase 7はRAG／Web検索／Data Governanceの設計、工程およびAcceptanceをFreezeした`READY`状態である。
+Phase 1-exはFinal Docs、Final Lossless、二種のRecovery、Full Test／Static Gate、Backup、Commit／PushおよびLocal／Origin／GitHub一致を通過し、ユーザー確認を含めComplete／Acceptedである。Git基盤と通常運用経路もAccepted／Operationalである。Phase 2-0 Automation Pilot、Phase 2-A～2-Eの実装、Mac AcceptanceおよびPhase 2-F Final Closureは完了した。Phase 2は`COMPLETE／ACCEPTED`、Phase 3〜5は最小Closure済みである。Phase 6はRuntime Model Control、Recording、Stop等を成立させた一方、Selene、Qwen3Guard、Semantic 109件、Judge／Repairを未解決として保持し、User判断による特殊最小Closureを完了した。Phase 7はLocal Corpus／Citation／Data Controls／ContinuityをUser Macで確認し、General Web SearchをPhase 11以降へ延期したうえで`COMPLETE／ACCEPTED／CLOSED`となった。Phase 8はManual URL Evidence、Provisional Constitution、Dev Agent／Tool／Approval Harness Foundationの設計・工程・AcceptanceをFreezeした`READY／NOT STARTED`状態である。
 
 ## 3. Current Runtime
 
@@ -66,7 +67,7 @@ UI               : FastAPI Minimal Web
 Storage          : Browser Memory v1／Local SQLite Persistent Conversation v2 Opt-in
 Governance       : Phase 3 Definition／Phase 4 Main Runtime Governance／Phase 6 known semantic debt
 Guardrail        : Phase 5 deterministic runtime accepted／OFF・OBSERVE・ENFORCE
-Documentation RAG: Local Project Corpus／Lightning Public Corpus／Persistent Citation accepted／Phase 7 expansion ready
+Documentation RAG: Local Project Corpus／Local Corpus Lifecycle／Persistent Citation accepted／Phase 7 closed
 Git Working Root : margpa-runtime-llm／main
 ```
 
@@ -868,10 +869,13 @@ Phase 9:
   Experiment／Multi-Governance Research Platform
 
 Phase 10:
+  Governance Semantic Runtime Completion
   Hardening／Cloud Scale／External Original R&D Integration
 ```
 
 Phase順序と細分化は前Phase Evidence、Hardware、RiskおよびUser Requirementにより変更し得る。ただし最上位目的、疎結合、Definition 0件、Authority BoundaryおよびEvidence Boundaryを黙って変更しない。
+
+Phase 6で未成立だったSelene Dedicated Judge、Qwen3Guard Dedicated Guard、GD Semantic 109件のLive Evaluation、Judge／Repair Golden PathおよびMain Semantic ENFORCEは、Phase 9の有界Reworkへ正式移管する。Phase 7〜8はBuilt-in Rule／Pattern Base GuardrailとBuilt-in Deterministic JudgeまたはNone／OFFを暫定Baselineとし、未評価結果をPassへ昇格しない。
 
 ## 26. External Original R&D Integration
 

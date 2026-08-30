@@ -12,6 +12,16 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 from margpa_runtime_llm.modules.inference.contracts.base import ImmutableContract
 
 SHA512_PATTERN = r"^[0-9a-f]{128}$"
+
+# Phase 7 (P7-0/P7-B): moved above its first use so `DocumentManifestEntry`
+# and `DocumentationChunk` can default their own new `corpus_source_class`
+# field to the exact same value `DocumentationReferenceBlock.source_class`
+# already defaulted to pre-Phase-7 — every Phase 2 `DocumentSourcePort`
+# (project documentation) keeps this identical default end-to-end, so its
+# retrieval/citation output is byte-for-byte unchanged. Only the new Phase 7
+# Local Corpus source (`local_corpus`) sets a different value.
+DOCUMENTATION_RAG_CITATION_SOURCE_CLASS = "documentation_rag_citation"
+
 LIGHTNING_PUBLIC_DOCUMENTATION_FILES = (
     "docs/public/overview_ja.md",
     "docs/public/overview_en.md",
@@ -82,6 +92,26 @@ class DocumentManifestEntry(ImmutableContract):
     modified_time_ns: int = Field(ge=0)
     media_type: Literal["text/markdown"] = "text/markdown"
     encoding: Literal["utf-8"] = "utf-8"
+    # Phase 7 (P7-B, P7-REQ-006 "複数CorpusとSource Classを混同しない"): which
+    # `DocumentSourcePort` produced this entry — distinct from
+    # `corpus_priority` (a same-pipeline freshness/tier weight consumed by
+    # `bm25_retriever.py`'s scoring formula). Every pre-Phase-7 Source
+    # (`LocalMarkdownDocumentSource`/`ExplicitMarkdownDocumentSource`) leaves
+    # this at the default, so its manifest/citation output is unchanged; only
+    # the new Local Corpus source sets `"local_corpus"`.
+    corpus_source_class: str = Field(
+        default=DOCUMENTATION_RAG_CITATION_SOURCE_CLASS, min_length=1, max_length=64
+    )
+    # P7-RW5-B/C: additive, Optional, Backward-compatible (defaults to
+    # `None` so every pre-Phase-7 Source and any Manifest Entry recorded
+    # before this field existed still decodes losslessly). Only
+    # `LocalCorpusDocumentSource` ever sets these - `document_title` is
+    # per-Document (`LocalCorpusDocumentRecord.title`, never confused with
+    # `heading_breadcrumb`, which stays purely Markdown-heading-derived);
+    # `storage_display_path` is the same single value for every entry this
+    # Source produces (all Local Corpus documents share one JSON store).
+    document_title: str | None = Field(default=None, min_length=1, max_length=200)
+    storage_display_path: str | None = Field(default=None, min_length=1, max_length=4096)
 
     @field_validator("project_relative_path")
     @classmethod
@@ -120,6 +150,18 @@ class DocumentationChunk(ImmutableContract):
     document_sha512: str = Field(pattern=SHA512_PATTERN)
     character_count: int = Field(ge=1)
     split_from_oversized_block: bool = False
+    # Phase 7 (P7-B): carried forward from `DocumentManifestEntry.
+    # corpus_source_class` by `ChunkerPort` implementations, then read by
+    # `BoundedDocumentationContextAssembler` into
+    # `DocumentationReferenceBlock.source_class`.
+    corpus_source_class: str = Field(
+        default=DOCUMENTATION_RAG_CITATION_SOURCE_CLASS, min_length=1, max_length=64
+    )
+    # P7-RW5-B/C: carried unchanged from `DocumentManifestEntry` by
+    # `DeterministicMarkdownChunker`, mirroring how `corpus_source_class`
+    # already flows the same way.
+    document_title: str | None = Field(default=None, min_length=1, max_length=200)
+    storage_display_path: str | None = Field(default=None, min_length=1, max_length=4096)
 
     @field_validator("project_relative_path")
     @classmethod
@@ -235,9 +277,6 @@ class DocumentationContextBudget(ImmutableContract):
     fallback_maximum_characters: int = Field(ge=0)
 
 
-DOCUMENTATION_RAG_CITATION_SOURCE_CLASS = "documentation_rag_citation"
-
-
 class DocumentationReferenceBlock(ImmutableContract):
     reference_id: str = Field(pattern=r"^ref-[1-9][0-9]*$")
     project_relative_path: str = Field(min_length=1)
@@ -258,6 +297,10 @@ class DocumentationReferenceBlock(ImmutableContract):
     source_class: str = Field(
         default=DOCUMENTATION_RAG_CITATION_SOURCE_CLASS, min_length=1, max_length=64
     )
+    # P7-RW5-B/C: carried unchanged from the selected `DocumentationChunk`
+    # by `BoundedDocumentationContextAssembler`, mirroring `source_class`.
+    document_title: str | None = Field(default=None, min_length=1, max_length=200)
+    storage_display_path: str | None = Field(default=None, min_length=1, max_length=4096)
 
     @field_validator("project_relative_path")
     @classmethod
@@ -298,6 +341,27 @@ class DocumentationCitation(ImmutableContract):
     retrieval_score: float = Field(ge=0.0)
     selected_order: int = Field(gt=0)
     truncated: bool = False
+    # P7-RW2-A (P7-CODEX-007): carried from `DocumentationReferenceBlock.
+    # source_class` by `SystemCitationAdapter` so API/SSE/Frontend can
+    # distinguish Local Corpus from Project Docs citations without
+    # re-deriving it from `project_relative_path`. Defaulted so a citation
+    # record persisted before this field existed still decodes (Phase 7
+    # backward-compat pattern, see `DocumentManifestEntry.
+    # corpus_source_class`).
+    source_class: str = Field(
+        default=DOCUMENTATION_RAG_CITATION_SOURCE_CLASS, min_length=1, max_length=64
+    )
+    # P7-RW5-B (P7-CODEX-015)/P7-RW5-C (P7-CODEX-016): carried unchanged
+    # from the source `DocumentationReferenceBlock` by `SystemCitationAdapter`,
+    # mirroring `source_class`. Defaulted so a Citation persisted before
+    # this field existed still decodes (same Backward-compat pattern as
+    # `source_class` itself, P7-RW2-A). Frontend Citation UI reads
+    # `document_title` (Local Corpus "Title" row) and `storage_display_path`
+    # (Local Corpus "Path" row) only when `source_class ==
+    # LOCAL_CORPUS_SOURCE_CLASS`; Project Docs Citations always leave both
+    # `None` and keep using `heading_breadcrumb`/`project_relative_path`.
+    document_title: str | None = Field(default=None, min_length=1, max_length=200)
+    storage_display_path: str | None = Field(default=None, min_length=1, max_length=4096)
 
     @field_validator("project_relative_path")
     @classmethod
@@ -503,11 +567,30 @@ def build_turn_citation_evidence(
     """Project a live `DocumentationAugmentation` into persistable evidence.
 
     Returns `None` when there is nothing to persist (RAG disabled/unavailable/
-    denied, or no citations were produced) so the caller writes zero rows for
-    that turn, matching the "RAG OFF => Citation Write 0" requirement.
+    denied, or no citations were produced with no other Evidence worth
+    keeping) so the caller writes zero rows for that turn, matching the
+    "RAG OFF => Citation Write 0" requirement.
+
+    P7-RW5-A (P7-CODEX-014): a `NO_HIT` Turn has zero Citations by
+    Schema Invariant (`DocumentationEvidence.validate_measurement_
+    semantics`), yet its Grounding State/Warning Codes (e.g.
+    `documentation_no_hit`) are still real, safe-to-persist Evidence a
+    Persistent Detail reload needs to reconstruct the same "no current
+    grounds" display the Live SSE `retrieval` event already showed -
+    previously this returned `None` here exactly like RAG OFF, so that
+    reload silently dropped it. Every other zero-citation state
+    (`CONTEXT_INSUFFICIENT`/`UNAVAILABLE`) is unchanged/out of this
+    Bounded Rework's scope and still returns `None`, matching
+    `SUBJECT_COVERAGE_INSUFFICIENT`/`GROUNDED_READY`, which already always
+    carry non-empty `citations` and so never hit this branch either way.
     """
 
-    if augmentation.state is not DocumentationRetrievalState.ENABLED or not augmentation.citations:
+    if augmentation.state is not DocumentationRetrievalState.ENABLED:
+        return None
+    if (
+        not augmentation.citations
+        and augmentation.evidence.grounding_state is not DocumentationGroundingState.NO_HIT
+    ):
         return None
     return PersistedTurnCitationEvidence(
         conversation_id=conversation_id,

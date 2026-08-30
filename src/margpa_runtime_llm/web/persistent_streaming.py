@@ -78,11 +78,22 @@ def project_persistent_event(
                     continue
                 citations.append(
                     {
+                        "source_class": item.get("source_class"),
                         "project_relative_path": item.get("project_relative_path"),
                         "heading_breadcrumb": item.get("heading_breadcrumb"),
+                        "chunk_id": item.get("chunk_id"),
+                        "document_sha512": item.get("document_sha512"),
                         "retrieval_score": item.get("retrieval_score"),
                         "selected_order": item.get("selected_order"),
                         "truncated": item.get("truncated", False),
+                        # P7-RW5-B/C: `None` for Project Docs - carried
+                        # through the same allowlist as every other Citation
+                        # field so the Persistent Live `retrieval` event
+                        # shows the same Local Corpus Title/Path the REST
+                        # Detail projection (`PersistentCitationResponse`)
+                        # already carries.
+                        "document_title": item.get("document_title"),
+                        "storage_display_path": item.get("storage_display_path"),
                     }
                 )
         return (

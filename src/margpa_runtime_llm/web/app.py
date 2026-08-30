@@ -56,6 +56,11 @@ from .configuration_routes import (
     create_configuration_router,
 )
 from .contracts import StopGenerationRequest, WebRuntime
+from .data_controls_routes import (
+    DataControlsWebError,
+    create_data_controls_router,
+    data_controls_error_response,
+)
 from .error_mapping import http_status_for_inference_error
 from .feature_modes_routes import create_feature_modes_router
 from .generation_observation import GenerationObservationTracker
@@ -65,6 +70,11 @@ from .governance_routes import (
     governance_error_response,
 )
 from .guardrail_governance_routes import create_guardrail_governance_router
+from .local_corpus_routes import (
+    LocalCorpusWebError,
+    create_local_corpus_router,
+    local_corpus_error_response,
+)
 from .persistent_routes import (
     PersistentWebError,
     create_persistent_router,
@@ -84,6 +94,11 @@ from .runtime_model_control_routes import (
     runtime_model_control_web_error_response,
 )
 from .streaming import stream_session_as_sse
+from .web_search_routes import (
+    WebSearchWebError,
+    create_web_search_router,
+    web_search_error_response,
+)
 
 MAX_CHAT_REQUEST_BYTES = 262_144
 MAX_PERSISTENT_REQUEST_BYTES = 131_072
@@ -119,6 +134,24 @@ RUNTIME_MODEL_CONTROL_BOOTSTRAP_DISABLED = (
 )
 RUNTIME_MODEL_CONTROL_BOOTSTRAP_ENABLED = (
     '<script id="runtime-model-control-bootstrap" type="application/json">{"enabled":true}</script>'
+)
+LOCAL_CORPUS_BOOTSTRAP_DISABLED = (
+    '<script id="local-corpus-bootstrap" type="application/json">{"enabled":false}</script>'
+)
+LOCAL_CORPUS_BOOTSTRAP_ENABLED = (
+    '<script id="local-corpus-bootstrap" type="application/json">{"enabled":true}</script>'
+)
+WEB_SEARCH_BOOTSTRAP_DISABLED = (
+    '<script id="web-search-bootstrap" type="application/json">{"enabled":false}</script>'
+)
+WEB_SEARCH_BOOTSTRAP_ENABLED = (
+    '<script id="web-search-bootstrap" type="application/json">{"enabled":true}</script>'
+)
+DATA_CONTROLS_BOOTSTRAP_DISABLED = (
+    '<script id="data-controls-bootstrap" type="application/json">{"enabled":false}</script>'
+)
+DATA_CONTROLS_BOOTSTRAP_ENABLED = (
+    '<script id="data-controls-bootstrap" type="application/json">{"enabled":true}</script>'
 )
 SHUTDOWN_FAILURE_MESSAGE = "The web runtime could not shut down cleanly."
 RuntimeFactory = Callable[[], WebRuntime]
@@ -209,6 +242,33 @@ def create_web_app(
                 await asyncio.to_thread(runtime.close)
             finally:
                 raise RuntimeError("Feature mode control requires local loopback access.") from None
+        if runtime.local_corpus_registry is not None and (
+            access_policy.exposure_mode is not WebExposureMode.LOCAL
+            or access_policy.mode is not WebAuthMode.DISABLED
+            or access_policy.non_loopback_allowed
+        ):
+            try:
+                await asyncio.to_thread(runtime.close)
+            finally:
+                raise RuntimeError("Local Corpus control requires local loopback access.") from None
+        if runtime.web_knowledge_service is not None and (
+            access_policy.exposure_mode is not WebExposureMode.LOCAL
+            or access_policy.mode is not WebAuthMode.DISABLED
+            or access_policy.non_loopback_allowed
+        ):
+            try:
+                await asyncio.to_thread(runtime.close)
+            finally:
+                raise RuntimeError("Web Search control requires local loopback access.") from None
+        if runtime.data_controls_store is not None and (
+            access_policy.exposure_mode is not WebExposureMode.LOCAL
+            or access_policy.mode is not WebAuthMode.DISABLED
+            or access_policy.non_loopback_allowed
+        ):
+            try:
+                await asyncio.to_thread(runtime.close)
+            finally:
+                raise RuntimeError("Data Controls requires local loopback access.") from None
         app.state.runtime = runtime
         try:
             yield
@@ -309,6 +369,30 @@ def create_web_app(
     ) -> JSONResponse:
         del request
         return configuration_error_response(exc)
+
+    @app.exception_handler(LocalCorpusWebError)
+    async def local_corpus_web_error(
+        request: Request,
+        exc: LocalCorpusWebError,
+    ) -> JSONResponse:
+        del request
+        return local_corpus_error_response(exc)
+
+    @app.exception_handler(WebSearchWebError)
+    async def web_search_web_error(
+        request: Request,
+        exc: WebSearchWebError,
+    ) -> JSONResponse:
+        del request
+        return web_search_error_response(exc)
+
+    @app.exception_handler(DataControlsWebError)
+    async def data_controls_web_error(
+        request: Request,
+        exc: DataControlsWebError,
+    ) -> JSONResponse:
+        del request
+        return data_controls_error_response(exc)
 
     @app.exception_handler(RuntimeModelControlWebError)
     async def runtime_model_control_web_error(
@@ -477,6 +561,27 @@ def create_web_app(
                 RUNTIME_MODEL_CONTROL_BOOTSTRAP_DISABLED,
                 RUNTIME_MODEL_CONTROL_BOOTSTRAP_ENABLED,
             )
+        if _runtime(request).local_corpus_registry is not None:
+            if html.count(LOCAL_CORPUS_BOOTSTRAP_DISABLED) != 1:
+                raise RuntimeError("The local corpus bootstrap marker is invalid.")
+            html = html.replace(
+                LOCAL_CORPUS_BOOTSTRAP_DISABLED,
+                LOCAL_CORPUS_BOOTSTRAP_ENABLED,
+            )
+        if _runtime(request).web_knowledge_service is not None:
+            if html.count(WEB_SEARCH_BOOTSTRAP_DISABLED) != 1:
+                raise RuntimeError("The web search bootstrap marker is invalid.")
+            html = html.replace(
+                WEB_SEARCH_BOOTSTRAP_DISABLED,
+                WEB_SEARCH_BOOTSTRAP_ENABLED,
+            )
+        if _runtime(request).data_controls_store is not None:
+            if html.count(DATA_CONTROLS_BOOTSTRAP_DISABLED) != 1:
+                raise RuntimeError("The data controls bootstrap marker is invalid.")
+            html = html.replace(
+                DATA_CONTROLS_BOOTSTRAP_DISABLED,
+                DATA_CONTROLS_BOOTSTRAP_ENABLED,
+            )
         return HTMLResponse(html)
 
     @app.get("/api/v1/runtime")
@@ -544,6 +649,9 @@ def create_web_app(
     app.include_router(create_runtime_model_control_router())
     app.include_router(create_feature_modes_router())
     app.include_router(create_provider_selection_router())
+    app.include_router(create_local_corpus_router())
+    app.include_router(create_web_search_router())
+    app.include_router(create_data_controls_router())
 
     app.mount("/assets", StaticFiles(directory=STATIC_ROOT), name="assets")
     return app

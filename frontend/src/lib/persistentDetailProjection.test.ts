@@ -62,6 +62,47 @@ describe("detailToMessages", () => {
   });
 });
 
+describe("P7-RW5-A (P7-CODEX-014): NO_HIT citation evidence survives a Persistent Detail reload", () => {
+  test("a completed turn with zero citations but a documentation_no_hit warning code reconstructs a non-null CitationEvidence", () => {
+    const messages = detailToMessages(
+      detail({
+        state: "completed",
+        messages: [
+          { role: "user", content: "question with no current grounds" },
+          { role: "assistant", content: "現在のCorpusには根拠が見当たりません。" },
+        ],
+        citations: { available: true, citations: [], warning_codes: ["documentation_no_hit"] },
+      }),
+      "ja",
+    );
+
+    const assistant = messages.find((message) => message.role === "assistant");
+    expect(assistant).toBeDefined();
+    // Before this fix, `citations` would be `null` here (indistinguishable
+    // from a Turn with no RAG evidence at all), silently dropping the
+    // NO_HIT display a live SSE `retrieval` event had already shown.
+    expect(assistant?.citations).not.toBeNull();
+    expect(assistant?.citations?.citations).toEqual([]);
+    expect(assistant?.citations?.warnings).toEqual([{ code: "documentation_no_hit", message: "" }]);
+  });
+
+  test("a turn with no persisted citation evidence at all (RAG OFF) still reconstructs null", () => {
+    const messages = detailToMessages(
+      detail({
+        state: "completed",
+        messages: [
+          { role: "user", content: "ordinary question" },
+          { role: "assistant", content: "ordinary answer" },
+        ],
+      }),
+      "ja",
+    );
+
+    const assistant = messages.find((message) => message.role === "assistant");
+    expect(assistant?.citations).toBeNull();
+  });
+});
+
 describe("P6-CODEX-015 (Second Rework): unrecognized guardrail_*/governance_* codes", () => {
   test("knownMessageText falls back to the fixed Safe Refusal sentence, never the raw code", () => {
     const text = knownMessageText("ja", "guardrail_future_reason_not_yet_listed", "some fallback");

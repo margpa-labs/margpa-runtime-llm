@@ -5,7 +5,7 @@ document_type: public_roadmap
 document_state: current
 language: ja
 created_at: 2026-07-22
-updated_at: 2026-08-29 17:14:22 JST
+updated_at: 2026-08-30 19:18:06 JST
 public_author: Nazuna Research
 project: MARGPA Runtime LLM
 ```
@@ -119,6 +119,8 @@ enforce : 登録済みActionの範囲で停止、制約、修復等を行う
 | Grounded Knowledge | RAGとData Sourceを証跡付きで扱える |
 | Agentic Execution | Tool、Memory、Handoff、副作用を統治できる |
 | Multi-Governance Research | 複数GDと構成差を実験・比較できる |
+| Project-wide Integration | 全Docs、Shared Constitution、PADG、Runtime ConstitutionおよびUIを順序付きで統合できる |
+| Governed External Knowledge | 明示URL EvidenceからGeneral／Automatic Web Searchへ安全に拡張できる |
 | Learning and Adaptation | ML、Training、Model更新、定量／定性計算を証跡付きで扱える |
 | External R&D Integration | 例外、安全、責任、認知対話証跡を外部研究機構と接続できる |
 
@@ -140,9 +142,9 @@ FutureまたはPlannedと書かれた項目は、実装済みを意味しない�
 
 ---
 
-## 4. 現在地 — Phase 6 In Progress／User Mac AcceptanceでADJUST
+## 4. 現在地 — Phase 7 Closed／Phase 8 READY
 
-2026年8月25日時点の現在地は次のとおりである。
+2026年8月30日時点の現在地は次のとおりである。
 
 ```text
 Phase 0                               : Complete
@@ -198,7 +200,7 @@ Phase 2-E Final Acceptance            : Complete／User Accepted
 Phase 2-E Context Observatory Preview : Gauge／Popover／Basic Breakdown／Threshold Color Implemented
 Phase 2 UI Consolidation              : Current UI Work Complete／Responsive Correction Reserved
 Phase 2-F Routing                     : Complete／Phase Closed
-Phase 2 Lightning Follow-up           : Deferred to Phase 10以降／Non-blocking for Phase 2～9
+Phase 2 Lightning Follow-up           : Deferred to Phase 11以降／Non-blocking for Phase 2～10
 Phase 2 Manual Acceptance             : Checklist 1～7 Passed／Item 8 Deferred Non-blocking
 Phase 2 Latest Full Suite             : 697 Passed／3 Deselected／Frontend 101 Passed
 Phase 2 Final Git Boundary            : Phase 2 Closed＋Phase 3 READY／Pushed／Remote Aligned
@@ -218,9 +220,10 @@ Phase 6 Judge／Repair                  : main_self基盤のみ／誤答accept�
 Phase 6 Guard／Judge Dedicated Model  : Qwen3Guard／Selene Artifact候補あり／Runtime Provider未接続
 Phase 6 Recording                     : Request Correlation／Stop／Historical Label Passed
 Phase 6 Closure                       : Special Minimal Closure／Known Debt Deferred／Technical Core ADJUST
-Phase 7                               : Design Accepted／Frozen／READY／Implementation Preflight Pending
+Phase 7                               : Complete／Accepted／Closed／User Mac Manual Passed
+Phase 8                               : Design Accepted／Frozen／READY／Implementation Not Started
 High-performance Main Model Expansion : DeepSeek Mac Q4 Switch／反復防止Passed／回答品質・Judge品質Failed
-AWS Deployment Foundation             : Deferred to Phase 10以降／Phase 6～9から分離
+AWS Deployment Foundation             : Deferred to Phase 11以降／Phase 6～10から分離
 Optional English Documentation        : Formally Deferred／Non-blocking／History Excluded
 ```
 
@@ -230,7 +233,11 @@ Phase 3、4、5は最小Closureにより`COMPLETE／ACCEPTED／CLOSED`となっ�
 
 後続ReworkでProvider Registry、Lifecycle、Budget、Failure、Recording相関等の基盤は拡張したが、最終User MacではSelene／Qwen3Guardが`Active none`、Semantic 109件が全件Deferred、Built-in Judgeが`evaluated 0`、Repair Golden Pathが未成立だった。DeepSeek Mac Q4はLoad／Switchと病的反復防止を確認したが、Main／Judge回答品質Acceptanceは満たさず、Research CandidateのままDefaultへ昇格しない。
 
-Userは金銭、利用可能量、Portfolio TimingおよびPoC／MVP停止線を考慮し、これらを解決済みとせずStable未解決Registryへ保持したまま、Phase 6を`Special Minimal Closure／Known Debt Deferred`として閉じ、Phase 7へ進むことを決定した。これはPhase 6中心Milestoneの技術合格ではなく、Phase 7を雑に作る許可でもない。Phase 7はRAG／Web検索／Citation／Data Governanceの中心経路を丁寧かつBoundedに成立させる。
+Userは金銭、利用可能量、Portfolio TimingおよびPoC／MVP停止線を考慮し、これらを解決済みとせずStable未解決Registryへ保持したまま、Phase 6を`Special Minimal Closure／Known Debt Deferred`として閉じ、Phase 7へ進むことを決定した。これはPhase 6中心Milestoneの技術合格ではなく、Phase 7を雑に作る許可でもない。Phase 7ではLocal Corpus／Citation／Data Controlsと将来Web Runtime用Port／Security ScaffoldをBoundedに成立させた。実General Web SearchはProvider、Account、Credential、Cost、Privacy、公開DemoおよびHostile-site Riskを一体で扱う必要があるため、Phase 11以降へ延期した。
+
+P7-RW5-Eまでに、NO_HIT CitationのFinal／Reload後保持、Local Corpus Citationの登録Title表示、Synthetic Pathから実保存Registry PathへのCorrectionおよび配信Static Buildを完了した。User Mac Final Manualでは登録／更新／削除、Current Revision回答、過去Turn Citation不変、NO_HIT、Reload／Restart／別TabおよびData Controlsを確認したため、Phase 7は`COMPLETE／ACCEPTED／CLOSED`である。`RAG ON＋NO_HITならModelを呼ばず設定言語の固定回答へ収束する`方式は将来候補として保留し、過去Context FactやQwen言語DriftはPhase 9へ保持する。
+
+Phase 8はManual URL Evidence、Branch UI非表示、Archive管理、Provisional Runtime Constitution、Dev Agent／Tool／Approval Harness FoundationをP8-0〜P8-F、35 Work Unit、40 Acceptanceへ分解し、`DESIGN ACCEPTED／FROZEN／READY／NOT STARTED`となった。Source実装はUser Backup、Preflightおよび別のStart Authorization後に開始する。
 
 以下のPhase 1／2詳細は成立過程のCurrent-to-date説明として保持する。最新の短い入口は[Roadmap要約版](roadmap_summary_ja.md)、技術判断は[技術選定](technology_selection_ja.md)を参照する。
 
@@ -659,7 +666,7 @@ PhaseごとのDocumentation統合は、要約や意訳ではなくLossless Compi
 
 ## 8. Phase 2 — Conversation Continuity and Experimental Control Surface
 
-**State: `Complete／Accepted — Phase 2-A～2-F Closed／Lightning Acceptance Deferred to Phase 10以降`**
+**State: `Complete／Accepted — Phase 2-A～2-F Closed／Lightning Acceptance Deferred to Phase 11以降`**
 
 Phase 1の一時的なWeb Previewを、継続利用と研究設定に耐えられるApplicationへ発展させる。
 
@@ -853,7 +860,7 @@ Runtimeを「動くSystem」から「何が起きたか検証できるSystem」�
 
 Phase 2 Orchestration PilotがAcceptedされた場合、Phase 3ではAudit／Evidence実装と並行して、同じDocument-driven開発体制の再現性・移植性を検証する。Phase 2で成立した運用が異なるPhase要件、担当Task、ContextおよびEvidence対象でも維持できるかを確認し、成功、Incident、Near Miss、人間介入およびRuleの有効性を将来の統合憲法へ入力する。
 
-Phase 3のRequirements、Architecture、ADR、Governance、Definition Source Inventory、Execution Plan、Acceptance Matrix、Claude Execution HandoffおよびPhase IndexはAccepted／Frozenされ、Phase 3-0～3-G実装、Claude側Review、Codex独立Review、Exact ReworkおよびGovernance Correctionを完了した。Phase 3-H最小Closureにより`COMPLETE／ACCEPTED／CLOSED`である。Phase 2から延期されたLightning横断AcceptanceはPhase 10以降のExternal Deployment／Cross-environment Refreshへ正式延期し、Phase 3～9機能のLightning反映を自動許可しない。
+Phase 3のRequirements、Architecture、ADR、Governance、Definition Source Inventory、Execution Plan、Acceptance Matrix、Claude Execution HandoffおよびPhase IndexはAccepted／Frozenされ、Phase 3-0～3-G実装、Claude側Review、Codex独立Review、Exact ReworkおよびGovernance Correctionを完了した。Phase 3-H最小Closureにより`COMPLETE／ACCEPTED／CLOSED`である。Phase 2から延期されたLightning横断AcceptanceはPhase 11以降のExternal Deployment／Cross-environment Refreshへ正式延期し、Phase 3～10機能のLightning反映を自動許可しない。
 
 ### Phase 3 Subphase Plan
 
@@ -924,7 +931,7 @@ ARGD、DAGD、CDOGDを含め、どのGDもRuntime Bootの必須Dependencyにし�
 
 - Context ObservatoryのGauge／基本内訳は実装済みだが、LLM自身のContext認識、Self-triggered CompactionおよびNative Recovery CycleはPhase 3へ混在させず、Agent Runtimeまたは後続Context研究へ送る。
 - Temporal Authorityを持つScheduler／Scheduled Autonomous Workflowは、Tool／Agent／Authority／Evidence基盤と合わせて後続Phaseで設計する。
-- AWS配置およびLightning更新はPhase 10以降へ送り、Phase 3～9の実装変数へ加えない。高性能DeepSeekのLocal Candidateと本格Responsive再設計は、それぞれ独立した後続境界で扱う。
+- AWS配置およびLightning更新はPhase 11以降へ送り、Phase 3～10の実装変数へ加えない。高性能DeepSeekのLocal Candidateと本格Responsive再設計は、それぞれ独立した後続境界で扱う。
 
 ### Phase 3 Milestone
 
@@ -951,9 +958,9 @@ Phase 3のDefinition／Compiler／Evidence成立後、Phase 4のMain Runtime Gov
 - 最終的に複数Open Modelを自由に切り替えられる構造を目指し、Model、Backend、Artifact／API Model ID、Revision、Format、Quantization、Capability、Context Limit、Cost ProfileおよびDigestを分離する。
 - `Current Model`、`Candidate Model`および選択されたBackendを分離し、Candidateの追加だけでCurrentを黙って上書きしない。
 - 同一Input、Config、Definition、Mode、SeedおよびEvaluation Setで、Qwen／DeepSeek、Local／Cloud、Governance `off／observe／enforce`を比較可能にする。
-- Cloud Backend、AWS Resource、Model Hosting、一般公開およびLightning更新はPhase 10以降へ延期する。Phase 4～9ではLocal Model／Artifact／Adapter／切替Contractを優先し、Cloud実環境をCompletion Dependencyにしない。
+- Cloud Backend、AWS Resource、Model Hosting、一般公開およびLightning更新はPhase 11以降へ延期する。Phase 4～10ではLocal Model／Artifact／Adapter／切替Contractを優先し、Cloud実環境をCompletion Dependencyにしない。
 
-この予約はPhase 3 Completion Gateの変更、DeepSeekのCurrent昇格、Cloud Resource作成、課金承認または一般公開開始を意味しない。Local Model Artifactの事前選定／DownloadとCurrent Modelへの昇格は分離し、Cloud実装はPhase 10以降の独立Gateで確定する。
+この予約はPhase 3 Completion Gateの変更、DeepSeekのCurrent昇格、Cloud Resource作成、課金承認または一般公開開始を意味しない。Local Model Artifactの事前選定／DownloadとCurrent Modelへの昇格は分離し、Cloud実装はPhase 11以降の独立Gateで確定する。
 
 ### Governance Control Plane
 
@@ -1252,8 +1259,8 @@ Turn開始時の回答言語で正確に表示する。User Inputが原因と決
 Failure StageをEvidenceへ記録する。Recordingの暫定UIは成功／失敗だけでなく最新Request ID、日時、Mode、
 Record KindおよびOutcomeを表示する。
 
-MacのCurrent Deployment ProfileはContext `8192`をVerified Maximumとして維持する。Phase 9 Closure手前で
-`16384`を実測し、成功した場合だけProfileを昇格する。Hardware自動検出とProfile自動昇格はPhase 10以降とする。
+MacのCurrent Deployment ProfileはContext `8192`をVerified Maximumとして維持する。Context `16384`の
+実測、Profile昇格、Hardware自動検出およびProfile自動昇格は、Phase 10後半UI／Context Consolidation以降で扱う。
 
 ### Phase 6 Milestone
 
@@ -1262,11 +1269,18 @@ MacのCurrent Deployment ProfileはContext `8192`をVerified Maximumとして維
 当初Milestoneに必要だったSemantic 109件、Dedicated Judge／GuardrailおよびRepair Golden Pathは未成立であり、
 技術合格へ昇格しない。成立範囲、未解決、User Overrideおよび次Phaseへの影響を正確に固定した特殊最小Closureである。
 
+未成立のSelene Dedicated Judge、Qwen3Guard Dedicated Guard、GD Semantic 109件のLive Evaluation、
+Judge／Repair／Rejudge Golden PathおよびMain Semantic ENFORCEは、Phase 9の
+`Bounded Governance Semantic Debt Rework`へ再分類する。Phase 7〜8では、既に成立した
+Built-in Rule／Pattern Base GuardrailとBuilt-in Deterministic Judgeまたは`None／OFF`をPoC Baselineとして
+使用し、Dedicated Modelや未評価Semantic Criterionを実行済みまたはPassと表記しない。Phase 9でも
+個人PoC／MVPの停止線を守り、企業Product級HardeningをClosure Blockerへ勝手に昇格しない。
+
 ---
 
 ## 13. Phase 7 — RAG and Data Governance
 
-**State: `Design Accepted／Frozen／READY／Preflight Pending`**
+**State: `Complete／Accepted／Closed — Local Knowledge MVP／External Web Deferred to Phase 11+`**
 
 外部知識を単にPromptへ追加するのではなく、Sourceと採用理由を追跡できるKnowledge Layerとして構成する。
 
@@ -1274,27 +1288,34 @@ MacのCurrent Deployment ProfileはContext `8192`をVerified Maximumとして維
 
 - Local Document Registration
 - Chunking
-- Embedding
+- Embedding Adapter予約（Phase 7 CurrentはBM25 Baseline）
 - Index／Retriever
 - Context Injection
 - Source／Citation
 - Document Update
 - RAG `OFF／ON`
-- Vendor非依存のWeb Search／Fetch／Normalizer
-- Search Activation `disabled／manual／automatic`
-- Web Evidence Governance `OFF／OBSERVE／ENFORCE`
+- Vendor非依存のWeb Search／Fetch Port、FixtureおよびSecurity Scaffold（Phase 7成立範囲）
+- 実Search Provider／External Network／Web-grounded Chat（Phase 11以降へ延期）
+- Search Activation `disabled／manual／automatic`（Phase 7は`disabled`境界、実運用はPhase 11以降）
+- Web Evidence Governance `OFF／OBSERVE／ENFORCE`（Contract予約、実Provider適用はPhase 11以降）
 
 Phase 2でProject Documentation Explainer Previewを実装した場合は、そのCorpus、RetrieverおよびEvidence Contractを破棄せず、Embedding／Vector Store／複数Corpus／Document Lifecycleへ拡張する。Preview未実装の場合も、Phase 7が正規のFull RAG実装Phaseであることは変わらない。
 
 公開Web、Local／Public Corpus、User提供Data、Human FeedbackおよびSynthetic DataをSource Classと
-最小Provenance付きで分離する。検索起動とGovernance強度を一つの値へ混ぜず、初期値は
-`disabled／OFF`としてNetwork Call 0を保証する。Current／Latest／Official等の要求、Knowledge Cutoff外候補、
-明示User SearchおよびUnsupported ClaimをAutomatic Search Triggerの設計対象とする。
+最小Provenance付きで分離する。Phase 7ではLocal Corpusの登録、検索、Context Injection、Citationおよび
+Persistenceを成立させた。Web側はProvider非依存Port、Fixture Test、SSRF／Redirect／Size／Timeout／Content Type、
+Prompt InjectionおよびSecret様Query検査のScaffoldまでを保持する。
+
+実General Web Search、検索候補の自動発見、Automatic Search Trigger、外部送信Consent／PII Enforcement
+およびHostile-site SandboxはPhase 11以降へ延期する。Userが明示的に貼ったPublic `http／https` URLの
+取得、画面表示、Untrusted EvidenceとしてのMain Model／Citation接続はPhase 8冒頭のBounded Candidateとする。Phase 7では
+External Providerを`none`相当、検索起動を`disabled／OFF`相当、External Network Callを0とし、Fixtureを
+実Web検索成功と表記しない。Current／Latest／Official等のAutomatic TriggerはManual Grounding成立後の別Gateとする。
 
 SettingsにはMARGPA固有の第三領域`データコントロール`を予約し、Chat、RAG／Web Evidence、Feedback、
 Synthetic Data、Retention、Export、Delete、外部送信および将来Training利用のConsentを分離する。
 企業提携／有償License Data、Full Dataset Cleaning、Label Governance、EligibilityおよびTrainingは
-Phase 10以降とする。
+Phase 11以降とする。
 
 ### Evidence
 
@@ -1320,18 +1341,28 @@ Phase 10以降とする。
 
 ### Phase 7 Milestone
 
-> **Traceable Grounded Knowledge Runtime**
+> **Traceable Local Knowledge Runtime and External Web Foundation**
+
+Phase 7のGrounded Knowledge成立ClaimはLocal Corpus／Local Evidenceに限定する。External WebはPort／Security
+Foundationであり、検索結果がMain Model回答へ反映される完成機能ではない。Provider方式比較と延期理由の正本は
+`docs/project/phases/phase_7/history/operations/phase_7_external_web_runtime_phase_11_plus_deferral_decision_ja_20260829222647.md`
+とする。
+
+User Mac Final Acceptanceでは、Local Corpusの登録／更新／削除、Current Revision回答、過去Turn Citation不変、
+NO_HIT Persistent Citation、Title／Heading、実保存Path、Chunk ID、Document Digest、Reload／Restart／別Tab、
+Data ControlsおよびArchive解除後の即時送信を確認した。過去Conversation Context由来の古いFact再出力、
+Qwen言語Drift、軽微UIおよびProgressive Presentationは後続へ保持し、Phase 7 Closure Blockerへ昇格しない。
 
 Phase 7冒頭では汎用File Attachmentの規模を先に判定する。Composer Icon／Drag & Drop、画像、WAV、
 Markdown、JSON、DocumentおよびZIP等を候補とするが、Upload、Storage、Parser、RAG取込、Model-native
 Multimodal推論を黙って同一機能にしない。局所的なVersioned Boundaryで収まればPhase 7へ前倒しし、
-Phase級のStorage／Sandbox／Parser／Multimodal工事ならPhase 10以降へ送る。
+Phase級のStorage／Sandbox／Parser／Multimodal工事ならPhase 11以降へ送る。
 
 ---
 
 ## 14. Phase 8 — Agent, Tool, Memory, and Handoff Governance
 
-**State: `Planned`**
+**State: `Design Accepted／Frozen／READY — Implementation Not Started`**
 
 LLMを回答生成器から実行主体へ拡張する。ただし、Agent化を「自由にToolを使わせること」と同一視しない。
 
@@ -1339,7 +1370,7 @@ LLMを回答生成器から実行主体へ拡張する。ただし、Agent化を
 
 Agent／Toolの本格実装前に、Phase 2・3 Pilotまでに蓄積した絶対禁止事項、Docs規則、Authority、Mutation、Handoff、Review、Recovery、Backup、Git、Cost、停止条件、IncidentおよびNear Miss EvidenceをLosslessに再整理し、章立てした統合憲法体系を作成する。
 
-Phase 8では、既にAcceptedなBounded Constitution ViewによるResearch Previewを先行可能とする。Phase 3〜9の全Docsを対象とした`docs/project/shared/constitution/`の完全Lossless編纂と、他Projectへ移植する`Portable Autonomous Development Governance Package`（`PADG Package`）の完成はPhase 10 READYの独立Gateとし、Phase 8 Previewを完全Package完成と表記しない。
+Phase 8では、既にAcceptedなBounded Constitution ViewによるResearch Previewを先行可能とする。Project Root直下の`constitution/`は、全Docs統合前のProvisional Runtime Constitutionとして、OFF／OBSERVE／ENFORCE、通常Chat／Agent／Tool Capability ViewおよびSchema／Hookの有界実証に限定する。Project全Docsを対象とした`docs/project/shared/constitution/`の完全Lossless編纂、他Projectへ移植する`Portable Autonomous Development Governance Package`（`PADG Package`）およびFull Runtime Constitutionへの移行はPhase 10の順序付き独立Programとし、Phase 8 Previewを完全Package完成と表記しない。
 
 完全編纂時は、単一巨大Markdownではなく、正本Index、章別Rule、Rule ID、Manifest、Role別Constitution View、SchemaおよびTemplateへ分割する。Normative CoreはProvider固有ToolへHard-codeせず、`common/`と`providers/codex/`、`providers/claude/`、`providers/copilot/`を分離する。Copilot固有Ruleは実測前に推測で作らない。
 
@@ -1367,15 +1398,27 @@ Agentおよび各Toolには、機能本体のON／OFFと分離した「憲法有
 
 Phase 8では、仮称`MARGPA Development Agent`（`MARGPA Dev Agent`）の完成級Level 1を主張せず、`Governed Agentic Execution Prototype`としてUIを含むResearch Preview／Foundationを構築する。通常ChatとDev Agentを切り替えるUI、表示名から独立した安定Capability ID、Run／Step／State、Tool Registry／Tool Port、MCP Client Adapter Port、Approval／Autonomy Profile、Authorization Envelope、製品Runtime用`constitution/` Hook、Agent／Tool Governance Point、Generic GD Hook、Stop／Cancel／Budget／AuditおよびFake／Deterministic Toolによる実行証明を対象とする。
 
-Approval Harnessは、Manual Approval、Risk-based Approval、事前に許可されたExact Envelope内では定義済みGateまで逐次確認しないEnvelope Autonomous／Gate-only Confirmation、およびPlan Onlyを比較可能にする。Envelope AutonomousもAuthority Bypassではなく、Constitution、Platform Security、OS Sandbox、Access Control、既存Authority、Secret／Privacy境界および法令を解除しない。Envelope外、Authority不明、重大IncidentまたはTrue Stop Conditionでは停止する。
+Approval Harnessは、Manual Approval、Risk-based Approval、事前に許可されたExact Envelope内では定義済みGateまで逐次確認しないEnvelope Autonomous／Important-Gate Only、およびPlan Onlyを比較可能にする。Owner Research Profileでは、現在のUser／Codex運用と同様に、安全なWorkspace内作業、Scope内編集、非破壊TestおよびBounded Reworkを逐次確認なしで連結し、外部Write、不可逆操作、Network、Cost、Authority／Scope拡張、重大IncidentおよびCompletion等の重要GateだけでUserを呼ぶUXをLevel 1から目標とする。Envelope AutonomousもAuthority Bypassではなく、Constitution、Platform Security、OS Sandbox、Access Control、既存Authority、Secret／Privacy境界および法令を解除しない。Provider側の強制Gateは独立Stateとして待機・再開し、Harnessが自動承認しない。詳細正本は`docs/project/shared/history/planned_work/phase_8_margpa_dev_agent_level_1_important_gate_only_autonomy_harness_reservation_ja_20260830181055.md`とする。
 
-MCPはAgent Coreへ直結せず、`Tool Port → Tool Registry → Native Tool Adapter／MCP Client Adapter → Permission／Constitution／Approval／Budget Gate → Execution／Evidence`の交換可能境界を通す。Phase 8はAdapter Port、Capability MetadataおよびFakeまたは限定Reference Adapterまでを候補とし、Generic Server Discovery、Remote Authentication、OAuth、一般Remote Side Effectおよび完全互換RuntimeはPhase 10以降へ送る。
+MCPはAgent Coreへ直結せず、`Tool Port → Tool Registry → Native Tool Adapter／MCP Client Adapter → Permission／Constitution／Approval／Budget Gate → Execution／Evidence`の交換可能境界を通す。Phase 8はAdapter Port、Capability MetadataおよびFakeまたは限定Reference Adapterまでを候補とし、Generic Server Discovery、Remote Authentication、OAuth、一般Remote Side Effectおよび完全互換RuntimeはPhase 11以降へ送る。
 
-既存の17 JSON Source／18 Logical Governance Definitionは、ARGD／DAGDだけでなく、`orchestration/`、`conditional_watchdogs/`、`decision_pipelines/`および`ordinary/`を含めてAgent EventへGenericに選択・Bindingする。AAGD、SEGD、DCAGD、PMOGD、CDOGD、DAAGD、SPPGD、SDAGD、SDMRGD、AISGD、ACRGD、AIRGDおよびOMRGD等は候補だが、Agent Coreへ固有名をHard-codeせず、GDの存在、選択、評価、推奨、Authority、Approvalおよび実行を分離する。
+既存の17 JSON Source／18 Logical Governance Definitionは、ARGD／DAGDだけでなく、`orchestration/`、`conditional_watchdogs/`、`decision_pipelines/`および`ordinary/`を含めてAgent EventへGenericに選択・Bindingする。AAGD、SEGD、DCAGD、PMOGD、CDOGD、DAAGD、SPPGD、SDAGD、SDMRGD、AISGD、ACRGD、AIRGDおよびOMRGD等は候補だが、Agent Coreへ固有名をHard-codeせず、GDの存在、選択、評価、推奨、Authority、Approvalおよび実行を分離する。ConstitutionをGD群の親へ置かず、Constitution Providerと各GD Providerを並列独立に評価し、Versioned Generic Result EnvelopeをGeneric Resolverへ渡す疎結合を維持する。
 
 `docs/project/shared/constitution/`の開発運用／移植用Constitutionと、製品Runtimeへ埋め込む`margpa-runtime-llm/constitution/`のAgent／Tool用Constitutionを混同しない。Capability名と内部Topologyも分離し、`Single Agent`、`Multi-Task`、`Parent／Child`、`Dynamic Sub-Agent`または`Multi-Agent Organization`は後続Evidenceで選ぶ。表示名は後から変更可能にし、内部Capability ID、Schema RevisionおよびEvidence Identityは明示Migrationなしに変更しない。
 
-Phase 8ではFake／Deterministic／限定Local Toolを中心に検証し、Level 1正式完成、Generic MCP、多数の実Tool、Dynamic Sub-Agent、長時間完全自律、広範なGit／Network／Deploy、Production-grade Planningまたは実案件完遂をCompletion Claimに含めない。Level 1正式完成とLevel 2／3はPhase 10以降へ送る。本予約だけでPhase 8開始、Tool実行、外部接続またはAuthority付与を行わない。
+Phase 8ではFake／Deterministic／限定Local Toolを中心に検証し、Level 1正式完成、Generic MCP、多数の実Tool、Dynamic Sub-Agent、長時間完全自律、広範なGit／Network／Deploy、Production-grade Planningまたは実案件完遂をCompletion Claimに含めない。Level 1正式完成とLevel 2／3はPhase 11以降へ送る。本予約だけでPhase 8開始、Tool実行、外部接続またはAuthority付与を行わない。
+
+### Manual URL Evidence Entry Candidate
+
+Phase 8冒頭では、Phase 7のWeb Search／Fetch PortとSecurity Scaffoldを再利用し、Userが明示的に貼ったPublic `http／https` URLを取得して画面表示し、同ContentをUntrusted External EvidenceとしてMain Modelへ渡し、URL、取得時刻、DigestおよびSourceをCitationへ保持するBounded機能を候補とする。Default OFF、User明示操作およびLocal Loopbackを基本境界とする。
+
+General Search Provider、検索候補の自動発見、LLM-triggered Automatic Search、Account、Credential、Cost、Quota、Public Demo運用、Hostile-site Sandboxおよび高度Data QualityはPhase 11以降とする。`http／https` Fetch制限はAgent全体のTool能力を制限する規則ではなく、Web Fetch Tool固有のInput Contractである。
+
+### Phase 8 Entry UI Simplification／Archived Chat Management
+
+Phase 8冒頭のBounded UI Workとして、現行User運用で利用価値の低いChat Branch操作UIを既定非表示にする。Branch Data、Persistence、APIおよび既存履歴は削除せず、将来の研究比較またはFeature Flagから復元できる可逆的な表示変更に限定する。
+
+設定画面のデータコントロールには、アーカイブ済みChatの一覧、Title／Timestamp表示、Chatを開く操作およびArchive解除を追加する。解除後は手動`再開`なしで送信できる既存契約を維持する。完全削除、Cascade Delete、TTL、自動削除、全Export／一括Deleteは対象外とし、通常のServer／UI起動を遅くしないLazyな管理Surfaceとする。詳細正本は`docs/project/shared/history/planned_work/phase_8_entry_branch_ui_hide_and_archived_chat_management_reservation_ja_20260830175855.md`とする。
 
 ### Temporal Authority／Scheduled Autonomous Workflow予約
 
@@ -1412,6 +1455,10 @@ AAGDがAgent実行過程を確認することは、実行許可を新しく生�
 
 > **Governed Agentic Execution Prototype**
 
+Phase 8はP8-0〜P8-F、35 Work Unit、40 Acceptanceへ分解済みである。READYは設計と実行入口が揃ったことだけを
+意味し、Source実装、Network、MCP、Tool Side EffectまたはAgent Authorityの開始を意味しない。開始前に
+User Backup、Preflightおよび別のStart Authorizationを必要とする。
+
 ---
 
 ## 15. Phase 9 — Experiment and Multi-Governance Research Platform
@@ -1419,6 +1466,20 @@ AAGDがAgent実行過程を確認することは、実行許可を新しく生�
 **State: `Planned／Advanced Research`**
 
 各Componentと各Governance Pointを組み替え、単一の成功例ではなく、構成差を比較する研究Platformへ進める。
+
+### Bounded Governance Semantic Debt Rework
+
+Phase 6で成立したProvider Registry、Role Lifecycle、Budget、Deadline、Cancel、Recording、Failure Presentation、Rule／Pattern Base Guardrail、Built-in Judge PortおよびGD Compiler入口をAs-built Baselineとして再利用し、中心Debtだけを有界に再開する。
+
+- Selene Dedicated Judgeの実Artifact Load／Inference／Prompt／Strict Output Contract。
+- Qwen3Guard Dedicated Guardの実Artifact Load／Inference／Target別Output Contract。
+- ARGD／DAGDその他GD Semantic RuleのLive Criterion評価。
+- Built-in Evaluatorの適用可能Criterionと`not_applicable／deferred／unknown`境界。
+- Independent JudgeによるJudge／Repair／Rejudge Golden Path。
+- Main Governance Semantic ENFORCE、Conflict／Priority／Budget。
+- Configured／Active／Executed／Evidence Identityの一致。
+
+専用ModelがCurrent Hardwareで成立しない場合も、Built-in／Rule-based／Noneの正直なBaselineでTechnical Coreを閉じる。Phase目的の主機能が動き、Data破損や虚偽成功表示がなく、次Phaseの土台としてUser実画面Testへ渡せる段階で止める。一発で企業Product級完全性を目指さず、細かなHardeningをClosure Blockerへ昇格しない。
 
 ### Experiment Runtime
 
@@ -1535,22 +1596,18 @@ CDOGDは将来のCross-Domain Orchestration候補だが、必須ではない。
 
 これらは固定16個のClosed Systemではない。全く別の名前、分野、Schema、Providerが将来追加されることを前提とする。
 
-### Phase 9後半——Context Compaction／Recovery／Governance Trace Observatory
+### Phase 9後半——Context Compaction／Recovery技術Core
 
 Phase 9前半のExperiment Runtime、EvaluationおよびMulti-Governanceが成立した後、利用可能量と
-As-builtが許す範囲で、次の3機能群を累積Full Closure前の優先後半候補とする。
+As-builtが許す範囲で、Context Compaction／Recoveryの非Visualな技術Coreを候補とする。大規模なUI再編、
+右側Observability Panel、Context Action ButtonおよびResponsive ConsolidationはPhase 10後半へ送る。
 
 1. Effective Context BudgetとPressure Stateに基づく自動Snapshot、Context圧縮、Atomic切替え、
    Rollbackおよび原Turn／Artifactの選択的再読込。固定95%をそのまま閾値にせず、
    Model Capacity、System／Governance／RAG／Tool予約、Max New Tokens、Working Reserveおよび
    Safety Marginから設計する。
-2. Context表示の右側に「重要コンテキスト復旧・引き継ぎ書作成」と「任意手動圧縮」の
-   2 Icon Buttonを追加する。HandoffはStructured InstructionからLog表示、Copyおよび任意の
-   `.md` Downloadを提供し、Contextを変更しない。Manual Compactionは正確な確認Dialogと
-   実行前Snapshotを必須にする。
-3. Main Chatの右側に開閉可能なObservability Panelを追加し、User Input、RAG、PRE、Raw Model Candidate、
-   POST、Guardrail／Policy、Judge、Conflict Resolution、Action Resolver、Repair Attempt、
-   Final Presented ResponseおよびAuditを同一Identity Chainで表示する。
+2. Handoff生成、Manual Compaction、Governance TraceのAPI／Event／Identity ContractをUI非依存にFreezeする。
+3. Phase 10後半UIが購読できるProjection Contractを作り、Runtime処理へVisual Stateを直列挿入しない。
 
 自動Compactionおよび対応する研究機能のDefaultは`off`とする。OBSERVEは圧力または
 Governance判定を記録するがContext／Finalを変更せず、ENFORCEは定義されたGateと
@@ -1573,10 +1630,10 @@ Judge後に一括表示する。既定候補の`Progressive`は短いChunkをBuf
 Streamingし、後段Judgeで残りを停止またはRepairする。既に表示したChunkは回収できないことを明示し、
 見せかけのTyping AnimationをStreamingと扱わない。
 
-Phase 9 Closure手前では、Judge OFF時のCurrent／Historical表示分離、Advanced Settingsの順序・区切り・
-余白、Mode Button整列、Research／Developer内部設定の非表示化、Sidebar環境情報の復元、回答言語幅、
-Model別Context／Token契約およびMac Context `16384` Profile実測をまとめて扱う。Context PanelはNative、
-Backend、Hardware Verified、Effective、Compaction／Recovery／RAG込みWorking Contextを区別する。
+Phase 9 Closure手前では、Judge OFF時のCurrent／Historical等、虚偽表示やTechnical Acceptanceを妨げる
+必要最小限のObservability Correctionだけを扱う。Advanced Settingsの順序・区切り・余白、Mode Button整列、
+Research／Developer内部設定の非表示化、Sidebar環境情報、回答言語幅、Model別Context／Token表示、Mac Context
+`16384`実測、Context Action Buttonおよび右側Trace PanelはPhase 10後半のUI Consolidationへまとめる。
 
 ### Phase 9 Milestone
 
@@ -1584,13 +1641,73 @@ Backend、Hardware Verified、Effective、Compaction／Recovery／RAG込みWorki
 
 ---
 
-## 16. Phase 10 — Hardening, Cloud Scale, and External Original R&D Integration
+## 16. Phase 10 — Project-wide Docs／Constitution／PADG／Runtime／UI Integration
 
-**State: `Future R&D`**
+**State: `Planned／Ordered Integration Program`**
 
-MARGPA Runtime LLM本体が一通り成立した後、運用Hardening、Backend拡張、複数Model、外部Original R&D Systemとの疎結合統合へ進む。
+Phase 10は中途半端なDocs統合とHardeningを混在させず、Phase 0〜9で蓄積したProject知識、開発統治、Runtime Constitutionおよび累積UIを、次の順序で統合する。
 
-### 16.1 Audit／Evidence Hardening
+Phase 7実画面確認中に確定した再分類、NO_HIT保留、Phase 8／9／10／11境界およびSupersessionは、`docs/project/shared/history/planned_work/phase_9_10_11_docs_constitution_padg_ui_web_and_no_hit_lossless_restructure_reservation_ja_20260830170415.md`をLossless正本とする。
+
+```text
+1. Project-wide All-Docs Integration Pass 1
+2. Project-wide All-Docs Integration Pass 2
+3. Shared Constitution Compilation Pass 1（全Docs走査）
+4. Shared Constitution Compilation Pass 2（全Docs再走査）
+5. PADG Package初版／Portability Validation／第2版
+6. Full Runtime Constitution
+7. Phase 10後半 UI／Right-side Observatory Consolidation
+```
+
+### 16.1 Project-wide All-Docs Integration — Pass 1
+
+Phase 3〜9だけでなくRepository内の全DocsをSource Corpusとする。`docs/project/current/`、各Phase Stable、Requirements、Architecture、Index、Lossless Compilation、`docs/project/shared/` Stable／History、`docs/public/`、Handoff、Review、Recovery、Operations、Planned Work、Unresolved、Automation、Constitution ResearchおよびRoot公開DocsをInventory化する。
+
+各Stable、各`phase_*_ja.md`および`project/current/`が現時点の正本として妥当かを確認し、必要な箇所を更新する。HistoryをStableへ無差別統合せず、Current Decision、Superseded Decision、Raw Evidence、IncidentおよびUnresolvedを分類する。
+
+### 16.2 Project-wide All-Docs Integration — Pass 2
+
+Pass 1成果物だけをReviewせず、再び全Source Docsを走査する。Inventory漏れ、Stable更新漏れ、Phase間Conflict、Current／Historical混同、旧Phase番号／延期先、Public／Current／Phase Stable不一致、Pointer／Digest／Provenance／Coverageを監査する。訂正はPass 1を無言で消さず、Gap Auditと新Revisionを残す。
+
+### 16.3 Shared Constitution Compilation — Pass 1
+
+All-Docs Integration後、`docs/project/shared/constitution/`編纂のために全Docsを改めて走査する。`shared/`はAutomation、Cross-provider、Compaction、Role、Authority、Incident、Evidence、Git、BackupおよびClosure知識が集中する重点Sourceだが、唯一のSourceにはしない。全Phase、Current、Public、History、Handoff、Failure、Near Miss、User DecisionおよびProvider EvidenceからRule SourceとProvenanceを抽出する。
+
+### 16.4 Shared Constitution Compilation — Pass 2
+
+Pass 1 CandidateだけをReviewせず、再び全Docsを走査する。Rule抽出漏れ、Historical FailureのNormative Ruleへの誤昇格、User最新Decisionと旧Automation RuleのConflict、Provider固有挙動とCommon Ruleの混同、過剰Authority、過剰停止、過剰Receipt、過剰Fresh Task化、Provenance、Rule ID、Revision、Digest、Exceptionおよび改憲手続きを監査し、第2版をFreezeする。
+
+### 16.5 Portable Autonomous Development Governance Package
+
+正式名称を`Portable Autonomous Development Governance Package`、短縮名を`PADG Package`とする。Automation、Cross-provider、Agent Orchestration、Manual／Auto Compaction Recovery、Agent／Task間Role分離、Authority、EvidenceおよびDevelopment Constitutionを対象とする。
+
+`common/`、`providers/codex/`、`providers/claude/`、`providers/copilot/`を分離する。初版後に他Projectへの移植性を第2周で検証し、Path、Provider Tool、Project固有名、Role、Phase、UIおよび暗黙Authorityへの隠れた依存をGap Auditし、初版を消さず第2版へ反映する。
+
+### 16.6 Full Runtime Constitution
+
+Shared ConstitutionとPADG成立後、Phase 8暫定`constitution/`から本格Runtime Constitutionへ移行する。通常Chat／Agent／Tool向けCommon／Capability View、Rule Source Pointer、Rule ID、Revision、Digest、Manifest、Schema、OFF／OBSERVE／ENFORCE、Generic Resolver、Conflict／Priority／Authority／EvidenceおよびMigrationを扱う。
+
+Constitution Providerと17 JSON Source／18 Logical GD Provider群は親子化せず、疎結合な並列評価としてGeneric Resolverへ接続する。Shared／PADGのRuleをRuntimeへ丸ごとCopyせず、Runtime Capabilityに必要なRuleだけをSource Pointer付きで再構成する。
+
+### 16.7 UI／Right-side Observatory Consolidation
+
+Technical Contract、Docs Corpus、ConstitutionおよびPADGが固まった後、Advanced Settings、Research／Developer内部設定、Sidebar、回答言語幅、Model／Context／Token、Native／Backend／Hardware Verified／Effective／Working Context、Context Action Button、Strict／Progressive ENFORCEおよびResponsive Layoutをまとめて再編する。
+
+Main Chat右側へ開閉可能なGovernance Trace／Observability Panelを追加し、User Input、RAG、PRE、Candidate、POST、Guard、Judge、Resolver、Repair、FinalおよびAuditを同一Identity Chainで表示する。UI都合でRuntime Identity、EvidenceまたはAuthorityを再定義しない。
+
+### Phase 10 Milestone
+
+> **Project-wide Integrated Governance Corpus and Runtime Constitution Foundation**
+
+---
+
+## 17. Phase 11以降 — Hardening, Cloud Scale, External Web, Agents, and Original R&D
+
+**State: `Future R&D／Multi-phase Expansion`**
+
+旧Phase 10に予約していたHardening、Cloud、Model／Modality、Training、External R&D、General Web Searchおよび正式Agent Capabilityは、Phase 10 Integration完了後のPhase 11以降へ一段ずつ後ろ倒しする。規模が大きいため、一つのPhaseへ無理に詰めず、開始時に複数Phaseへ再分割できる。
+
+### 17.1 Audit／Evidence Hardening
 
 - Hash Chain
 - HMAC
@@ -1602,7 +1719,7 @@ MARGPA Runtime LLM本体が一通り成立した後、運用Hardening、Backend�
 - Backup／Recovery／Retention
 - SQLite／PostgreSQL Index
 
-### 16.2 Platform／Backend Expansion
+### 17.2 Platform／Backend Expansion
 
 - Home Server
 - Windows
@@ -1615,9 +1732,9 @@ MARGPA Runtime LLM本体が一通り成立した後、運用Hardening、Backend�
 - Lightning AI Studio Refresh
 - Hybrid Deployment
 
-AWS構築、Cloud Backend実装、外部Browserへ到達可能なPublic-ready SurfaceおよびLightningへのCurrent Runtime再反映は、Phase 10以降の独立Deployment Programとして開始する。Phase 6～9ではこれらを実装、AcceptanceまたはCompletion Dependencyにしない。初期公開準備用SurfaceではEphemeral Chatを優先し、Persistent StorageのBindingはCost／Privacy／Access設計と独立した明示決定を必要とする。AWS Account／Quota／Cost、Network／Secret／Region、Health／Shutdown／Rollback、Rate／Token／Cost LimitおよびURL共有は、それぞれHuman Gateを通過するまで実操作しない。
+AWS構築、Cloud Backend実装、外部Browserへ到達可能なPublic-ready SurfaceおよびLightningへのCurrent Runtime再反映は、Phase 11以降の独立Deployment Programとして開始する。Phase 6～10ではこれらを実装、AcceptanceまたはCompletion Dependencyにしない。初期公開準備用SurfaceではEphemeral Chatを優先し、Persistent StorageのBindingはCost／Privacy／Access設計と独立した明示決定を必要とする。AWS Account／Quota／Cost、Network／Secret／Region、Health／Shutdown／Rollback、Rate／Token／Cost LimitおよびURL共有は、それぞれHuman Gateを通過するまで実操作しない。
 
-### 16.3 Model／Modality Expansion
+### 17.3 Model／Modality Expansion
 
 - Multiple Main Models
 - Larger Models
@@ -1639,13 +1756,13 @@ Multimodal、最大Context Window拡張、RoPE Scaling／YaRN、KV Cache最適�
 Compaction／RAG込みEffective Working Contextを同義にしない。上限はModel CardだけでなくExact Revision、
 Backend、Hardwareおよび実測で固定する。
 
-### 16.4 Responsive UI／Multi-device Experience
+### 17.4 Responsive Product／Multi-device Experience
 
 基本UIと主要Runtime機能が安定した後、一般向けProduct化の候補として、スマートフォン、Tablet、Laptop、Desktopおよび解像度の異なるPCへ対応するResponsive Designを実施する。
 
 #### Desktop Application化予約
 
-Web版だけでなく、Local Model、Local File、Offline利用およびOS統合を扱えるDesktop Application化をPhase 10以降の後続候補とし、Phase 6～9のCompletion Dependencyから外す。Web／CLI／Runtime Coreの分離を維持したまま、Packaging、Code Signing、Notarization、Update、Sandbox、Secret Storage、Model配置、GPU Backend、Crash Recovery、Uninstall／Data RetentionおよびmacOS／Windows／Linux対応範囲を評価して決定する。
+Web版だけでなく、Local Model、Local File、Offline利用およびOS統合を扱えるDesktop Application化をPhase 11以降の後続候補とし、Phase 6～10のCompletion Dependencyから外す。Web／CLI／Runtime Coreの分離を維持したまま、Packaging、Code Signing、Notarization、Update、Sandbox、Secret Storage、Model配置、GPU Backend、Crash Recovery、Uninstall／Data RetentionおよびmacOS／Windows／Linux対応範囲を評価して決定する。
 
 最初の必須TargetはmacOS向けDesktop Application Previewとする。Windows版も可能なら同一Programで扱うが、Platform差または工数が大きい場合は後続Scopeへ延期できる。本予約は特定Frameworkの採用、Web版廃止、配布開始、署名／Notarization実行またはOS Secret操作を事前許可しない。
 
@@ -1702,7 +1819,7 @@ Phase 2およびPhase 4では後続対応を妨げないComponent構造とCSS／
 
 Current Settings Modal等にはWide Desktop優先で導入した固定px依存が残り、狭いViewportや異なる画面比率ではResponsive Layoutが崩れ得る。この既知DebtはCurrent UI完成と分離して保持し、必要ならPhase 4の集中UI Correctionとして一部を前倒しする。本節では、その局所修正後も残る全画面・全Device・Accessibilityを含む本格Responsive対応を扱う。
 
-### 16.5 Machine Learning／Training／Adaptation Extension
+### 17.5 Machine Learning／Training／Adaptation Extension
 
 MARGPA Runtime LLMの主要RuntimeとGovernance Platformが成立した後、Machine Learning機能をOptional Componentとして追加する。
 
@@ -1811,7 +1928,7 @@ ML Component、Training Pipeline、定量計算モード、定性計算モード
 
 > **Traceable Learning, Adaptation, and Mixed-method Evaluation**
 
-### 16.6 EASA
+### 17.6 EASA
 
 ```text
 EASA
@@ -1824,7 +1941,7 @@ AI Safety Governance
 
 内部安全傾向、周辺安全制御、入力文脈、生成過程等の相互作用を対象とし、例外を含む複合的な安全挙動を統治する独立R&D Architecture。
 
-### 16.7 DLAGSA
+### 17.7 DLAGSA
 
 ```text
 DLAGSA
@@ -1841,7 +1958,7 @@ and Safety Assurance
 
 単純な複数AIの並列化、単一Safety Filter、単一Log機構ではない。主体間関係そのものを統治対象として扱う。
 
-### 16.8 OCILNS
+### 17.8 OCILNS
 
 ```text
 OCILNS
@@ -1856,7 +1973,7 @@ and Distributed Auditability
 
 人、AI、Tool、外部System間の認知的対話出来事を、後から検証、参照、継承、監査できる改竄耐性付き証跡単位として扱い、長期、分岐、多Model、多Thread環境でも再接続可能性を維持する独立R&D System。
 
-### 16.9 Integration Boundary
+### 17.9 Integration Boundary
 
 ```text
 EASA／DLAGSA
@@ -1882,17 +1999,17 @@ Default: All OFF
 - Coreへ固有Package Dependencyを入れない。
 - Algorithm、内部Protocol、改竄耐性の具体方式、研究の核心は現在開示しない。
 
-### 16.10 Lossless Thread Context／Post-Phase-10 Research Reservation
+### 17.10 Lossless Thread Context／Post-Phase-10 Research Reservation
 
-Phase 10以降の長期R&D候補として、Thread内のToken、Context、Turn、Decision、Evidence、未解決事項および参照関係を、後続Task、ModelまたはProviderがLosslessに保持・参照・再接続できる機構を検討する。
+Phase 11以降の長期R&D候補として、Thread内のToken、Context、Turn、Decision、Evidence、未解決事項および参照関係を、後続Task、ModelまたはProviderがLosslessに保持・参照・再接続できる機構を検討する。
 
 Phase 9後半では、実用候補としてStructured Compaction、Pre-compaction Snapshot、Recovery Indexおよび
-Selective Rehydrationを優先実装候補にする。Phase 10以降の本節は、Phase 9で完了しない範囲と、
+Selective Rehydrationを優先実装候補にする。Phase 11以降の本節は、Phase 9で完了しない範囲と、
 単純圧縮を超えるLedger／Graph／Index／OCILNS等のLossless研究を引き続き保持する。
 
 単純な要約圧縮と復号だけを既定解にしない。原文、構造、順序、Identity、Digest、参照Graphおよび選択的読込を保持し、必要部分を検証可能に解決するAlgorithm、Index、Ledger、Graphその他の方式を研究候補とする。保存Cost、Privacy、Context Window、Provider差およびOCILNS等との関係は後続設計で決定する。
 
-### 16.11 Context Observatory／Native Compaction and Recovery Reservation
+### 17.11 Context Observatory／Native Compaction and Recovery Reservation
 
 Context Capacity、Current Usage、Remaining Budget、Threshold、Compaction EventおよびRecovery Stateを分離して観測するContext Observatoryを段階的に発展させる。Current RuntimeではGauge、Click式Popover、基本内訳および閾値色表示までを実装済みであり、次を未実装予約として保持する。
 
@@ -1903,17 +2020,17 @@ Context Capacity、Current Usage、Remaining Budget、Threshold、Compaction Eve
 - LLM自身による閾値ベースSelf-triggered Compaction。
 - 圧縮後の自動復旧、Snapshot再読込、Identity／Digest検証および継続性評価。
 
-Self-triggered Actionと自動復旧はAgent／Tool Authority、Provider Capability、Snapshot Source of Truth、PrivacyおよびHuman Gateが成立してから扱う。単純な要約圧縮／復号を唯一の方式に固定せず、第16.10節のLossless Context研究と接続できる構造を維持する。
+Self-triggered Actionと自動復旧はAgent／Tool Authority、Provider Capability、Snapshot Source of Truth、PrivacyおよびHuman Gateが成立してから扱う。単純な要約圧縮／復号を唯一の方式に固定せず、第17.10節のLossless Context研究と接続できる構造を維持する。
 
-これらのうち、Native Compaction／Recovery、2つのContext Action ButtonおよびGovernance Trace Observatoryは
-Phase 9後半の優先候補へ前倒しした。Phase 9時点の利用可能量またはAs-built制約で完了できない範囲は、
-Phase 10以降の本予約に残し、未実装を完了と表記しない。
+これらのうち、Native Compaction／Recoveryの技術CoreはPhase 9後半、2つのContext Action Buttonおよび
+Governance Trace Observatoryの大規模UIはPhase 10後半へ分離した。各Phaseの利用可能量またはAs-built制約で
+完了できない範囲は本節の長期研究に残し、未実装を完了と表記しない。
 
-現在Phase 10へ予約しているHardening、Platform、Model、UI、ML、外部R&Dおよび追加研究群は規模が大きい。依存関係と研究境界が十分明確になった段階で、Phase 11以降の複数Phaseへ再分割する。現時点では番号、境界または実装順を確定せず、Phase 10予約を削除・圧縮しない。
+Hardening、Platform、Model、Product UI、ML、外部R&Dおよび追加研究群は規模が大きい。依存関係と研究境界が十分明確になった段階で、Phase 11以降の複数Phaseへ再分割する。Phase 10 Integrationへ黙って再混入させない。
 
-### 16.12 Autonomous Engineering Agent Capability Completion
+### 17.12 Autonomous Engineering Agent Capability Completion
 
-Phase 8の`MARGPA Development Agent Research Preview／Foundation`を土台に、次の仮称Capability LevelsをPhase 10以降の独立Programで完成・検証する。
+Phase 8の`MARGPA Development Agent Research Preview／Foundation`を土台に、次の仮称Capability LevelsをPhase 11以降の独立Programで完成・検証する。
 
 1. Level 1 — `MARGPA Development Agent`／`MARGPA Dev Agent`：Design Support、Implementation、Test、Fix／Repairを統治された開発実行主体として安定運用する。
 2. Level 2 — `MARGPA End-to-End Autonomous Engineering Agent`／`MARGPA EEAE Agent`：Consulting、Discovery、Problem Definition、Research、Requirements、Architecture、Implementation、Verification、ReleaseおよびDeploymentまで一案件を完遂する。
@@ -1923,9 +2040,9 @@ Capability名はSystem全体の遂行範囲を表し、内部実装を単一Agen
 
 Level 1の正式完成もPhase 8ではなく本節で扱う。名称だけでLevelを昇格させず、Capability Contract、実案件Evidence、Failure Boundary、Hardware／Deployment適合およびUser Acceptanceが成立した場合だけ完成を主張する。
 
-### 16.13 Portable Autonomous Development Governance Package
+### 17.13 PADG Cross-project Validation／Provider Expansion
 
-Phase 10 READYでは、Phase 3〜9のCurrent／Phase／History／Shared／Automation／Cross-provider／Compaction／Role／Authority／Evidenceを先にLossless Compilationし、その後に全Docsを二周走査する。第1周でSource Inventory、`docs/project/shared/constitution/`のCanonical CandidateおよびPADG Package初版を作り、第2周では全Sourceを再走査してInventory漏れ、誤分類、旧Ruleの誤昇格、Provenance、SanitizationおよびSource Coverageを監査する。必要な訂正は第1版を消さず、新RevisionとGap Audit Evidenceを伴う第2版として作成する。
+Phase 10で作成・二周検証したPADG Packageを、実際の別Project、追加Providerおよび異なるTool Surfaceへ適用し、移植時に初めて判明するGapを追補する。Phase 10のAll-Docs Integration、Shared Constitution CompilationまたはPADG二周作成を本節へ延期しない。
 
 `docs/project/shared/`はProject横断の開発統治知識が集積した重点Source Corpusとし、StableだけでなくHistoryも含めて全FileをInventory対象とする。Automation、Cross-provider Handoff、Manual／Auto Compaction Recovery、Agent／Task間Role分離、Codexタスク間通信、Claude Long-run、Authority、Docs Lifecycle、Incident、Evidence、Resource Limit、Git、Backup、ClosureおよびProvider Memory非依存を重点的に抽出する。
 
@@ -1933,13 +2050,25 @@ Repository内Canonical SourceとPortable Packageの双方で、`common/`と`prov
 
 正式名称は`Portable Autonomous Development Governance Package`、短縮名は`PADG Package`、Directory ID候補は`portable-autonomous-development-governance-package`とする。Automation／Cross-provider／Agent Orchestration／Compaction Recovery／Role Separation／Authority／Evidence／Development Constitutionを対象とし、`Autonomous`を無制限Authorityと解釈しない。Package作成先候補の親DirectoryへのWrite、公開および配布は、その時点のUserによるExact Gateなしに実行しない。
 
-### Phase 10 Milestone
+### 17.14 Governed External Web Knowledge Runtime
 
-> **Hardened, distributed, evidence-aware AI Governance Platform**
+Phase 7で実装したLocal Corpus／Citation／Data Controls、Provider非依存Web Search／Fetch Port、Fixture TestおよびSecurity Scaffoldを再利用し、実General Web Searchを独立Programとして完成させる。
+
+Provider選択だけでなく、Account、Credential、Cost、Quota、Privacy、Terms、Server Canonical Activation、Consent、Query最小化、Secret／PII Gate、SSRF、Redirect、DNS Rebinding、Response Bomb、Parser Isolation、Prompt Injection、Data Poisoning、Source Authority、Provenance、Chat Injection、CitationおよびObservabilityを一つのAcceptance境界で扱う。
+
+Hosted API、Private SearXNG、Domain限定APIその他をProvider-neutral Adapter越しに比較する。Public SearXNG Instance、任意User Endpoint、Browser-side TokenまたはHTML Scrapingを公開Demoの既定値へHard-codeしない。既定Providerは`none`、Activationは`disabled`、ConsentはOFF、External Network Callは0とする。
+
+Phase 8の明示貼付URL EvidenceをBaselineとし、General SearchとAutomatic Search Triggerは別Gateとする。一般化されたURL FetchはModel自身の能力ではなくGoverned Backend Actionとして扱い、未知・攻撃的Site、Archive／PDF／Mediaおよび認証領域はSandbox／Parser Isolation成立後の別Tierに分離する。
+
+詳細正本は`docs/project/phases/phase_7/history/operations/phase_7_external_web_runtime_phase_11_plus_deferral_decision_ja_20260829222647.md`、予約正本は`docs/project/shared/history/planned_work/phase_11_plus_governed_external_web_knowledge_runtime_reservation_ja_20260829222647.md`とする。
+
+### Phase 11+ Milestone
+
+> **Hardened, distributed, evidence-aware and autonomously extensible AI Governance Platform**
 
 ---
 
-## 17. Current Model Strategy
+## 18. Current Model Strategy
 
 現在のModelは最終固定ではなく、各RoleのAdapterとCapabilityを実証するための初期構成である。
 
@@ -1963,7 +2092,7 @@ Model WeightはGitHub Repositoryへ含めない。Model ID、取得元、Revisio
 
 ---
 
-## 18. このRoadmapを貫く非交渉原則
+## 19. このRoadmapを貫く非交渉原則
 
 ### Separation
 
@@ -2010,7 +2139,7 @@ Model WeightはGitHub Repositoryへ含めない。Model ID、取得元、Revisio
 
 ---
 
-## 19. Completion Gate
+## 20. Completion Gate
 
 各Phaseは、実装報告だけでは完了しない。
 
@@ -2032,7 +2161,7 @@ BackupとGit Commit／Pushは、原則として現Phase完了後かつ次Phase R
 
 ---
 
-## 20. Project全体の到達条件
+## 21. Project全体の到達条件
 
 本Projectが最終的に目指すのは、機能一覧の消化ではない。
 
@@ -2056,7 +2185,7 @@ BackupとGit Commit／Pushは、原則として現Phase完了後かつ次Phase R
 
 ---
 
-## 21. Roadmapの変更について
+## 22. Roadmapの変更について
 
 本Roadmapは研究開発の現在計画であり、Phase 2以降の細分化、順序、技術選定は、前PhaseのEvidence、User Requirement、Hardware、External Platform、Risk評価によって調整される可能性がある。
 
@@ -2074,7 +2203,7 @@ BackupとGit Commit／Pushは、原則として現Phase完了後かつ次Phase R
 
 ---
 
-## 22. Public Disclosure Boundary
+## 23. Public Disclosure Boundary
 
 本Roadmapは構想、研究方向、Phase、公開可能なArchitecture Boundaryを示す。
 
@@ -2084,11 +2213,11 @@ Future Phaseに記載された項目は実装済みを意味しない。ML／Tra
 
 ---
 
-## 23. Phase 1-ex Documentation Reconstruction 第2周
+## 24. Phase 1-ex Documentation Reconstruction 第2周
 
 2026年7月27日の第2周時点で、次を確認した。
 
-### 23.1 再構築済み
+### 24.1 再構築済み
 
 | 区分 | 状態 |
 |---|---|
@@ -2103,7 +2232,7 @@ Future Phaseに記載された項目は実装済みを意味しない。ML／Tra
 
 Phase 1-ex Interim Losslessは、Source Freeze後に作成されたShared、Public、Root Artifactおよび第2周Snapshotを含まない。Phase 1-ex完了時にFinal Compilationを作り、今回以後の全Phase Sourceを取り込む。
 
-### 23.2 Public入口
+### 24.2 Public入口
 
 - [概要](overview_ja.md)
 - [コンセプト](concept_ja.md)
@@ -2116,7 +2245,7 @@ Phase 1-ex Interim Losslessは、Source Freeze後に作成されたShared、Publ
 
 READMEには現在のUI画像6枚、現行環境、Model配置、macOS最小Setup、Roadmapへの強い導線、Public Demo未公開、軽量Modelが最終性能Targetではないこと、および無保証を記載した。
 
-### 23.3 現在の利用条件
+### 24.3 現在の利用条件
 
 Repositoryの現行条件はResearch Previewであり、Open Sourceではない。
 
@@ -2126,7 +2255,7 @@ Repositoryの現行条件はResearch Previewであり、Open Sourceではない�
 - 動作、互換性、正確性、安全性、可用性、Model Outputおよび特定目的適合性を一切保証しない。
 - 将来OSS化を再検討しても、現在の許諾を自動的に変更しない。
 
-### 23.4 第2周後も未完了のもの
+### 24.4 第2周後も未完了のもの
 
 - Git運用設計
 - Git初期化、公開Allowlist／Sanitation、`.gitignore`、`.gitattributes`、Remote／公開Repository準備

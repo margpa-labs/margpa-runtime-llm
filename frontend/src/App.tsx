@@ -6,6 +6,9 @@ import { readGovernanceBootstrap } from "./lib/governanceBootstrap";
 import { readRuntimeGovernanceBootstrap } from "./lib/runtimeGovernanceBootstrap";
 import { readGuardrailGovernanceBootstrap } from "./lib/guardrailGovernanceBootstrap";
 import { readRuntimeModelControlBootstrap } from "./lib/runtimeModelControlBootstrap";
+import { readLocalCorpusBootstrap } from "./lib/localCorpusBootstrap";
+import { readWebSearchBootstrap } from "./lib/webSearchBootstrap";
+import { readDataControlsBootstrap } from "./lib/dataControlsBootstrap";
 import { readEventStream } from "./lib/eventStream";
 import {
   detailToMessages,
@@ -41,6 +44,9 @@ import type { GovernanceControlState } from "./components/GovernancePanel";
 import type { RuntimeGovernanceControlState } from "./components/RuntimeGovernancePanel";
 import type { GuardrailGovernanceControlState } from "./components/GuardrailGovernancePanel";
 import type { RuntimeModelControlState } from "./components/RuntimeModelStatusPanel";
+import type { LocalCorpusState } from "./components/LocalCorpusPanel";
+import type { WebSearchPanelState } from "./components/WebSearchPanel";
+import type { DataControlConsentState, DataControlsState } from "./components/DataControlsPanel";
 import MessageList from "./components/MessageList";
 import Composer from "./components/Composer";
 import type { SettingsFormState } from "./components/SettingsPanel";
@@ -72,6 +78,9 @@ export default function App() {
   const [runtimeGovernanceBootstrapEnabled] = useState(() => readRuntimeGovernanceBootstrap());
   const [guardrailGovernanceBootstrapEnabled] = useState(() => readGuardrailGovernanceBootstrap());
   const [runtimeModelControlBootstrapEnabled] = useState(() => readRuntimeModelControlBootstrap());
+  const [localCorpusBootstrapEnabled] = useState(() => readLocalCorpusBootstrap());
+  const [webSearchBootstrapEnabled] = useState(() => readWebSearchBootstrap());
+  const [dataControlsBootstrapEnabled] = useState(() => readDataControlsBootstrap());
 
   const [prompt, setPrompt] = useState("");
   const [active, setActive] = useState(false);
@@ -107,6 +116,7 @@ export default function App() {
     maxNewTokens: "2048",
     thinkingMode: false,
     thinkingVisibility: false,
+    webSearchMode: "disabled",
     summaryMode: "off",
     documentationRagMode: "disabled",
     injectContextUsage: false,
@@ -146,11 +156,34 @@ export default function App() {
       status: null,
     });
 
+  const [localCorpusState, setLocalCorpusState] = useState<LocalCorpusState>({
+    capability: localCorpusBootstrapEnabled ? "loading" : "disabled",
+    documents: [],
+    resultText: "",
+  });
+
+  const [webSearchState, setWebSearchState] = useState<WebSearchPanelState>({
+    capability: "idle",
+    result: null,
+    resultText: "",
+  });
+
+  const [dataControlsState, setDataControlsState] = useState<DataControlsState>({
+    capability: dataControlsBootstrapEnabled ? "loading" : "disabled",
+    consent: null,
+    retentionFacts: [],
+    resultText: "",
+  });
+
   const configurationLoadSequenceRef = useRef(0);
   const governanceLoadSequenceRef = useRef(0);
   const runtimeGovernanceLoadSequenceRef = useRef(0);
   const guardrailGovernanceLoadSequenceRef = useRef(0);
   const configurationMutationQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const localCorpusLoadSequenceRef = useRef(0);
+  const localCorpusMutationQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const dataControlsLoadSequenceRef = useRef(0);
+  const dataControlsMutationQueueRef = useRef<Promise<void>>(Promise.resolve());
   const runtimeModelStatusSequenceRef = useRef(0);
   const acceptedRuntimeModelRevisionRef = useRef(-1);
 
@@ -470,6 +503,170 @@ export default function App() {
       }
     };
     configurationMutationQueueRef.current = configurationMutationQueueRef.current.then(run, run);
+  }
+
+  const loadLocalCorpus = useCallback(async (): Promise<void> => {
+    if (!localCorpusBootstrapEnabled) {
+      return;
+    }
+    const sequence = ++localCorpusLoadSequenceRef.current;
+    setLocalCorpusState((previous) => ({ ...previous, capability: "loading" }));
+    try {
+      const list = await api.fetchLocalCorpusDocuments();
+      if (sequence !== localCorpusLoadSequenceRef.current) {
+        return;
+      }
+      setLocalCorpusState({ capability: "ready", documents: list.documents, resultText: "" });
+    } catch {
+      if (sequence !== localCorpusLoadSequenceRef.current) {
+        return;
+      }
+      setLocalCorpusState({ capability: "failed", documents: [], resultText: "" });
+    }
+    // localCorpusBootstrapEnabled is set once (lazy useState init) and never
+    // updated again, so this callback is effectively stable.
+  }, [localCorpusBootstrapEnabled]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadLocalCorpus();
+  }, [loadLocalCorpus]);
+
+  function enqueueLocalCorpusMutation(
+    operation: () => Promise<unknown>,
+    successKey: TranslationKey,
+    failureKey: TranslationKey,
+  ): void {
+    const run = async (): Promise<void> => {
+      let resultText: string;
+      try {
+        await operation();
+        resultText = t(successKey);
+      } catch (error) {
+        resultText =
+          error instanceof api.ApiMutationError
+            ? `${t(failureKey)} [${error.code ?? "local_corpus_mutation_failed"}] ${error.message}`
+            : t(failureKey);
+      }
+      await loadLocalCorpus();
+      setLocalCorpusState((previous) => ({ ...previous, resultText }));
+    };
+    localCorpusMutationQueueRef.current = localCorpusMutationQueueRef.current.then(run, run);
+  }
+
+  function handleLocalCorpusRegister(title: string, content: string): void {
+    enqueueLocalCorpusMutation(
+      () => api.registerLocalCorpusDocument(title, content),
+      "localCorpusRegisterSuccess",
+      "localCorpusRegisterFailed",
+    );
+  }
+
+  function handleLocalCorpusUpdate(documentId: string, title: string, content: string): void {
+    enqueueLocalCorpusMutation(
+      () => api.updateLocalCorpusDocument(documentId, title, content),
+      "localCorpusUpdateSuccess",
+      "localCorpusUpdateFailed",
+    );
+  }
+
+  function handleLocalCorpusDelete(documentId: string): void {
+    enqueueLocalCorpusMutation(
+      () => api.deleteLocalCorpusDocument(documentId),
+      "localCorpusDeleteSuccess",
+      "localCorpusDeleteFailed",
+    );
+  }
+
+  async function handleLocalCorpusEditRequest(
+    documentId: string,
+  ): Promise<{ title: string; content: string } | null> {
+    try {
+      const document = await api.fetchLocalCorpusDocument(documentId);
+      return { title: document.title, content: document.content };
+    } catch {
+      return null;
+    }
+  }
+
+  const loadDataControls = useCallback(async (): Promise<void> => {
+    if (!dataControlsBootstrapEnabled) {
+      return;
+    }
+    const sequence = ++dataControlsLoadSequenceRef.current;
+    setDataControlsState((previous) => ({ ...previous, capability: "loading" }));
+    try {
+      const policy = await api.fetchDataControlPolicy();
+      if (sequence !== dataControlsLoadSequenceRef.current) {
+        return;
+      }
+      setDataControlsState({
+        capability: "ready",
+        consent: policy.consent,
+        retentionFacts: policy.retention_facts,
+        resultText: "",
+      });
+    } catch {
+      if (sequence !== dataControlsLoadSequenceRef.current) {
+        return;
+      }
+      setDataControlsState({
+        capability: "failed",
+        consent: null,
+        retentionFacts: [],
+        resultText: "",
+      });
+    }
+  }, [dataControlsBootstrapEnabled]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadDataControls();
+  }, [loadDataControls]);
+
+  function enqueueDataControlsMutation(operation: () => Promise<unknown>): void {
+    const run = async (): Promise<void> => {
+      try {
+        await operation();
+      } catch {
+        // Fall through to loadDataControls() below either way — a fresh
+        // GET after a failed mutation shows the true server-side state
+        // rather than an unconfirmed optimistic value.
+      }
+      await loadDataControls();
+    };
+    dataControlsMutationQueueRef.current = dataControlsMutationQueueRef.current.then(run, run);
+  }
+
+  function handleDataControlsToggle(key: keyof DataControlConsentState, value: boolean): void {
+    enqueueDataControlsMutation(() => api.updateDataControlConsent({ [key]: value }));
+  }
+
+  function handleDataControlsReset(): void {
+    enqueueDataControlsMutation(() => api.resetDataControlConsent());
+  }
+
+  function handleWebSearch(query: string): void {
+    setWebSearchState((previous) => ({ ...previous, capability: "loading" }));
+    api
+      .searchWeb(query, "manual")
+      .then((result) => {
+        setWebSearchState({
+          capability: "ready",
+          result,
+          resultText: t("webSearchPanelSearchSuccess"),
+        });
+      })
+      .catch((error: unknown) => {
+        setWebSearchState({
+          capability: "failed",
+          result: null,
+          resultText:
+            error instanceof api.ApiMutationError
+              ? `${t("webSearchPanelSearchFailed")} [${error.code ?? "web_search_failed"}] ${error.message}`
+              : t("webSearchPanelSearchFailed"),
+        });
+      });
   }
 
   function handleConfigurationApply(researchDeveloperMode: string): void {
@@ -1370,6 +1567,22 @@ export default function App() {
         runtimeModelControlState={runtimeModelControlState}
         onRuntimeModelRefresh={() => void loadRuntimeModelStatus(true)}
         onRuntimeModelStatusChange={acceptRuntimeModelStatus}
+        localCorpusBootstrapEnabled={localCorpusBootstrapEnabled}
+        localCorpusState={localCorpusState}
+        onLocalCorpusRefresh={() => void loadLocalCorpus()}
+        onLocalCorpusRegister={handleLocalCorpusRegister}
+        onLocalCorpusUpdate={handleLocalCorpusUpdate}
+        onLocalCorpusDelete={handleLocalCorpusDelete}
+        onLocalCorpusEditRequest={handleLocalCorpusEditRequest}
+        webSearchBootstrapEnabled={webSearchBootstrapEnabled}
+        webSearchToggleEnabled={settingsForm.webSearchMode === "manual"}
+        webSearchState={webSearchState}
+        onWebSearch={handleWebSearch}
+        dataControlsBootstrapEnabled={dataControlsBootstrapEnabled}
+        dataControlsState={dataControlsState}
+        onDataControlsRefresh={() => void loadDataControls()}
+        onDataControlsToggle={handleDataControlsToggle}
+        onDataControlsReset={handleDataControlsReset}
       />
     </div>
   );

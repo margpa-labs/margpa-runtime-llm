@@ -322,3 +322,17 @@ User Manualへ渡せる。
 ```
 
 この線を超えた後の追加Hardeningは未解決Registryへ送る。この線より前で「MVPだから」と雑に切り上げることも、この線を超えて理論完全性を無限追求することも禁止する。
+
+## 17. Closure前の次Phase設計・工程分解
+
+2026-08-30のUser決定により、原則としてCurrent PhaseのFormal Closure前に、現時点で可能な範囲の
+次Phase設計、工程分解、Acceptance Candidate、Authority／Resource境界およびProvider Handoff候補を作る。
+
+これにより、Current PhaseのContextとManual Evidenceが鮮明な間に次Phaseへ接続し、Closure後の再読、
+Compactionおよび設計停止Costを下げる。ただし、設計書の作成は次Phaseの実装開始Authorityを生成しない。
+
+Stable詳細Rule：
+
+`docs/project/shared/task_roles/next_phase_design_before_current_phase_closure_operating_rule_ja.md`
+
+Phase 7からこの順序を適用し、Phase 8設計・工程分解後にPhase 7 Formal Closureへ進む。

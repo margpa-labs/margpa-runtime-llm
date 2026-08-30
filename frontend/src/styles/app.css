@@ -841,25 +841,50 @@ h1 {
 }
 
 .message-citation {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 4px 10px;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   font-size: 0.78rem;
+  padding: 4px 0;
+}
+
+.message-citation + .message-citation {
+  border-top: 1px solid var(--citation-accent);
+  padding-top: 10px;
+}
+
+/* P7-RW3-A (P7-CODEX-011): each Field is its own wrapping row - the
+   previous shared 2-column Grid forced every Copy Button into the same
+   Cell (`grid-column: 2; grid-row: 1 / span 2`), stacking all three
+   directly on top of each other so only the last one ever rendered. */
+.message-citation-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.message-citation-field-label {
+  flex: 0 0 auto;
+  min-width: 3.5em;
+  color: var(--citation-label);
+  font-weight: 700;
+}
+
+.message-citation-row code,
+.message-citation-row > span:not(.message-citation-field-label) {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--citation-text);
 }
 
 .message-citation code {
   overflow-wrap: anywhere;
 }
 
-.message-citation span {
-  grid-column: 1;
-  color: var(--citation-text);
-}
-
-.message-citation button {
-  grid-column: 2;
-  grid-row: 1 / span 2;
+.message-citation-row button {
+  flex: 0 0 auto;
   padding: 4px 8px;
   font-size: 0.72rem;
 }

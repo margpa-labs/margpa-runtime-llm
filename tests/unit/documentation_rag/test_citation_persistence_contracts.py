@@ -14,6 +14,7 @@ from margpa_runtime_llm.modules.documentation_rag.contracts import (
     DocumentationGroundingState,
     DocumentationMeasurementUnit,
     DocumentationRetrievalState,
+    DocumentationWarning,
     PersistedTurnCitationEvidence,
     build_turn_citation_evidence,
 )
@@ -155,6 +156,75 @@ def test_only_enabled_state_may_carry_citations() -> None:
             grounding_state=DocumentationGroundingState.NO_HIT,
             citations=(_citation(),),
         )
+
+
+def _no_hit_augmentation() -> DocumentationAugmentation:
+    evidence = _grounded_evidence().model_copy(
+        update={
+            "grounding_state": DocumentationGroundingState.NO_HIT,
+            "generation_allowed": True,
+            "selected_chunk_ids": (),
+            "selected_document_digests": (),
+            "selected_scores": (),
+            "retrieved_chunk_count": 0,
+            "assembled_block_count": 0,
+        }
+    )
+    return DocumentationAugmentation(
+        state=DocumentationRetrievalState.ENABLED,
+        should_generate=True,
+        evidence=evidence,
+        warnings=(DocumentationWarning(code="documentation_no_hit", message="no evidence"),),
+        document_count=0,
+        selected_chunk_count=0,
+        duration_ms=1.0,
+    )
+
+
+def _context_insufficient_augmentation() -> DocumentationAugmentation:
+    evidence = _grounded_evidence().model_copy(
+        update={
+            "grounding_state": DocumentationGroundingState.CONTEXT_INSUFFICIENT,
+            "generation_allowed": False,
+            "assembled_block_count": 0,
+        }
+    )
+    return DocumentationAugmentation(
+        state=DocumentationRetrievalState.ENABLED,
+        should_generate=False,
+        evidence=evidence,
+        document_count=1,
+        selected_chunk_count=0,
+        duration_ms=1.0,
+    )
+
+
+def test_build_turn_citation_evidence_persists_no_hit_with_zero_citations() -> None:
+    """P7-RW5-A (P7-CODEX-014): unlike RAG OFF/disabled, a `NO_HIT` Turn's
+    Grounding State/Warning Codes are real Evidence a Persistent Detail
+    reload needs to reconstruct the same "no current grounds" display the
+    Live SSE `retrieval` event already showed - previously this returned
+    `None` exactly like RAG OFF, silently dropping it."""
+    evidence = build_turn_citation_evidence(
+        _no_hit_augmentation(), conversation_id="c1", turn_id="t1"
+    )
+    assert evidence is not None
+    assert evidence.grounding_state is DocumentationGroundingState.NO_HIT
+    assert evidence.citations == ()
+    assert evidence.warning_codes == ("documentation_no_hit",)
+
+
+def test_build_turn_citation_evidence_still_returns_none_for_other_zero_citation_states() -> None:
+    """Only `NO_HIT` is in this Bounded Rework's scope - `CONTEXT_
+    INSUFFICIENT` (and `UNAVAILABLE`, not separately re-tested here since
+    it shares the same zero-citation shape) keep the pre-existing
+    behavior unchanged."""
+    assert (
+        build_turn_citation_evidence(
+            _context_insufficient_augmentation(), conversation_id="c1", turn_id="t1"
+        )
+        is None
+    )
 
 
 def test_build_turn_citation_evidence_returns_none_when_rag_disabled() -> None:

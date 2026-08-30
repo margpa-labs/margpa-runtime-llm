@@ -387,7 +387,10 @@ def test_reference_is_system_owned_latest_query_only_and_citation_is_separate() 
     retrieval_data = cast(dict[str, Any], retrieval.data)
     assert retrieval_data["citations"][0]["project_relative_path"].startswith("docs/")
     assert inference.requests[0].messages[0].role.value == "system"
-    assert inference.requests[0].messages[1].name == "documentation_reference"
+    # P7-RW3-C (P7-CODEX-012): the Reference now sits immediately before
+    # the Current User Message, after every Historical Turn - not right
+    # after System/before all History.
+    assert inference.requests[0].messages[-2].name == "documentation_reference"
     assert inference.requests[0].messages[-1].content == "latest query"
 
 

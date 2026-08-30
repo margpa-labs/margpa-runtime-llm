@@ -47,6 +47,10 @@ from margpa_runtime_llm.modules.documentation_rag.contracts import (
     DocumentationMeasurementUnit,
     DocumentationRagMode,
     DocumentationRetrievalState,
+    DocumentationWarning,
+)
+from margpa_runtime_llm.modules.documentation_rag.local_corpus_contracts import (
+    LOCAL_CORPUS_SOURCE_CLASS,
 )
 from margpa_runtime_llm.modules.inference.contracts.generation import ThinkingMode
 from margpa_runtime_llm.modules.inference.contracts.response import ResponseLanguage
@@ -1187,6 +1191,7 @@ async def test_disconnect_closes_on_producer_and_persists_interrupted(tmp_path: 
 
 def _citation_augmentation() -> DocumentationAugmentation:
     sha = "d" * 128
+    local_sha = "e" * 128
     return DocumentationAugmentation(
         state=DocumentationRetrievalState.ENABLED,
         should_generate=True,
@@ -1201,15 +1206,38 @@ def _citation_augmentation() -> DocumentationAugmentation:
                 retrieval_score=1.0,
                 selected_order=1,
             ),
+            # P7-RW2-A (P7-CODEX-007): a second citation with an explicit
+            # `source_class=LOCAL_CORPUS_SOURCE_CLASS`, alongside the first
+            # citation's default Project Docs class, so the same fixture also
+            # regression-covers the Local Corpus / Project Docs Source Class
+            # distinction end-to-end (Live SSE + Persistent Detail).
+            DocumentationCitation(
+                citation_id="citation-2",
+                project_relative_path="local-corpus/probe-7.md",
+                heading_breadcrumb="Probe",
+                chunk_id=local_sha,
+                document_sha512=local_sha,
+                retrieval_score=0.8,
+                selected_order=2,
+                source_class=LOCAL_CORPUS_SOURCE_CLASS,
+                # P7-RW5-B/C (P7-CODEX-015/016): a real registered Title and
+                # a real backing storage Path, never the empty Heading /
+                # Synthetic `local-corpus/<slug>.md` a User Mac Manual Probe
+                # actually saw.
+                document_title="Probe Manual 7",
+                storage_display_path=(
+                    "runtime_data/persistent/server-private-scope/local_corpus/documents.json"
+                ),
+            ),
         ),
         evidence=DocumentationEvidence(
             query_digest=sha,
             corpus_manifest_digest=sha,
             retriever_key="bm25",
             retriever_version="1",
-            selected_chunk_ids=(sha,),
-            selected_document_digests=(sha,),
-            selected_scores=(1.0,),
+            selected_chunk_ids=(sha, local_sha),
+            selected_document_digests=(sha, local_sha),
+            selected_scores=(1.0, 0.8),
             base_prompt_unit=DocumentationMeasurementUnit.TOKENS,
             context_budget=100,
             context_budget_unit=DocumentationMeasurementUnit.TOKENS,
@@ -1217,8 +1245,8 @@ def _citation_augmentation() -> DocumentationAugmentation:
             context_measurement_unit=DocumentationMeasurementUnit.TOKENS,
             context_measurement_limit=100,
             context_token_budget_used=True,
-            retrieved_chunk_count=1,
-            assembled_block_count=1,
+            retrieved_chunk_count=2,
+            assembled_block_count=2,
             identifier_subject_count=0,
             retrieval_covered_subject_count=0,
             retrieval_uncovered_subject_count=0,
@@ -1228,8 +1256,8 @@ def _citation_augmentation() -> DocumentationAugmentation:
             generation_allowed=True,
             retrieval_duration_ms=1.0,
         ),
-        document_count=1,
-        selected_chunk_count=1,
+        document_count=2,
+        selected_chunk_count=2,
         duration_ms=1.0,
     )
 
@@ -1238,6 +1266,53 @@ class CitingSession(Session):
     def __init__(self, request_id: str, answer: str) -> None:
         super().__init__(request_id, answer)
         self.documentation_augmentation = _citation_augmentation()
+
+    def events(self) -> Iterator[ConversationEvent]:
+        # P7-RW2-A (P7-CODEX-007): unlike the base `Session`, also yield a
+        # live RETRIEVAL event (same shape as the real `_retrieval_event()`
+        # in `conversation_generation.py`) so this double exercises the
+        # actual SSE `project_persistent_event()` projection path, not only
+        # the separate `documentation_augmentation`-attribute persistence
+        # path the base double already covered.
+        try:
+            self.event_thread_ids.append(threading.get_ident())
+            yield ConversationEvent(
+                event=ConversationEventType.START,
+                data={"request_id": self.request_id, "state": "generating"},
+            )
+            augmentation = self.documentation_augmentation
+            assert augmentation is not None
+            yield ConversationEvent(
+                event=ConversationEventType.RETRIEVAL,
+                data={
+                    "request_id": self.request_id,
+                    "state": augmentation.state.value,
+                    "citations": [
+                        citation.model_dump(mode="json") for citation in augmentation.citations
+                    ],
+                    "document_count": augmentation.document_count,
+                    "selected_chunk_count": augmentation.selected_chunk_count,
+                    "index_rebuilt": augmentation.index_rebuilt,
+                    "duration_ms": augmentation.duration_ms,
+                    "warnings": [],
+                },
+            )
+            yield ConversationEvent(
+                event=ConversationEventType.DELTA,
+                data={"request_id": self.request_id, "channel": "final", "text": "partial"},
+            )
+            yield ConversationEvent(
+                event=ConversationEventType.COMPLETED,
+                data={
+                    "request_id": self.request_id,
+                    "finish_reason": "stop",
+                    "assistant_message": {"role": "assistant", "content": self.answer},
+                    "context_usage": self.context_usage,
+                },
+            )
+        finally:
+            self.event_thread_ids.append(threading.get_ident())
+            self.finished = True
 
 
 class CitingGeneration(Generation):
@@ -1276,7 +1351,7 @@ async def test_citations_survive_reload_fetch(tmp_path: Path) -> None:
     async with client_for(app) as client:
         detail = await create(client, "citing-create")
         conversation_id = detail["conversation_id"]
-        await client.post(
+        streamed = await client.post(
             f"/api/v2/conversations/{conversation_id}/turns/stream",
             json={
                 "content": "question needing a citation",
@@ -1287,8 +1362,206 @@ async def test_citations_survive_reload_fetch(tmp_path: Path) -> None:
         )
         # A brand-new GET, as if the browser had reloaded with no live SSE Page Memory.
         reloaded = await client.get(f"/api/v2/conversations/{conversation_id}")
+    # P7-RW2-A (P7-CODEX-007): the live SSE `retrieval` event must project
+    # Chunk ID / Document Digest / Source Class losslessly, not only
+    # project_relative_path / heading_breadcrumb.
+    assert "event: retrieval" in streamed.text
+    assert f'"chunk_id":"{"d" * 128}"' in streamed.text
+    assert f'"document_sha512":"{"d" * 128}"' in streamed.text
+    assert f'"chunk_id":"{"e" * 128}"' in streamed.text
+    assert '"source_class":"documentation_rag_citation"' in streamed.text
+    assert '"source_class":"local_corpus"' in streamed.text
+    # P7-RW5-B/C (P7-CODEX-015/016): the Local Corpus Title/real storage
+    # Path must already be visible on the Live SSE `retrieval` event, not
+    # only after the reload below (Citations must never be delayed to
+    # Final Presentation).
+    assert '"document_title":"Probe Manual 7"' in streamed.text
+    assert (
+        '"storage_display_path":'
+        '"runtime_data/persistent/server-private-scope/local_corpus/documents.json"'
+        in streamed.text
+    )
     body = reloaded.json()
     assert body["turns"][0]["citations"]["available"] is True
-    assert body["turns"][0]["citations"]["citations"][0]["project_relative_path"] == (
-        "docs/public/overview_ja.md"
+    persisted = body["turns"][0]["citations"]["citations"]
+    assert persisted[0]["project_relative_path"] == "docs/public/overview_ja.md"
+    # The Persistent Detail (reload) projection must carry the same Chunk
+    # ID / Document Digest / Source Class fields as the live SSE event, so a
+    # reload never loses Citation Identity a live stream already showed.
+    assert persisted[0]["chunk_id"] == "d" * 128
+    assert persisted[0]["document_sha512"] == "d" * 128
+    assert persisted[0]["source_class"] == "documentation_rag_citation"
+    # Project Docs never gains a Title/storage_display_path (P7-RW5-B/C
+    # scope: only Local Corpus Citations ever populate these).
+    assert persisted[0]["document_title"] is None
+    assert persisted[0]["storage_display_path"] is None
+    assert persisted[1]["project_relative_path"] == "local-corpus/probe-7.md"
+    assert persisted[1]["chunk_id"] == "e" * 128
+    assert persisted[1]["document_sha512"] == "e" * 128
+    assert persisted[1]["source_class"] == "local_corpus"
+    assert persisted[1]["document_title"] == "Probe Manual 7"
+    assert (
+        persisted[1]["storage_display_path"]
+        == "runtime_data/persistent/server-private-scope/local_corpus/documents.json"
     )
+
+
+def _no_hit_augmentation() -> DocumentationAugmentation:
+    sha = "f" * 128
+    return DocumentationAugmentation(
+        state=DocumentationRetrievalState.ENABLED,
+        should_generate=True,
+        evidence=DocumentationEvidence(
+            query_digest=sha,
+            corpus_manifest_digest=sha,
+            retriever_key="bm25",
+            retriever_version="1",
+            base_prompt_unit=DocumentationMeasurementUnit.TOKENS,
+            context_budget=100,
+            context_budget_unit=DocumentationMeasurementUnit.TOKENS,
+            context_used=0,
+            context_measurement_unit=DocumentationMeasurementUnit.TOKENS,
+            context_measurement_limit=100,
+            context_token_budget_used=True,
+            retrieved_chunk_count=0,
+            assembled_block_count=0,
+            identifier_subject_count=0,
+            retrieval_covered_subject_count=0,
+            retrieval_uncovered_subject_count=0,
+            covered_subject_count=0,
+            uncovered_subject_count=0,
+            grounding_state=DocumentationGroundingState.NO_HIT,
+            generation_allowed=True,
+            retrieval_duration_ms=1.0,
+        ),
+        warnings=(
+            DocumentationWarning(
+                code="documentation_no_hit",
+                message="参照対象のDocsから対応する根拠を取得できませんでした。",
+            ),
+        ),
+        document_count=0,
+        selected_chunk_count=0,
+        duration_ms=1.0,
+    )
+
+
+class NoHitCitingSession(Session):
+    """P7-RW5-A (P7-CODEX-014): mirrors `CitingSession` above, but with a
+    real NO_HIT `DocumentationAugmentation` (zero Citations, one
+    `documentation_no_hit` Warning) - the exact Live shape a Local
+    Document delete/NO_HIT question actually produces."""
+
+    def __init__(self, request_id: str, answer: str) -> None:
+        super().__init__(request_id, answer)
+        self.documentation_augmentation = _no_hit_augmentation()
+
+    def events(self) -> Iterator[ConversationEvent]:
+        try:
+            self.event_thread_ids.append(threading.get_ident())
+            yield ConversationEvent(
+                event=ConversationEventType.START,
+                data={"request_id": self.request_id, "state": "generating"},
+            )
+            augmentation = self.documentation_augmentation
+            assert augmentation is not None
+            yield ConversationEvent(
+                event=ConversationEventType.RETRIEVAL,
+                data={
+                    "request_id": self.request_id,
+                    "state": augmentation.state.value,
+                    "citations": [
+                        citation.model_dump(mode="json") for citation in augmentation.citations
+                    ],
+                    "document_count": augmentation.document_count,
+                    "selected_chunk_count": augmentation.selected_chunk_count,
+                    "index_rebuilt": augmentation.index_rebuilt,
+                    "duration_ms": augmentation.duration_ms,
+                    "warnings": [
+                        warning.model_dump(mode="json") for warning in augmentation.warnings
+                    ],
+                },
+            )
+            yield ConversationEvent(
+                event=ConversationEventType.DELTA,
+                data={"request_id": self.request_id, "channel": "final", "text": "partial"},
+            )
+            yield ConversationEvent(
+                event=ConversationEventType.COMPLETED,
+                data={
+                    "request_id": self.request_id,
+                    "finish_reason": "stop",
+                    "assistant_message": {"role": "assistant", "content": self.answer},
+                    "context_usage": self.context_usage,
+                },
+            )
+        finally:
+            self.event_thread_ids.append(threading.get_ident())
+            self.finished = True
+
+
+class NoHitCitingGeneration(Generation):
+    def start(self, value: ConversationGenerationInput) -> NoHitCitingSession:
+        self.start_thread_ids.append(threading.get_ident())
+        self.calls.append(value)
+        self.active = NoHitCitingSession(f"request-{len(self.calls)}", f"no-hit-{len(self.calls)}")
+        return self.active
+
+
+@pytest.mark.asyncio
+async def test_no_hit_citation_survives_reload_fetch(tmp_path: Path) -> None:
+    """P7-RW5-A (P7-CODEX-014): unlike `test_citations_survive_reload_fetch`
+    above, this Turn's Citations are zero (NO_HIT) - before this Rework,
+    `build_turn_citation_evidence()` returned `None` for a zero-citation
+    Turn exactly like it does for RAG OFF, so the Persistent Detail (a
+    brand-new GET, as if the browser reloaded with no live SSE Page
+    Memory) silently dropped the NO_HIT display the live `retrieval` event
+    had already shown. This proves both ends stay consistent: the Live SSE
+    shows Citations 0 + the `documentation_no_hit` Warning, and the reload
+    reconstructs the identical NO_HIT evidence rather than losing it."""
+    store = SQLiteConversationStore(
+        runtime_data_root=tmp_path / "runtime-data",
+        bound_scope_id=SCOPE,
+    )
+    store.initialize_new_store()
+    generation = NoHitCitingGeneration()
+    service = PersistentConversationService(
+        repository=store,
+        bound_scope_id=SCOPE,
+        generation_service=generation,  # type: ignore[arg-type]
+    )
+    service.recover_incomplete_conversations()
+    runtime = WebRuntime(
+        conversation=cast(object, generation),  # type: ignore[arg-type]
+        snapshot=runtime_snapshot(),
+        close_callback=lambda: None,
+        persistent_conversation=service,
+    )
+    app = create_web_app(
+        runtime_factory=lambda: runtime,
+        access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+    )
+    async with client_for(app) as client:
+        detail = await create(client, "no-hit-create")
+        conversation_id = detail["conversation_id"]
+        streamed = await client.post(
+            f"/api/v2/conversations/{conversation_id}/turns/stream",
+            json={
+                "content": "question with no current grounds",
+                "settings": settings_payload(),
+                "operation_id": "no-hit-turn",
+                "expected_revision": detail["storage_revision"],
+            },
+        )
+        # A brand-new GET, as if the browser had reloaded with no live SSE Page Memory.
+        reloaded = await client.get(f"/api/v2/conversations/{conversation_id}")
+    assert "event: retrieval" in streamed.text
+    assert '"citations":[]' in streamed.text
+    assert '"code":"documentation_no_hit"' in streamed.text
+    body = reloaded.json()
+    turn_citations = body["turns"][0]["citations"]
+    # Before this fix, `available` would be missing/False here (the reload
+    # silently lost the NO_HIT evidence the live stream just showed).
+    assert turn_citations["available"] is True
+    assert turn_citations["citations"] == []
+    assert turn_citations["warning_codes"] == ["documentation_no_hit"]

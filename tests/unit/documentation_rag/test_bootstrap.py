@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from margpa_runtime_llm.adapters.documentation_rag import JsonFileLocalCorpusRegistry
 from margpa_runtime_llm.bootstrap.documentation_rag import (
     build_documentation_rag,
     build_local_documentation_rag,
@@ -15,6 +16,9 @@ from margpa_runtime_llm.modules.documentation_rag.contracts import (
     DocumentationGroundingState,
     DocumentationMeasurementUnit,
     DocumentationRagRequestContext,
+)
+from margpa_runtime_llm.modules.documentation_rag.local_corpus_contracts import (
+    LocalCorpusDocumentInput,
 )
 from margpa_runtime_llm.modules.inference.domain.errors import InferenceError
 
@@ -160,6 +164,83 @@ def test_deferred_model_counter_falls_back_then_uses_bound_exact_counter(
     assert exact_evidence["context_budget_unit"] == "tokens"
     assert exact_evidence["context_measurement_unit"] == "tokens"
     assert exact_evidence["context_measurement_limit"] == 768
+
+
+def test_local_corpus_registry_composes_alongside_the_fixed_project_corpus(
+    tmp_path: Path,
+) -> None:
+    project = tmp_path / "project"
+    docs_dir = project / "docs/project/current"
+    docs_dir.mkdir(parents=True)
+    (docs_dir / "project_ja.md").write_text("# Project概要\n\n本文です。\n", encoding="utf-8")
+    # `runtime_data` nested under `project_root` mirrors the real default
+    # (`entrypoints/web/main.py`'s `project_root / "runtime_data"`), so the
+    # storage_display_path assertion below matches the documented User
+    # Profile literal, not the outside-Project-Root fallback shape.
+    registry = JsonFileLocalCorpusRegistry(runtime_data_root=project / "runtime_data")
+    registry.register(LocalCorpusDocumentInput(title="研究メモ", content="Local Corpusの本文。"))
+    composition = build_local_documentation_rag(
+        project_root=project,
+        defaults_path=DEFAULTS,
+        feature_path=LOCAL_PROFILE,
+        local_corpus_registry=registry,
+    )
+
+    result = composition.orchestrator.augment_with_context(
+        "Local Corpusの本文",
+        DocumentationRagRequestContext(
+            effective_context_size=4096,
+            requested_max_new_tokens=512,
+            system_history_current_prompt_tokens=100,
+            prompt_token_count_exact=True,
+        ),
+    )
+
+    assert result.evidence.grounding_state is DocumentationGroundingState.GROUNDED_READY
+    local_blocks = [
+        block
+        for block in result.reference_blocks
+        if block.project_relative_path.startswith("local-corpus/")
+    ]
+    assert local_blocks
+    # P7-RW5-B/C: `build_local_documentation_rag()`'s own `project_root`
+    # threads all the way through to `LocalCorpusDocumentSource`, so the
+    # Title/real storage Path are populated end-to-end from the actual
+    # Composition Root wiring, not only in a lower-level unit test.
+    assert local_blocks[0].document_title == "研究メモ"
+    assert (
+        local_blocks[0].storage_display_path
+        == "runtime_data/persistent/default/local_corpus/documents.json"
+    )
+
+
+def test_without_a_local_corpus_registry_behavior_is_unchanged_from_phase_2(
+    tmp_path: Path,
+) -> None:
+    project = tmp_path / "project"
+    docs_dir = project / "docs/project/current"
+    docs_dir.mkdir(parents=True)
+    (docs_dir / "project_ja.md").write_text("# Project概要\n\n本文です。\n", encoding="utf-8")
+    composition = build_local_documentation_rag(
+        project_root=project,
+        defaults_path=DEFAULTS,
+        feature_path=LOCAL_PROFILE,
+    )
+
+    result = composition.orchestrator.augment_with_context(
+        "本文",
+        DocumentationRagRequestContext(
+            effective_context_size=4096,
+            requested_max_new_tokens=512,
+            system_history_current_prompt_tokens=100,
+            prompt_token_count_exact=True,
+        ),
+    )
+
+    assert all(
+        not block.project_relative_path.startswith("local-corpus/")
+        for block in result.reference_blocks
+    )
 
 
 def test_missing_exact_base_prompt_measurement_fails_closed_before_corpus_use(

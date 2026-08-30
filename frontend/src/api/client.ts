@@ -8,7 +8,13 @@ import type {
   GenerationSettings,
   GovernanceStatus,
   GuardrailGovernanceStatus,
+  DataControlPolicy,
+  LocalCorpusDocument,
+  LocalCorpusDocumentList,
+  LocalCorpusDocumentSummary,
   PersistentConversationDetail,
+  WebSearchActivation,
+  WebSearchResult,
   PersistentConversationPage,
   PersistentMutationResponse,
   PersistentRuntimeResponse,
@@ -426,6 +432,120 @@ export async function fetchGuardrailGovernanceStatus(): Promise<GuardrailGoverna
     throw new Error("guardrail_governance_status_unavailable");
   }
   return (await response.json()) as GuardrailGovernanceStatus;
+}
+
+export async function fetchLocalCorpusDocuments(): Promise<LocalCorpusDocumentList> {
+  const response = await fetch("/api/v2/local-corpus/documents", { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("local_corpus_unavailable");
+  }
+  return (await response.json()) as LocalCorpusDocumentList;
+}
+
+export async function fetchLocalCorpusDocument(documentId: string): Promise<LocalCorpusDocument> {
+  const response = await fetch(`/api/v2/local-corpus/documents/${encodeURIComponent(documentId)}`, {
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new Error("local_corpus_document_unavailable");
+  }
+  return (await response.json()) as LocalCorpusDocument;
+}
+
+export async function registerLocalCorpusDocument(
+  title: string,
+  content: string,
+): Promise<LocalCorpusDocument> {
+  const response = await fetch("/api/v2/local-corpus/documents", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title, content }),
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new ApiMutationError(await safeError(response, "local_corpus_register_failed"));
+  }
+  return (await response.json()) as LocalCorpusDocument;
+}
+
+export async function updateLocalCorpusDocument(
+  documentId: string,
+  title: string,
+  content: string,
+): Promise<LocalCorpusDocument> {
+  const response = await fetch(`/api/v2/local-corpus/documents/${encodeURIComponent(documentId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title, content }),
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new ApiMutationError(await safeError(response, "local_corpus_update_failed"));
+  }
+  return (await response.json()) as LocalCorpusDocument;
+}
+
+export async function deleteLocalCorpusDocument(
+  documentId: string,
+): Promise<LocalCorpusDocumentSummary> {
+  const response = await fetch(`/api/v2/local-corpus/documents/${encodeURIComponent(documentId)}`, {
+    method: "DELETE",
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new ApiMutationError(await safeError(response, "local_corpus_delete_failed"));
+  }
+  return (await response.json()) as LocalCorpusDocumentSummary;
+}
+
+export async function searchWeb(
+  query: string,
+  activation: WebSearchActivation,
+): Promise<WebSearchResult> {
+  const response = await fetch("/api/v2/web-search/search", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query, activation }),
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new ApiMutationError(await safeError(response, "web_search_failed"));
+  }
+  return (await response.json()) as WebSearchResult;
+}
+
+export async function fetchDataControlPolicy(): Promise<DataControlPolicy> {
+  const response = await fetch("/api/v2/data-controls/policy", { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("data_controls_unavailable");
+  }
+  return (await response.json()) as DataControlPolicy;
+}
+
+export async function updateDataControlConsent(
+  patch: Partial<DataControlPolicy["consent"]>,
+): Promise<DataControlPolicy> {
+  const response = await fetch("/api/v2/data-controls/consent", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(patch),
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new ApiMutationError(await safeError(response, "data_controls_update_failed"));
+  }
+  return (await response.json()) as DataControlPolicy;
+}
+
+export async function resetDataControlConsent(): Promise<DataControlPolicy> {
+  const response = await fetch("/api/v2/data-controls/reset", {
+    method: "POST",
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new ApiMutationError(await safeError(response, "data_controls_reset_failed"));
+  }
+  return (await response.json()) as DataControlPolicy;
 }
 
 export function newActionId(): string {

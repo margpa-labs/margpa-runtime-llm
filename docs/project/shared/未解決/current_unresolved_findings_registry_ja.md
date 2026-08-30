@@ -6,13 +6,13 @@ document_type: shared_stable_current_unresolved_findings_source
 document_state: current
 language: ja
 created_at: 2026-08-29 10:51:39 JST
-last_reclassified_at: 2026-08-29 17:01:17 JST
+last_reclassified_at: 2026-08-30 19:09:30 JST
 decision_authority: user
 authority_owner: Nazuna Research
 maintainer_role: プロジェクト責任者兼設計統括者役
 current_project_stage: individual_poc_mvp_portfolio
 current_delivery_target: phase_9_mvp_then_phase_10_portable_autonomous_development_governance_package
-history_snapshot: ../history/未解決/current_unresolved_findings_registry_snapshot_ja_20260829170117.md
+history_snapshot: ../history/未解決/phase_7_final_rag_context_and_ui_deferred_findings_snapshot_ja_20260830190930.md
 ```
 
 ## 1. 本書の役割
@@ -81,11 +81,11 @@ source_findings:
   - P6-CODEX-062_to_068
 status: known_user_manual_fail_deferred_by_user_override
 severity: major
-priority: P0_technical_deferred
+priority: P1_new_phase_10_reserved
 closure_blocker: false_by_explicit_user_override
 impact_scope: dedicated_judge_and_guard_provider_runtime
-deferral_target: post_phase_7_or_external_provider_rework_user_decision
-reopen_condition: configured_provider_is_reported_or_used_without_matching_active_and_executed_provider
+deferral_target: new_phase_10_governance_semantic_runtime_completion
+reopen_condition: new_phase_10_entry_or_configured_provider_is_reported_or_used_without_matching_active_and_executed_provider
 ```
 
 Selene／Qwen3Guardを選択した時、実際にLoad／Inferenceされるか、利用不能ならModeを有効化せずExact Failureへ収束する必要がある。`Active none`のままConfigured名をExecuted Evidenceへ記録してはならない。
@@ -100,11 +100,11 @@ source_findings:
   - P6-CODEX-057
 status: known_user_manual_fail_deferred_by_user_override
 severity: major
-priority: P0_technical_deferred
+priority: P1_new_phase_10_reserved
 closure_blocker: false_by_explicit_user_override
 impact_scope: main_runtime_governance_semantic_evaluation
-deferral_target: post_phase_7_or_external_provider_rework_user_decision
-reopen_condition: live_UI_remains_Deferred_109_or_selected_criteria_have_zero_evaluated_results
+deferral_target: new_phase_10_governance_semantic_runtime_completion
+reopen_condition: new_phase_10_entry_or_live_UI_remains_Deferred_109_or_selected_criteria_have_zero_evaluated_results
 ```
 
 MARGPAの中心であるGD Semantic RuleがCompile／Selected表示だけで実評価されない状態は、Phase 6の目的を満たさない。2026-08-29 User Manualでは109件全件が`Deferred（意味評価待ち）`のままで、Built-in Judgeは32件を全件`not_applicable`、77件を`deferred`、`evaluated=0`とした。Budgetで一部Deferredになることは許容するが、Budget内Criterionは実評価する。
@@ -118,11 +118,11 @@ source_findings:
   - P6-GOV-018
 status: known_user_manual_fail_deferred_by_user_override
 severity: major
-priority: P0_technical_deferred
+priority: P1_new_phase_10_reserved
 closure_blocker: false_by_explicit_user_override
 impact_scope: live_judge_repair_presentation
-deferral_target: post_phase_7_or_external_provider_rework_user_decision
-reopen_condition: obvious_evidence_contradiction_is_accepted_or_repair_path_cannot_complete_truthfully
+deferral_target: new_phase_10_governance_semantic_runtime_completion
+reopen_condition: new_phase_10_entry_or_obvious_evidence_contradiction_is_accepted_or_repair_path_cannot_complete_truthfully
 ```
 
 実画面でJudgeが誤答を自己承認する、選択していないProviderへ誤帰属する、Repairが成立しない、Failure時にRaw Candidateを不正に通す状態はPhase 6で閉じる。
@@ -136,11 +136,11 @@ Modelが全事実を正答することはAcceptanceにしない。検証不能�
 ```yaml
 status: user_gate_failed_known_debt_accepted_for_phase_progression
 severity: gate
-priority: P0_technical_deferred
+priority: P1_new_phase_10_reserved
 closure_blocker: false_by_explicit_user_override
 impact_scope: real_browser_real_runtime
-deferral_target: post_phase_7_or_external_provider_rework_user_decision
-reopen_condition: any_frozen_core_manual_scenario_fails
+deferral_target: new_phase_10_post_rework_user_manual_acceptance
+reopen_condition: new_phase_10_rework_complete_or_any_frozen_core_manual_scenario_is_retested
 ```
 
 Source／Fixture／TestだけでPhase 6 Closureへ昇格しない。Current Rework後、Userが実画面でProvider、Semantic、Judge／Repair、Recording、Stop、継続性を確認する。
@@ -235,7 +235,91 @@ Qwen／DeepSeekの誤答、DeepSeek Q8→Q4再量子化Caveat、Selene／Qwen3Gu
 
 病的反復が無限生成になる、Runtime Failureを成功表示する、選択Providerと実行Providerが異なる場合はP0へ戻す。
 
-## 6. Phase 9 Closure前へ延期したUI／Observability
+## 6. Phase 7 — Phase 11以降へ延期したExternal Web Findings
+
+### UF-P7-001 — 実Web Provider／Manual Grounding／Server OFF／Consent Enforcement
+
+```yaml
+source_findings:
+  - P7-CODEX-001
+  - P7-CODEX-002
+  - P7-CODEX-003
+  - P7-CODEX-004
+status: known_debt_deferred_by_explicit_user_decision
+severity: major
+priority: P1_phase_11_plus_reserved
+closure_blocker: false_for_phase_7_by_explicit_scope_reduction
+impact_scope: real_web_search_grounded_chat_network_consent
+deferral_target: phase_11_plus_governed_external_web_knowledge_runtime
+reopen_condition: phase_11_plus_entry_or_external_provider_enablement_authority
+```
+
+ClaudeのLocal Corpus、Web Security PortおよびData Controls基礎は保持する。ただしProduction WebはFixture固定で、Manual EvidenceはChat回答／Citationへ接続されず、Web検索OFFはFrontend Local State、外部送信Consentは実行経路へ未接続である。この技術状態は未解決のまま保持する。
+
+2026-08-29のUser Decisionにより、実Provider、External Network、Web-grounded Chat、一般URL Fetchおよび外部送信EnforcementはPhase 11以降へ延期した。Phase 7では実Web検索をClaimせず、External Provider `none`相当、Activation `disabled／OFF`相当、External Network Call 0を安全な境界とする。
+
+Phase 11以降では、Provider／Credential／Cost／Privacy／Consent／SSRF／Parser Isolation／Prompt Injection／Poisoning／Provenance／Citationを一体のExternal Knowledge Runtimeとして再開する。Public SearXNG Instanceその他の第三者Endpointを公開Demoの既定値へHard-codeしない。
+
+Controller Review正本：
+
+`docs/project/phases/phase_7/history/operations/phase_7_codex_controller_bounded_independent_review_adjust_ja_20260829215534.md`
+
+User Scope Reclassification正本：
+
+`docs/project/phases/phase_7/history/operations/phase_7_external_web_runtime_phase_11_plus_deferral_decision_ja_20260829222647.md`
+
+### UF-P7-002 — Fixture CallとOutbound Network CallのObservability分離
+
+```yaml
+source_finding: P7-CODEX-005
+status: known_debt_deferred_with_external_web_runtime
+severity: moderate
+priority: P2
+closure_blocker: false_independent
+impact_scope: web_search_observability
+deferral_target: phase_11_plus_governed_external_web_knowledge_runtime
+reopen_condition: external_web_runtime_observability_design_or_provider_enablement
+```
+
+`network_calls_made`がFixture Provider Callも実Networkとして数える。Phase 7ではFixtureを実Web成功とClaimせず、本件単独の追加Rework Loopは作らない。Phase 11以降のProvider実接続時に、`provider_calls_attempted`と`outbound_network_calls_attempted`を分離する。
+
+### UF-P7-003 — 削除／更新済みSource由来Factの過去Context再利用
+
+```yaml
+status: reproduced_and_deferred_after_phase_7_manual_pass
+severity: moderate_research_integrity
+priority: P1
+closure_blocker: false
+impact_scope: conversation_context_freshness_semantic_governance
+deferral_target: Phase_9_semantic_governance_judge_repair
+reopen_condition: phase_9_stale_fact_governance_design_or_old_fact_is_presented_despite_current_evidence
+```
+
+Local Corpus削除後、RAG OFFの同一Conversationでは過去Turnの`CEDAR-153`を再出力した。RAG ONでは
+Current CorpusがNO_HITとなり、根拠なし回答とNO_HIT Citationへ正しく収束した。従ってCurrent RAG Indexの
+残留ではなく、Historical Conversation Contextの再利用である。
+
+Phase 9では過去Citation／Revision／DigestとCurrent Source Lifecycleを比較し、削除／更新済みSource由来Factを
+`stale_evidence`としてSemantic GD、Judge、RepairおよびRejudgeへ接続する。RAG OFFの通常会話を過剰遮断せず、
+追跡可能なStale FactとFreshness-sensitive Questionへ限定する。
+
+### UF-P7-004 — Qwenの一時的な回答言語逸脱
+
+```yaml
+status: intermittent_model_quality_observation
+severity: model_quality
+priority: P2
+closure_blocker: false
+impact_scope: answer_language_adherence
+deferral_target: Phase_9_model_language_governance
+reopen_condition: repeated_wrong_language_output_or_configured_language_is_systematically_ignored
+```
+
+NO_HIT質問で一度ロシア語回答が生成されたが、同じ機能経路の再実行では日本語へ戻った。Phase 7 RAGの
+構造的不具合を示すEvidenceはなく、Qwenの一時的な言語遵守逸脱の可能性が高い。繰り返す場合は
+Configured Answer Language、Semantic JudgeおよびPresentation Boundaryで再評価する。
+
+## 7. Phase 9 Closure前へ延期したUI／Observability
 
 ### UF-UI-001 — Advanced Mode Layout／表示整理
 
@@ -305,6 +389,38 @@ reopen_condition: markdown_presentation_cleanup_start
 
 DeepSeek回答に含まれた`<ul><li>Mg²⁺</li></ul>`が期待するListとして表示されなかった。Raw HTMLを安全に許可するか、HTMLをTextとして扱いMarkdownへ変換するかをPresentation Policyと合わせて決める。Phase 6中心機能は止めない。
 
+### UF-UI-005 — Local Corpus Operation Message残留
+
+```yaml
+status: deferred_user_reproduced
+severity: trivial_ui
+priority: P2
+closure_blocker: false
+impact_scope: local_corpus_settings_feedback_message
+deferral_target: opportunistic_UI_cleanup_or_Phase_10_late_UI
+reopen_condition: local_corpus_settings_ui_cleanup
+```
+
+`Documentを更新しました。`および`Documentを削除しました。`が設定画面を閉じても消えない。CRUD、Data、
+CitationおよびPersistenceは正常であるためPhase 7 Closureを止めない。設定Close、次操作または適切なTTLで
+Message StateをResetする候補とする。
+
+### UF-UI-006 — Buffered回答のProgressive Presentation一般化
+
+```yaml
+status: deferred_user_reproduced
+severity: usability
+priority: P2
+closure_blocker: false
+impact_scope: no_hit_grounding_judge_repair_and_buffered_answer_presentation
+deferral_target: Phase_9_progressive_presentation
+reopen_condition: phase_9_streaming_and_enforce_presentation_work
+```
+
+NO_HIT等の一部経路が回答を一括表示する。UF-UI-003のENFORCEだけに限定せず、原則として回答生成、取得、
+検証、Repairおよび確定をBlock／State単位で段階表示し、単純な一括表示をDefault UXにしない。
+NO_HIT Citationは先に表示しても消さず、最終回答と共に保持する。
+
 ### UF-UI-002 — Context／Max New Tokens／Hardware Profile
 
 ```yaml
@@ -339,7 +455,7 @@ reopen_condition: phase_9_progressive_enforce_presentation_work
 
 Candidateを未検証の最終回答として見せず、生成中／確認中のProgressive表示を行い、検証後に確定、置換またはFallbackへ収束する。規定値はProgressive方式。単純な一括表示を最終UXにしない。
 
-## 7. Phase 10以降のHardening／条件付き課題
+## 8. Phase 10以降のHardening／条件付き課題
 
 ### UF-HARD-001 — Hardware自動検出とContext自動昇格
 
@@ -361,7 +477,7 @@ reopen_condition: productization_external_users_or_enterprise_deployment
 
 Hash Chain、WORM、完全Provenance、破損Manifest耐性、長期運用のRace網羅等は、PoC主経路を止めない限りこの区分へ送る。
 
-## 8. 2026-08-29 Phase 6 User Manual — Exact未解決Inventory
+## 9. 2026-08-29 Phase 6 User Manual — Exact未解決Inventory
 
 次はUser実画面で再現したまま、技術的には未解決である。Phase 7進行を選択したことによって解決済みへ変更しない。
 
@@ -396,7 +512,7 @@ PASS: Recording Request相関
 PASS: Stop後Cancelled、遅延回答／Evidence追加なし
 ```
 
-## 9. Update Rule
+## 10. Update Rule
 
 Findingを追加・変更する場合：
 
@@ -406,11 +522,23 @@ Findingを追加・変更する場合：
 4. 解決したFindingは削除せず、Statusを`resolved`へ変更し、Resolution Evidenceを示す。
 5. P0追加時は、再現経路、User影響、次Phaseへ送れない理由、最小修正Scope、概算Resource Costを必須とする。
 
-## 10. Current Immediate Decision
+## 11. Current Immediate Decision
 
 - 2026-08-29 User ManualによるPhase 6中心機能の`FAIL／ADJUST`は隠蔽せず保持する。
 - Userは影響を承知の上で、Selene、Qwen3Guard、Semantic 109、Judge／RepairのReworkを延期し、Phase 7へ進むことを明示決定した。
+- 2026-08-29、Userはこれらを新Phase 10の`Governance Semantic Runtime Completion Program`へ正式移管した。Phase 7〜9はGuardrailのBuilt-in Rule／Pattern BaseとJudgeのBuilt-in DeterministicまたはNone／OFFを暫定Baselineとする。
+- Dedicated Selene／Qwen3Guard、GD Semantic Live Evaluation、Judge／Repair Golden PathおよびMain Semantic ENFORCEは、解決済みとせず新Phase 10で再開する。
 - Phase 6を技術的完全または中心Acceptance PASSとは主張しない。
 - 指定された4件の小UI修正だけを完了し、新しいPhase 6 Hardening／機能Reworkを追加しない。
 - P1以下は本Registryを保持したままPhase 6 Closure可能とする。
 - 未解決0件や理論完全性はPhase 6 Closure条件ではない。
+- Phase 7のLocal Corpus、Data Controls基礎およびWeb Security Portは成立済みBaselineとして保持する。
+- 2026-08-29、Userは実Web Provider、External Network、Manual EvidenceのChat／Citation接続、Server Canonical OFF、外部送信Consent Enforcement、一般URL FetchおよびHostile-site処理をPhase 11以降へ延期した。
+- Phase 7はGeneral Web SearchまたはWeb-grounded Chatの完成を主張しない。FixtureはTest／Research Scaffold、External Providerは`none`相当、Activationは`disabled／OFF`相当、External Network Callは0として扱う。
+- P7-CODEX-001〜005は解決済みにせず、Phase 11以降の`Governed External Web Knowledge Runtime`で再開する既知Debtへ再分類する。
+- 2026-08-30 User ManualでLocal Corpus CRUD、Current Retrieval、Revision更新、削除後NO_HIT、Citation Identity／Copy、Reload／Restart／別Tab、Project Docs CitationおよびData ControlsがPASSした。
+- 削除済みFactのRAG OFF再出力はCurrent Retrieval残留ではなくConversation Context再利用であり、UF-P7-003としてPhase 9へ送る。
+- 一時的なロシア語出力、Operation Message残留およびBuffered一括表示はUF-P7-004／UF-UI-005／UF-UI-006として記録し、Phase 7 Closureを止めない。
+- Phase 7 MVPはUser Manual Acceptance PASSとしてFormal Closure可能である。
+- Phase 7 Closure前に、Docs、UI Claim、Acceptance Dispositionおよび未解決Registryが実Web未実装を正直に表現していることを確認する。
+- Automatic Trigger、Enterprise Hardening、汎用Attachment、Phase 6 Debtまたは実WebProvider選定をPhase 7へ再混入させない。

@@ -463,3 +463,36 @@ def test_rag_off_commit_writes_zero_citation_rows(tmp_path: Path) -> None:
     with sqlite3.connect(store.database_path) as connection:
         count = connection.execute("SELECT COUNT(*) FROM turn_citations").fetchone()[0]
     assert count == 0
+
+
+def test_pre_source_class_citation_record_still_decodes_with_default(tmp_path: Path) -> None:
+    """P7-RW2-A (P7-CODEX-007): a record written before `DocumentationCitation.
+    source_class` existed must still decode, filling the same default
+    `DOCUMENTATION_RAG_CITATION_SOURCE_CLASS` the field itself defaults to.
+    """
+
+    store = _store(tmp_path)
+    store.commit(
+        CommitConversation(
+            scope_id=_scope(),
+            operation_id=ConversationOperationId(value="op-1"),
+            conversation=_completed_snapshot(),
+            citation_evidence=_citation_evidence(),
+        )
+    )
+    with sqlite3.connect(store.database_path) as connection:
+        row = connection.execute("SELECT citations_json FROM turn_citations").fetchone()
+        envelope = json.loads(bytes(row[0]).decode("utf-8"))
+        del envelope["citation_evidence"]["citations"][0]["source_class"]
+        payload = json.dumps(
+            envelope, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")
+        digest = hashlib.sha512(payload).hexdigest()
+        connection.execute(
+            "UPDATE turn_citations SET citations_json = ?, citations_sha512 = ?",
+            (payload, digest),
+        )
+    result = store.get_turn_citations("conversation-1", "turn-1")
+    assert isinstance(result, PersistedTurnCitationEvidence)
+    assert result.citations[0].source_class == "documentation_rag_citation"
+    assert result.citations[0].chunk_id == _SHA

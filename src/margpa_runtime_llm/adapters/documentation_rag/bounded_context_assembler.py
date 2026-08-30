@@ -114,6 +114,9 @@ class BoundedDocumentationContextAssembler:
                     content=content,
                     measured_size=self._measure(rendered, token_counter),
                     measurement_unit=measurement_unit,
+                    source_class=selected.chunk.corpus_source_class,
+                    document_title=selected.chunk.document_title,
+                    storage_display_path=selected.chunk.storage_display_path,
                 )
             )
             rendered_blocks.append(rendered)

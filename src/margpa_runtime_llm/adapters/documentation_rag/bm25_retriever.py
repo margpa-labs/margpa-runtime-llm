@@ -116,6 +116,23 @@ class Bm25DocumentationRetriever:
         analysis = self._query_analyzer.analyze(query.query_text)
         if not analysis.weighted_terms:
             return RetrievalResult(query_digest=query.query_digest)
+        # P7-RW2-B (P7-CODEX-008), tightened P7-RW3-B (P7-CODEX-013): every
+        # generic Latin/numeric/path token the query names (not only the
+        # stricter `subject_identifiers`) - used below to keep the top-k
+        # backfill from adding a chunk that shares too few of them. P7-RW2-B
+        # only required *any* single token to overlap, which is exactly how
+        # a Phase 1 doc sharing nothing but the single word "Nazuna" got
+        # backfilled for a "Nazuna Probe Orion" query - a real word from the
+        # query, but only one of three, with none of the query's actual
+        # distinguishing terms. P7-RW3-B requires at least half the query's
+        # identifier-like tokens to be present instead of just one, closing
+        # that partial-overlap false-grounding gap while still admitting an
+        # ordinary two-token compound name or a plain-English question whose
+        # matching chunk only literally repeats half its Latin words (e.g.
+        # a "Runtime Governance" heading answering "What is Runtime
+        # Governance?" - a 4-token query where "what"/"is" never appear in
+        # the doc's own prose).
+        identifier_tokens = frozenset(analysis.identifier_tokens)
         query_terms = dict(analysis.weighted_terms)
         normalized_query = analysis.normalized_query
         body_df = dict(index.body_document_frequency)
@@ -224,6 +241,22 @@ class Bm25DocumentationRetriever:
                 continue
             relative = item.chunk.project_relative_path
             if per_document[relative] >= query.max_chunks_per_document:
+                continue
+            # P7-RW2-B (P7-CODEX-008) / P7-RW3-B (P7-CODEX-013): a query
+            # that names specific identifier-like terms (e.g. a proper-noun
+            # probe name) must not have this generic top-k backfill pad it
+            # out with a chunk that shares too few of them - such a chunk
+            # only scored via generic prose overlap, not real relevance to
+            # what was asked, and citing it as if it were supporting
+            # evidence is exactly the false-grounding failure this fix
+            # closes. Requiring at least half (not just one) closes the
+            # partial-overlap gap a single shared word left open. A query
+            # with no identifier-like terms at all is unaffected
+            # (identifier_tokens is empty, so this never filters ordinary
+            # topical search).
+            if identifier_tokens and 2 * len(identifier_tokens & _term_keys(item)) < len(
+                identifier_tokens
+            ):
                 continue
             selected_rows.append((score, components, item))
             selected_chunk_ids.add(item.chunk.chunk_id)
@@ -338,3 +371,11 @@ class Bm25DocumentationRetriever:
 def _average(values: Iterable[int]) -> float:
     materialized = tuple(values)
     return sum(materialized) / len(materialized) if materialized else 0.0
+
+
+def _term_keys(item: IndexedChunk) -> frozenset[str]:
+    return frozenset(
+        term
+        for terms in (item.body_terms, item.heading_terms, item.path_terms)
+        for term, _ in terms
+    )

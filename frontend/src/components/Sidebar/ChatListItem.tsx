@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { translate } from "../../i18n/translations";
 import type { PersistentConversationSummary, UiLanguage } from "../../types";
 
-export type ChatListAction = "resume" | "archive" | "unarchive" | "delete";
+export type ChatListAction = "archive" | "unarchive" | "delete";
 
 interface ChatListItemProps {
   language: UiLanguage;
@@ -136,18 +136,6 @@ export default function ChatListItem({
         </button>
         {menuOpen ? (
           <div className="chat-list-item-menu" role="menu">
-            {item.state === "active" && !item.has_active_session ? (
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  setMenuOpen(false);
-                  onAction(item.conversation_id, "resume");
-                }}
-              >
-                {translate(language, "persistentResume")}
-              </button>
-            ) : null}
             <button
               type="button"
               role="menuitem"

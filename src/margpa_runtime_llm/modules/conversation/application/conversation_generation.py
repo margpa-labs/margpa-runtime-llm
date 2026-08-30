@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import threading
 import time
 from collections.abc import Callable, Generator, Iterator
@@ -15,10 +16,12 @@ from uuid import uuid4
 from margpa_runtime_llm.modules.documentation_rag.contracts import (
     DOCUMENTATION_RAG_CITATION_SOURCE_CLASS,
     DocumentationAugmentation,
+    DocumentationGroundingState,
     DocumentationMeasurementUnit,
     DocumentationRagAvailability,
     DocumentationRagMode,
     DocumentationRagRequestContext,
+    DocumentationRetrievalState,
 )
 from margpa_runtime_llm.modules.documentation_rag.ports import (
     ContextualRagOrchestratorPort,
@@ -309,6 +312,21 @@ def _context_source_items(
     return ()
 
 
+def _splice_before_final_user_message(
+    messages: tuple[ChatMessage, ...],
+    insertion: ChatMessage,
+) -> tuple[ChatMessage, ...]:
+    """P7-RW3-C (P7-CODEX-012): insert `insertion` immediately before the
+    conversation's last message, never after `SYSTEM`/at index 0.
+    `ConversationGenerationInput`'s own validator guarantees the final
+    message of a real Turn always carries the User role, so this always
+    lands the Current Reference/NO_HIT Notice right before the Current
+    User Message, after every Historical Turn - never before them."""
+    if not messages:
+        return (insertion,)
+    return (*messages[:-1], insertion, messages[-1])
+
+
 @dataclass(frozen=True, slots=True)
 class _CombinedStreamSummary:
     detection_count: int
@@ -436,6 +454,105 @@ class ConversationInference(Protocol):
 ChatPromptTokenCounter = Callable[[tuple[ChatMessage, ...], ThinkingMode], int]
 TextTokenCounter = Callable[[str], int]
 DOCUMENTATION_REFERENCE_MESSAGE_NAME = "documentation_reference"
+# P7-RW2-B (P7-CODEX-008): NO_HIT deliberately allows ungrounded general
+# generation (contracts.py's `DocumentationEvidence` validator) so ordinary
+# chit-chat/general-knowledge Turns are never blocked just because RAG found
+# nothing. But a NO_HIT Turn still carries the full literal conversation
+# History, which may include an earlier Turn's own now-stale answer about
+# something the current Corpus no longer supports (a Local Document since
+# updated/deleted). Unlike the grounded `REFERENCE_INSTRUCTION` path, NO_HIT
+# never spliced in any instruction at all before this - this closes that gap
+# with a short, un-budgeted notice (not part of `AssembledDocumentationContext`
+# / `context_budget`, so it never interacts with the RAG reference's own
+# token/character budget).
+DOCUMENTATION_NO_HIT_NOTICE_MESSAGE_NAME = "documentation_no_hit_notice"
+NO_HIT_FRESHNESS_INSTRUCTION = (
+    "現在のProject Docs検索では、この質問に対応する根拠が見つかりませんでした。\n"
+    "この会話の過去のAssistant回答が、この話題について具体的な値や事実を"
+    "述べていたとしても、それは現在のCorpusで再確認できていません。"
+    "現在の根拠なしに、それを現在の事実として断定しないでください。\n"
+    "該当する現在の根拠が見つからないことを、正直に伝えてください。"
+)
+
+# P7-RW3-C (P7-CODEX-012): appended around `augmentation.reference_message`
+# only at splice time, in `_inject_documentation_reference()` below - never
+# inside `bounded_context_assembler.py`'s own `REFERENCE_INSTRUCTION`, whose
+# exact length several existing tests calibrate tight token/character
+# budgets against (P7-RW2-B Recovery). This is a second, independent,
+# un-budgeted instruction, the same pattern `NO_HIT_FRESHNESS_INSTRUCTION`
+# above already established for the NO_HIT case.
+CURRENT_EVIDENCE_AUTHORITY_INSTRUCTION = (
+    "この参照内容は、今回のTurnにおけるCurrent Corpus Snapshotです。\n"
+    "過去のAssistant回答がこの参照内容と矛盾する場合は、この参照内容を優先してください。\n"
+    "この参照内容に存在しない過去のCode・値を再利用しないでください。\n"
+    "回答内で使用する固有のCode・Identifierは、この参照内容に実在するものだけを"
+    "使用してください。"
+)
+
+# P7-RW3-C (P7-CODEX-012): a generic "word characters + hyphen/underscore +
+# digits" shape (e.g. `CEDAR-9847`) - not a project-specific allowlist (see
+# `test_production_query_analysis_has_no_project_subject_allowlist`'s
+# sibling discipline in the RAG adapter). Used only by
+# `_unsupported_candidate_identifiers()` below to catch a Candidate citing a
+# Code-shaped Identifier the Current Evidence never actually contains.
+_CODE_IDENTIFIER_PATTERN = re.compile(r"[A-Za-z][A-Za-z0-9]*[-_][A-Za-z0-9]*[0-9][A-Za-z0-9]*")
+
+GROUNDING_CONSISTENCY_WARNING_CODE = "grounding_consistency_safe_fallback"
+
+
+# P7-RW3-B (P7-CODEX-013 §7.3, "Deterministic Identifier NO_HIT"): a query
+# naming a high-signal Identifier/Subject (`evidence.identifier_subject_
+# count`, the same strict signal `subject_identifiers` already computes)
+# with zero Current Corpus Evidence converges to this fixed Presentation
+# *before* any Inference Call - never handed to the Main Model's own
+# General Knowledge or Conversation History to answer from, which is
+# exactly how a plausible-looking but fabricated value could slip out.
+# Deliberately does NOT touch `DocumentationEvidence`'s existing, widely-
+# relied-on schema invariant that NO_HIT always carries `generation_
+# allowed=True` (`contracts.py`'s own Pydantic validator) - that invariant
+# is left exactly as every other Phase already built on it; this is a
+# purely additive, `conversation_generation.py`-local Presentation
+# decision made *after* reading `evidence.identifier_subject_count`, one
+# of the two Handoff-sanctioned §7.3 outcomes ("Inference Call前に固定の
+# Presentationへ収束する").  Ordinary chit-chat/general-knowledge NO_HIT
+# (`identifier_subject_count == 0`) is entirely unaffected and keeps
+# calling the Main Model exactly as `NO_HIT_FRESHNESS_INSTRUCTION` above
+# already does.
+IDENTIFIER_NO_HIT_DENIED_PRESENTATION_JA = (
+    "質問で指定された固有の対象について、現在のProject Docs Corpusに根拠が"
+    "見つかりませんでした。過去の回答やModelの一般知識から、それらしい値を"
+    "推測して答えることはできません。"
+)
+IDENTIFIER_NO_HIT_DENIED_PRESENTATION_EN = (
+    "No current grounds were found in the Project Docs corpus for the specific subject "
+    "named in the question. It cannot be answered by guessing a plausible-looking value "
+    "from past answers or general knowledge."
+)
+
+
+def _identifier_no_hit_denied_presentation(language: ResponseLanguage) -> str:
+    if language is ResponseLanguage.JA:
+        return IDENTIFIER_NO_HIT_DENIED_PRESENTATION_JA
+    return IDENTIFIER_NO_HIT_DENIED_PRESENTATION_EN
+
+
+def _grounding_consistency_safe_fallback(language: ResponseLanguage) -> str:
+    """The one Safe Grounding Failure text substituted for a Grounded RAG
+    Turn's Candidate when it names a Code-shaped Identifier the Current
+    Evidence does not contain (P7-CODEX-012's `CEDAR-9847` failure) -
+    converges the Turn to an honest "no confirmed grounds" presentation
+    instead of a retry, independent of Judge Mode."""
+    if language is ResponseLanguage.JA:
+        return (
+            "現在のProject Docs Referenceで確認できない固有のCode・値が回答に含まれていた"
+            "ため、その内容の表示を保留しました。現在のCorpusでは、この質問に対応する"
+            "確実な根拠を確認できませんでした。"
+        )
+    return (
+        "The answer was withheld because it named a specific code or value that the "
+        "current Project Docs reference does not confirm. The current corpus does not "
+        "provide confirmed grounds for this question."
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -617,6 +734,9 @@ class ConversationGenerationSession:
                         retryable=False,
                     )
                     return
+                if self._identifier_no_hit_denied(augmentation):
+                    yield self._identifier_no_hit_denied_event(augmentation)
+                    return
                 context_source_stop = self._guardrail_context_source_check(augmentation)
                 if context_source_stop is not None:
                     yield context_source_stop
@@ -664,6 +784,151 @@ class ConversationGenerationSession:
             self._finished.set()
             self._release()
 
+    def _identifier_no_hit_denied(self, augmentation: DocumentationAugmentation) -> bool:
+        """P7-RW3-B (P7-CODEX-013 §7.3): NO_HIT with a named high-signal
+        Subject and zero Current Corpus Evidence. Read directly off
+        `evidence.identifier_subject_count` (already computed, already
+        exposed) - no new Subject-detection heuristic, and no change to
+        `DocumentationEvidence`'s existing NO_HIT schema invariant."""
+        return (
+            augmentation.evidence.grounding_state is DocumentationGroundingState.NO_HIT
+            and augmentation.evidence.identifier_subject_count > 0
+        )
+
+    def _identifier_no_hit_denied_event(
+        self, augmentation: DocumentationAugmentation
+    ) -> ConversationEvent:
+        """The fixed pre-Inference-Call Presentation itself - constructs a
+        real terminal COMPLETED Event (never an ERROR Event: this is a
+        genuine, honest answer to the User's question, not a system
+        failure) without ever calling `self._inference.stream()`. Mirrors
+        `_completed_event()`'s `documentation_retrieval`/`assistant_
+        message` shape so downstream consumers see the same Event Contract
+        as any other completed Turn."""
+        # `self._request` is never built for this path (the Documentation
+        # Request Factory below it in `events()` is skipped entirely), so
+        # `_effective_response_language()` (which reads `self._request`)
+        # cannot be reused here - resolved directly from this Turn's own
+        # Query text instead, the same source `_effective_response_
+        # language()` itself falls back to via `self._request.messages`.
+        language = resolve_effective_response_language(
+            language=self._response_language, user_input=self._documentation_query or ""
+        )
+        self._terminal_status = "completed"
+        data: dict[str, object] = {
+            "request_id": self.request_id,
+            "finish_reason": "stop",
+            "assistant_message": {
+                "role": "assistant",
+                "content": _identifier_no_hit_denied_presentation(language),
+            },
+            "usage": None,
+            "context_usage": None,
+            "documentation_retrieval": {
+                "state": augmentation.state.value,
+                "citations": [
+                    citation.model_dump(mode="json") for citation in augmentation.citations
+                ],
+                "index_rebuilt": augmentation.index_rebuilt,
+                "warnings": [warning.model_dump(mode="json") for warning in augmentation.warnings],
+            },
+        }
+        return ConversationEvent(event=ConversationEventType.COMPLETED, data=data)
+
+    def _grounded_rag_turn(self) -> bool:
+        """P7-RW3-C (P7-CODEX-012): exactly the `GROUNDED_READY` case - the
+        `DocumentationAugmentation` validator only ever populates
+        `reference_message` for `GROUNDED_READY` (never for
+        `SUBJECT_COVERAGE_INSUFFICIENT`, which exposes `citations` but
+        withholds the Model-facing reference itself, nor for
+        NO_HIT/CONTEXT_INSUFFICIENT/UNAVAILABLE)."""
+        augmentation = self._documentation_augmentation
+        return augmentation is not None and augmentation.reference_message is not None
+
+    def _no_hit_rag_turn(self) -> bool:
+        """P7-RW4 (P7-CODEX-013's remaining path): a RAG Turn whose Current
+        Grounding State is NO_HIT - zero Current Corpus Evidence (this
+        covers both ordinary chit-chat NO_HIT and a named-Subject NO_HIT
+        that `_identifier_no_hit_denied()` above did not already deny
+        pre-Inference, e.g. a compound Subject like `Nazuna Probe Orion`
+        whose individual words are not `identifier_subject_count`
+        high-signal). `_grounded_evidence_text()` is empty for this state
+        (`_context_source_items()` returns `()` for both `reference_blocks`
+        and `reference_message` on NO_HIT), so `_unsupported_candidate_
+        identifiers()` below already treats *any* Code-shaped Identifier
+        the Candidate names as unsupported - reused unchanged, no new
+        Subject/Identifier-detection heuristic added."""
+        augmentation = self._documentation_augmentation
+        return (
+            augmentation is not None
+            and augmentation.evidence.grounding_state is DocumentationGroundingState.NO_HIT
+        )
+
+    def _grounded_evidence_text(self) -> str:
+        augmentation = self._documentation_augmentation
+        if augmentation is None:
+            return ""
+        return "\n".join(item.content for item in _context_source_items(augmentation))
+
+    def _unsupported_candidate_identifiers(self, candidate_text: str) -> tuple[str, ...]:
+        """The existing Tokenizer/Identifier judgment this reuses is the
+        same generic "Code-shaped Identifier" concept the RAG adapter
+        already applies (`identifier_subject_tokens()`'s digit/separator
+        signal) - re-expressed here as a small, local, adapter-free regex
+        so this Application-layer module gains no new dependency on the
+        `adapters/documentation_rag/` layer."""
+        evidence = self._grounded_evidence_text().casefold()
+        found = {match.group(0) for match in _CODE_IDENTIFIER_PATTERN.finditer(candidate_text)}
+        return tuple(
+            sorted(identifier for identifier in found if identifier.casefold() not in evidence)
+        )
+
+    def _finalize_grounded_presentation(
+        self, result: _StageResult
+    ) -> tuple[_StageResult, ConversationEvent | None]:
+        """P7-RW3-C (P7-CODEX-012) + P7-RW4 (P7-CODEX-013's remaining
+        path): a Grounded RAG Turn's or a NO_HIT RAG Turn's Candidate must
+        never be presented if it names a Code-shaped Identifier the
+        Current Evidence does not actually contain - the exact
+        `CEDAR-9847` failure from the User Mac Manual Probe, where the
+        Model preferred a stale value from its own Conversation History
+        over the freshly-retrieved Current Reference (P7-RW3-C fixed this
+        for GROUNDED_READY; P7-RW4 closes the identical failure for
+        NO_HIT, e.g. right after the source Document was deleted). This
+        Bounded Consistency Check runs unconditionally for every such
+        Turn, independent of Judge Mode (`judge_mode` may be "off"). On
+        failure it substitutes an honest Safe Grounding Failure message
+        rather than a retry - one of the two Handoff-sanctioned
+        outcomes, chosen for determinism and to avoid a second Model Call
+        per Turn."""
+        if result.cancelled or result.guardrail_stream_rejected:
+            return result, None
+        if not (self._grounded_rag_turn() or self._no_hit_rag_turn()):
+            return result, None
+        if not self._unsupported_candidate_identifiers(result.final_content):
+            return result, None
+        fallback = _grounding_consistency_safe_fallback(self._effective_response_language())
+        replaced = _StageResult(
+            finish_reason=result.finish_reason,
+            usage=result.usage,
+            final_content=fallback,
+            display_content=fallback,
+            parse_status=result.parse_status,
+            warnings=result.warnings,
+            cancelled=result.cancelled,
+            guardrail_stream_rejected=result.guardrail_stream_rejected,
+            guardrail_stream_reason_code=result.guardrail_stream_reason_code,
+        )
+        warning_event = ConversationEvent(
+            event=ConversationEventType.WARNING,
+            data={
+                "request_id": self.request_id,
+                "code": GROUNDING_CONSISTENCY_WARNING_CODE,
+                "message": fallback,
+            },
+        )
+        return replaced, warning_event
+
     def _events_without_summary(self) -> Generator[ConversationEvent, None, None]:
         assert self._request is not None
         yield self._status_event(state="guarding")
@@ -678,12 +943,23 @@ class ConversationGenerationSession:
                 event=ConversationEventType.STATUS,
                 data={"request_id": self.request_id, "state": "generating"},
             )
+        # P7-RW3-C: a Grounded RAG Turn is buffered so its Candidate must
+        # clear `_finalize_grounded_presentation()` below before the
+        # client ever sees any of it. P7-RW4 (P7-CODEX-013's remaining
+        # path): a NO_HIT RAG Turn is buffered the same way - it must not
+        # stream a Candidate that turns out to name a stale Code-shaped
+        # Identifier (e.g. right after the source Document was deleted)
+        # before the Consistency Check has had a chance to withhold it.
+        buffered_rag_turn = self._grounded_rag_turn() or self._no_hit_rag_turn()
         result = yield from self._run_stage(
             request=self._request,
             presentation=self._presentation.start_stream(self._presentation_policy),
             # ENFORCE must not stream an unjudged Candidate and then try to
             # retract it. OFF/OBSERVE preserve the byte-identical live path.
-            emit_deltas=self._judge_mode != "enforce",
+            # A Grounded or NO_HIT RAG Turn is buffered the same way, so a
+            # Consistency Check failure is never a post-hoc retraction of
+            # already-streamed text.
+            emit_deltas=self._judge_mode != "enforce" and not buffered_rag_turn,
         )
         if result.cancelled:
             yield self._cancelled_event()
@@ -695,12 +971,16 @@ class ConversationGenerationSession:
                 retryable=False,
             )
             return
+        result, grounding_warning = self._finalize_grounded_presentation(result)
+        if grounding_warning is not None:
+            yield grounding_warning
         yield from self._warning_events(result.warnings)
         yield from self._terminal_events(
             presented=result,
             original=result,
             summary=None,
             include_summary_metadata=False,
+            force_bulk_emit=buffered_rag_turn,
         )
 
     def _events_with_summary(self) -> Generator[ConversationEvent, None, None]:
@@ -758,11 +1038,14 @@ class ConversationGenerationSession:
             return
 
         assert summary is not None
+        summary, grounding_warning = self._finalize_grounded_presentation(summary)
         if self._judge_mode != "enforce":
             yield self._delta_event(
                 summary.final_content,
                 channel=ConversationDeltaChannel.FINAL,
             )
+        if grounding_warning is not None:
+            yield grounding_warning
         yield from self._warning_events(original.warnings)
         yield from self._terminal_events(
             presented=summary,
@@ -976,11 +1259,14 @@ class ConversationGenerationSession:
         self,
         original: _StageResult,
     ) -> Generator[ConversationEvent, None, None]:
+        original, grounding_warning = self._finalize_grounded_presentation(original)
         if original.final_content and self._judge_mode != "enforce":
             yield self._delta_event(
                 original.final_content,
                 channel=ConversationDeltaChannel.FINAL,
             )
+        if grounding_warning is not None:
+            yield grounding_warning
         yield from self._warning_events(original.warnings)
         yield ConversationEvent(
             event=ConversationEventType.WARNING,
@@ -1057,6 +1343,7 @@ class ConversationGenerationSession:
         original: _StageResult,
         summary: _StageResult | None,
         include_summary_metadata: bool,
+        force_bulk_emit: bool = False,
     ) -> Generator[ConversationEvent, None, None]:
         terminal = self._completed_event(
             presented=presented,
@@ -1064,7 +1351,9 @@ class ConversationGenerationSession:
             summary=summary,
             include_summary_metadata=include_summary_metadata,
         )
-        if self._judge_mode == "enforce" and terminal.event is ConversationEventType.COMPLETED:
+        if (
+            self._judge_mode == "enforce" or force_bulk_emit
+        ) and terminal.event is ConversationEventType.COMPLETED:
             assistant = terminal.data.get("assistant_message")
             final_content = assistant.get("content") if isinstance(assistant, dict) else None
             if isinstance(final_content, str) and final_content:
@@ -2101,27 +2390,49 @@ class ConversationGenerationService:
         never hard-coded independent of that Domain-level Class (item 3:
         the exact same typed `_ContextSourceItem` tuple the Guardrail
         check judged is what decides the Role here, not a second,
-        independent guess). Placed *before* every real conversation
-        message, so `LlamaCppChatTemplate._append_soft_switch()`'s
-        backward walk for "the last `MessageRole.USER` message" still
-        finds the genuine final User turn, unaffected either way since
-        `TOOL != USER`."""
+        independent guess). Placed immediately before the current, final
+        User message (P7-RW3-C, P7-CODEX-012 - previously placed right
+        after `SYSTEM`/at index 0, i.e. *before* all History; a Model was
+        observed to prefer a nearer, later-positioned stale Historical
+        Assistant Turn over a Reference placed that far back).
+        `ConversationGenerationInput`'s own validator guarantees
+        `messages[-1]` is always the current User turn, so
+        `_splice_before_final_user_message()` below never needs to guess
+        which message that is. `LlamaCppChatTemplate._append_soft_switch()`'s
+        backward walk for "the last `MessageRole.USER` message" is
+        unaffected either way, since `TOOL != USER`."""
 
-        if augmentation is None or augmentation.reference_message is None:
+        if augmentation is None:
             return messages
-        sources = _context_source_items(augmentation)
-        source_class = (
-            sources[0].source_class if sources else _DOCUMENTATION_RAG_LEGACY_FLAT_SOURCE_CLASS
-        )
-        role = _PROMPT_ROLE_BY_SOURCE_CLASS.get(source_class, MessageRole.TOOL)
-        reference = ChatMessage(
-            role=role,
-            content=augmentation.reference_message,
-            name=DOCUMENTATION_REFERENCE_MESSAGE_NAME,
-        )
-        if messages and messages[0].role is MessageRole.SYSTEM:
-            return (messages[0], reference, *messages[1:])
-        return (reference, *messages)
+        if augmentation.reference_message is not None:
+            sources = _context_source_items(augmentation)
+            source_class = (
+                sources[0].source_class if sources else _DOCUMENTATION_RAG_LEGACY_FLAT_SOURCE_CLASS
+            )
+            role = _PROMPT_ROLE_BY_SOURCE_CLASS.get(source_class, MessageRole.TOOL)
+            reference = ChatMessage(
+                role=role,
+                content=(
+                    f"{CURRENT_EVIDENCE_AUTHORITY_INSTRUCTION}\n\n{augmentation.reference_message}"
+                ),
+                name=DOCUMENTATION_REFERENCE_MESSAGE_NAME,
+            )
+            return _splice_before_final_user_message(messages, reference)
+        # P7-RW2-B (P7-CODEX-008): NO_HIT never carries a `reference_message`
+        # (see `NO_HIT_FRESHNESS_INSTRUCTION` above for why this notice
+        # exists) - a distinct, un-budgeted `TOOL` message, spliced in the
+        # exact same position a real reference block would occupy.
+        if (
+            augmentation.state is DocumentationRetrievalState.ENABLED
+            and augmentation.evidence.grounding_state is DocumentationGroundingState.NO_HIT
+        ):
+            notice = ChatMessage(
+                role=MessageRole.TOOL,
+                content=NO_HIT_FRESHNESS_INSTRUCTION,
+                name=DOCUMENTATION_NO_HIT_NOTICE_MESSAGE_NAME,
+            )
+            return _splice_before_final_user_message(messages, notice)
+        return messages
 
     @staticmethod
     def _inject_expressive_style_notice(

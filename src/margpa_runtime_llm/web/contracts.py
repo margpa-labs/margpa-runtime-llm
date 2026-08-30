@@ -10,7 +10,11 @@ from pydantic import Field, field_validator
 from margpa_runtime_llm.modules.configuration_control import ConfigurationControlService
 from margpa_runtime_llm.modules.conversation.application import PersistentConversationService
 from margpa_runtime_llm.modules.conversation.public import ConversationGenerationService
+from margpa_runtime_llm.modules.data_controls.ports import DataControlConsentStorePort
 from margpa_runtime_llm.modules.documentation_rag.contracts import DocumentationRagMode
+from margpa_runtime_llm.modules.documentation_rag.local_corpus_ports import (
+    LocalCorpusRegistryPort,
+)
 from margpa_runtime_llm.modules.evaluation.application.judge_mode_controller import (
     JudgeModeController,
 )
@@ -33,6 +37,8 @@ from margpa_runtime_llm.modules.runtime_observability.application.recording_mode
     RecordingModeController,
 )
 from margpa_runtime_llm.modules.summarization.public import SummaryMode
+from margpa_runtime_llm.modules.web_knowledge.application import WebKnowledgeService
+from margpa_runtime_llm.modules.web_knowledge.contracts import WebEvidenceGovernanceMode
 
 if TYPE_CHECKING:
     # Import-time only: `bootstrap/` composes `web/`, not the reverse.
@@ -113,6 +119,10 @@ class WebRuntime:
     judge_evidence_recording_composition: "RecordingCompositionState | None" = None
     request_correlation_registry: "RequestCorrelationRegistry | None" = None
     tracked_stage_registry: "TrackedStageWorkerRegistry | None" = None
+    local_corpus_registry: LocalCorpusRegistryPort | None = None
+    web_knowledge_service: WebKnowledgeService | None = None
+    web_search_governance_mode: WebEvidenceGovernanceMode = WebEvidenceGovernanceMode.OFF
+    data_controls_store: DataControlConsentStorePort | None = None
     _close_lock: threading.Lock = field(default_factory=threading.Lock, init=False, repr=False)
     _closed: bool = field(default=False, init=False, repr=False)
 
