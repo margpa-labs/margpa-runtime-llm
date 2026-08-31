@@ -6,13 +6,13 @@ document_type: shared_stable_current_unresolved_findings_source
 document_state: current
 language: ja
 created_at: 2026-08-29 10:51:39 JST
-last_reclassified_at: 2026-08-30 19:09:30 JST
+last_reclassified_at: 2026-08-31 21:32:32 JST
 decision_authority: user
 authority_owner: Nazuna Research
 maintainer_role: プロジェクト責任者兼設計統括者役
 current_project_stage: individual_poc_mvp_portfolio
 current_delivery_target: phase_9_mvp_then_phase_10_portable_autonomous_development_governance_package
-history_snapshot: ../history/未解決/phase_7_final_rag_context_and_ui_deferred_findings_snapshot_ja_20260830190930.md
+history_snapshot: ../history/未解決/phase_8_final_closure_and_phase_9_ready_unresolved_snapshot_ja_20260831213232.md
 ```
 
 ## 1. 本書の役割
@@ -319,7 +319,492 @@ NO_HIT質問で一度ロシア語回答が生成されたが、同じ機能経�
 構造的不具合を示すEvidenceはなく、Qwenの一時的な言語遵守逸脱の可能性が高い。繰り返す場合は
 Configured Answer Language、Semantic JudgeおよびPresentation Boundaryで再評価する。
 
-## 7. Phase 9 Closure前へ延期したUI／Observability
+### UF-P7-005 — Identifier質問に対する無関係Project DocsのFalse-positive Grounding
+
+```yaml
+status: reproduced_during_phase_8_final_manual_regression
+severity: moderate_research_integrity
+priority: P1
+closure_blocker: false_for_phase_8
+impact_scope: local_RAG_retrieval_relevance_and_grounded_synthesis
+deferral_target: Phase_9_semantic_governance_judge_repair
+reopen_condition: phase_9_false_positive_grounding_design_or_unrelated_project_docs_are_presented_as_current_evidence
+```
+
+Local Corpus `TEST 11`を削除した後の新規Chatで、削除済みFact `3475`および削除済みLocal Corpus Citationは
+再出力されなかった。一方、Query中の`Local Corpus`、`TEST`、`11`等の一般語に反応し、無関係なProject Docs
+3件をCitationとして取得して、質問へ関係のない内容から回答を組み立てようとした。
+
+これはUF-P7-003の「削除済みFactを過去Contextから再利用する問題」とは別である。Current Local Corpus削除と
+Citation Freshnessは成立しているが、Retrieval RelevanceがNO_HITへ収束せず、False-positive Evidenceを
+`GROUNDED_READY`相当として扱うSemantic／Grounding課題である。Phase 9でQuery-Source関連度、Identifier一致、
+Evidence Sufficiency、Judge／RepairおよびStrict NO_HIT候補を統合して扱う。
+
+## 7. Phase 8 — Controller Review後の未解決
+
+### UF-P8-004 — Constitution PreviewのAction Permission／Violation Presentation欠落
+
+```yaml
+source_finding: P8-CODEX-012
+status: resolved_P8_RW7_controller_targeted_review_pass
+severity: major
+priority: resolved_former_P0
+closure_blocker: false
+impact_scope: constitution_three_mode_preview_and_P8_ACC_021
+deferral_target: none
+reopen_condition: preview_loses_three_axis_semantics_or_misrepresents_active_runtime_authority
+minimum_fix_scope: preview_contract_projection_UI_tests_only
+estimated_resource_cost: one_short_bounded_rework_cycle
+resolution_evidence: docs/project/phases/phase_8/history/operations/phase_8_codex_controller_constitution_preview_semantics_single_targeted_re_review_ja_20260831072057.md
+```
+
+P8-RW7は`evaluation_disposition`、`action_permission`、`violation_presentation`をBackend Contract、REST Projection、
+日本語／英語UIへ損失なく追加した。Current Manifestの未対応Ruleは`typed_unsupported`、適用RuleのないViewは
+`not_evaluated`として表示し、Production Active ModeはOFF固定のまま維持する。
+
+2026-08-31のCodex Controller Targeted ReviewでP8-CODEX-012をRESOLVED、P8-ACC-021をPASSと判定した。
+Production Activation、Runtime Enforcement、GD接続または新Rule Engineは追加していない。
+
+### UF-P8-003 — Completion GateがFrozen EnvelopeのGate Reasonsへ現れない
+
+```yaml
+source_finding: P8-CODEX-011
+status: resolved_P8_MR9_user_final_manual_pass
+severity: major_governance_truthfulness
+priority: resolved_former_P0
+closure_blocker: false
+impact_scope: dev_agent_completion_approval_gate_reason_presentation
+deferral_target: none_for_current_micro_rework
+reopen_condition: awaiting_completion_approval_displays_non_completion_gate_reason
+```
+
+`important_gate_only` RunはRuntime上`awaiting_completion_approval`で正しく停止し、Typed Completion Approval Evidenceの
+Contract上のGate Reasonも`completion`である。P8-MR9前は実画面がCompletion承認時にもRun EnvelopeのTool Gate Reasonを
+参照し、`Gate Reason: external_write`と表示していた。
+
+P8-MR9後のUser実画面で、Tool Gateは`external_write`、Completion Gateは`completion`、最終Runは`completed`として
+正しく分離表示されることを確認した。
+
+### UF-P8-001 — 最終Tool成功後のRun Completion Transition／Manual差
+
+```yaml
+source_finding: P8-CODEX-009
+status: resolved_by_explicit_completion_gate_and_user_manual
+severity: medium_usability_and_manual_alignment
+priority: P1
+closure_blocker: false
+impact_scope: dev_agent_run_completion_ui_and_user_manual
+deferral_target: none
+reopen_condition: completion_transition_again_becomes_ambiguous_or_bypasses_completion_approval
+```
+
+Completion Gate導入後、最後のTool成功から`awaiting_completion_approval`へ遷移し、Userが`completion`を承認した後に
+`completed`へ収束するFlowを実画面で確認した。Tool Gateの`external_write`とCompletion Gateの`completion`も分離表示される。
+従って旧「追加Advanceの意味が不明」というFindingは解消し、明示的なCompletion Approval TransitionをCurrent Baselineとする。
+
+### UF-P8-002 — Manual URL Conversation Testの実DNS依存
+
+```yaml
+source_finding: P8-CODEX-010
+status: resolved_P8_MR7_MR8_controller_verified
+severity: medium_verification_reproducibility
+priority: P2
+closure_blocker: false
+impact_scope: manual_URL_conversation_test_isolation
+deferral_target: opportunistic_test_hermeticity_or_phase_10_full_docs_and_validation
+reopen_condition: canonical_test_must_run_under_network_restricted_environment_or_runtime_behavior_differs_from_fixture_environment
+```
+
+Manual URLのMain Model注入を確認するConversation Test 3件だけがSafe DNS Stubを持たず、Network制限環境では
+`socket.getaddrinfo()`が`dns_resolution_failed`となりFailする。Claude実行環境では全SuiteがPASSしており、Product Runtimeの
+Direct URL Fetch不成立を示すEvidenceではないが、`Network Authority 0で再現可能なCanonical Verification`というClaimは維持できない。
+
+これはTest Isolation／再現性Debtであり、PoCのUser主経路、Evidence PersistenceまたはRuntime Security Boundaryを直接壊さない。
+今回のBlocker限定Reworkでは修正せず、Acceptance上はP8-ACC-039をPASSへ捏造しない。将来修正時はTest内だけでSafe Public DNS
+ResultをStubし、Production Validation Pathを迂回しない。
+
+**P8-MR7-1 (P8-CODEX-013) Addressed**：`url_security.validate_url_before_connect()`へ
+Constructor-level `resolver`（`WebKnowledgeService`／`HttpxWebFetchProvider`双方）を追加し、`tests/unit/conversation/
+test_conversation_generation.py`の`_web_knowledge_service()`が実DNSを要求していた根本原因（このFinding自体が指す3 Test含む、
+Controllerが2026-08-31 13:48実測した4 Test）を解消した。本Package実行環境での`uv run pytest -q`Full Suite実測は
+`2186 passed, 7 deselected`（Deselectedは`model_smoke`のみ、DNS関連Failureは0件）——ただしこの実測はClaude実行環境のもので
+あり、`reopen_condition`が要求する「Network制限環境での再現」はCodex Controller自身の次回実行でのみ確定できる。Controllerの
+再実行でもDNS関連Failure 0件、P8-MR8後のBackend Full 2191件PASSをControllerが確認したため解決済みへ更新した。
+
+### UF-P8-005 — Public Direct URL安定取得とFetch失敗後の非Grounded回答
+
+```yaml
+source_finding: phase_8_user_mac_manual_web_segment_1
+status: resolved_minimum_MVP_path_P8_MR8_and_user_manual
+severity: major
+priority: resolved_former_P0
+closure_blocker: false
+impact_scope: manual_public_URL_fetch_and_current_turn_grounding
+deferral_target: none_for_supported_UTF8_public_pages
+reopen_condition: ordinary_public_URL_fetch_failure_or_fetch_zero_turn_generates_page_claims
+minimum_fix_scope: bounded_retry_public_address_fallback_exact_failure_projection_fail_closed_grounding
+estimated_resource_cost: small_to_medium_bounded_rework
+```
+
+P8-MR0〜MR8後のUser Mac再確認で、`https://example.org/`とHololive公式Pageの取得、本文抽出、Chat注入、Citation、
+Reload／Restart復元が成立した。Hololive公式Pageは5回以上取得でき、Expressive Mode、Context Usage、両方有効の全条件で
+Model回答へ接続した。Loopbackは`private_or_loopback_address`へ拒否され、取得失敗TurnはModel独自の人物説明を生成せず、
+Typed Safe Failureへ収束した。
+
+Manual URL Readerの中心Purposeは、Userが明示したURLを有界に取得し、成功したEvidenceだけをCurrent Turnへ渡すことである。
+一時的なDNS／Connect失敗を即Permanent Rejectionへ扱うこと、またはFetch 0でもPage由来Factを生成することは中心経路へ影響する。
+
+Bounded Retry、Injected Resolver、Exact Failure Reason、Evidence-only TurnのFail-closed GroundingおよびFinal Prompt-aware
+BudgetをSource／Test／実画面で確認した。任意Charset Site互換は本件へ混ぜず、UF-P8-012へ分離する。
+
+正本Evidence：
+
+`docs/project/phases/phase_8/history/operations/phase_8_manual_web_direct_url_reliability_grounding_and_context_budget_findings_ja_20260831112449.md`
+
+### UF-P8-006 — Raw HTML丸ごと注入によるContext Budget Failure
+
+```yaml
+source_finding: phase_8_user_mac_manual_web_segment_1_hololive_raw_HTML
+status: minimum_MVP_resolved_full_ingestion_hardening_reserved
+severity: major_usability_for_large_pages
+priority: P1
+closure_blocker: false_by_current_user_reservation
+impact_scope: web_content_normalization_and_main_model_context_budget
+deferral_target: phase_11_governed_web_ingestion_with_optional_phase_8_typed_failure
+reopen_condition: manual_URL_rework_scope_includes_extraction_or_large_page_must_be_supported
+```
+
+初回実画面ではHololive公式Pageの約8.9万文字のRaw WordPress HTMLを8192 Contextへそのまま注入し、
+`入力がModelのContext上限を超えました。`へ失敗した。P8-MR0〜MR8は最小HTML本文抽出、Character Cap、Final Prompt-aware
+Token BudgetおよびTyped `content_budget_exceeded`を実装し、再確認では通常条件で5回以上成功、余地がない条件だけが
+明示的なContext Budget警告へ収束した。
+
+Phase 8の最小MVP経路は解決済みとする。Readability、Chunking、Relevance Selection、Hostile Content処理等の
+Full Extractor／NormalizerはPhase 11以降へ維持する。
+
+### UF-P8-007 — Web Fetch Specific Failure ReasonのChat投影消失
+
+```yaml
+source_finding: phase_8_user_mac_manual_web_segment_1_url_rejected_projection
+status: resolved_P8_MR7_MR8_and_user_reload_restart_recheck
+severity: moderate_observability
+priority: P1
+closure_blocker: false_standalone_fix_with_UF_P8_005
+impact_scope: live_SSE_persistence_reload_restart_and_web_evidence_UI
+deferral_target: same_bounded_rework_as_UF_P8_005
+reopen_condition: Chat_displays_only_aggregate_url_rejected
+```
+
+P8-MR7までにAggregate／Specific ReasonをLive／Persistenceへ追加し、UserはAbe Hiroshi Siteの
+`content_type_unsupported`とSafe FailureがReload／Server Restart後も同じTurnへ保持されることを確認した。
+Model Call 0のUI可視化は別のObservability課題UF-P8-011へ分離する。
+
+### UF-UI-007 — 通常Composer URL貼付と専用Manual URL欄のUX差
+
+```yaml
+status: reserved_user_scope_difference
+severity: usability_scope
+priority: P2
+closure_blocker: false
+impact_scope: message_composer_manual_URL_evidence_entry
+deferral_target: phase_10_right_panel_or_phase_11_web_UI
+reopen_condition: web_evidence_UI_redesign_start
+```
+
+Userが想定した最終UXは通常Message入力へURLを貼り、そのTurnで取得する方式である。Current実装は専用Manual URL欄を使う。
+Reliability／Grounding修正とは分離し、Phase 10右Panel／Citation UIまたはPhase 11 Governed Web Runtimeで扱う。
+
+### UF-P8-008 — Archive Sidebar／Panel State非同期
+
+```yaml
+source_finding: phase_8_user_mac_manual_segments_2_to_5
+status: resolved_P8_MR_and_user_manual_pass
+severity: major_feature_semantics
+priority: resolved_former_P0
+closure_blocker: false
+impact_scope: archive_sidebar_data_controls_state_synchronization
+deferral_target: none_for_minimum_archive_management
+reopen_condition: archived_chat_remains_in_active_sidebar_or_archive_panel_requires_browser_reload
+minimum_fix_scope: active_only_sidebar_archive_show_hide_refetch_unarchive_sync
+estimated_resource_cost: one_short_frontend_dominant_rework
+```
+
+Archive／Unarchive／Open／Resume不要は成立したが、Archive後もChatがSidebarへ残り、Archive一覧は
+Settings Reopenで再Fetchされない。SidebarはActiveだけ、Archive PanelはArchivedだけを表示し、相互遷移後に
+即時同期する。Show／Close／Refetchも必須。
+
+P8-MR後の実画面で、Archive後のSidebar除外、Archive一覧だけへの保持、Open、Close、Unarchive、Sidebar復帰、
+Resume不要、Settings再表示時の更新およびBranch UI既定非表示をPASSした。
+
+### UF-P8-009 — Web Citation必須Metadata／Actual Title欠落
+
+```yaml
+source_finding: phase_8_user_mac_manual_segments_2_to_5
+status: resolved_P8_MR_and_user_manual_pass
+severity: major_traceability_truthfulness
+priority: resolved_former_P0
+closure_blocker: false
+impact_scope: web_evidence_live_persistence_reload_restart_UI
+deferral_target: none_for_required_P8_metadata
+reopen_condition: citation_omits_fetched_at_content_type_or_canonical_identity
+minimum_fix_scope: contract_projection_persistence_UI_actual_title_copy_label_tests
+estimated_resource_cost: small_to_medium_bounded_rework
+```
+
+Current Chat CitationはPublic Web／URL／Digest／Untrusted Labelを表示するが、P8-REQ-007のFetched At／Content Typeが欠け、
+Canonical URLとCopy Labelも不明確である。TitleはHTML `<title>`ではなくURLとなる。Requested／Canonical URL、
+Transformation、Source Authorityの有無をContractどおり投影し、P8-ACC-010をLive／Reload／Restartで再導出する。
+
+P8-MR後の実画面で、Public Web、実Title、Canonical URL、Source Authority、Fetched At、Content Type、Transformation、
+Document Digest、Untrusted LabelおよびCopyを確認し、Reload／Server Restart後も同じEvidenceを復元した。
+
+### UF-P8-010 — Dev Agentの非追跡Memory Fixture／Blind Approval
+
+```yaml
+source_finding: phase_8_user_mac_manual_segments_2_to_5
+status: resolved_P8_MR_and_user_real_file_manual_pass
+severity: major_approval_and_evidence
+priority: resolved_former_P0
+closure_blocker: false
+impact_scope: dev_agent_tool_result_approval_evidence_and_fixture_workspace
+deferral_target: none_for_phase_8_foundation
+reopen_condition: user_cannot_see_exact_action_input_output_or_persisted_fixture_result
+minimum_fix_scope: runtime_data_fixed_workspace_path_safety_UI_input_output_digest_restart_tests
+estimated_resource_cost: small_to_medium_bounded_rework
+```
+
+Current Demo RunはStep State／Gate／Cancelを表示するが、List／Read／WriteのInput／Output／Target／Contentを表示せず、
+WriteはProcess Memoryだけに残る。Userは追跡不能なApprovalを拒否した。Configured `runtime_data/persistent/<scope>/dev_agent/`
+内の固定`fixture_workspace`だけを扱う実File Toolへ限定変更し、Path／Content／Overwrite／Result／Digest／Run／Stepを表示・保存する。
+Project File、任意User File、Network、Real MCPへAuthorityを拡張しない。
+
+P8-MR後の実画面ではConfigured Runtime Data Root配下の実File Workspaceを使用し、`notes/readme.md`、
+`notes/todo.md`、`notes/new.md`の実在を確認した。UIはList／Read／WriteのInput／Output／Digest／Overwrite／Written At、
+Resource Scope、Tool Gateを表示し、`awaiting_approval`→`awaiting_completion_approval`→`completed`と遷移した。
+Project SourceやNetworkへは接触していない。Completion Gateの表示ReasonだけはUF-P8-003として再Openした。
+
+### UF-UI-008 — Archive Dedicated Manage Modal／Settings過密
+
+```yaml
+status: reserved_user_requested_UI_redesign
+severity: usability
+priority: P2
+closure_blocker: false
+impact_scope: data_controls_archive_management_information_architecture
+deferral_target: phase_10_right_panel_and_settings_UI
+reopen_condition: phase_10_UI_reorganization
+```
+
+Current Phase 8ではShow／Close／Refresh／State同期だけを直す。ChatGPT参考画像のような`管理する`専用Modal、
+Table Layout、完全削除の将来UXはPhase 10へ送る。完全削除自体は未実装のまま保つ。
+
+### UF-UI-009 — Constitution Preview Mode／Decision同一行
+
+```yaml
+status: resolved_P8_MR_and_user_manual_pass
+severity: minor_to_moderate_readability
+priority: P1
+closure_blocker: false_standalone_but_fix_in_current_rework
+impact_scope: constitution_preview_readability
+deferral_target: current_phase_8_bounded_rework
+reopen_condition: mode_name_and_decision_remain_on_same_line
+```
+
+Constitution SemanticsはPASSしたが、OFF／OBSERVE／ENFORCEとDecisionが同一行にある。Mode名の次行から
+Decision／評価区分／Action許可／違反時表示を1行ずつ配置する。Backend Semanticsは変更しない。
+
+P8-MR後の実画面で、OFF／OBSERVE／ENFORCE Headerと4比較行の改行を確認した。
+
+### UF-UI-010 — Dev Agent Action Button Contrast
+
+```yaml
+status: resolved_primary_danger_controls_with_one_new_minor_exception
+severity: accessibility_and_operability
+priority: P1
+closure_blocker: false_standalone_but_fix_in_current_rework
+impact_scope: dev_agent_approval_advance_cancel_controls
+deferral_target: current_phase_8_bounded_rework
+reopen_condition: action_button_text_is_not_readable_in_light_or_dark_theme
+```
+
+Approval／Deny／Advance／Cancel ButtonはBackgroundとTextが白系でほぼ読めない。Primary／Secondary／Dangerの役割を与え、
+Light／Dark両Themeで読めるContrastにする。
+
+主要なApproval／Deny／Advance／Cancelは実画面で判読可能となった。Completed後の`新しいDemo Runを開始`だけが
+他の関連Buttonと色不統一であるため、新規UF-UI-013として分離した。
+
+### UF-P8-011 — Fail-closed Grounding時のMain Model Call 0をUIから確認できない
+
+```yaml
+status: open_user_reproduced_observability_gap
+severity: moderate_research_observability
+priority: P2
+closure_blocker: false
+impact_scope: manual_web_failure_inference_call_observability
+deferral_target: Phase_9_observability_or_context_governance_trace_UI
+reopen_condition: phase_9_observability_design_or_research_requires_live_model_call_count
+```
+
+Counting Fakeを使うBackend Testは、Manual URL取得失敗時にMain Model Call 0を証明している。しかしCurrent実画面は
+赤いFailureまたはSafe Failure Presentationだけを示し、UserがModel Call 0を直接確認する欄を持たない。
+Research Platformとしては、Provider Call／Main Model Call／Judge／Repair／Tool CallをTurn単位で区別して確認できる価値が高い。
+Phase 8 Closureは止めず、Phase 9 ObservabilityでExecution Traceへ追加する。
+
+### UF-P8-012 — Shift_JIS／x-sjis Pageを`content_type_unsupported`へ分類する
+
+```yaml
+status: open_user_reproduced_charset_compatibility_gap
+severity: moderate_web_compatibility_and_failure_taxonomy
+priority: P1
+closure_blocker: false_for_phase_8_UTF8_MVP
+impact_scope: manual_URL_charset_decode_and_exact_failure_reason
+deferral_target: Phase_11_governed_web_ingestion
+reopen_condition: charset_aware_fetch_normalizer_or_general_public_web_support
+```
+
+`https://abehiroshi.la.coocan.jp/`は3 Chatで同じ`content_type_unsupported`へ収束した。Source確認ではCurrent Fetch Adapterが
+UTF-8 Decodeを前提とし、同SiteのShift_JIS／x-sjisをDecodeできない場合も`content_type_unsupported`へ分類する。
+Security拒否やRetry失敗ではなくCharset互換とFailure Taxonomyの問題である。Phase 8のUTF-8 Public Page MVPは成立しているため、
+Charset検出、明示Decode、NormalizerおよびTyped `charset_unsupported／decode_failed`はPhase 11へ送る。
+
+### UF-UI-011 — 過去Web Failure警告がCurrent Composerへ残留する
+
+```yaml
+status: resolved_P8_MR9_user_final_manual_pass
+severity: major_current_state_truthfulness
+priority: resolved_former_P0
+closure_blocker: false
+impact_scope: composer_current_web_failure_presentation
+deferral_target: none_for_current_micro_rework
+reopen_condition: chat_switch_new_chat_or_successful_next_turn_keeps_old_web_failure_warning
+```
+
+Manual URL取得失敗後の警告が、Chat切替、新規Chatおよび後続Turnの状態と無関係にCurrent Composerへ残り続けた。
+Historical Failure Turn自体は保持すべきだが、別Chat／別TurnのCurrent Composer Stateとして表示してはならない。
+Chat切替、新規Chatおよび成功した次Turnで警告を消し、同じ失敗TurnのHistorical Evidenceは変更しない。
+
+P8-MR9はSource調査で新規Chat／成功Turnが既に正しかったことを確認し、Chat切替だけのReset漏れを修正した。
+UserはAbe Hiroshi SiteのFailure経路を使い、過去警告がCurrent Composerへ残らないことを実画面でPASSした。
+
+### UF-UI-012 — `Untrusted External Content`の文字色不統一
+
+```yaml
+status: resolved_user_accepted_semantic_warning_color
+severity: minor_UI_semantic_consistency
+priority: resolved_by_user_visual_acceptance
+closure_blocker: false_standalone_but_fix_in_current_rework
+impact_scope: web_citation_untrusted_label_readability
+deferral_target: current_phase_8_micro_rework
+reopen_condition: untrusted_label_uses_unintended_text_color
+```
+
+Web Evidence Card内で`Untrusted External Content（信頼できない外部Content）`だけが周囲のMetadataと異なる文字色だった。
+P8-MR9は既存`--gauge-warn`注意色を明示適用した。Controllerは一度、周囲と同色でないこととLight Themeの数値Contrastを理由に
+再調整を提案したが、UserがWhite／Dark実画面を直接確認し、強調表示として「むしろよい」と判断した。
+
+従って、色差は不統一BugではなくUntrustedを識別する意図的Semantic Emphasisとして採用する。Controller再調整案と
+後続Micro HandoffはUser DecisionによりSuperseded／Not Authorizedとする。
+
+### UF-UI-013 — `新しいDemo Runを開始`だけButton色が異なる
+
+```yaml
+status: resolved_P8_MR9_user_final_manual_pass
+severity: minor_UI_consistency
+priority: resolved_former_P1
+closure_blocker: false_standalone_but_fix_in_current_rework
+impact_scope: dev_agent_completed_state_restart_action
+deferral_target: current_phase_8_micro_rework
+reopen_condition: completed_run_restart_button_differs_from_equivalent_primary_action
+```
+
+主要なDev Agent Button Contrastは解決したが、Run Completed後の`新しいDemo Runを開始`だけが他のPrimary Actionと異なる。
+既存Primary Styleを再利用して統一し、新しいButton Systemは作らない。
+
+P8-MR9後のUser実画面で、`新しいDemo Runを開始`がPrimary Button色へ統一されたことを確認した。
+
+### UF-UI-014 — Settings Manual URL結果がClose／Reopen後も残る
+
+```yaml
+status: open_deferred_UI_state_cleanup
+severity: minor_usability
+priority: P2
+closure_blocker: false
+impact_scope: settings_manual_URL_result_lifecycle
+deferral_target: Phase_10_settings_and_right_panel_UI
+reopen_condition: settings_web_panel_state_cleanup_or_right_panel_migration
+```
+
+SettingsのManual URL取得結果はSettingsを閉じて開き直しても残る。取得履歴の永続機能ではなくCurrent Utility Stateであり、
+最終UIではClear／Close／Historyの意味を定義する必要がある。今回の4件Reworkには含めずPhase 10 UIへ送る。
+
+### UF-UI-015 — Manual URL成功／失敗CardのTitle／URL表示不統一
+
+```yaml
+status: open_deferred_UI_consistency
+severity: minor_usability
+priority: P2
+closure_blocker: false
+impact_scope: settings_manual_URL_result_card_presentation
+deferral_target: Phase_10_settings_and_right_panel_UI
+reopen_condition: web_evidence_result_card_redesign
+```
+
+成功Cardは実TitleとURLを表示する一方、失敗CardはURLをTitle位置とURL位置へ重複表示し、Authorityも`unknown`となる。
+Failure Reason自体は正直に表示できているためPhase 8 Closureは止めず、Phase 10のWeb Evidence／右Panel整理で扱う。
+
+### UF-P8-013 — Dev Agent Capability選択がServer Restart後もONのまま
+
+```yaml
+status: open_user_reproduced_restart_state_followup
+severity: minor_to_moderate_state_expectation
+priority: P2
+closure_blocker: false
+impact_scope: dev_agent_capability_selection_restart_semantics
+deferral_target: Phase_9_agent_harness_or_Phase_10_settings_state_policy
+reopen_condition: dev_agent_capability_state_policy_design_or_default_restart_behavior_review
+```
+
+Server Restart後もSettingsの`Chat／Dev Agent`選択がDev Agent ONのまま復元された。Current Capability自体はFoundationであり、
+任意Project File／Network Authorityは持たないため即時Safety Blockerではない。ただしCapability選択をUser Preferenceとして
+永続化するか、Process RestartごとにChatへ戻すか、将来のLevel 1以降でApproval Profileと連動させるかを明示決定していない。
+Phase 9 Agent HarnessまたはPhase 10 Settings State Policyで扱う。
+
+### UF-P8-014 — Per-purpose ConsentがServer Restart後もONのまま
+
+```yaml
+status: open_user_reproduced_policy_ambiguity
+severity: moderate_privacy_and_state_semantics
+priority: P1
+closure_blocker: false_for_current_no_general_provider_MVP
+impact_scope: data_controls_consent_persistence_and_restart_defaults
+deferral_target: Phase_10_data_controls_policy_and_UI
+reopen_condition: consent_persistence_policy_review_or_real_external_provider_activation
+```
+
+UserがONへ保存した4つのPer-purpose ConsentはServer Restart後もONのまま復元された。一方、UIは`Default is all OFF`と表示する。
+Phase 7 Manualでは個別Consentの保存とReload後PersistenceをPASSしており、単純にRestartでOFFへ戻すと既存要件と衝突する。
+
+従って本件は、`初回Default OFF`、`User保存Preference`、`Process Restart`、`Session Consent`、`外部Provider Activation時の再確認`
+を分離するPolicy課題として保持する。実Keyword Search Providerは未接続であるためPhase 8 Closureは止めない。Phase 10で
+永続Consentを維持するか、外部送信ConsentだけをSession-bound／再確認必須にするか決定する。
+
+### UF-UI-016 — English Data ControlsでRetention本文が日本語のまま
+
+```yaml
+status: open_user_reproduced_localization_gap
+severity: minor_to_moderate_localization_truthfulness
+priority: P2
+closure_blocker: false
+impact_scope: data_controls_retention_fact_localization
+deferral_target: Phase_10_settings_localization_cleanup
+reopen_condition: English_UI_localization_pass_or_data_controls_redesign
+```
+
+English UIではHeading、説明、Consent Labelは英語になる一方、Retention Fact本文は日本語のまま表示される。
+Retention内容自体はCurrent Runtimeの事実を正しく示しており、Data Lossや虚偽CapabilityではないためPhase 8 Closureを止めない。
+Phase 10のSettings／Localization整理で、Source別Retention Factの日本語／英語Projectionを分離する。
+
+## 8. Phase 9 Closure前へ延期したUI／Observability
 
 ### UF-UI-001 — Advanced Mode Layout／表示整理
 
@@ -455,7 +940,7 @@ reopen_condition: phase_9_progressive_enforce_presentation_work
 
 Candidateを未検証の最終回答として見せず、生成中／確認中のProgressive表示を行い、検証後に確定、置換またはFallbackへ収束する。規定値はProgressive方式。単純な一括表示を最終UXにしない。
 
-## 8. Phase 10以降のHardening／条件付き課題
+## 9. Phase 10以降のHardening／条件付き課題
 
 ### UF-HARD-001 — Hardware自動検出とContext自動昇格
 
@@ -477,7 +962,7 @@ reopen_condition: productization_external_users_or_enterprise_deployment
 
 Hash Chain、WORM、完全Provenance、破損Manifest耐性、長期運用のRace網羅等は、PoC主経路を止めない限りこの区分へ送る。
 
-## 9. 2026-08-29 Phase 6 User Manual — Exact未解決Inventory
+## 10. 2026-08-29 Phase 6 User Manual — Exact未解決Inventory
 
 次はUser実画面で再現したまま、技術的には未解決である。Phase 7進行を選択したことによって解決済みへ変更しない。
 
@@ -512,7 +997,7 @@ PASS: Recording Request相関
 PASS: Stop後Cancelled、遅延回答／Evidence追加なし
 ```
 
-## 10. Update Rule
+## 11. Update Rule
 
 Findingを追加・変更する場合：
 
@@ -522,12 +1007,12 @@ Findingを追加・変更する場合：
 4. 解決したFindingは削除せず、Statusを`resolved`へ変更し、Resolution Evidenceを示す。
 5. P0追加時は、再現経路、User影響、次Phaseへ送れない理由、最小修正Scope、概算Resource Costを必須とする。
 
-## 11. Current Immediate Decision
+## 12. Current Immediate Decision
 
 - 2026-08-29 User ManualによるPhase 6中心機能の`FAIL／ADJUST`は隠蔽せず保持する。
 - Userは影響を承知の上で、Selene、Qwen3Guard、Semantic 109、Judge／RepairのReworkを延期し、Phase 7へ進むことを明示決定した。
-- 2026-08-29、Userはこれらを新Phase 10の`Governance Semantic Runtime Completion Program`へ正式移管した。Phase 7〜9はGuardrailのBuilt-in Rule／Pattern BaseとJudgeのBuilt-in DeterministicまたはNone／OFFを暫定Baselineとする。
-- Dedicated Selene／Qwen3Guard、GD Semantic Live Evaluation、Judge／Repair Golden PathおよびMain Semantic ENFORCEは、解決済みとせず新Phase 10で再開する。
+- 2026-08-29時点でPhase 6中心Debtを新Phase 10へ移管した判断はHistoryとして保持する。その後のUser再編により、Current移管先はPhase 9-1へ変更された。
+- Dedicated Selene／Qwen3Guard、GD Semantic Live Evaluation、Judge／Repair Golden PathおよびMain Semantic ENFORCEは、解決済みとせずPhase 9-1で有界Reworkする。Phase 10はAll-Docs、Shared Constitution、PADG、Full Runtime ConstitutionおよびUI統合を担当する。
 - Phase 6を技術的完全または中心Acceptance PASSとは主張しない。
 - 指定された4件の小UI修正だけを完了し、新しいPhase 6 Hardening／機能Reworkを追加しない。
 - P1以下は本Registryを保持したままPhase 6 Closure可能とする。
@@ -542,3 +1027,25 @@ Findingを追加・変更する場合：
 - Phase 7 MVPはUser Manual Acceptance PASSとしてFormal Closure可能である。
 - Phase 7 Closure前に、Docs、UI Claim、Acceptance Dispositionおよび未解決Registryが実Web未実装を正直に表現していることを確認する。
 - Automatic Trigger、Enterprise Hardening、汎用Attachment、Phase 6 Debtまたは実WebProvider選定をPhase 7へ再混入させない。
+- P8-RW7でConstitution Previewの3軸比較を実装し、P8-CODEX-012はController Targeted Review PASS、P8-ACC-021はPASSへ戻した。
+- P8-CODEX-012を理由とする追加Rework／追加Full Review Cycleは開始せず、Phase 8 User Manual Acceptanceへ進む。
+- P8-CODEX-011はFrozen Envelope表示の非Blocking Truthfulness Gapとして保持し、Phase 8 Closureを止めない。
+- P8-CODEX-009はCompletion Transition／Manual差、P8-CODEX-010はTest Hermeticity Debtとして保持し、独立したPhase 8 Closure Blockerにはしない。
+- P8-CODEX-009はCompletion Gate Rework後のUser Manualで再判定し、P8-CODEX-010はP8-ACC-039をPASSへ捏造せず既知FAILとして開示する。
+- Phase 8 User Mac Manual Web Segment 1では、Example Domain、Citation PersistenceおよびLoopback拒否はPASSした。
+- 同Segmentで、通常Public URLの取得失敗、Specific Reasonの`url_rejected`集約およびFetch失敗後の非Grounded回答を再現した。
+- UF-P8-005をManual URL MVPのP0候補として保持し、Bounded FixまたはUserによる明示的なScope再分類なしにPhase 8 Closureへ進まない。
+- Raw HTML Context Budget FailureはUF-P8-006、専用URL欄と通常ComposerのUX差はUF-UI-007としてPhase 11／Phase 10へ予約する。
+- Phase 8 User Mac Manual Segments 2〜5でArchive State非同期、Web Citation必須Field不足、Dev Agentの非追跡ApprovalとButton Contrastを再現した。
+- UF-P8-008／009／010をBounded ReworkとUser再確認までClosure Blockerとする。
+- Constitution SemanticsはPASSのまま保持し、UF-UI-009の改行だけを同Reworkで直す。
+- General Keyword SearchはFixtureのままとし、実Search API／SearXNG／Automatic SearchをPhase 8へ戻さない。
+- Dev Agentは任意File Toolへ拡張せず、Configured Runtime Data Root内の固定Fixture Workspaceだけを実File化する。
+- P8-MR0〜MR8後のUser再確認で、Manual URL UTF-8 Public Page、Fail-closed Grounding、Context Budget、Web Citation、Archive、Constitution LayoutおよびDev Agent実File Fixtureの中心経路はPASSした。
+- P8-MR9後のUser実画面で、Completion Gate Reason、Composer Web Failure警告Lifecycle、Untrusted Label注意色およびCompleted後Demo Run Button色の4件を全てPASSした。
+- Untrusted Labelの注意色はUserがWhite／Dark双方で採用を決定したため、Controllerの同色化提案を実行しない。
+- Model Call 0のUI Observability、Shift_JIS／x-sjis、Settings結果残留、Manual URL Card整理およびFalse-positive RAG Groundingは解決済みとせず、それぞれPhase 9／10／11へ送る。
+- Dev Agent Capability Restart State、Per-purpose Consent Restart PolicyおよびEnglish Retention Localizationは新規未解決として保持し、Phase 8 Closureを止めない。
+- Phase 8最終Dispositionは`39 PASS／1 PARTIAL／40 TOTAL`である。P8-ACC-038のGD／Guard相関だけをFoundation境界の既知PARTIALとしてPhase 9へ渡す。
+- Phase 8は2026-08-31 User判断により`COMPLETE／ACCEPTED／CLOSED`とする。未解決0件、正式Agent Level 1、General Search、Generic MCPまたはProduct HardeningをClosure条件へ追加しない。
+- Phase 9は9-1／9-2／9-3の3 Program設計をFreezeし、`READY／NOT STARTED`とする。User Backup後にPreflightへ進む。

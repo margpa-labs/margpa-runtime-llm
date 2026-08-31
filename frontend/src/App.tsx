@@ -46,13 +46,21 @@ import type { GuardrailGovernanceControlState } from "./components/GuardrailGove
 import type { RuntimeModelControlState } from "./components/RuntimeModelStatusPanel";
 import type { LocalCorpusState } from "./components/LocalCorpusPanel";
 import type { WebSearchPanelState } from "./components/WebSearchPanel";
-import type { DataControlConsentState, DataControlsState } from "./components/DataControlsPanel";
+import type {
+  ArchivedChatsState,
+  DataControlConsentState,
+  DataControlsState,
+} from "./components/DataControlsPanel";
 import MessageList from "./components/MessageList";
 import Composer from "./components/Composer";
 import type { SettingsFormState } from "./components/SettingsPanel";
 
 const UI_LANGUAGE_KEY = "margpa.ui_language.v1";
 const UI_THEME_KEY = "margpa.ui_theme.v1";
+// P8-B (P8-REQ-009): a Presentation-only preference — never sent to the
+// Server, never gates the Branch API/data itself (see `MessageBubble`'s
+// own `branchUiVisible` prop doc).
+const BRANCH_UI_VISIBILITY_KEY = "margpa.branch_ui_visible.v1";
 
 type Status =
   | { kind: "key"; key: TranslationKey; values?: Record<string, string | number> }
@@ -61,6 +69,17 @@ type Status =
 export default function App() {
   const [uiLanguage, setUiLanguage] = usePreference<UiLanguage>(UI_LANGUAGE_KEY, ["ja", "en"], "ja");
   const [uiTheme, setUiTheme] = usePreference<UiTheme>(UI_THEME_KEY, ["white", "dark"], "white");
+  // P8-B (P8-REQ-009): no Settings UI is built to flip this in this
+  // Package (a deliberately Bounded scope choice — see the P8-B Recovery)
+  // — the stored preference key still exists as a genuine Feature Flag a
+  // Researcher can set directly (e.g. via DevTools `localStorage.setItem
+  // ("margpa.branch_ui_visible.v1", "shown")`), which is what P8-REQ-009
+  // itself asks for ("既定非表示"), not a User-facing toggle control.
+  const [branchUiVisibility] = usePreference<"shown" | "hidden">(
+    BRANCH_UI_VISIBILITY_KEY,
+    ["shown", "hidden"],
+    "hidden",
+  );
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
 
@@ -83,6 +102,7 @@ export default function App() {
   const [dataControlsBootstrapEnabled] = useState(() => readDataControlsBootstrap());
 
   const [prompt, setPrompt] = useState("");
+  const [manualWebEvidenceUrl, setManualWebEvidenceUrl] = useState("");
   const [active, setActive] = useState(false);
   const [messages, setMessages] = useState<DisplayMessage[]>([]);
   const [status, setStatus] = useState<Status>({ kind: "key", key: "persistentCapabilityPending" });
@@ -166,12 +186,19 @@ export default function App() {
     capability: "idle",
     result: null,
     resultText: "",
+    directUrl: { capability: "idle", result: null, resultText: "" },
   });
 
   const [dataControlsState, setDataControlsState] = useState<DataControlsState>({
     capability: dataControlsBootstrapEnabled ? "loading" : "disabled",
     consent: null,
     retentionFacts: [],
+    resultText: "",
+  });
+
+  const [archivedChatsState, setArchivedChatsState] = useState<ArchivedChatsState>({
+    capability: "idle",
+    items: [],
     resultText: "",
   });
 
@@ -232,7 +259,8 @@ export default function App() {
     setStatus({ kind: "serverWarning", code, fallback });
   }
 
-  function settingsPayload(): GenerationSettings {
+  function settingsPayload(attachManualWebEvidence = false): GenerationSettings {
+    const trimmedWebEvidenceUrl = manualWebEvidenceUrl.trim();
     return {
       response_language: settingsForm.responseLanguage,
       max_new_tokens: Number(settingsForm.maxNewTokens),
@@ -242,6 +270,13 @@ export default function App() {
       documentation_rag_mode: settingsForm.documentationRagMode,
       context_usage_prompt_injection_mode: settingsForm.injectContextUsage ? "enabled" : "disabled",
       expressive_mode: settingsForm.expressiveMode ? "enabled" : "disabled",
+      // P8-A: a one-shot Field, included only for the primary "send a new
+      // message" call sites and only when the User actually typed a URL —
+      // Retry/Regenerate never pass `attachManualWebEvidence`, so they never
+      // re-trigger a fresh Fetch for an unrelated historical Turn.
+      ...(attachManualWebEvidence && trimmedWebEvidenceUrl
+        ? { manual_web_evidence_url: trimmedWebEvidenceUrl }
+        : {}),
     };
   }
 
@@ -669,6 +704,38 @@ export default function App() {
       });
   }
 
+  function handleFetchDirectUrl(url: string): void {
+    setWebSearchState((previous) => ({
+      ...previous,
+      directUrl: { capability: "loading", result: previous.directUrl?.result ?? null, resultText: "" },
+    }));
+    api
+      .fetchDirectUrl(url, "manual")
+      .then((result) => {
+        setWebSearchState((previous) => ({
+          ...previous,
+          directUrl: {
+            capability: "ready",
+            result,
+            resultText: t("webSearchPanelSearchSuccess"),
+          },
+        }));
+      })
+      .catch((error: unknown) => {
+        setWebSearchState((previous) => ({
+          ...previous,
+          directUrl: {
+            capability: "failed",
+            result: null,
+            resultText:
+              error instanceof api.ApiMutationError
+                ? `${t("webSearchPanelDirectUrlFailed")} [${error.code ?? "web_search_direct_fetch_failed"}] ${error.message}`
+                : t("webSearchPanelDirectUrlFailed"),
+          },
+        }));
+      });
+  }
+
   function handleConfigurationApply(researchDeveloperMode: string): void {
     enqueueConfigurationModeMutation(
       { research_developer_mode: researchDeveloperMode },
@@ -955,6 +1022,7 @@ export default function App() {
     setMessages((previous) => [...previous, emptyMessage("user", content, userId), emptyMessage("assistant", "", assistantId)]);
     setPinnedMessageId(userId);
     setPrompt("");
+    setManualWebEvidenceUrl("");
     controllerRef.current = new AbortController();
     requestIdRef.current = null;
     terminalWarningRef.current = null;
@@ -962,7 +1030,11 @@ export default function App() {
     setStatusKey("connecting");
 
     try {
-      const response = await api.startChatStream(history, settingsPayload(), controllerRef.current.signal);
+      const response = await api.startChatStream(
+        history,
+        settingsPayload(true),
+        controllerRef.current.signal,
+      );
       if (!response.ok) {
         const failure = await api.safeError(response, t("requestFailed"));
         throw Object.assign(new Error(failure.message), { code: failure.code });
@@ -1058,6 +1130,14 @@ export default function App() {
     setSelectedConversationId(conversationId);
     setContextUsage(null);
     setPinnedMessageId(null);
+    // P8-MR9-2 (P8-CODEX-011/UF-UI-011): a past Turn's Failure warning
+    // belongs to the Current Live Attempt only — switching Chat must never
+    // leave a different Conversation's stale warning sitting in the
+    // Composer. The Historical Failure bubble itself is untouched: it
+    // lives in `messages`/`turns`, reloaded fresh by loadPersistentDetail
+    // below, not in this Application-wide `status`.
+    terminalWarningRef.current = null;
+    setStatusKey("idle");
     await loadPersistentDetail(conversationId);
   }
 
@@ -1179,7 +1259,7 @@ export default function App() {
       const response = await api.startPersistentTurnStream(
         conversationId,
         content,
-        settingsPayload(),
+        settingsPayload(true),
         operationId,
         persistentRevisionRef.current,
         controllerRef.current.signal,
@@ -1189,6 +1269,7 @@ export default function App() {
         return;
       }
       setPrompt("");
+      setManualWebEvidenceUrl("");
       const durableTerminalObserved = { current: false };
       await readEventStream(
         response,
@@ -1337,6 +1418,44 @@ export default function App() {
     } catch {
       setStatusKey("requestFailed");
     }
+  }
+
+  // --- P8-B: Archived Chats (Data Controls) ---
+
+  async function loadArchivedChats(): Promise<void> {
+    setArchivedChatsState((previous) => ({ ...previous, capability: "loading" }));
+    try {
+      const page = await api.fetchArchivedPersistentList();
+      setArchivedChatsState({ capability: "ready", items: page.items, resultText: "" });
+    } catch {
+      setArchivedChatsState({ capability: "failed", items: [], resultText: "" });
+    }
+  }
+
+  // P8-MR3 (P8-MANUAL-003): resets back to the Lazy "idle" default rather
+  // than merely hiding the list — the next "Show" (whether from this
+  // Button or after a Settings Reopen, see the `onClose` wiring below)
+  // always issues a fresh `fetchArchivedPersistentList()` call, so a
+  // Chat archived/unarchived elsewhere can never be seen as stale data.
+  function closeArchivedChats(): void {
+    setArchivedChatsState({ capability: "idle", items: [], resultText: "" });
+  }
+
+  async function openArchivedChat(conversationId: string): Promise<void> {
+    setSettingsModalOpen(false);
+    closeArchivedChats();
+    await selectPersistentConversation(conversationId);
+  }
+
+  async function unarchiveArchivedChat(conversationId: string): Promise<void> {
+    await chatListItemAction(conversationId, "unarchive");
+    // The item just left the Archived set — drop it from this list's own
+    // State directly rather than re-fetching, the same optimistic-update
+    // shape `chatListItemAction` itself already applies to the Sidebar list.
+    setArchivedChatsState((previous) => ({
+      ...previous,
+      items: previous.items.filter((item) => item.conversation_id !== conversationId),
+    }));
   }
 
   async function chatListItemRename(conversationId: string, title: string): Promise<void> {
@@ -1518,6 +1637,7 @@ export default function App() {
           pinnedMessageId={pinnedMessageId}
           active={active}
           liveJudgeBadge={liveJudgeBadge}
+          branchUiVisible={branchUiVisibility === "shown"}
         />
 
         <Composer
@@ -1531,6 +1651,9 @@ export default function App() {
           statusText={statusText}
           contextUsage={contextUsage}
           showContextUsage={settingsForm.showContextUsage}
+          webEvidenceEnabled={webSearchBootstrapEnabled && settingsForm.webSearchMode === "manual"}
+          webEvidenceUrl={manualWebEvidenceUrl}
+          onWebEvidenceUrlChange={setManualWebEvidenceUrl}
         />
       </main>
 
@@ -1539,6 +1662,10 @@ export default function App() {
         open={settingsModalOpen}
         onClose={() => {
           setSettingsModalOpen(false);
+          // P8-MR3 (P8-MANUAL-003): Settings Close must never leave a
+          // stale `ready` Archived Chats list behind — the next Reopen
+          // always starts from the Lazy "idle" default again.
+          closeArchivedChats();
         }}
         settingsForm={settingsForm}
         onSettingsChange={setSettingsForm}
@@ -1578,11 +1705,18 @@ export default function App() {
         webSearchToggleEnabled={settingsForm.webSearchMode === "manual"}
         webSearchState={webSearchState}
         onWebSearch={handleWebSearch}
+        onWebSearchDirectUrl={handleFetchDirectUrl}
         dataControlsBootstrapEnabled={dataControlsBootstrapEnabled}
         dataControlsState={dataControlsState}
         onDataControlsRefresh={() => void loadDataControls()}
         onDataControlsToggle={handleDataControlsToggle}
         onDataControlsReset={handleDataControlsReset}
+        archivedChatsAvailable={conversationMode === "persistent"}
+        archivedChatsState={archivedChatsState}
+        onArchivedChatsLoad={() => void loadArchivedChats()}
+        onArchivedChatsClose={closeArchivedChats}
+        onArchivedChatsOpen={(id) => void openArchivedChat(id)}
+        onArchivedChatsUnarchive={(id) => void unarchiveArchivedChat(id)}
       />
     </div>
   );

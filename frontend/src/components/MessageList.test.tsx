@@ -16,6 +16,7 @@ function message(overrides: Partial<DisplayMessage> = {}): DisplayMessage {
     thinkingText: "",
     thinkingVisible: false,
     citations: null,
+    webCitations: null,
     turnActions: [],
     requestId: null,
     ...overrides,
@@ -43,6 +44,7 @@ describe("MessageList", () => {
         pinnedMessageId={null}
         active={false}
         liveJudgeBadge={null}
+        branchUiVisible={false}
       />,
     );
     expect(spy).toHaveBeenCalledWith({ block: "end" });
@@ -63,6 +65,7 @@ describe("MessageList", () => {
         pinnedMessageId="msg-1"
         active={false}
         liveJudgeBadge={null}
+        branchUiVisible={false}
       />,
     );
     expect(spy).not.toHaveBeenCalled();
@@ -79,6 +82,7 @@ describe("MessageList", () => {
         pinnedMessageId="msg-1"
         active={true}
         liveJudgeBadge={null}
+        branchUiVisible={false}
       />,
     );
     expect(container.querySelector(".messages-gap-filler")).not.toBeNull();
@@ -95,6 +99,7 @@ describe("MessageList", () => {
         pinnedMessageId="msg-1"
         active={true}
         liveJudgeBadge={null}
+        branchUiVisible={false}
       />,
     );
     expect(container.querySelector(".messages-gap-filler")).not.toBeNull();
@@ -112,6 +117,7 @@ describe("MessageList", () => {
         pinnedMessageId="msg-1"
         active={false}
         liveJudgeBadge={null}
+        branchUiVisible={false}
       />,
     );
     expect(container.querySelector(".messages-gap-filler")).not.toBeNull();
@@ -128,6 +134,7 @@ describe("MessageList", () => {
         pinnedMessageId={null}
         active={false}
         liveJudgeBadge={null}
+        branchUiVisible={false}
       />,
     );
     expect(container.querySelector(".messages-gap-filler")).toBeNull();
@@ -154,6 +161,7 @@ describe("MessageList", () => {
         pinnedMessageId="msg-1"
         active={true}
         liveJudgeBadge={null}
+        branchUiVisible={false}
       />,
       { container: mountPoint },
     );
@@ -173,6 +181,7 @@ describe("MessageList", () => {
         pinnedMessageId="msg-1"
         active={true}
         liveJudgeBadge={null}
+        branchUiVisible={false}
       />,
     );
 
@@ -204,6 +213,7 @@ describe("MessageList", () => {
         pinnedMessageId="msg-1"
         active={true}
         liveJudgeBadge={null}
+        branchUiVisible={false}
       />,
       { container: mountPoint },
     );
@@ -224,6 +234,7 @@ describe("MessageList", () => {
         pinnedMessageId="msg-1"
         active={true}
         liveJudgeBadge={null}
+        branchUiVisible={false}
       />,
     );
 
@@ -254,6 +265,7 @@ describe("MessageList", () => {
         pinnedMessageId="msg-1"
         active={false}
         liveJudgeBadge={null}
+        branchUiVisible={false}
       />,
       { container: mountPoint },
     );
@@ -273,6 +285,7 @@ describe("MessageList", () => {
         pinnedMessageId="msg-1"
         active={false}
         liveJudgeBadge={null}
+        branchUiVisible={false}
       />,
     );
 
@@ -299,6 +312,7 @@ describe("MessageList Live Judge badge correlation (P6-CODEX-024)", () => {
         pinnedMessageId={null}
         active={false}
         liveJudgeBadge={{ requestId: "req-2", state: "judging", repairAccepted: null }}
+        branchUiVisible={false}
       />,
     );
 
@@ -317,6 +331,7 @@ describe("MessageList Live Judge badge correlation (P6-CODEX-024)", () => {
         pinnedMessageId={null}
         active={false}
         liveJudgeBadge={{ requestId: "req-1", state: "judging", repairAccepted: null }}
+        branchUiVisible={false}
       />,
     );
 

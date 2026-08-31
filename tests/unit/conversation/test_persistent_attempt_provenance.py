@@ -64,6 +64,7 @@ class Session:
         self.answer = answer
         self.attempt_provenance = attempt_provenance
         self.documentation_augmentation = None
+        self.web_search_result = None
 
     def events(self) -> Iterator[ConversationEvent]:
         yield ConversationEvent(

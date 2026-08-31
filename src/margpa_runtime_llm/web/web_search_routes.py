@@ -14,6 +14,7 @@ from margpa_runtime_llm.modules.web_knowledge.contracts import WebEvidenceGovern
 
 from .contracts import WebRuntime
 from .web_search_contracts import (
+    DirectUrlFetchRequest,
     WebSearchRequest,
     WebSearchResponse,
     WebSearchRuntimeResponse,
@@ -44,6 +45,18 @@ def create_web_search_router() -> APIRouter:
         result = await asyncio.to_thread(
             service.search_and_fetch,
             body.query,
+            request_id=uuid4().hex,
+            activation=body.activation,
+            governance_mode=governance_mode,
+        )
+        return project_web_search_result(result)
+
+    @router.post("/direct", response_model=WebSearchResponse)
+    async def direct_fetch(request: Request, body: DirectUrlFetchRequest) -> WebSearchResponse:
+        service, governance_mode = _service(request)
+        result = await asyncio.to_thread(
+            service.fetch_direct_url,
+            body.url,
             request_id=uuid4().hex,
             activation=body.activation,
             governance_mode=governance_mode,

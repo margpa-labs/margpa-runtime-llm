@@ -1,5 +1,5 @@
 import { translate, type TranslationKey } from "../i18n/translations";
-import type { UiLanguage } from "../types";
+import type { PersistentConversationSummary, UiLanguage } from "../types";
 
 export interface DataControlConsentState {
   external_query_transmission_consent: boolean;
@@ -21,6 +21,16 @@ export interface DataControlsState {
   resultText: string;
 }
 
+// P8-B (P8-REQ-010): "idle" (never yet requested — the Lazy default) is a
+// distinct state from "loading", so the section can render a plain
+// "Show Archived Chats" trigger without pretending a fetch is already
+// in flight.
+export interface ArchivedChatsState {
+  capability: "idle" | "loading" | "ready" | "failed";
+  items: PersistentConversationSummary[];
+  resultText: string;
+}
+
 interface DataControlsPanelProps {
   language: UiLanguage;
   visible: boolean;
@@ -28,6 +38,15 @@ interface DataControlsPanelProps {
   onRefresh: () => void;
   onToggle: (key: keyof DataControlConsentState, value: boolean) => void;
   onReset: () => void;
+  // P8-B: Archived Chats only exist when Persistent Conversation Mode is
+  // active (a different capability than Data Controls/consent itself,
+  // which this whole Panel is already separately gated on).
+  archivedChatsAvailable: boolean;
+  archivedChatsState: ArchivedChatsState;
+  onArchivedChatsLoad: () => void;
+  onArchivedChatsClose: () => void;
+  onArchivedChatsOpen: (conversationId: string) => void;
+  onArchivedChatsUnarchive: (conversationId: string) => void;
 }
 
 const CONSENT_FIELDS: { key: keyof DataControlConsentState; labelKey: TranslationKey }[] = [
@@ -47,6 +66,12 @@ export default function DataControlsPanel({
   onRefresh,
   onToggle,
   onReset,
+  archivedChatsAvailable,
+  archivedChatsState,
+  onArchivedChatsLoad,
+  onArchivedChatsClose,
+  onArchivedChatsOpen,
+  onArchivedChatsUnarchive,
 }: DataControlsPanelProps) {
   if (!visible) {
     return null;
@@ -58,6 +83,13 @@ export default function DataControlsPanel({
       : state.capability === "ready"
         ? "dataControlsReady"
         : "dataControlsFailed";
+
+  const archivedStatusKey =
+    archivedChatsState.capability === "loading"
+      ? "archivedChatsLoading"
+      : archivedChatsState.capability === "failed"
+        ? "archivedChatsFailed"
+        : null;
 
   return (
     <section id="data-controls-panel" className="data-controls-panel" aria-label={translate(language, "dataControlsTitle")}>
@@ -109,6 +141,76 @@ export default function DataControlsPanel({
           <button id="data-controls-reset" className="secondary" type="button" onClick={onReset}>
             {translate(language, "dataControlsReset")}
           </button>
+        </div>
+      ) : null}
+      {archivedChatsAvailable ? (
+        <div id="data-controls-archived-chats">
+          <h3>{translate(language, "archivedChatsTitle")}</h3>
+          <p id="archived-chats-note">{translate(language, "archivedChatsNote")}</p>
+          {archivedChatsState.capability === "idle" ? (
+            <button
+              id="archived-chats-load"
+              className="secondary"
+              type="button"
+              onClick={onArchivedChatsLoad}
+            >
+              {translate(language, "archivedChatsShow")}
+            </button>
+          ) : (
+            <>
+              <button
+                id="archived-chats-close"
+                className="secondary"
+                type="button"
+                onClick={onArchivedChatsClose}
+              >
+                {translate(language, "archivedChatsClose")}
+              </button>
+              {archivedStatusKey !== null ? (
+                <p id="archived-chats-status">{translate(language, archivedStatusKey)}</p>
+              ) : null}
+              {archivedChatsState.capability === "ready" && archivedChatsState.items.length === 0 ? (
+                <p id="archived-chats-empty">{translate(language, "archivedChatsEmpty")}</p>
+              ) : null}
+              {archivedChatsState.items.length > 0 ? (
+                <ul id="archived-chats-list" role="list">
+                  {archivedChatsState.items.map((item) => (
+                    <li role="listitem" key={item.conversation_id} className="archived-chat-item">
+                      {/* Mirrors `ChatListItem.tsx`'s own untitled-chat fallback exactly
+                          (no dedicated "Untitled" translation key exists there either). */}
+                      <div className="archived-chat-item-title">
+                        {item.title ??
+                          `${new Date(item.updated_at).toLocaleString()} · ${item.conversation_id.slice(0, 10)}`}
+                      </div>
+                      <div className="archived-chat-item-timestamp">
+                        {new Date(item.updated_at).toLocaleString(language)}
+                      </div>
+                      <div className="archived-chat-item-actions">
+                        <button
+                          type="button"
+                          className="secondary"
+                          onClick={() => {
+                            onArchivedChatsOpen(item.conversation_id);
+                          }}
+                        >
+                          {translate(language, "archivedChatsOpen")}
+                        </button>
+                        <button
+                          type="button"
+                          className="secondary"
+                          onClick={() => {
+                            onArchivedChatsUnarchive(item.conversation_id);
+                          }}
+                        >
+                          {translate(language, "persistentUnarchive")}
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </>
+          )}
         </div>
       ) : null}
     </section>

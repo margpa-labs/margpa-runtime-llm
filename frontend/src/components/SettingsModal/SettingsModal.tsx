@@ -16,10 +16,12 @@ import RuntimeModelStatusPanel, {
   type RuntimeModelControlState,
 } from "../RuntimeModelStatusPanel";
 import FeatureModesPanel from "../FeatureModesPanel";
+import ConstitutionPanel from "../ConstitutionPanel";
+import DevAgentPanel from "../DevAgentPanel";
 import ProviderSelectionPanel from "../ProviderSelectionPanel";
 import LocalCorpusPanel, { type LocalCorpusState } from "../LocalCorpusPanel";
 import WebSearchPanel, { type WebSearchPanelState } from "../WebSearchPanel";
-import DataControlsPanel, { type DataControlsState } from "../DataControlsPanel";
+import DataControlsPanel, { type ArchivedChatsState, type DataControlsState } from "../DataControlsPanel";
 import type { DataControlConsentState } from "../DataControlsPanel";
 import type { GovernanceMode, GuardrailGovernanceMode, MainGovernanceMode } from "../../types";
 
@@ -67,11 +69,18 @@ interface SettingsModalProps {
   webSearchToggleEnabled: boolean;
   webSearchState: WebSearchPanelState;
   onWebSearch: (query: string) => void;
+  onWebSearchDirectUrl?: (url: string) => void;
   dataControlsBootstrapEnabled: boolean;
   dataControlsState: DataControlsState;
   onDataControlsRefresh: () => void;
   onDataControlsToggle: (key: keyof DataControlConsentState, value: boolean) => void;
   onDataControlsReset: () => void;
+  archivedChatsAvailable: boolean;
+  archivedChatsState: ArchivedChatsState;
+  onArchivedChatsLoad: () => void;
+  onArchivedChatsClose: () => void;
+  onArchivedChatsOpen: (conversationId: string) => void;
+  onArchivedChatsUnarchive: (conversationId: string) => void;
 }
 
 type Category = "basic" | "advanced" | "data_controls";
@@ -122,11 +131,18 @@ export default function SettingsModal({
   webSearchToggleEnabled,
   webSearchState,
   onWebSearch,
+  onWebSearchDirectUrl,
   dataControlsBootstrapEnabled,
   dataControlsState,
   onDataControlsRefresh,
   onDataControlsToggle,
   onDataControlsReset,
+  archivedChatsAvailable,
+  archivedChatsState,
+  onArchivedChatsLoad,
+  onArchivedChatsClose,
+  onArchivedChatsOpen,
+  onArchivedChatsUnarchive,
 }: SettingsModalProps) {
   const [category, setCategory] = useState<Category>("basic");
   // Advanced remains visible even when a server-side capability marker is
@@ -267,6 +283,8 @@ export default function SettingsModal({
                   -> Runtime Control, User-specified Bounded Advanced Mode
                   order. */}
               <FeatureModesPanel language={language} visible={category === "advanced"} />
+              <ConstitutionPanel language={language} visible={category === "advanced"} />
+              <DevAgentPanel language={language} visible={category === "advanced"} />
               {runtimeModelControlBootstrapEnabled ? (
                 <RuntimeModelStatusPanel
                   language={language}
@@ -296,6 +314,7 @@ export default function SettingsModal({
                   toggleEnabled={webSearchToggleEnabled}
                   state={webSearchState}
                   onSearch={onWebSearch}
+                  onFetchDirectUrl={onWebSearchDirectUrl}
                 />
               ) : null}
               {configurationBootstrapEnabled ? (
@@ -317,6 +336,12 @@ export default function SettingsModal({
                   onRefresh={onDataControlsRefresh}
                   onToggle={onDataControlsToggle}
                   onReset={onDataControlsReset}
+                  archivedChatsAvailable={archivedChatsAvailable}
+                  archivedChatsState={archivedChatsState}
+                  onArchivedChatsLoad={onArchivedChatsLoad}
+                  onArchivedChatsClose={onArchivedChatsClose}
+                  onArchivedChatsOpen={onArchivedChatsOpen}
+                  onArchivedChatsUnarchive={onArchivedChatsUnarchive}
                 />
               </div>
             ) : null}

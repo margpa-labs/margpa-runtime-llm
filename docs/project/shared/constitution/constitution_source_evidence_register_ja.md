@@ -6,7 +6,7 @@ status: active_cumulative_register
 normative: false
 language: ja
 created_at: 2026-08-09 18:41:34 JST
-updated_at: 2026-08-12 01:15:43 JST
+updated_at: 2026-08-31 18:15:53 JST
 owner_role: プロジェクト責任者兼設計統括者役
 constitution_input: true
 lossless_policy: source_trace_required
@@ -376,6 +376,36 @@ Accepted／Closedその他の確定済みHistorical Outcomeは、無関係なま
 
 Human Escalationは、全AI RoleのAuthority超過、Human-reserved Responsibility、Objective／Scope／Authority／Root／不可逆性／外部責任の変更、または最高責任者役でも安全かつ可逆的に決定不能という原則で動的に判定する。列挙は非網羅例であり閉じたAllowlistにしない。Closure時は最高責任者役が`GO／ADJUST／STOP`を自分で提案し、Technical Blocker、Role-owned Work、Deferred Evidence、ValidationおよびHuman-only Actionを分離する。
 
+### CONST-SRC-020 — Source Authority／ProvenanceとBelief Revision Success
+
+```yaml
+state: empirical_single_observation_candidate
+normative_effect: none_until_reproduced_and_compiled
+classification:
+  - evidence_authority
+  - provenance
+  - semantic_governance
+  - judge_and_repair
+  - runtime_constitution
+  - model_behavior_research
+source:
+  - ../history/constitution/qwen_official_web_evidence_source_authority_and_belief_revision_observation_ja_20260831181553.md
+  - ../../phases/phase_8/history/operations/phase_8_user_mac_post_mr8_full_manual_acceptance_and_behavior_evidence_ja_20260831181553.md
+observed_at: 2026-08-31
+provider_generalization: prohibited
+causal_claim: not_established
+```
+
+QwenはUser訂正だけでは誤った読みを維持したが、Hololive公式Pageから取得した`天音かなた / Amane Kanata`の
+Web Evidenceと`Amane = あまね`という明示Mappingを同時に与えた後、読みを修正し、以前の訂正を受容した。
+
+候補仮説は、Source Authority／Provenance SignalがCorrection Acceptance、Belief RevisionおよびRepair Stabilityへ
+影響するというものである。単一観測から因果関係、一般性またはProvider固有の恒久特性を主張しない。
+
+Runtime Constitution編纂時は、Evidence Authority WeightをTool Authority、Action PermissionまたはUntrusted解除と
+混同しない。Judge研究では、Evidenceなし、User訂正のみ、一般Web、検証済み公式Sourceを分離し、訂正受容率、
+Revision成功率、後続TurnでのReversion率を比較する。
+
 ## 5. Intake Rule
 
 Pilot、通常運用、Incident、Near Miss、Provider併用またはAgent／Tool設計から憲法へ直接使える知見を得た場合、次を記録する。
@@ -415,9 +445,11 @@ Open Decision
 - Tiered EscalationがProvider間Messaging、Task不在時または複数上位Role環境でも同じ意味を維持できるか。
 - 不可避なHard-codeを審査するEvidence Schemaと除去／Migration Trigger。
 - Authority Subjectが複数存在する文書で、禁止・許可・委譲先を機械検証するSchema。
+- Source Authority／Provenance、本文中の明示MappingおよびPrompt位置を分離したBelief Revision再現実験。
 
 ## 7. Related Documents
 
 - [Constitution Research Index](constitution_research_index_ja.md)
 - [Cross-project Development Governance Constitution Plan](../operations/cross_project_development_governance_constitution_plan_ja.md)
 - [Automation／Governance Evidence Log](../automation/automation_governance_evidence_log_ja.md)
+- [Qwen Official Web Evidence／Belief Revision Observation](../history/constitution/qwen_official_web_evidence_source_authority_and_belief_revision_observation_ja_20260831181553.md)

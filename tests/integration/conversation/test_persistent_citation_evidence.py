@@ -50,6 +50,19 @@ from margpa_runtime_llm.modules.inference.contracts.generation import ThinkingMo
 from margpa_runtime_llm.modules.inference.contracts.response import ResponseLanguage
 from margpa_runtime_llm.modules.presentation.contracts.thinking import ThinkingVisibility
 from margpa_runtime_llm.modules.summarization.public import SummaryMode
+from margpa_runtime_llm.modules.web_knowledge import (
+    PersistedTurnWebCitationEvidence,
+    SourceAuthorityClass,
+    UrlRejectionReason,
+    WebCitation,
+    WebCitationUnavailable,
+    WebContentTransformation,
+    WebEvidence,
+    WebEvidenceGovernanceMode,
+    WebFetchFailureReason,
+    WebSearchActivation,
+    WebSearchAndFetchResult,
+)
 
 SCOPE = ConversationScopeId(value="scope-private")
 CID = ConversationId(value="conversation-1")
@@ -115,6 +128,7 @@ class CitingSession:
         self.request_id = request_id
         self.answer = answer
         self.documentation_augmentation = _augmentation()
+        self.web_search_result = None
 
     def events(self) -> Iterator[ConversationEvent]:
         yield ConversationEvent(
@@ -367,6 +381,7 @@ class NoHitCitingSession:
         self.request_id = request_id
         self.answer = answer
         self.documentation_augmentation = _no_hit_augmentation()
+        self.web_search_result = None
 
     def events(self) -> Iterator[ConversationEvent]:
         yield ConversationEvent(
@@ -437,6 +452,7 @@ def test_rag_disabled_turn_reports_not_present_not_corrupt(tmp_path: Path) -> No
     class NoCitationSession:
         request_id = "request-no-rag"
         documentation_augmentation = None
+        web_search_result = None
 
         def events(self) -> Iterator[ConversationEvent]:
             yield ConversationEvent(
@@ -468,4 +484,324 @@ def test_rag_disabled_turn_reports_not_present_not_corrupt(tmp_path: Path) -> No
     result = service.get_conversation_citations(CID).get("turn-1")
     assert result is None or (
         isinstance(result, CitationUnavailable) and result.reason == "not_present"
+    )
+
+
+# --- P8-A: Manual URL Fetch (Web) Citation Evidence survives Restart ---
+
+
+def _web_citation() -> WebCitation:
+    return WebCitation(
+        citation_id="web-citation-1",
+        requested_url="https://example.org/article",
+        canonical_url="https://example.org/article",
+        title="https://example.org/article",
+        provider_key="direct_url",
+        source_authority=SourceAuthorityClass.GENERAL,
+        fetched_at="2026-08-30T00:00:00Z",
+        content_type="text/html",
+        transformation=WebContentTransformation.HTML_TEXT_EXTRACTED,
+        content_sha512=_SHA,
+        source_class="public_web",
+        selected_order=1,
+    )
+
+
+def _web_result() -> WebSearchAndFetchResult:
+    citation = _web_citation()
+    evidence = WebEvidence(
+        evidence_id=_SHA,
+        result_id=_SHA,
+        requested_url="https://example.org/article",
+        canonical_url="https://example.org/article",
+        title="https://example.org/article",
+        provider_key="direct_url",
+        source_authority=SourceAuthorityClass.GENERAL,
+        snippet="",
+        fetched=True,
+        fetched_content="Genuine fetched article content.",
+        fetched_content_sha512=_SHA,
+        fetched_at="2026-08-30T00:00:00Z",
+        content_type="text/html",
+        transformation=WebContentTransformation.HTML_TEXT_EXTRACTED,
+        governance_mode=WebEvidenceGovernanceMode.OFF,
+    )
+    return WebSearchAndFetchResult(
+        request_id="request-1",
+        activation=WebSearchActivation.MANUAL,
+        governance_mode=WebEvidenceGovernanceMode.OFF,
+        evidence=(evidence,),
+        citations=(citation,),
+        should_generate_with_evidence=True,
+        network_calls_made=1,
+    )
+
+
+def _failed_web_result() -> WebSearchAndFetchResult:
+    return WebSearchAndFetchResult(
+        request_id="request-1",
+        activation=WebSearchActivation.MANUAL,
+        governance_mode=WebEvidenceGovernanceMode.OFF,
+        citations=(),
+        should_generate_with_evidence=False,
+        failure_reason=WebFetchFailureReason.URL_REJECTED,
+        network_calls_made=0,
+    )
+
+
+class WebCitingSession:
+    """Completes with a fixed answer and a real Web Evidence result attached."""
+
+    def __init__(self, request_id: str, answer: str, web_result: WebSearchAndFetchResult) -> None:
+        self.request_id = request_id
+        self.answer = answer
+        self.documentation_augmentation = None
+        self.web_search_result = web_result
+
+    def events(self) -> Iterator[ConversationEvent]:
+        yield ConversationEvent(
+            event=ConversationEventType.COMPLETED,
+            data={
+                "request_id": self.request_id,
+                "assistant_message": {"role": "assistant", "content": self.answer},
+            },
+        )
+
+
+class WebCitingGeneration:
+    def __init__(
+        self, web_result: WebSearchAndFetchResult, answer: str = "web-cited answer"
+    ) -> None:
+        self.web_result = web_result
+        self.answer = answer
+        self.calls = 0
+
+    def start(self, _: object) -> WebCitingSession:
+        self.calls += 1
+        return WebCitingSession(f"request-{self.calls}", self.answer, self.web_result)
+
+
+def test_web_citations_survive_server_restart(tmp_path: Path) -> None:
+    root = tmp_path / "runtime-data"
+    generation = WebCitingGeneration(_web_result())
+    service = _new_service(root, generation)
+    service.create_conversation(
+        conversation_id=CID,
+        session_id=ConversationSessionId(value="session-1"),
+        operation_id=op("create"),
+    )
+    events = tuple(
+        service.generate_turn(
+            conversation_id=CID,
+            content="このURLを要約して",
+            settings=_settings(),
+            identities=_identities("1"),
+        )
+    )
+    assert events[-1].event is ConversationEventType.COMPLETED
+
+    # Simulate a server restart: a brand-new adapter instance, no in-memory state carried over.
+    reopened = SQLiteConversationStore(runtime_data_root=root, bound_scope_id=SCOPE)
+    reopened.open_ready_store()
+    result = reopened.get_turn_web_citations(CID.value, "turn-1")
+    assert isinstance(result, PersistedTurnWebCitationEvidence)
+    assert result.citations[0].canonical_url == "https://example.org/article"
+    assert result.citations[0].source_class == "public_web"
+    assert result.failure_reason is None
+
+    # Documentation Citations are structurally independent - a Turn with only
+    # Web Evidence must not accidentally also persist (or be blocked by the
+    # absence of) a Documentation Citation row.
+    doc_result = reopened.get_turn_citations(CID.value, "turn-1")
+    assert isinstance(doc_result, CitationUnavailable)
+    assert doc_result.reason == "not_present"
+
+
+def test_failed_web_fetch_persists_the_failure_reason_and_survives_restart(
+    tmp_path: Path,
+) -> None:
+    """P7-RW5-A's lesson applied to Web Evidence: a rejected/failed Fetch
+    attempt is itself real Evidence worth persisting, never silently
+    dropped like RAG-disabled would be."""
+
+    root = tmp_path / "runtime-data"
+    generation = WebCitingGeneration(_failed_web_result())
+    service = _new_service(root, generation)
+    service.create_conversation(
+        conversation_id=CID,
+        session_id=ConversationSessionId(value="session-1"),
+        operation_id=op("create"),
+    )
+    tuple(
+        service.generate_turn(
+            conversation_id=CID,
+            content="このURLを要約して",
+            settings=_settings(),
+            identities=_identities("1"),
+        )
+    )
+
+    reopened = SQLiteConversationStore(runtime_data_root=root, bound_scope_id=SCOPE)
+    reopened.open_ready_store()
+    result = reopened.get_turn_web_citations(CID.value, "turn-1")
+    assert isinstance(result, PersistedTurnWebCitationEvidence)
+    assert result.citations == ()
+    assert result.failure_reason is WebFetchFailureReason.URL_REJECTED
+
+
+class WebEvidenceErrorSession:
+    """P8-MR7-2 (P8-CODEX-014): mirrors the real ERROR-terminal Event
+    sequence `ConversationGenerationSession` actually emits for Fail-closed
+    Grounding (P8-MR1) — WEB_EVIDENCE then ERROR, never a fabricated
+    COMPLETED — unlike `WebCitingSession` above (Controller's exact
+    critique: the pre-Rework Test suite only ever exercised a Failure
+    Result riding a COMPLETED Event, never a genuine ERROR terminal)."""
+
+    def __init__(self, request_id: str, web_result: WebSearchAndFetchResult) -> None:
+        self.request_id = request_id
+        self.documentation_augmentation = None
+        self.web_search_result = web_result
+
+    def events(self) -> Iterator[ConversationEvent]:
+        yield ConversationEvent(
+            event=ConversationEventType.WEB_EVIDENCE,
+            data={"request_id": self.request_id, "failure_reason": "url_rejected"},
+        )
+        yield ConversationEvent(
+            event=ConversationEventType.ERROR,
+            data={
+                "request_id": self.request_id,
+                "code": "web_evidence_fetch_failed",
+                "message": "指定されたURLを取得できなかったため、根拠とした回答は生成しません。",
+                "retryable": False,
+            },
+        )
+
+
+class WebEvidenceErrorGeneration:
+    def __init__(self, web_result: WebSearchAndFetchResult) -> None:
+        self.web_result = web_result
+        self.calls = 0
+
+    def start(self, _: object) -> WebEvidenceErrorSession:
+        self.calls += 1
+        return WebEvidenceErrorSession(f"request-{self.calls}", self.web_result)
+
+
+def _rejected_web_result_with_evidence() -> WebSearchAndFetchResult:
+    """A rejected Manual URL Fetch always carries exactly one Evidence item
+    (`WebKnowledgeService.fetch_direct_url()`'s rejection branch), unlike
+    `_failed_web_result()` above which models the zero-Evidence Aggregate-
+    only case — this variant proves the Specific per-Evidence Reason
+    (P8-MR2/UF-P8-007) also survives the ERROR-terminal path, not only the
+    coarser Aggregate `failure_reason`."""
+
+    evidence = WebEvidence(
+        evidence_id=_SHA,
+        result_id=_SHA,
+        requested_url="https://abehiroshi.la.coocan.jp/",
+        canonical_url="https://abehiroshi.la.coocan.jp/",
+        title="https://abehiroshi.la.coocan.jp/",
+        provider_key="direct_url",
+        source_authority=SourceAuthorityClass.GENERAL,
+        snippet="",
+        fetched=False,
+        governance_mode=WebEvidenceGovernanceMode.OFF,
+        rejected=True,
+        rejection_reason=UrlRejectionReason.DNS_RESOLUTION_FAILED,
+    )
+    return WebSearchAndFetchResult(
+        request_id="request-1",
+        activation=WebSearchActivation.MANUAL,
+        governance_mode=WebEvidenceGovernanceMode.OFF,
+        evidence=(evidence,),
+        citations=(),
+        should_generate_with_evidence=False,
+        failure_reason=WebFetchFailureReason.URL_REJECTED,
+        network_calls_made=1,
+    )
+
+
+def test_error_terminal_web_evidence_persists_and_survives_restart(tmp_path: Path) -> None:
+    """P8-MR7-2 (P8-CODEX-014): reproduces exactly the gap the Controller
+    found — a Turn whose Generation Session genuinely terminates via an
+    ERROR Event (Fail-closed Grounding, never a fabricated COMPLETED) must
+    still persist its Web Citation Evidence (Aggregate + Specific Reason),
+    recoverable after a simulated Server Restart — this is the `阿部寛`
+    Turn's own shape: the User watched the Fetch fail Live, and Reload must
+    show the same honest failure, not silently nothing at all."""
+
+    root = tmp_path / "runtime-data"
+    web_result = _rejected_web_result_with_evidence()
+    generation = WebEvidenceErrorGeneration(web_result)
+    service = _new_service(root, generation)
+    service.create_conversation(
+        conversation_id=CID,
+        session_id=ConversationSessionId(value="session-1"),
+        operation_id=op("create"),
+    )
+    events = tuple(
+        service.generate_turn(
+            conversation_id=CID,
+            content="このURLを要約して",
+            settings=_settings(),
+            identities=_identities("1"),
+        )
+    )
+    assert events[-1].event is ConversationEventType.ERROR
+
+    current = service.get_conversation(CID)
+    turn = next(item for item in current.conversation.turns if item.turn_id.value == "turn-1")
+    assert turn.state.value == "failed"
+
+    # Simulate a server restart: a brand-new adapter instance, no in-memory state carried over.
+    reopened = SQLiteConversationStore(runtime_data_root=root, bound_scope_id=SCOPE)
+    reopened.open_ready_store()
+    result = reopened.get_turn_web_citations(CID.value, "turn-1")
+    assert isinstance(result, PersistedTurnWebCitationEvidence)
+    assert result.citations == ()
+    assert result.failure_reason is WebFetchFailureReason.URL_REJECTED
+    assert result.specific_failure_reason == UrlRejectionReason.DNS_RESOLUTION_FAILED.value
+
+
+def test_no_manual_web_evidence_requested_reports_not_present_not_corrupt(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "runtime-data"
+
+    class NoWebEvidenceSession:
+        request_id = "request-no-web"
+        documentation_augmentation = None
+        web_search_result = None
+
+        def events(self) -> Iterator[ConversationEvent]:
+            yield ConversationEvent(
+                event=ConversationEventType.COMPLETED,
+                data={
+                    "request_id": self.request_id,
+                    "assistant_message": {"role": "assistant", "content": "ordinary answer"},
+                },
+            )
+
+    class NoWebEvidenceGeneration:
+        def start(self, _: object) -> NoWebEvidenceSession:
+            return NoWebEvidenceSession()
+
+    service = _new_service(root, NoWebEvidenceGeneration())
+    service.create_conversation(
+        conversation_id=CID,
+        session_id=ConversationSessionId(value="session-1"),
+        operation_id=op("create"),
+    )
+    tuple(
+        service.generate_turn(
+            conversation_id=CID,
+            content="ordinary question",
+            settings=_settings(),
+            identities=_identities("1"),
+        )
+    )
+    result = service.get_conversation_web_citations(CID).get("turn-1")
+    assert result is None or (
+        isinstance(result, WebCitationUnavailable) and result.reason == "not_present"
     )

@@ -2,7 +2,7 @@
 
 ```yaml
 document_id: phase_8_requirements
-document_state: accepted_frozen_ready
+document_state: complete_accepted_closed
 phase: phase_8
 language: ja
 created_at: 2026-08-30 19:18:06 JST

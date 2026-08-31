@@ -130,12 +130,17 @@ Data／Safety／Research Integrityへの影響
 
 ```text
 Implementation Candidate
-→ Controller Independent Review 1回
+→ Controller Cycle 1: Targeted Independent Review
+→ Controller Cycle 2: 観点変更型Assumption-reset Review（Material ChangeのDefault）
 → P0だけをBounded Rework
 → Targeted Re-review 1回
 → User Manual Acceptance
 → Closureまたは明示された最小残件
 ```
+
+Cycle 1／2の具体的な観点、比例適用および縮退条件は、次を現行正本とする。
+
+`docs/project/shared/task_roles/codex_controller_changed_perspective_two_cycle_independent_review_operating_rule_ja.md`
 
 ### 7.2 新Finding
 

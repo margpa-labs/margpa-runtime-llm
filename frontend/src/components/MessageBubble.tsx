@@ -4,6 +4,7 @@ import { containsTable, parseSafeMarkdown, renderSafeMarkdownBlocks } from "../l
 import type { DisplayMessage, LiveJudgeBadge, UiLanguage } from "../types";
 import CopyButton from "./CopyButton";
 import CitationsSection from "./CitationsSection";
+import WebCitationsSection from "./WebCitationsSection";
 
 interface MessageBubbleProps {
   language: UiLanguage;
@@ -13,6 +14,12 @@ interface MessageBubbleProps {
   // `message` by the caller (`MessageList`) — this component only ever
   // decides *how* to render it, never re-checks *whether* it applies.
   judgeBadge?: LiveJudgeBadge | null;
+  // P8-B (P8-REQ-009): a purely Presentation-layer Boundary — `message.
+  // turnActions` itself always carries the real, complete Branch data
+  // (`persistentDetailProjection.ts` is unchanged), so Branch Data/API/
+  // History stay fully intact either way (P8-REQ-009's own "既定非表示"
+  // is a display default, never a data deletion). Defaults to hidden.
+  branchUiVisible?: boolean;
 }
 
 // P6-CODEX-024, updated P6-CODEX-031 (Fourth Rework): a deliberately
@@ -48,6 +55,7 @@ export default function MessageBubble({
   message,
   onTurnAction,
   judgeBadge = null,
+  branchUiVisible = false,
 }: MessageBubbleProps) {
   const judgeBadgeLabel = judgeBadge === null ? null : judgeBadgeLabelKey(judgeBadge);
   const isAssistant = message.role === "assistant";
@@ -81,7 +89,13 @@ export default function MessageBubble({
 
   const showThinking = isAssistant && message.thinkingText.length > 0;
   const showCitations = isAssistant && message.citations !== null;
+  const showWebCitations = isAssistant && message.webCitations !== null;
   const showCopy = !isAssistant || message.isFinal;
+  // P8-B (P8-REQ-009): filters the rendered Buttons only — `message.
+  // turnActions` (the Data) is never mutated.
+  const visibleTurnActions = message.turnActions.filter(
+    (action) => action.kind !== "selectBranch" || branchUiVisible,
+  );
 
   return (
     <div id={message.id} className={classNames} data-request-id={message.requestId ?? undefined}>
@@ -113,12 +127,15 @@ export default function MessageBubble({
       {showCitations && message.citations !== null ? (
         <CitationsSection language={language} evidence={message.citations} />
       ) : null}
-      {showCopy || message.turnActions.length > 0 ? (
+      {showWebCitations && message.webCitations !== null ? (
+        <WebCitationsSection language={language} evidence={message.webCitations} />
+      ) : null}
+      {showCopy || visibleTurnActions.length > 0 ? (
         <div className="message-actions">
           {/* DOM order determines left-to-right position under
               justify-content: flex-end — branch-select/retry first,
               regenerate next, Copy last so it lands rightmost. */}
-          {message.turnActions.map((action) => (
+          {visibleTurnActions.map((action) => (
             <button
               type="button"
               className="message-copy secondary"

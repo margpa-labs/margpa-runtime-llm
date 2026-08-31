@@ -2,14 +2,14 @@
 
 ```yaml
 document_type: public_roadmap_summary
-document_state: phase_7_closed_phase_8_ready
+document_state: phase_8_closed_phase_9_ready
 language: ja
 created_at: 2026-08-23
-updated_at: 2026-08-30 19:18 JST
+updated_at: 2026-08-31 21:32 JST
 public_author: Nazuna Research
 project: MARGPA Runtime LLM
 canonical_detailed_roadmap: docs/public/roadmap_ja.md
-current_phase: phase_8_ready_not_started
+current_phase: phase_9_ready_not_started
 ```
 
 MARGPA Runtime LLMは、Model、RAG、Guardrail、Judge、Repair、Agent、Tool、Memory、Audit、Governance Definitionを交換可能なComponentとして扱い、`OFF／OBSERVE／ENFORCE`の差を証跡付きで比較するAI Governance研究Platformである。
@@ -26,8 +26,8 @@ MARGPA Runtime LLMは、Model、RAG、Guardrail、Judge、Repair、Agent、Tool�
 | Phase 5 | 完了 | Security／Policy／Authority | Guardrail、Injection検知、Policy、Authority、Approvalを独立Component化 |
 | Phase 6 | 最小Closure／既知課題延期 | Judge／Repair／Observability・Model制御 | Model切替等は成立。Semantic 109、独立Judge／Guard、Repairは未解決Registryへ保持 |
 | Phase 7 | 完了／Accepted／Closed | Local RAG／Citation／Data Governance | Local Corpus、Current／Historical Citation、Data Controls、継続性をUser Macで確認。実Web検索はPhase 11以降へ延期 |
-| Phase 8 | READY／未開始 | Agent／Tool／Memory／Handoff Governance | 明示貼付URL Evidence、暫定Runtime Constitution、通常Chat／Dev Agent切替、Approval Harness、Tool／MCP Portを持つResearch Foundationを設計Freeze |
-| Phase 9 | 計画済み | Semantic Debt／Experiment／Multi-Governance | Selene／Qwen3Guard／GD Semantic 109／Judge・Repairの有界Reworkと構成比較、Context技術Coreを予定 |
+| Phase 8 | 完了／Accepted／Closed | Agent／Tool／Memory／Handoff Governance | 明示URL Evidence、Archive管理、暫定Runtime Constitution、Dev Agent Fixture、Approval／Authority／PersistenceをUser Macで確認 |
+| Phase 9 | READY／未開始 | Semantic Debt／Experiment／Multi-Governance | 9-1中心Debt、9-2比較研究、9-3 Context技術Coreの3 Programを設計Freeze。まず9-1を独立実行 |
 | Phase 10 | 計画済み | Project-wide Integration | 全Docs二周、Shared Constitution二周、PADG二周、Full Runtime Constitution、後半UI再編を順番に実施 |
 | Phase 11以降 | 将来研究 | Hardening／External Web／Formal Agents／External R&D | 旧Phase 10のCloud、Model、Training、General Web Search、正式Agent Level 1〜3等を後ろ倒し |
 
@@ -96,8 +96,8 @@ LLM Runtimeの基礎
 ### Phase 7〜9 — 知識・行動・Semantic・比較研究
 
 - Phase 7でLocal Corpus、Data Source、Retrieval Evidence、Document Injection、Citationおよびデータコントロールを成立させ、User Mac Manual Acceptance後にClosedとした。Provider非依存Web Search／Fetch Port、Fixture TestおよびSecurity Scaffoldまでは保持するが、実General Web Searchと自動検索は完成を主張しない。RAG ON＋NO_HIT時にModelを呼ばず設定言語の固定回答へ収束するStrict方式は、必要時だけ再開する保留案である。
-- Phase 8冒頭で、Userが明示的に貼ったPublic `http／https` URLの取得・画面表示・Untrusted Evidence／Citation接続をBounded Candidateとする。Agent、Tool、Memory、Handoff、全Docs統合前の暫定Runtime Constitution、通常Chat／Dev Agent切替、段階的Approval Harness、Tool Registry／MCP Adapter Port、Generic GD Hookを備えたResearch Foundationを作る。Approval HarnessはLevel 1から、安全な事前Scope内作業を止めず重要GateだけUserへ確認するUXを目標とし、Platform Safety Gateは解除しない。併せてBranch Data／APIを残したUI既定非表示と、データコントロール内のアーカイブ済みChat一覧／開く／解除を追加する。完全削除は見送る。Level 1完成は主張しない。
-- Phase 9でSelene、Qwen3Guard、GD Semantic 109、Built-in意味評価、Judge／Repair／RejudgeおよびSemantic ENFORCEの中心Debtを有界Reworkし、Model／GD／RAG／Judge／Repair／Modeの構成差、複数Governance競合、Progressive ENFORCE、Context圧縮・復旧の技術Coreを研究する。大規模UI再編は行わない。
+- Phase 8は、Userが明示的に貼ったPublic `http／https` URLの取得・画面表示・Untrusted Evidence／Citation、Branch UI既定非表示、Archive一覧／開く／解除、全Docs統合前の暫定Runtime Constitution、通常Chat／Dev Agent切替、Fixture Workspace、段階的Approval Harness、Authorization Envelope、Run／Step Persistenceを成立させた。正式Agent Level 1、General Search、Generic MCPおよびFull Runtime Constitutionは完成を主張しない。
+- Phase 9は3 Programへ分離する。9-1でSelene、Qwen3Guard、GD Semantic 109、Built-in意味評価、Judge／Repair／RejudgeおよびSemantic ENFORCEの中心Debtを有界Reworkする。9-2でModel／GD／RAG／Judge／Repair／Modeの構成差と複数Governanceを研究し、9-3でContext圧縮・復旧の非Visual技術Coreを条件付きで扱う。各ProgramはGateまでRunし、観点変更二段階自己Review後にCodex Controller Reviewへ返す。
 
 ### Phase 10 — Project-wide Integration
 
@@ -142,6 +142,6 @@ Codex／Claude Cross-provider Handoff
 
 ## 現在地
 
-Phase 3〜5は完了。Phase 6は主要基盤を成立させた一方、MARGPA Semantic Rule 109件、独立Judge／Guardrail Model、Judge／Repair Golden Pathを未解決として保持し、User判断による特殊最小Closureを完了した。Phase 7はLocal Corpus／Citation／Data Controlsと将来Web Runtime用Port／Security Scaffoldを実装し、User Mac Manual Acceptance後に`COMPLETE／ACCEPTED／CLOSED`となった。実Web検索はSecurity、Privacy、Provider運用および公開Demo Riskを理由にPhase 11以降へ延期した。現在はPhase 8の設計、35 Work Unit、40 AcceptanceおよびHandoffがFreezeされ、`READY／NOT STARTED`である。
+Phase 3〜5は完了。Phase 6は主要基盤を成立させた一方、MARGPA Semantic Rule 109件、独立Judge／Guardrail Model、Judge／Repair Golden Pathを未解決として特殊最小Closureした。Phase 7はLocal Corpus／Citation／Data Controlsを、Phase 8はManual URL Evidence／Archive／暫定Constitution／Dev Agent FoundationをUser Mac Manual Acceptance後に`COMPLETE／ACCEPTED／CLOSED`とした。Phase 8最終Dispositionは39 PASS／1既知PARTIALである。現在はPhase 9の3 Program設計と工程がFreezeされ、`READY／NOT STARTED`である。User Backup後にPreflightへ進む。
 
 詳細は[Roadmap](roadmap_ja.md)、[Overview](overview_ja.md)、[Concept](concept_ja.md)を参照する。

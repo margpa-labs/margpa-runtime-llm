@@ -67,6 +67,7 @@ export function emptyMessage(
     thinkingText: "",
     thinkingVisible: false,
     citations: null,
+    webCitations: null,
     turnActions: [],
     requestId: null,
   };
@@ -122,6 +123,15 @@ export function detailToMessages(
                 // `citations` is non-empty (the ordinary Grounded case),
                 // this array is unused by the rendering logic below.
                 warnings: turn.citations.warning_codes.map((code) => ({ code, message: "" })),
+              }
+            : null,
+        webCitations:
+          turn.web_citations?.available === true
+            ? {
+                available: true,
+                citations: turn.web_citations.citations,
+                failure_reason: turn.web_citations.failure_reason,
+                specific_failure_reason: turn.web_citations.specific_failure_reason,
               }
             : null,
         turnActions,

@@ -21,7 +21,9 @@ from .sqlite_migration import (
     CONVERSATION_TITLE_MIGRATION_STEP,
     LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_1,
     LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_2,
+    LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_3,
     TURN_CITATIONS_MIGRATION_STEP,
+    TURN_WEB_CITATIONS_MIGRATION_STEP,
     SQLiteConversationMaintenance,
 )
 
@@ -76,6 +78,7 @@ def build_local_conversation_persistence(
         known_legacy_versions=(
             LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_1,
             LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_2,
+            LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_3,
         ),
     )
     service = PersistentConversationService(
@@ -85,7 +88,11 @@ def build_local_conversation_persistence(
     )
     maintenance = SQLiteConversationMaintenance(
         store=store,
-        steps=(TURN_CITATIONS_MIGRATION_STEP, CONVERSATION_TITLE_MIGRATION_STEP),
+        steps=(
+            TURN_CITATIONS_MIGRATION_STEP,
+            CONVERSATION_TITLE_MIGRATION_STEP,
+            TURN_WEB_CITATIONS_MIGRATION_STEP,
+        ),
     )
     return LocalConversationPersistence(
         enabled=True,

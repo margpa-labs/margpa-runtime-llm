@@ -14,6 +14,12 @@ interface ComposerProps {
   statusText: string;
   contextUsage: ContextUsage | null;
   showContextUsage: boolean;
+  // P8-A: Manual URL Evidence for the next Turn only (P8-REQ-002/
+  // P8-ACC-009) - `webEvidenceEnabled` gates visibility on the Settings
+  // Web Search toggle, mirroring `WebSearchPanel`'s own `toggleEnabled`.
+  webEvidenceEnabled: boolean;
+  webEvidenceUrl: string;
+  onWebEvidenceUrlChange: (value: string) => void;
 }
 
 export default function Composer({
@@ -27,6 +33,9 @@ export default function Composer({
   statusText,
   contextUsage,
   showContextUsage,
+  webEvidenceEnabled,
+  webEvidenceUrl,
+  onWebEvidenceUrlChange,
 }: ComposerProps) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -55,6 +64,23 @@ export default function Composer({
 
   return (
     <section id="composer" className="composer" aria-label={translate(language, "composerLabel")}>
+      {webEvidenceEnabled ? (
+        <div className="composer-web-evidence">
+          <label htmlFor="composer-web-evidence-url">
+            {translate(language, "composerWebEvidenceLabel")}
+          </label>
+          <input
+            id="composer-web-evidence-url"
+            type="url"
+            placeholder={translate(language, "composerWebEvidencePlaceholder")}
+            disabled={sendDisabled}
+            value={webEvidenceUrl}
+            onChange={(event) => {
+              onWebEvidenceUrlChange(event.target.value);
+            }}
+          />
+        </div>
+      ) : null}
       <label htmlFor="prompt" id="prompt-label">
         {translate(language, "promptLabel")}
       </label>

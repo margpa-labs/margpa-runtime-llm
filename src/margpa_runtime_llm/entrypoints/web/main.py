@@ -13,8 +13,11 @@ from pathlib import Path
 import uvicorn
 
 from margpa_runtime_llm.adapters.data_controls import JsonFileDataControlConsentStore
+from margpa_runtime_llm.adapters.dev_agent import JsonFileDevAgentRunStore
 from margpa_runtime_llm.adapters.documentation_rag import JsonFileLocalCorpusRegistry
 from margpa_runtime_llm.bootstrap.audit_evidence import build_generation_observer
+from margpa_runtime_llm.bootstrap.constitution import build_constitution_provider
+from margpa_runtime_llm.bootstrap.dev_agent import build_dev_agent_run_service
 from margpa_runtime_llm.bootstrap.documentation_rag import (
     build_documentation_rag,
     build_local_documentation_rag,
@@ -415,6 +418,38 @@ def main(argv: Sequence[str] | None = None) -> int:
                 runtime_data_root=data_controls_runtime_data_root,
                 scope_key=data_controls_scope_id,
             )
+        # P8-C: unconditionally composed (a purely local, Read-only File
+        # load — the `constitution/` directory simply won't exist for a
+        # deployment that never opted in, and `load_manifest()` already
+        # fails closed to `ConstitutionManifestUnavailable` in that case).
+        # `constitution_mode` stays `OFF` — no CLI flag exists yet to raise
+        # it, matching this Task's "Provisional" scope (P8-REQ-016: OFF is
+        # never `allow all`, so leaving it OFF has zero behavioral effect
+        # beyond making the Manifest observable).
+        constitution_provider = build_constitution_provider(project_root=PROJECT_ROOT)
+        # P8-D/P8-E: unconditionally composed, same rationale as the
+        # Constitution Provider above — zero external dependency at
+        # Composition time beyond a private local directory, so there is no
+        # "unavailable" state to gate behind a CLI Flag yet. Reuses the same
+        # runtime_data_root/scope_id fallback resolution `_data_controls_settings`
+        # already applies (no dedicated Dev Agent CLI Flag exists yet) so a
+        # Restart of this same process/host recovers every prior Run.
+        dev_agent_runtime_data_root = args.conversation_runtime_data_root or (
+            PROJECT_ROOT / "runtime_data"
+        )
+        dev_agent_scope_id = args.conversation_scope_id or "default"
+        dev_agent_run_store = JsonFileDevAgentRunStore(
+            runtime_data_root=dev_agent_runtime_data_root,
+            scope_key=dev_agent_scope_id,
+        )
+        # P8-MR5 (P8-MANUAL-005): Production Composition wires the
+        # traceable real-File Fixture Workspace Adapter, confined to this
+        # same `runtime_data_root`/`scope_id` (never Project Source).
+        dev_agent_run_service = build_dev_agent_run_service(
+            run_store=dev_agent_run_store,
+            runtime_data_root=dev_agent_runtime_data_root,
+            scope_key=dev_agent_scope_id,
+        )
         documentation_rag = None
         documentation_rag_default_mode = DocumentationRagMode.DISABLED
         documentation_rag_provider_display_name = None
@@ -509,6 +544,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             web_knowledge_service=web_knowledge_service,
             web_search_governance_mode=web_search_governance_mode,
             data_controls_store=data_controls_store,
+            constitution_provider=constitution_provider,
+            dev_agent_run_service=dev_agent_run_service,
         )
         app = create_web_app(
             runtime_factory=runtime_factory,

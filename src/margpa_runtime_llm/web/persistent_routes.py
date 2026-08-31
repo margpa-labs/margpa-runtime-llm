@@ -411,7 +411,13 @@ async def _project_detail(
         service.get_conversation_citations,
         stored.conversation.conversation_id,
     )
-    return project_persistent_detail(stored, citations_by_turn=citations)
+    web_citations = await asyncio.to_thread(
+        service.get_conversation_web_citations,
+        stored.conversation.conversation_id,
+    )
+    return project_persistent_detail(
+        stored, citations_by_turn=citations, web_citations_by_turn=web_citations
+    )
 
 
 def persistent_error_response(error: BaseException) -> JSONResponse:

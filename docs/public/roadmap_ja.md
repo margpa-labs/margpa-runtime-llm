@@ -5,7 +5,7 @@ document_type: public_roadmap
 document_state: current
 language: ja
 created_at: 2026-07-22
-updated_at: 2026-08-30 19:18:06 JST
+updated_at: 2026-08-31 21:32:32 JST
 public_author: Nazuna Research
 project: MARGPA Runtime LLM
 ```
@@ -221,7 +221,8 @@ Phase 6 Guard／Judge Dedicated Model  : Qwen3Guard／Selene Artifact候補あ�
 Phase 6 Recording                     : Request Correlation／Stop／Historical Label Passed
 Phase 6 Closure                       : Special Minimal Closure／Known Debt Deferred／Technical Core ADJUST
 Phase 7                               : Complete／Accepted／Closed／User Mac Manual Passed
-Phase 8                               : Design Accepted／Frozen／READY／Implementation Not Started
+Phase 8                               : Complete／Accepted／Closed／39 PASS・1 Known Partial
+Phase 9                               : Design Accepted／Frozen／READY／Implementation Not Started
 High-performance Main Model Expansion : DeepSeek Mac Q4 Switch／反復防止Passed／回答品質・Judge品質Failed
 AWS Deployment Foundation             : Deferred to Phase 11以降／Phase 6～10から分離
 Optional English Documentation        : Formally Deferred／Non-blocking／History Excluded
@@ -237,7 +238,7 @@ Userは金銭、利用可能量、Portfolio TimingおよびPoC／MVP停止線を
 
 P7-RW5-Eまでに、NO_HIT CitationのFinal／Reload後保持、Local Corpus Citationの登録Title表示、Synthetic Pathから実保存Registry PathへのCorrectionおよび配信Static Buildを完了した。User Mac Final Manualでは登録／更新／削除、Current Revision回答、過去Turn Citation不変、NO_HIT、Reload／Restart／別TabおよびData Controlsを確認したため、Phase 7は`COMPLETE／ACCEPTED／CLOSED`である。`RAG ON＋NO_HITならModelを呼ばず設定言語の固定回答へ収束する`方式は将来候補として保留し、過去Context FactやQwen言語DriftはPhase 9へ保持する。
 
-Phase 8はManual URL Evidence、Branch UI非表示、Archive管理、Provisional Runtime Constitution、Dev Agent／Tool／Approval Harness FoundationをP8-0〜P8-F、35 Work Unit、40 Acceptanceへ分解し、`DESIGN ACCEPTED／FROZEN／READY／NOT STARTED`となった。Source実装はUser Backup、Preflightおよび別のStart Authorization後に開始する。
+Phase 8はManual URL Evidence、Branch UI非表示、Archive管理、Provisional Runtime Constitution、Dev Agent／Tool／Approval Harness Foundationを実装し、Controller Review／ReworkとUser Mac Manual Acceptanceを完了した。最終Dispositionは`39 PASS／1 PARTIAL／40 TOTAL`で、P8-ACC-038のGD／Guard相関だけをFoundation境界の既知PARTIALとして保持し、`COMPLETE／ACCEPTED／CLOSED`とした。現在はPhase 9を9-1／9-2／9-3の3 Programへ分解し、設計・工程・Acceptanceを`ACCEPTED／FROZEN／READY／NOT STARTED`としている。User Backup後にPreflightへ進む。
 
 以下のPhase 1／2詳細は成立過程のCurrent-to-date説明として保持する。最新の短い入口は[Roadmap要約版](roadmap_summary_ja.md)、技術判断は[技術選定](technology_selection_ja.md)を参照する。
 
@@ -1362,7 +1363,7 @@ Phase級のStorage／Sandbox／Parser／Multimodal工事ならPhase 11以降へ�
 
 ## 14. Phase 8 — Agent, Tool, Memory, and Handoff Governance
 
-**State: `Design Accepted／Frozen／READY — Implementation Not Started`**
+**State: `Complete／Accepted／Closed — Research Foundation／39 PASS・1 Known Partial`**
 
 LLMを回答生成器から実行主体へ拡張する。ただし、Agent化を「自由にToolを使わせること」と同一視しない。
 
@@ -1455,17 +1456,27 @@ AAGDがAgent実行過程を確認することは、実行許可を新しく生�
 
 > **Governed Agentic Execution Prototype**
 
-Phase 8はP8-0〜P8-F、35 Work Unit、40 Acceptanceへ分解済みである。READYは設計と実行入口が揃ったことだけを
-意味し、Source実装、Network、MCP、Tool Side EffectまたはAgent Authorityの開始を意味しない。開始前に
-User Backup、Preflightおよび別のStart Authorizationを必要とする。
+Phase 8はP8-0〜P8-F、Controller Review／Rework、User Mac Manual Acceptanceおよび最終UI再確認を完了した。
+Manual URL Evidence、Archive管理、Branch UI既定非表示、Provisional Runtime Constitution、Dev Agent Fixture Workspace、
+Tool／Completion Gate、Authorization EnvelopeおよびRestart-safe Run Persistenceを成立させた。最終Dispositionは
+`39 PASS／1 PARTIAL／40 TOTAL`であり、P8-ACC-038のGD／Guard相関だけをFoundation境界の既知PARTIALとしてPhase 9へ渡す。
+正式Agent Level 1、General Search、Generic MCP、Full Runtime Constitutionまたは未解決0件はPhase 8 Closure Claimに含めない。
 
 ---
 
 ## 15. Phase 9 — Experiment and Multi-Governance Research Platform
 
-**State: `Planned／Advanced Research`**
+**State: `Design Accepted／Frozen／READY — Implementation Not Started`**
 
 各Componentと各Governance Pointを組み替え、単一の成功例ではなく、構成差を比較する研究Platformへ進める。
+
+Phase 9は一つの巨大Runにせず、次の3 Programへ分離する。
+
+1. **Phase 9-1**：Phase 6 Governance Semantic中心Debtを23 Work Unit／38 Acceptanceで速やかに独立完了候補へ送る。
+2. **Phase 9-2**：Experiment／Evaluation／Multi-Governance／Semantic Research Platformを独立Checkpointで成立させる。
+3. **Phase 9-3**：9-2成立後、Resource／Priorityを再評価してContext Compaction／Recoveryの非Visual技術Coreを条件付き実行する。
+
+各ProgramはGateまでLong-runし、観点変更二段階自己Review後にCodex Controller Reviewへ返す。Phase 9 READYはSource実装、Real Model Load、Networkまたは外部Authorityを生成せず、User Backup、PreflightおよびExact Handoffを別途必要とする。
 
 ### Bounded Governance Semantic Debt Rework
 

@@ -70,3 +70,24 @@ Backupはユーザー側で事前取得済みの前提で運用する。
 
 - 長期戦Mode ON切替時：作業開始時刻を記録。
 - 各Index作成時：既存の`created_at`をそのまま所要時間算出Evidenceとして扱う（追加作業無し）。
+
+## 5. Manual Compaction-first Long-run Entry（Append-only Correction, 2026-08-30）
+
+長めの実装・Review・Reworkを開始するときは、Userが別のTaskを作り直すことを常時要件にせず、原則として次の流れを使う。
+
+```text
+最新Recovery Index／Active Handoffを成立させる
+→ UserがManual Compactionを実行する
+→ Claudeが必須Stable Role Docs、Active Handoff、最新Recoveryを再読する
+→ Codex Controllerが作成したExact開始・継続指示を受ける
+→ True StopまたはExact Return BoundaryまでLong-runを継続する
+→ Codex ControllerのIndependent Reviewを受ける
+→ Findingがあれば現Taskと最新Recoveryから差分Reworkする
+```
+
+- Fresh Task作成はUserが明示的に選んだ場合のみであり、各Reworkや各Long-runの既定手順ではない。
+- Manual CompactionはContextの整理手段であり、Authority、Scope、完了済みBoundary、実装権限またはReturn BoundaryをResetしない。
+- Manual Compaction後の再読は「実装前の再確認だけを行って停止」するGateではない。開始指示受領後は実装へ移る。
+- Core File、広いBlast Radius、大きなDiff、Independent Review前であること自体は、Active Handoffが許可したScope内である限りTrue Stopではない。Focused Test、Regression、Internal Review、Recovery IndexでRiskを管理して継続する。
+
+実測根拠：[Claude Manual Compaction-first Long-run運用Evidence](../history/automation/claude_manual_compaction_instruction_long_run_controller_review_empirical_operating_evidence_ja_20260830230710.md)。

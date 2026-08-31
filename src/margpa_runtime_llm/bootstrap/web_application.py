@@ -20,6 +20,7 @@ from margpa_runtime_llm.adapters.runtime_model_control.model_definition_registry
 from margpa_runtime_llm.adapters.runtime_observability.local_filesystem_recording_writer import (
     LocalFilesystemRecordingWriter,
 )
+from margpa_runtime_llm.modules.constitution import ConstitutionMode, ConstitutionProviderPort
 from margpa_runtime_llm.modules.conversation.adapters import (
     LocalConversationPersistenceSettings,
 )
@@ -44,6 +45,7 @@ from margpa_runtime_llm.modules.conversation.domain import (
 )
 from margpa_runtime_llm.modules.conversation.public import ConversationGenerationService
 from margpa_runtime_llm.modules.data_controls.ports import DataControlConsentStorePort
+from margpa_runtime_llm.modules.dev_agent import DevAgentRunService
 from margpa_runtime_llm.modules.documentation_rag.contracts import (
     DocumentationRagAvailability,
     DocumentationRagMode,
@@ -252,6 +254,9 @@ def build_phase1_web_runtime(
     web_knowledge_service: WebKnowledgeService | None = None,
     web_search_governance_mode: WebEvidenceGovernanceMode = WebEvidenceGovernanceMode.OFF,
     data_controls_store: DataControlConsentStorePort | None = None,
+    constitution_provider: ConstitutionProviderPort | None = None,
+    constitution_mode: ConstitutionMode = ConstitutionMode.OFF,
+    dev_agent_run_service: DevAgentRunService | None = None,
 ) -> WebRuntime:
     application: Phase1Application | None = None
     try:
@@ -784,6 +789,8 @@ def build_phase1_web_runtime(
             thinking_control_available=thinking_control_available,
             documentation_rag=documentation_rag,
             documentation_rag_availability=documentation_rag_availability,
+            web_knowledge_service=web_knowledge_service,
+            web_search_governance_mode=web_search_governance_mode,
             chat_prompt_token_counter=application.service.count_chat_prompt_tokens,
             text_token_counter=application.service.count_text_tokens,
             effective_context_size=runtime_info.loaded_context_size,
@@ -984,6 +991,9 @@ def build_phase1_web_runtime(
             web_knowledge_service=web_knowledge_service,
             web_search_governance_mode=web_search_governance_mode,
             data_controls_store=data_controls_store,
+            constitution_provider=constitution_provider,
+            constitution_mode=constitution_mode,
+            dev_agent_run_service=dev_agent_run_service,
         )
     except BaseException:
         if application is not None:

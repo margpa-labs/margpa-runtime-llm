@@ -11,6 +11,7 @@ from margpa_runtime_llm.modules.documentation_rag.contracts import (
     PersistedTurnCitationEvidence,
 )
 from margpa_runtime_llm.modules.inference.contracts.base import ImmutableContract
+from margpa_runtime_llm.modules.web_knowledge import PersistedTurnWebCitationEvidence
 
 from ..domain.identity import (
     ConversationId,
@@ -44,6 +45,10 @@ class CommitConversation(ImmutableContract):
     expected_revision: int | None = Field(default=None, strict=True, ge=1)
     conversation: ConversationSnapshot
     citation_evidence: PersistedTurnCitationEvidence | None = None
+    web_citation_evidence: PersistedTurnWebCitationEvidence | None = None
+    """P8-A (P8-ACC-011): independent of `citation_evidence` above — a Turn
+    may carry either, both, or neither, committed atomically alongside the
+    same Turn either way."""
 
     @model_validator(mode="after")
     def validate_scope(self) -> CommitConversation:
@@ -62,6 +67,37 @@ class CommitConversation(ImmutableContract):
             )
             if matching_turn is None or matching_turn.state is not ConversationTurnState.COMPLETED:
                 raise ValueError("citation evidence must reference a completed turn in the commit")
+        if self.web_citation_evidence is not None:
+            if (
+                self.web_citation_evidence.conversation_id
+                != self.conversation.conversation_id.value
+            ):
+                raise ValueError("web citation evidence conversation id does not match the commit")
+            matching_web_turn = next(
+                (
+                    turn
+                    for turn in self.conversation.turns
+                    if turn.turn_id.value == self.web_citation_evidence.turn_id
+                ),
+                None,
+            )
+            if matching_web_turn is None or matching_web_turn.state not in (
+                ConversationTurnState.COMPLETED,
+                # P8-MR7-2 (P8-CODEX-014): a Manual Web Evidence attempt
+                # that ends the Turn in FAILED (Fail-closed Grounding,
+                # P8-MR1's `web_evidence_fetch_failed`) is real Evidence —
+                # the Fetch/Rejection genuinely happened — never only
+                # attachable to a Turn that went on to produce an Assistant
+                # Message. Documentation RAG's own `citation_evidence`
+                # invariant just above is deliberately left COMPLETED-only
+                # (out of this Package's scope; Documentation RAG's
+                # analogous Fail-closed path is a separate, pre-existing
+                # gap, not introduced here).
+                ConversationTurnState.FAILED,
+            ):
+                raise ValueError(
+                    "web citation evidence must reference a completed or failed turn in the commit"
+                )
         return self
 
 

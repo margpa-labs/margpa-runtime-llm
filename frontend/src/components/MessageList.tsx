@@ -15,6 +15,9 @@ interface MessageListProps {
   // fabricated "current" state for any Turn other than the one it actually
   // names — `MessageBubble` itself does the exact-match check.
   liveJudgeBadge: LiveJudgeBadge | null;
+  // P8-B (P8-REQ-009): forwarded verbatim to every `MessageBubble` —
+  // see that component's own prop doc for the Presentation-only semantics.
+  branchUiVisible: boolean;
 }
 
 // Clearance kept between the fixed top-right topbar pill and a pinned
@@ -33,6 +36,7 @@ export default function MessageList({
   pinnedMessageId,
   active,
   liveJudgeBadge,
+  branchUiVisible,
 }: MessageListProps) {
   // .messages no longer scrolls internally (it grows to fit its content,
   // and the page itself scrolls) — so "scroll to latest" means scrolling a
@@ -124,6 +128,7 @@ export default function MessageList({
             language={language}
             message={message}
             onTurnAction={onTurnAction}
+            branchUiVisible={branchUiVisible}
             judgeBadge={
               message.requestId !== null && liveJudgeBadge?.requestId === message.requestId
                 ? liveJudgeBadge

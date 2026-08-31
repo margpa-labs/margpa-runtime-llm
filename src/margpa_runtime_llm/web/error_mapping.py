@@ -11,6 +11,7 @@ def http_status_for_inference_error(code: InferenceErrorCode) -> int:
         InferenceErrorCode.INVALID_CONFIGURATION,
         InferenceErrorCode.INVALID_MODEL_DEFINITION,
         InferenceErrorCode.CONTEXT_LIMIT_EXCEEDED,
+        InferenceErrorCode.CONTENT_BUDGET_EXCEEDED,
         InferenceErrorCode.UNSUPPORTED_CAPABILITY,
     }:
         return 400

@@ -55,11 +55,21 @@ from .configuration_routes import (
     configuration_web_error_response,
     create_configuration_router,
 )
+from .constitution_routes import (
+    ConstitutionWebError,
+    constitution_error_response,
+    create_constitution_router,
+)
 from .contracts import StopGenerationRequest, WebRuntime
 from .data_controls_routes import (
     DataControlsWebError,
     create_data_controls_router,
     data_controls_error_response,
+)
+from .dev_agent_routes import (
+    DevAgentWebError,
+    create_dev_agent_router,
+    dev_agent_error_response,
 )
 from .error_mapping import http_status_for_inference_error
 from .feature_modes_routes import create_feature_modes_router
@@ -394,6 +404,22 @@ def create_web_app(
         del request
         return data_controls_error_response(exc)
 
+    @app.exception_handler(ConstitutionWebError)
+    async def constitution_web_error(
+        request: Request,
+        exc: ConstitutionWebError,
+    ) -> JSONResponse:
+        del request
+        return constitution_error_response(exc)
+
+    @app.exception_handler(DevAgentWebError)
+    async def dev_agent_web_error(
+        request: Request,
+        exc: DevAgentWebError,
+    ) -> JSONResponse:
+        del request
+        return dev_agent_error_response(exc)
+
     @app.exception_handler(RuntimeModelControlWebError)
     async def runtime_model_control_web_error(
         request: Request,
@@ -652,6 +678,8 @@ def create_web_app(
     app.include_router(create_local_corpus_router())
     app.include_router(create_web_search_router())
     app.include_router(create_data_controls_router())
+    app.include_router(create_constitution_router())
+    app.include_router(create_dev_agent_router())
 
     app.mount("/assets", StaticFiles(directory=STATIC_ROOT), name="assets")
     return app

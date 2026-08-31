@@ -122,6 +122,7 @@ class FixtureWebFetchProvider:
                     content=entry.content,
                     content_type=entry.content_type,
                     fetched_at=datetime.now(UTC).isoformat(),
+                    canonical_url=url,
                 )
         return FetchRejected(reason=UrlRejectionReason.DNS_RESOLUTION_FAILED)
 

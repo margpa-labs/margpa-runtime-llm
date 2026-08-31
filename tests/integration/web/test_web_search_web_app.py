@@ -38,12 +38,17 @@ def runtime(
     *,
     bound: bool,
     governance_mode: WebEvidenceGovernanceMode = WebEvidenceGovernanceMode.OFF,
+    direct_fetch_transport: httpx.MockTransport | None = None,
 ) -> WebRuntime:
     return WebRuntime(
         conversation=cast(object, NullConversation()),  # type: ignore[arg-type]
         snapshot=SafeRuntimeSnapshot.model_construct(),
         close_callback=lambda: None,
-        web_knowledge_service=build_web_knowledge_service() if bound else None,
+        web_knowledge_service=(
+            build_web_knowledge_service(direct_fetch_transport=direct_fetch_transport)
+            if bound
+            else None
+        ),
         web_search_governance_mode=governance_mode,
     )
 
@@ -110,6 +115,128 @@ async def test_disabled_activation_makes_zero_network_calls() -> None:
     assert body["network_calls_made"] == 0
     assert body["failure_reason"] == "search_disabled"
     assert body["evidence"] == []
+
+
+@pytest.mark.asyncio
+async def test_direct_url_disabled_makes_zero_network_calls() -> None:
+    app = create_web_app(
+        runtime_factory=lambda: runtime(bound=True),
+        access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+    )
+    async with client_for(app) as client:
+        response = await client.post(
+            "/api/v2/web-search/direct",
+            json={"url": "https://www.python.org/doc/", "activation": "disabled"},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["network_calls_made"] == 0
+    assert response.json()["failure_reason"] == "url_fetch_disabled"
+
+
+@pytest.mark.asyncio
+async def test_direct_url_manual_returns_fetched_evidence_and_digest_citation() -> None:
+    # P8-A / Controller Recovery §6 item 1: Direct URL Fetch is wired to
+    # `HttpxWebFetchProvider` in Production (never the Search Fixture), so
+    # this Test exercises the real httpx request path against an in-process
+    # `httpx.MockTransport` — zero real sockets opened, but genuine evidence
+    # that the Production composition boundary actually calls Httpx.
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert str(request.url) == "https://example.org/manual-article"
+        return httpx.Response(
+            200, headers={"content-type": "text/html"}, text="<p>manual evidence</p>"
+        )
+
+    app = create_web_app(
+        runtime_factory=lambda: runtime(
+            bound=True, direct_fetch_transport=httpx.MockTransport(handler)
+        ),
+        access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+    )
+    async with client_for(app) as client:
+        response = await client.post(
+            "/api/v2/web-search/direct",
+            json={"url": "https://example.org/manual-article", "activation": "manual"},
+        )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["network_calls_made"] == 1
+    assert body["evidence"][0]["fetched"] is True
+    assert body["evidence"][0]["fetched_content"] == "<p>manual evidence</p>"
+    assert body["citations"][0]["content_sha512"]
+    assert body["citations"][0]["source_class"] == "public_web"
+    assert body["citations"][0]["canonical_url"] == "https://example.org/manual-article"
+
+
+@pytest.mark.asyncio
+async def test_direct_url_never_touches_the_search_fixture_provider() -> None:
+    # A URL that is NOT in the Search Fixture's known set must still be
+    # genuinely fetchable via Direct URL Fetch — proving the two paths are
+    # wired to independent Fetch Providers (Controller Recovery §6 item 1).
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, headers={"content-type": "text/plain"}, text="unrelated site")
+
+    app = create_web_app(
+        runtime_factory=lambda: runtime(
+            bound=True, direct_fetch_transport=httpx.MockTransport(handler)
+        ),
+        access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+    )
+    async with client_for(app) as client:
+        response = await client.post(
+            "/api/v2/web-search/direct",
+            json={"url": "https://example.org/never-in-fixture", "activation": "manual"},
+        )
+
+    body = response.json()
+    assert body["evidence"][0]["fetched"] is True
+    assert body["evidence"][0]["fetched_content"] == "unrelated site"
+
+
+@pytest.mark.asyncio
+async def test_direct_url_redirect_records_the_final_canonical_url_in_the_citation() -> None:
+    # Controller Recovery §6 item 2: the Citation must record the URL the
+    # content was actually read from after a redirect, not the originally
+    # requested one.
+    def handler(request: httpx.Request) -> httpx.Response:
+        if str(request.url) == "https://example.org/start":
+            return httpx.Response(302, headers={"location": "https://example.org/final"})
+        return httpx.Response(200, headers={"content-type": "text/html"}, text="landed")
+
+    app = create_web_app(
+        runtime_factory=lambda: runtime(
+            bound=True, direct_fetch_transport=httpx.MockTransport(handler)
+        ),
+        access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+    )
+    async with client_for(app) as client:
+        response = await client.post(
+            "/api/v2/web-search/direct",
+            json={"url": "https://example.org/start", "activation": "manual"},
+        )
+
+    body = response.json()
+    assert body["evidence"][0]["canonical_url"] == "https://example.org/final"
+    assert body["citations"][0]["canonical_url"] == "https://example.org/final"
+
+
+@pytest.mark.asyncio
+async def test_direct_url_to_a_dangerous_port_is_rejected() -> None:
+    app = create_web_app(
+        runtime_factory=lambda: runtime(bound=True),
+        access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+    )
+    async with client_for(app) as client:
+        response = await client.post(
+            "/api/v2/web-search/direct",
+            json={"url": "https://example.org:6379/", "activation": "manual"},
+        )
+
+    body = response.json()
+    assert body["network_calls_made"] == 0
+    assert body["failure_reason"] == "url_rejected"
+    assert body["evidence"][0]["rejection_reason"] == "dangerous_port"
 
 
 @pytest.mark.asyncio

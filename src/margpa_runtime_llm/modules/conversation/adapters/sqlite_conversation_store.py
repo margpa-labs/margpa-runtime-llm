@@ -20,6 +20,12 @@ from margpa_runtime_llm.modules.documentation_rag.contracts import (
     CitationUnavailable,
     PersistedTurnCitationEvidence,
 )
+from margpa_runtime_llm.modules.web_knowledge import (
+    WEB_CITATION_EVIDENCE_SCHEMA_VERSION,
+    PersistedTurnWebCitationEvidence,
+    WebCitationUnavailable,
+    classify_content_transformation,
+)
 
 from ..domain import (
     ConversationId,
@@ -45,16 +51,23 @@ from ..ports import (
 
 APPLICATION_ID = "margpa-runtime-llm"
 STORAGE_BACKEND_KIND = "sqlite"
-STORAGE_SCHEMA_VERSION = "sqlite-3"
+STORAGE_SCHEMA_VERSION = "sqlite-4"
 STORAGE_FORMAT_VERSION = "sqlite-json-1"
 DOMAIN_SCHEMA_VERSION = "1"
 _CURSOR_VERSION = "1"
 _SCOPE_DOMAIN = b"margpa-conversation-scope-v1\0"
 _COMMAND_DOMAIN = b"margpa-conversation-command-v1\0"
 _EXPECTED_TABLES = frozenset(
-    {"store_metadata", "conversations", "commit_operations", "turn_citations"}
+    {
+        "store_metadata",
+        "conversations",
+        "commit_operations",
+        "turn_citations",
+        "turn_web_citations",
+    }
 )
 _CITATION_STORAGE_FORMAT_VERSION = "sqlite-citation-json-1"
+_WEB_CITATION_STORAGE_FORMAT_VERSION = "sqlite-web-citation-json-1"
 
 
 def scope_directory_key(scope_id: ConversationScopeId) -> str:
@@ -86,6 +99,44 @@ def _reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]
 
 def _updated_at_us(value: datetime) -> int:
     return int(value.timestamp() * 1_000_000)
+
+
+def _upgrade_web_citation_payload(
+    payload: dict[str, object], schema_version: int
+) -> dict[str, object]:
+    """P8-MR7-3 (P8-CODEX-015): Reader-side upgrade of a Frozen Schema 1/2
+    `PersistedTurnWebCitationEvidence` JSON payload to the current
+    in-memory Contract shape, applied fresh on every read — the Historical
+    Record on disk is never rewritten. Only fills Fields that became
+    required after the Record was written; never invents data the Record
+    did not actually carry."""
+    citations = payload.get("citations")
+    if not isinstance(citations, list) or not citations:
+        return payload
+    upgraded_citations: list[object] = []
+    for raw_citation in citations:
+        if not isinstance(raw_citation, dict):
+            upgraded_citations.append(raw_citation)
+            continue
+        citation = dict(raw_citation)
+        if schema_version < 2 and "requested_url" not in citation:
+            # P8-RW6-A bumped Schema 1 -> 2 when `requested_url` became a
+            # required Field distinct from `canonical_url`. Schema 1
+            # predates that distinction entirely — it only ever recorded
+            # the single URL it fetched — so the honest Compatibility
+            # Projection is that same value, never a claim that a
+            # pre-Redirect URL was separately recorded at the time.
+            citation["requested_url"] = citation.get("canonical_url")
+        if schema_version < 3 and "transformation" not in citation:
+            # P8-MR2 bumped Schema 2 -> 3 when `transformation` became a
+            # required Field, deterministically derivable from the
+            # already-recorded `content_type` via the same pure
+            # classifier used when the Field was first introduced.
+            raw_content_type = citation.get("content_type")
+            content_type = raw_content_type if isinstance(raw_content_type, str) else None
+            citation["transformation"] = classify_content_transformation(content_type).value
+        upgraded_citations.append(citation)
+    return {**payload, "citations": upgraded_citations}
 
 
 class SQLiteConversationStore:
@@ -284,10 +335,21 @@ class SQLiteConversationStore:
                     committed_at_utc TEXT NOT NULL,
                     PRIMARY KEY (scope_id, conversation_id, turn_id)
                 );
+                CREATE TABLE turn_web_citations (
+                    scope_id TEXT NOT NULL,
+                    conversation_id TEXT NOT NULL,
+                    turn_id TEXT NOT NULL,
+                    citation_schema_version INTEGER NOT NULL,
+                    citations_json BLOB NOT NULL,
+                    citations_sha512 TEXT NOT NULL,
+                    operation_id TEXT NOT NULL,
+                    committed_at_utc TEXT NOT NULL,
+                    PRIMARY KEY (scope_id, conversation_id, turn_id)
+                );
                 CREATE INDEX conversations_list_idx
                   ON conversations(scope_id, updated_at_us DESC, conversation_id ASC);
                 INSERT INTO store_metadata VALUES (
-                    1, 'margpa-runtime-llm', 'sqlite-3', '1', 'ready', NULL
+                    1, 'margpa-runtime-llm', 'sqlite-4', '1', 'ready', NULL
                 );
                 COMMIT;
                 """
@@ -473,6 +535,23 @@ class SQLiteConversationStore:
                         command.citation_evidence.citation_schema_version,
                         citation_bytes,
                         citation_digest,
+                        command.operation_id.value,
+                        command.conversation.updated_at.isoformat(),
+                    ),
+                )
+            if command.web_citation_evidence is not None:
+                web_citation_bytes, web_citation_digest = self._encode_web_citation_evidence(
+                    command.web_citation_evidence
+                )
+                connection.execute(
+                    "INSERT INTO turn_web_citations VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                    (
+                        command.scope_id.value,
+                        command.conversation.conversation_id.value,
+                        command.web_citation_evidence.turn_id,
+                        command.web_citation_evidence.citation_schema_version,
+                        web_citation_bytes,
+                        web_citation_digest,
                         command.operation_id.value,
                         command.conversation.updated_at.isoformat(),
                     ),
@@ -904,6 +983,101 @@ class SQLiteConversationStore:
             raise self._map_error(exc) from None
         return {
             str(row[0]): self._decode_citation_evidence(
+                str(row[0]), row[1], bytes(row[2]), str(row[3])
+            )
+            for row in rows
+        }
+
+    @staticmethod
+    def _encode_web_citation_evidence(
+        evidence: PersistedTurnWebCitationEvidence,
+    ) -> tuple[bytes, str]:
+        envelope = {
+            "citation_storage_format_version": _WEB_CITATION_STORAGE_FORMAT_VERSION,
+            "citation_evidence": evidence.model_dump(mode="json"),
+        }
+        payload = _canonical_bytes(envelope)
+        return payload, _sha512(payload)
+
+    @staticmethod
+    def _decode_web_citation_evidence(
+        turn_id: str,
+        schema_version: object,
+        payload: bytes,
+        digest: str,
+    ) -> PersistedTurnWebCitationEvidence | WebCitationUnavailable:
+        # Mirrors `_decode_citation_evidence()` above exactly, including its
+        # P2E-CODEX-005 rationale for guarding the raw DB column type here.
+        if isinstance(schema_version, bool) or not isinstance(schema_version, int):
+            return WebCitationUnavailable(turn_id=turn_id, reason="corrupt_record")
+        if schema_version < 1 or schema_version > WEB_CITATION_EVIDENCE_SCHEMA_VERSION:
+            return WebCitationUnavailable(turn_id=turn_id, reason="unsupported_schema_version")
+        if _sha512(payload) != digest:
+            return WebCitationUnavailable(turn_id=turn_id, reason="corrupt_record")
+        try:
+            value = json.loads(payload.decode("utf-8"), object_pairs_hook=_reject_duplicate_keys)
+        except (UnicodeDecodeError, ValueError, TypeError):
+            return WebCitationUnavailable(turn_id=turn_id, reason="corrupt_record")
+        if not isinstance(value, dict) or set(value) != {
+            "citation_storage_format_version",
+            "citation_evidence",
+        }:
+            return WebCitationUnavailable(turn_id=turn_id, reason="corrupt_record")
+        if value["citation_storage_format_version"] != _WEB_CITATION_STORAGE_FORMAT_VERSION:
+            return WebCitationUnavailable(turn_id=turn_id, reason="unsupported_schema_version")
+        citation_payload = value["citation_evidence"]
+        if not isinstance(citation_payload, dict):
+            return WebCitationUnavailable(turn_id=turn_id, reason="corrupt_record")
+        embedded_version = citation_payload.get("citation_schema_version")
+        if embedded_version != schema_version:
+            return WebCitationUnavailable(turn_id=turn_id, reason="unsupported_schema_version")
+        # P8-MR7-3 (P8-CODEX-015): a Schema 1/2 Record is genuinely
+        # missing Fields the current in-memory Contract now requires
+        # (`requested_url`, `transformation`) — upgraded here, in memory,
+        # on every read, rather than degrading every historical Record to
+        # `corrupt_record` the instant the Contract legitimately evolves.
+        upgraded_payload = _upgrade_web_citation_payload(citation_payload, schema_version)
+        try:
+            return PersistedTurnWebCitationEvidence.model_validate(upgraded_payload)
+        except ValidationError:
+            return WebCitationUnavailable(turn_id=turn_id, reason="corrupt_record")
+
+    def get_turn_web_citations(
+        self,
+        conversation_id: str,
+        turn_id: str,
+    ) -> PersistedTurnWebCitationEvidence | WebCitationUnavailable:
+        self._require_ready()
+        try:
+            with self._connect(read_only=True) as connection:
+                row = connection.execute(
+                    "SELECT turn_id, citation_schema_version, citations_json, citations_sha512 "
+                    "FROM turn_web_citations WHERE scope_id = ? AND conversation_id = ? "
+                    "AND turn_id = ?",
+                    (self._scope_id.value, conversation_id, turn_id),
+                ).fetchone()
+        except sqlite3.Error as exc:
+            raise self._map_error(exc) from None
+        if row is None:
+            return WebCitationUnavailable(turn_id=turn_id, reason="not_present")
+        return self._decode_web_citation_evidence(str(row[0]), row[1], bytes(row[2]), str(row[3]))
+
+    def get_conversation_web_citations(
+        self,
+        conversation_id: str,
+    ) -> dict[str, PersistedTurnWebCitationEvidence | WebCitationUnavailable]:
+        self._require_ready()
+        try:
+            with self._connect(read_only=True) as connection:
+                rows = connection.execute(
+                    "SELECT turn_id, citation_schema_version, citations_json, citations_sha512 "
+                    "FROM turn_web_citations WHERE scope_id = ? AND conversation_id = ?",
+                    (self._scope_id.value, conversation_id),
+                ).fetchall()
+        except sqlite3.Error as exc:
+            raise self._map_error(exc) from None
+        return {
+            str(row[0]): self._decode_web_citation_evidence(
                 str(row[0]), row[1], bytes(row[2]), str(row[3])
             )
             for row in rows

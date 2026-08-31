@@ -23,6 +23,13 @@ class InferenceErrorCode(StrEnum):
     INTERNAL_TASK_PREEMPTION_FAILED = "internal_task_preemption_failed"
     UNSUPPORTED_CAPABILITY = "unsupported_capability"
     CONTEXT_LIMIT_EXCEEDED = "context_limit_exceeded"
+    CONTENT_BUDGET_EXCEEDED = "content_budget_exceeded"
+    """P8-MR7-4 (P8-CODEX-016): distinct from `CONTEXT_LIMIT_EXCEEDED` —
+    raised specifically when a Manual Web Evidence Turn's fetched content
+    cannot fit the Turn's actual remaining Token Budget even after
+    Truncation, so the caller (and the User) can tell "the Web Evidence
+    itself didn't fit" apart from "the base Conversation was already over
+    the limit before Web Evidence was even considered"."""
     GENERATION_FAILED = "generation_failed"
     BACKEND_PROTOCOL_ERROR = "backend_protocol_error"
     MODEL_UNLOAD_FAILED = "model_unload_failed"

@@ -5,6 +5,14 @@ import type {
   ChatMessage,
   ConfigurationPreviewResult,
   ConfigurationSnapshot,
+  ConstitutionModePreview,
+  ConstitutionRuntime,
+  DevAgentApprovalProfile,
+  DevAgentCapability,
+  DevAgentCapabilityId,
+  DevAgentPlanStepRequest,
+  DevAgentRun,
+  DevAgentToolDescriptor,
   GenerationSettings,
   GovernanceStatus,
   GuardrailGovernanceStatus,
@@ -89,8 +97,33 @@ export async function fetchPersistentRuntime(): Promise<PersistentRuntimeRespons
   return (await response.json()) as PersistentRuntimeResponse;
 }
 
+// P8-MR3 (P8-MANUAL-003): explicit `state=active` — without it, the
+// Backend's default returns both Active and Archived Conversations, so an
+// Archived Chat kept reappearing in the ordinary Sidebar list alongside
+// the Archived-only Data Controls panel below.
 export async function fetchPersistentList(): Promise<PersistentConversationPage> {
-  const response = await fetch("/api/v2/conversations?limit=50", { cache: "no-store" });
+  const response = await fetch("/api/v2/conversations?state=active&limit=50", {
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new Error((await safeError(response, "request_failed")).message);
+  }
+  return (await response.json()) as PersistentConversationPage;
+}
+
+// P8-B (P8-REQ-010): the `state=archived` query param and cursor pagination
+// already existed server-side (Phase 2-E) — this is purely a new Client-side
+// call, not new Backend surface. "Lazy" (P8-REQ-010's own wording) means
+// this is only ever called on demand from the Data Controls panel, never
+// eagerly alongside the ordinary Sidebar list.
+export async function fetchArchivedPersistentList(
+  cursor: string | null = null,
+): Promise<PersistentConversationPage> {
+  const query = new URLSearchParams({ state: "archived", limit: "50" });
+  if (cursor !== null) {
+    query.set("cursor", cursor);
+  }
+  const response = await fetch(`/api/v2/conversations?${query.toString()}`, { cache: "no-store" });
   if (!response.ok) {
     throw new Error((await safeError(response, "request_failed")).message);
   }
@@ -360,6 +393,117 @@ export async function applyRuntimeModelSwitch(
   return (await response.json()) as RuntimeModelStatus;
 }
 
+export async function fetchConstitutionRuntime(): Promise<ConstitutionRuntime> {
+  const response = await fetch("/api/v2/constitution/runtime", { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("constitution_unavailable");
+  }
+  return (await response.json()) as ConstitutionRuntime;
+}
+
+export async function fetchConstitutionModePreview(): Promise<ConstitutionModePreview> {
+  const response = await fetch("/api/v2/constitution/preview", { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("constitution_unavailable");
+  }
+  return (await response.json()) as ConstitutionModePreview;
+}
+
+export async function fetchDevAgentCapabilities(): Promise<DevAgentCapability[]> {
+  const response = await fetch("/api/v2/dev-agent/capabilities", { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("dev_agent_unavailable");
+  }
+  return (await response.json()) as DevAgentCapability[];
+}
+
+export async function fetchDevAgentTools(): Promise<DevAgentToolDescriptor[]> {
+  const response = await fetch("/api/v2/dev-agent/tools", { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("dev_agent_unavailable");
+  }
+  return (await response.json()) as DevAgentToolDescriptor[];
+}
+
+export async function startDevAgentRun(
+  capabilityId: DevAgentCapabilityId,
+  steps: DevAgentPlanStepRequest[],
+  approvalProfile: DevAgentApprovalProfile,
+): Promise<DevAgentRun> {
+  const response = await fetch("/api/v2/dev-agent/runs", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      capability_id: capabilityId,
+      steps,
+      approval_profile: approvalProfile,
+    }),
+  });
+  if (!response.ok) {
+    const failure = await safeError(response, "dev_agent_run_start_failed");
+    throw new ApiMutationError(failure);
+  }
+  return (await response.json()) as DevAgentRun;
+}
+
+export async function advanceDevAgentRun(runId: string): Promise<DevAgentRun> {
+  const response = await fetch(`/api/v2/dev-agent/runs/${encodeURIComponent(runId)}/advance`, {
+    method: "POST",
+  });
+  if (!response.ok) {
+    const failure = await safeError(response, "dev_agent_run_advance_failed");
+    throw new ApiMutationError(failure);
+  }
+  return (await response.json()) as DevAgentRun;
+}
+
+export async function submitDevAgentApproval(
+  runId: string,
+  stepId: string,
+  decision: "approved" | "denied",
+): Promise<DevAgentRun> {
+  const response = await fetch(`/api/v2/dev-agent/runs/${encodeURIComponent(runId)}/approvals`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ step_id: stepId, decision }),
+  });
+  if (!response.ok) {
+    const failure = await safeError(response, "dev_agent_run_approval_failed");
+    throw new ApiMutationError(failure);
+  }
+  return (await response.json()) as DevAgentRun;
+}
+
+export async function submitDevAgentCompletionApproval(
+  runId: string,
+  decision: "approved" | "denied",
+): Promise<DevAgentRun> {
+  const response = await fetch(
+    `/api/v2/dev-agent/runs/${encodeURIComponent(runId)}/completion-approval`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ decision }),
+    },
+  );
+  if (!response.ok) {
+    const failure = await safeError(response, "dev_agent_run_completion_approval_failed");
+    throw new ApiMutationError(failure);
+  }
+  return (await response.json()) as DevAgentRun;
+}
+
+export async function cancelDevAgentRun(runId: string): Promise<DevAgentRun> {
+  const response = await fetch(`/api/v2/dev-agent/runs/${encodeURIComponent(runId)}/cancel`, {
+    method: "POST",
+  });
+  if (!response.ok) {
+    const failure = await safeError(response, "dev_agent_run_cancel_failed");
+    throw new ApiMutationError(failure);
+  }
+  return (await response.json()) as DevAgentRun;
+}
+
 export async function fetchFeatureModesStatus(): Promise<FeatureModesStatus> {
   const response = await fetch("/api/v5/feature-modes/status", { cache: "no-store" });
   if (!response.ok) {
@@ -510,6 +654,22 @@ export async function searchWeb(
   });
   if (!response.ok) {
     throw new ApiMutationError(await safeError(response, "web_search_failed"));
+  }
+  return (await response.json()) as WebSearchResult;
+}
+
+export async function fetchDirectUrl(
+  url: string,
+  activation: WebSearchActivation,
+): Promise<WebSearchResult> {
+  const response = await fetch("/api/v2/web-search/direct", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url, activation }),
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new ApiMutationError(await safeError(response, "web_search_direct_fetch_failed"));
   }
   return (await response.json()) as WebSearchResult;
 }

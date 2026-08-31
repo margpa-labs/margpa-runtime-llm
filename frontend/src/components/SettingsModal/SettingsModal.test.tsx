@@ -142,6 +142,12 @@ function baseProps(overrides: Partial<Parameters<typeof SettingsModal>[0]> = {})
     onDataControlsRefresh: vi.fn(),
     onDataControlsToggle: vi.fn(),
     onDataControlsReset: vi.fn(),
+    archivedChatsAvailable: false,
+    archivedChatsState: { capability: "idle" as const, items: [], resultText: "" },
+    onArchivedChatsLoad: vi.fn(),
+    onArchivedChatsClose: vi.fn(),
+    onArchivedChatsOpen: vi.fn(),
+    onArchivedChatsUnarchive: vi.fn(),
     ...overrides,
   };
 }

@@ -53,6 +53,7 @@ CID = ConversationId(value="conversation-1")
 class FakeSession:
     request_id = "request-integration"
     documentation_augmentation = None
+    web_search_result = None
 
     def events(self) -> Iterator[ConversationEvent]:
         yield ConversationEvent(

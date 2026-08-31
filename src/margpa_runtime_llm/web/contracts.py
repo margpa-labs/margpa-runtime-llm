@@ -8,9 +8,11 @@ from typing import TYPE_CHECKING
 from pydantic import Field, field_validator
 
 from margpa_runtime_llm.modules.configuration_control import ConfigurationControlService
+from margpa_runtime_llm.modules.constitution import ConstitutionMode, ConstitutionProviderPort
 from margpa_runtime_llm.modules.conversation.application import PersistentConversationService
 from margpa_runtime_llm.modules.conversation.public import ConversationGenerationService
 from margpa_runtime_llm.modules.data_controls.ports import DataControlConsentStorePort
+from margpa_runtime_llm.modules.dev_agent import DevAgentRunService
 from margpa_runtime_llm.modules.documentation_rag.contracts import DocumentationRagMode
 from margpa_runtime_llm.modules.documentation_rag.local_corpus_ports import (
     LocalCorpusRegistryPort,
@@ -123,6 +125,9 @@ class WebRuntime:
     web_knowledge_service: WebKnowledgeService | None = None
     web_search_governance_mode: WebEvidenceGovernanceMode = WebEvidenceGovernanceMode.OFF
     data_controls_store: DataControlConsentStorePort | None = None
+    constitution_provider: ConstitutionProviderPort | None = None
+    constitution_mode: ConstitutionMode = ConstitutionMode.OFF
+    dev_agent_run_service: DevAgentRunService | None = None
     _close_lock: threading.Lock = field(default_factory=threading.Lock, init=False, repr=False)
     _closed: bool = field(default=False, init=False, repr=False)
 

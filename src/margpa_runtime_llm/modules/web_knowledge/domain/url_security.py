@@ -21,11 +21,41 @@ from __future__ import annotations
 
 import ipaddress
 import socket
+from collections.abc import Callable, Sequence
 from urllib.parse import urlsplit
 
 from ..contracts import UrlRejectionReason
 
 ALLOWED_SCHEMES = frozenset({"http", "https"})
+
+GetAddrInfoResult = tuple[
+    socket.AddressFamily,
+    socket.SocketKind,
+    int,
+    str,
+    tuple[str, int] | tuple[str, int, int, int] | tuple[int, bytes],
+]
+"""Mirrors `socket.getaddrinfo()`'s real return element shape exactly, so
+`default_resolver` type-checks as a plain pass-through and a Fake Resolver
+in Tests can build the same well-known 5-tuples the existing
+`monkeypatch.setattr(socket, "getaddrinfo", ...)`-based Tests already do."""
+
+Resolver = Callable[[str, int], Sequence[GetAddrInfoResult]]
+"""P8-MR7-1 (P8-CODEX-013): the sole DNS-resolution seam of the URL
+Security Boundary, injectable so Tests can prove Public IPv4/IPv6
+acceptance, transient-DNS-failure retry-recovery, and hostname-resolves-
+to-private-address rejection deterministically, with zero real sockets
+opened — instead of relying only on monkeypatching the global `socket`
+module. `default_resolver` below still calls through the real
+`socket.getaddrinfo` symbol (not a private copy of it), so every existing
+`monkeypatch.setattr(socket, "getaddrinfo", ...)`-based Test keeps working
+unchanged; `resolver` is purely an additional, explicit override a caller
+may supply instead."""
+
+
+def default_resolver(hostname: str, port: int) -> Sequence[GetAddrInfoResult]:
+    return socket.getaddrinfo(hostname, port, proto=socket.IPPROTO_TCP)
+
 
 _METADATA_HOSTNAME_DENYLIST = frozenset(
     {
@@ -34,13 +64,53 @@ _METADATA_HOSTNAME_DENYLIST = frozenset(
     }
 )
 
+# P8-REQ-003 / Controller Recovery §6 item 4: MVP-tier denylist of common
+# non-HTTP internal/administrative service ports (PoC/MVP Portfolio Operating
+# Policy P2 tier, not an exhaustive enterprise port-scan defense — mirrors
+# this module's own documented posture on the hostname denylist above).
+# Standard/common HTTP(S) ports (80, 443, 8080, 8443, ...) are deliberately
+# never on this list — a candidate port is dangerous only if explicitly
+# named here, never rejected merely for being non-standard.
+_DANGEROUS_PORTS = frozenset(
+    {
+        22,  # SSH
+        23,  # Telnet
+        25,  # SMTP
+        135,  # Windows RPC
+        139,  # NetBIOS
+        445,  # SMB
+        1433,  # Microsoft SQL Server
+        1521,  # Oracle DB
+        2375,  # Docker (unauthenticated)
+        2376,  # Docker (TLS)
+        3306,  # MySQL/MariaDB
+        3389,  # RDP
+        5432,  # PostgreSQL
+        5900,  # VNC
+        6379,  # Redis
+        8500,  # Consul
+        9200,  # Elasticsearch
+        9300,  # Elasticsearch transport
+        11211,  # Memcached
+        27017,  # MongoDB
+    }
+)
 
-def validate_url_before_connect(url: str) -> UrlRejectionReason | None:
+
+def validate_url_before_connect(
+    url: str,
+    *,
+    resolver: Resolver = default_resolver,
+) -> UrlRejectionReason | None:
     """Returns `None` when the URL is safe to connect to, else the reason
     it was rejected. Never raises for a malformed/unsafe URL — a caller
     that forgets to check the return value gets a rejection reason string
     it must positively test for `is None`, not an exception it can
-    accidentally swallow."""
+    accidentally swallow.
+
+    `resolver` (P8-MR7-1) defaults to the real DNS-resolving
+    `default_resolver` — Production behavior is unchanged unless a caller
+    (a Test, invariably) explicitly overrides it."""
 
     try:
         parts = urlsplit(url)
@@ -57,15 +127,26 @@ def validate_url_before_connect(url: str) -> UrlRejectionReason | None:
     if normalized_hostname in _METADATA_HOSTNAME_DENYLIST or normalized_hostname == "localhost":
         return UrlRejectionReason.LINK_LOCAL_OR_METADATA_ADDRESS
 
+    try:
+        explicit_port = parts.port
+    except ValueError:
+        # `urlsplit(...).port` raises for a syntactically out-of-range port
+        # (e.g. ":99999999") rather than returning `None` — treated the same
+        # as any other malformed URL, never an uncaught exception escaping
+        # this Security Boundary.
+        return UrlRejectionReason.UNSUPPORTED_SCHEME
+    port = explicit_port or (443 if parts.scheme.casefold() == "https" else 80)
+    if port in _DANGEROUS_PORTS:
+        return UrlRejectionReason.DANGEROUS_PORT
+
     literal_reason = _reject_if_unsafe_ip(normalized_hostname)
     if literal_reason is not None:
         return literal_reason
     if _is_ip_literal(normalized_hostname):
         return None
 
-    port = parts.port or (443 if parts.scheme.casefold() == "https" else 80)
     try:
-        resolved = socket.getaddrinfo(normalized_hostname, port, proto=socket.IPPROTO_TCP)
+        resolved = resolver(normalized_hostname, port)
     except OSError:
         return UrlRejectionReason.DNS_RESOLUTION_FAILED
     if not resolved:

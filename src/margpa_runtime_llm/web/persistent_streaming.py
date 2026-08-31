@@ -104,6 +104,36 @@ def project_persistent_event(
                 "warnings": _safe_warnings(data.get("warnings")),
             },
         )
+    if event.event is ConversationEventType.WEB_EVIDENCE:
+        citations = []
+        raw_citations = data.get("citations")
+        if isinstance(raw_citations, list):
+            for item in raw_citations:
+                if not isinstance(item, dict):
+                    continue
+                citations.append(
+                    {
+                        "requested_url": item.get("requested_url"),
+                        "canonical_url": item.get("canonical_url"),
+                        "title": item.get("title"),
+                        "provider_key": item.get("provider_key"),
+                        "source_authority": item.get("source_authority"),
+                        "fetched_at": item.get("fetched_at"),
+                        "content_type": item.get("content_type"),
+                        "transformation": item.get("transformation"),
+                        "content_sha512": item.get("content_sha512"),
+                        "source_class": item.get("source_class"),
+                        "selected_order": item.get("selected_order"),
+                    }
+                )
+        return (
+            "web_evidence",
+            {
+                "citations": citations,
+                "failure_reason": data.get("failure_reason"),
+                "specific_failure_reason": data.get("specific_failure_reason"),
+            },
+        )
     if event.event is ConversationEventType.DELTA:
         return (
             "delta",

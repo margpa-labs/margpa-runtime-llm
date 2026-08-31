@@ -26,6 +26,7 @@ from .sqlite_conversation_store import (
 
 LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_1 = "sqlite-1"
 LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_2 = "sqlite-2"
+LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_3 = "sqlite-3"
 
 MigrationTransform = Callable[[Path], None]
 MigrationValidator = Callable[[Path], int]
@@ -551,15 +552,55 @@ def _add_conversation_title_column(path: Path) -> None:
         connection.execute("ALTER TABLE conversations ADD COLUMN title TEXT")
         connection.execute(
             "UPDATE store_metadata SET storage_schema_version = ? WHERE singleton = 1",
-            (STORAGE_SCHEMA_VERSION,),
+            (LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_3,),
         )
 
 
 CONVERSATION_TITLE_MIGRATION_STEP = SQLiteMigrationStep(
     step_id="sqlite-2-to-sqlite-3-conversation-title",
     source_version=LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_2,
-    target_version=STORAGE_SCHEMA_VERSION,
+    # P8-A: pinned to the explicit legacy constant above rather than the
+    # live `STORAGE_SCHEMA_VERSION` import - that import is bound once, at
+    # this module's own import time, so a later schema bump (this Task's
+    # own `sqlite-3` -> `sqlite-4`) would otherwise have silently changed
+    # *this* step's `target_version` too, even though this step still only
+    # ever adds the title column, never the new `turn_web_citations` table.
+    target_version=LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_3,
     transform=_add_conversation_title_column,
+)
+
+
+def _add_turn_web_citations_table(path: Path) -> None:
+    """P8-A: add the (initially empty) persistent Manual URL Fetch citation
+    evidence table - mirrors `_add_turn_citations_table()` above exactly."""
+
+    with sqlite3.connect(path) as connection:
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS turn_web_citations (
+                scope_id TEXT NOT NULL,
+                conversation_id TEXT NOT NULL,
+                turn_id TEXT NOT NULL,
+                citation_schema_version INTEGER NOT NULL,
+                citations_json BLOB NOT NULL,
+                citations_sha512 TEXT NOT NULL,
+                operation_id TEXT NOT NULL,
+                committed_at_utc TEXT NOT NULL,
+                PRIMARY KEY (scope_id, conversation_id, turn_id)
+            )
+            """
+        )
+        connection.execute(
+            "UPDATE store_metadata SET storage_schema_version = ? WHERE singleton = 1",
+            (STORAGE_SCHEMA_VERSION,),
+        )
+
+
+TURN_WEB_CITATIONS_MIGRATION_STEP = SQLiteMigrationStep(
+    step_id="sqlite-3-to-sqlite-4-turn-web-citations",
+    source_version=LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_3,
+    target_version=STORAGE_SCHEMA_VERSION,
+    transform=_add_turn_web_citations_table,
 )
 
 

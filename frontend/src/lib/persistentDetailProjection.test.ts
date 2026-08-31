@@ -103,6 +103,66 @@ describe("P7-RW5-A (P7-CODEX-014): NO_HIT citation evidence survives a Persisten
   });
 });
 
+describe("P8-A: Web Citation Evidence survives a Persistent Detail reload", () => {
+  test("a completed turn with an available Web Citation reconstructs webCitations", () => {
+    const messages = detailToMessages(
+      detail({
+        state: "completed",
+        messages: [
+          { role: "user", content: "このURLを要約して" },
+          { role: "assistant", content: "要約しました。" },
+        ],
+        web_citations: {
+          available: true,
+          citations: [
+            {
+              citation_id: "web-citation-1",
+              requested_url: "https://example.org/article",
+              canonical_url: "https://example.org/article",
+              title: "https://example.org/article",
+              provider_key: "direct_url",
+              source_authority: "general",
+              fetched_at: "2026-08-30T00:00:00Z",
+              content_type: "text/html",
+              transformation: "html_text_extracted",
+              content_sha512: "a".repeat(128),
+              source_class: "public_web",
+              selected_order: 1,
+            },
+          ],
+          failure_reason: null,
+          specific_failure_reason: null,
+        },
+      }),
+      "ja",
+    );
+
+    const assistant = messages.find((message) => message.role === "assistant");
+    expect(assistant).toBeDefined();
+    expect(assistant?.webCitations).not.toBeNull();
+    expect(assistant?.webCitations?.citations).toHaveLength(1);
+    expect(assistant?.webCitations?.citations[0]?.canonical_url).toBe(
+      "https://example.org/article",
+    );
+  });
+
+  test("a turn with no Web Citation evidence at all reconstructs null", () => {
+    const messages = detailToMessages(
+      detail({
+        state: "completed",
+        messages: [
+          { role: "user", content: "ordinary question" },
+          { role: "assistant", content: "ordinary answer" },
+        ],
+      }),
+      "ja",
+    );
+
+    const assistant = messages.find((message) => message.role === "assistant");
+    expect(assistant?.webCitations).toBeNull();
+  });
+});
+
 describe("P6-CODEX-015 (Second Rework): unrecognized guardrail_*/governance_* codes", () => {
   test("knownMessageText falls back to the fixed Safe Refusal sentence, never the raw code", () => {
     const text = knownMessageText("ja", "guardrail_future_reason_not_yet_listed", "some fallback");

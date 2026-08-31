@@ -56,6 +56,15 @@ from margpa_runtime_llm.modules.inference.contracts.generation import ThinkingMo
 from margpa_runtime_llm.modules.inference.contracts.response import ResponseLanguage
 from margpa_runtime_llm.modules.presentation.contracts.thinking import ThinkingVisibility
 from margpa_runtime_llm.modules.summarization.public import SummaryMode
+from margpa_runtime_llm.modules.web_knowledge import (
+    SourceAuthorityClass,
+    WebCitation,
+    WebContentTransformation,
+    WebEvidence,
+    WebEvidenceGovernanceMode,
+    WebSearchActivation,
+    WebSearchAndFetchResult,
+)
 from margpa_runtime_llm.web.access_profiles import (
     DocumentationRagEffectiveState,
     WebExposureMode,
@@ -90,6 +99,7 @@ class Session:
         self.cancelled = False
         self.event_thread_ids: list[int] = []
         self.documentation_augmentation: DocumentationAugmentation | None = None
+        self.web_search_result: WebSearchAndFetchResult | None = None
 
     def request_cancel(self) -> None:
         self.cancelled = True
@@ -1404,6 +1414,158 @@ async def test_citations_survive_reload_fetch(tmp_path: Path) -> None:
         persisted[1]["storage_display_path"]
         == "runtime_data/persistent/server-private-scope/local_corpus/documents.json"
     )
+
+
+def _web_result() -> WebSearchAndFetchResult:
+    sha = "a" * 128
+    citation = WebCitation(
+        citation_id="web-citation-1",
+        requested_url="https://example.org/manual-article",
+        canonical_url="https://example.org/manual-article",
+        title="https://example.org/manual-article",
+        provider_key="direct_url",
+        source_authority=SourceAuthorityClass.GENERAL,
+        fetched_at="2026-08-30T00:00:00Z",
+        content_type="text/html",
+        transformation=WebContentTransformation.HTML_TEXT_EXTRACTED,
+        content_sha512=sha,
+        source_class="public_web",
+        selected_order=1,
+    )
+    evidence = WebEvidence(
+        evidence_id=sha,
+        result_id=sha,
+        requested_url="https://example.org/manual-article",
+        canonical_url="https://example.org/manual-article",
+        title="https://example.org/manual-article",
+        provider_key="direct_url",
+        source_authority=SourceAuthorityClass.GENERAL,
+        snippet="",
+        fetched=True,
+        fetched_content="Genuine fetched article content.",
+        fetched_content_sha512=sha,
+        fetched_at="2026-08-30T00:00:00Z",
+        content_type="text/html",
+        transformation=WebContentTransformation.HTML_TEXT_EXTRACTED,
+        governance_mode=WebEvidenceGovernanceMode.OFF,
+    )
+    return WebSearchAndFetchResult(
+        request_id="request-web",
+        activation=WebSearchActivation.MANUAL,
+        governance_mode=WebEvidenceGovernanceMode.OFF,
+        evidence=(evidence,),
+        citations=(citation,),
+        should_generate_with_evidence=True,
+        network_calls_made=1,
+    )
+
+
+class WebCitingSession(Session):
+    def __init__(self, request_id: str, answer: str) -> None:
+        super().__init__(request_id, answer)
+        self.web_search_result = _web_result()
+
+    def events(self) -> Iterator[ConversationEvent]:
+        # Mirrors `CitingSession.events()` above exactly, but for the
+        # `WEB_EVIDENCE` event/`web_evidence` completed-data key instead of
+        # `RETRIEVAL`/`documentation_retrieval` (P8-A).
+        try:
+            self.event_thread_ids.append(threading.get_ident())
+            yield ConversationEvent(
+                event=ConversationEventType.START,
+                data={"request_id": self.request_id, "state": "generating"},
+            )
+            result = self.web_search_result
+            assert result is not None
+            yield ConversationEvent(
+                event=ConversationEventType.WEB_EVIDENCE,
+                data={
+                    "request_id": self.request_id,
+                    "activation": result.activation.value,
+                    "citations": [
+                        citation.model_dump(mode="json") for citation in result.citations
+                    ],
+                    "failure_reason": None,
+                    "network_calls_made": result.network_calls_made,
+                },
+            )
+            yield ConversationEvent(
+                event=ConversationEventType.DELTA,
+                data={"request_id": self.request_id, "channel": "final", "text": "partial"},
+            )
+            yield ConversationEvent(
+                event=ConversationEventType.COMPLETED,
+                data={
+                    "request_id": self.request_id,
+                    "finish_reason": "stop",
+                    "assistant_message": {"role": "assistant", "content": self.answer},
+                    "context_usage": self.context_usage,
+                },
+            )
+        finally:
+            self.event_thread_ids.append(threading.get_ident())
+            self.finished = True
+
+
+class WebCitingGeneration(Generation):
+    def start(self, value: ConversationGenerationInput) -> WebCitingSession:
+        self.start_thread_ids.append(threading.get_ident())
+        self.calls.append(value)
+        self.active = WebCitingSession(f"request-{len(self.calls)}", f"web-cited-{len(self.calls)}")
+        return self.active
+
+
+@pytest.mark.asyncio
+async def test_web_citations_survive_reload_fetch(tmp_path: Path) -> None:
+    """P8-A: the Detail response restores Web Citations without live SSE
+    Page Memory (mirrors `test_citations_survive_reload_fetch` above)."""
+    store = SQLiteConversationStore(
+        runtime_data_root=tmp_path / "runtime-data",
+        bound_scope_id=SCOPE,
+    )
+    store.initialize_new_store()
+    generation = WebCitingGeneration()
+    service = PersistentConversationService(
+        repository=store,
+        bound_scope_id=SCOPE,
+        generation_service=generation,  # type: ignore[arg-type]
+    )
+    service.recover_incomplete_conversations()
+    runtime = WebRuntime(
+        conversation=cast(object, generation),  # type: ignore[arg-type]
+        snapshot=runtime_snapshot(),
+        close_callback=lambda: None,
+        persistent_conversation=service,
+    )
+    app = create_web_app(
+        runtime_factory=lambda: runtime,
+        access_policy=WebAccessPolicy(mode=WebAuthMode.DISABLED),
+    )
+    async with client_for(app) as client:
+        detail = await create(client, "web-citing-create")
+        conversation_id = detail["conversation_id"]
+        streamed = await client.post(
+            f"/api/v2/conversations/{conversation_id}/turns/stream",
+            json={
+                "content": "このURLを要約して",
+                "settings": settings_payload(),
+                "operation_id": "web-citing-turn",
+                "expected_revision": detail["storage_revision"],
+            },
+        )
+        reloaded = await client.get(f"/api/v2/conversations/{conversation_id}")
+    assert "event: web_evidence" in streamed.text
+    assert '"canonical_url":"https://example.org/manual-article"' in streamed.text
+    assert '"source_class":"public_web"' in streamed.text
+    body = reloaded.json()
+    assert body["turns"][0]["web_citations"]["available"] is True
+    persisted = body["turns"][0]["web_citations"]["citations"]
+    assert persisted[0]["canonical_url"] == "https://example.org/manual-article"
+    assert persisted[0]["source_class"] == "public_web"
+    assert persisted[0]["content_sha512"] == "a" * 128
+    # A Turn with only Web Evidence must not fabricate a Documentation
+    # Citation projection.
+    assert body["turns"][0]["citations"] is None
 
 
 def _no_hit_augmentation() -> DocumentationAugmentation:

@@ -67,6 +67,7 @@ class FakeSession:
         self.request_id = "request-1"
         self._events = events
         self.documentation_augmentation = None
+        self.web_search_result = None
 
     def events(self) -> Iterator[ConversationEvent]:
         yield from self._events

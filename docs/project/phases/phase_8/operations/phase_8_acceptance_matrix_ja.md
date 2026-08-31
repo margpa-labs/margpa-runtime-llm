@@ -2,7 +2,7 @@
 
 ```yaml
 document_id: phase_8_acceptance_matrix
-document_state: accepted_frozen_ready
+document_state: complete_accepted_closed_with_one_known_partial
 phase: phase_8
 language: ja
 created_at: 2026-08-30 19:18:06 JST
@@ -53,3 +53,16 @@ acceptance_count: 40
 | P8-ACC-040 | User実画面でManual URL、Archive管理、Chat／Agent切替、Gate／Stopを確認できる。 |
 
 `P8-ACC-040`前にPhase 8 Closureを主張しない。Real NetworkまたはMCPがAuthority不足でNOT RUNの場合は、Fixture PASSと実接続PASSを混同しない。
+
+## Final Disposition — 2026-08-31
+
+```text
+PASS     39
+PARTIAL   1  # P8-ACC-038
+TOTAL    40
+```
+
+- `P8-ACC-038`はRun／Step／Tool／Approval／Constitution相関と永続化が成立した一方、Fixture ToolがModel Outputを生成しないPhase 8 Foundation境界ではGD／Guard相関の実経路が無いため、PARTIALのままPhase 9へ渡す。
+- `P8-ACC-039`はBackend `2191 passed, 7 deselected`、Mypy `563 source files`、Ruff check／format、Frontend `318 passed`、Typecheck／Lint／BuildのClosure再検証でPASSした。
+- `P8-ACC-040`はUser Mac実画面でManual URL、Archive、Chat／Dev Agent、Tool／Completion Gate、Cancel／Completeおよび最終4 UI項目を確認しPASSした。
+- 既知PARTIAL 1件とDeferredなMinor／HardeningはPoC／MVP Closure Blockerへ昇格しない。

@@ -16,6 +16,7 @@ function assistantMessage(overrides: Partial<DisplayMessage> = {}): DisplayMessa
     thinkingText: "",
     thinkingVisible: false,
     citations: null,
+    webCitations: null,
     turnActions: [],
     requestId: null,
     ...overrides,
@@ -34,6 +35,10 @@ describe("MessageBubble action row", () => {
           ],
         })}
         onTurnAction={vi.fn()}
+        // P8-B (P8-REQ-009): Branch defaults to hidden — this Test
+        // specifically covers the Branch button's own rendering/ordering,
+        // so it opts back in explicitly.
+        branchUiVisible={true}
       />,
     );
 
@@ -52,6 +57,23 @@ describe("MessageBubble action row", () => {
     for (const button of buttons) {
       expect(button.className).toBe("message-copy secondary");
     }
+  });
+
+  test("P8-B (P8-REQ-009): branch-select is hidden by default even though the turn action data still carries it", () => {
+    const message = assistantMessage({
+      turnActions: [
+        { kind: "selectBranch", turnId: "turn-1" },
+        { kind: "regenerate", turnId: "turn-1" },
+      ],
+    });
+    render(<MessageBubble language="en" message={message} onTurnAction={vi.fn()} />);
+
+    expect(screen.queryByText("Select this branch")).toBeNull();
+    expect(screen.getByText("Regenerate")).toBeInTheDocument();
+    // The Data itself (P8-REQ-009's "Branch Data/API保持") is never mutated —
+    // only the rendered Buttons are filtered.
+    expect(message.turnActions).toHaveLength(2);
+    expect(message.turnActions[0]?.kind).toBe("selectBranch");
   });
 
   test("a turn with no actions and no copy (non-final assistant message) renders no action row at all", () => {

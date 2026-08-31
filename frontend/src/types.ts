@@ -73,6 +73,10 @@ export interface GenerationSettings {
   documentation_rag_mode: string;
   context_usage_prompt_injection_mode: "enabled" | "disabled";
   expressive_mode: "enabled" | "disabled";
+  // P8-A: a one-shot URL for this Turn only, never a standing Setting —
+  // omitted (not merely `null`) on every call site that must not attach it
+  // (Retry/Regenerate), see `App.tsx`'s `settingsPayload()`.
+  manual_web_evidence_url?: string | null;
 }
 
 // --- Context Window usage (Phase 2-E-I) ---
@@ -330,6 +334,189 @@ export interface FeatureModesStatus {
   recording: RecordingModeSnapshot;
 }
 
+// --- Provisional Runtime Constitution (Phase 8-C) ---
+
+export type ConstitutionView = "chat" | "agent" | "tool";
+export type ConstitutionMode = "off" | "observe" | "enforce";
+
+export interface ConstitutionCapabilityView {
+  view: ConstitutionView;
+  mode: ConstitutionMode;
+  rule_ids: string[];
+}
+
+export interface ConstitutionRuntime {
+  revision: number;
+  digest_sha512: string;
+  rule_count: number;
+  views: ConstitutionCapabilityView[];
+}
+
+// --- Constitution Mode Comparison Preview (Phase 8-RW6-D) ---
+// P8-CODEX-008: a Pure, non-Activating comparison of OFF/OBSERVE/ENFORCE
+// for the same Manifest — distinct from `ConstitutionRuntime` above, which
+// reflects the single Production Active Mode only.
+
+export interface ConstitutionDecisionPreview {
+  rule_id: string;
+  mode: ConstitutionMode;
+  outcome: string;
+  reason: string;
+}
+
+// -- Constitution Preview 3-axis comparison (Phase 8-RW7-A / P8-CODEX-012) --
+// Fixed per-Mode semantics from the Exact Handoff: what a Mode *does*
+// (evaluation_disposition), what Authority it grants (action_permission,
+// never Provider/Platform/User Authority), and how a Violation would
+// actually be presented for this real View's Decisions
+// (violation_presentation — honestly `typed_unsupported` whenever a Rule
+// is not yet genuinely supported, never a fabricated
+// `observation_only`/`enforced`).
+
+export type ConstitutionEvaluationDisposition =
+  | "not_evaluated"
+  | "evaluate_record_only"
+  | "evaluate_and_apply_supported_action";
+
+export type ConstitutionActionPermission =
+  | "no_constitution_action"
+  | "no_block_no_authority_change"
+  | "supported_actions_only_no_authority_expansion";
+
+export type ConstitutionViolationPresentation =
+  | "not_evaluated"
+  | "observation_only"
+  | "enforced"
+  | "typed_unsupported";
+
+export interface ConstitutionModePreviewEntry {
+  mode: ConstitutionMode;
+  rule_ids: string[];
+  decisions: ConstitutionDecisionPreview[];
+  evaluation_disposition: ConstitutionEvaluationDisposition;
+  action_permission: ConstitutionActionPermission;
+  violation_presentation: ConstitutionViolationPresentation;
+}
+
+export interface ConstitutionViewModePreview {
+  view: ConstitutionView;
+  modes: ConstitutionModePreviewEntry[];
+}
+
+export interface ConstitutionModePreview {
+  revision: number;
+  digest_sha512: string;
+  is_preview: boolean;
+  active_production_mode: ConstitutionMode;
+  views: ConstitutionViewModePreview[];
+}
+
+// --- Dev Agent / Tool / Approval Harness Foundation (Phase 8-D) ---
+
+export type DevAgentCapabilityId = "chat" | "dev_agent";
+
+export interface DevAgentCapability {
+  capability_id: DevAgentCapabilityId;
+}
+
+export type DevAgentImportantGateReason =
+  | "external_write"
+  | "network"
+  | "cost"
+  | "irreversible"
+  | "secret_or_privacy"
+  | "scope_expansion"
+  | "critical_incident"
+  | "completion";
+
+export interface DevAgentToolDescriptor {
+  tool_id: string;
+  name: string;
+  description: string;
+  important_gate_reason: DevAgentImportantGateReason | null;
+}
+
+export type DevAgentApprovalProfile =
+  | "plan_only"
+  | "manual"
+  | "risk_based"
+  | "important_gate_only";
+
+export type DevAgentRunState =
+  | "pending"
+  | "running"
+  | "awaiting_approval"
+  | "awaiting_completion_approval"
+  | "completed"
+  | "failed"
+  | "cancelled";
+
+export type DevAgentStepState =
+  | "pending"
+  | "running"
+  | "awaiting_approval"
+  | "succeeded"
+  | "failed"
+  | "denied"
+  | "cancelled"
+  | "late_rejected";
+
+export interface DevAgentStepRecord {
+  step_id: string;
+  tool_id: string;
+  state: DevAgentStepState;
+  attempt_count: number;
+  // P8-MR5 (P8-MANUAL-005): the real Server Plan Input for this Step —
+  // e.g. Target Path/Write Content for `write_note` — visible BEFORE
+  // Approval, never only Hard-coded Frontend display text.
+  input: Record<string, unknown>;
+  output: Record<string, unknown> | null;
+  error: string | null;
+  completed_at: string | null;
+  approved: boolean;
+}
+
+export interface DevAgentRunCompletion {
+  outcome: string;
+  reason: string;
+}
+
+// P8-MR5 (P8-MANUAL-005): projects the Frozen Envelope so the UI can show
+// Resource Scope and Gate Reasons the User is actually being asked to
+// Approve — mirrors `DevAgentAuthorizationEnvelopeResponse` on the Backend.
+export interface DevAgentAuthorizationEnvelope {
+  run_id: string;
+  allowed_step_ids: string[];
+  allowed_tool_ids: string[];
+  resource_scope: string;
+  max_steps: number;
+  max_attempts: number;
+  expires_at: string | null;
+  gate_reasons: DevAgentImportantGateReason[];
+  issued_at: string;
+}
+
+export interface DevAgentRun {
+  run_id: string;
+  capability_id: DevAgentCapabilityId;
+  approval_profile: DevAgentApprovalProfile;
+  max_steps: number;
+  state: DevAgentRunState;
+  steps: DevAgentStepRecord[];
+  created_at: string;
+  deadline_at: string | null;
+  completion: DevAgentRunCompletion | null;
+  constitution_mode: string | null;
+  constitution_rule_ids: string[] | null;
+  envelope: DevAgentAuthorizationEnvelope | null;
+}
+
+export interface DevAgentPlanStepRequest {
+  step_id: string;
+  tool_id: string;
+  input: Record<string, unknown>;
+}
+
 export type ProviderRole = "main" | "guard" | "judge";
 
 export interface ProviderStageBudget {
@@ -467,6 +654,7 @@ export type WebEvidenceGovernanceMode = "off" | "observe" | "enforce";
 
 export interface WebEvidenceItem {
   evidence_id: string;
+  requested_url: string;
   canonical_url: string;
   title: string;
   provider_key: string;
@@ -477,6 +665,7 @@ export interface WebEvidenceItem {
   withheld_by_governance: boolean;
   fetched_at: string | null;
   content_type: string | null;
+  transformation: string | null;
   prompt_injection_detected: boolean;
   rejected: boolean;
   rejection_reason: string | null;
@@ -484,11 +673,16 @@ export interface WebEvidenceItem {
 
 export interface WebCitationItem {
   citation_id: string;
+  requested_url: string;
   canonical_url: string;
   title: string;
   provider_key: string;
   source_authority: string;
   fetched_at: string | null;
+  content_type: string | null;
+  transformation: string;
+  content_sha512: string | null;
+  source_class: string;
   selected_order: number;
 }
 
@@ -559,11 +753,23 @@ export interface PersistentTurnCitations {
   warning_codes: string[];
 }
 
+export interface PersistentTurnWebCitations {
+  available: boolean;
+  citations: WebCitationItem[];
+  // P8-A: reuses the existing WebFetchFailureReason wire value - `null`
+  // when the Fetch succeeded (or nothing was ever requested for this Turn).
+  failure_reason: string | null;
+  // P8-MR2 (P8-MANUAL-002): the per-Evidence Reason (e.g.
+  // `dns_resolution_failed`) alongside the coarser Aggregate above.
+  specific_failure_reason: string | null;
+}
+
 export interface PersistentTurn {
   turn_id: string;
   state: "pending" | "completed" | "failed" | "cancelled" | "interrupted";
   messages: PersistentTurnMessage[];
   citations?: PersistentTurnCitations;
+  web_citations?: PersistentTurnWebCitations;
   failure_reason_code?: string | null;
   // P6-CODEX-024 (Third Rework): already present on the backend's
   // `PersistentTurnResponse` (`turn.request_id`, set at `start_generation`)
@@ -652,6 +858,7 @@ export interface DisplayMessage {
   thinkingText: string;
   thinkingVisible: boolean;
   citations: CitationEvidence | null;
+  webCitations: PersistentTurnWebCitations | null;
   turnActions: TurnActionSpec[];
   // P6-CODEX-024 (Third Rework): the backend request_id this specific
   // assistant Turn's Generation Attempt ran under — the correlation key a

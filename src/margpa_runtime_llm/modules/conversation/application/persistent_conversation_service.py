@@ -15,6 +15,13 @@ from margpa_runtime_llm.modules.documentation_rag.contracts import (
     build_turn_citation_evidence,
 )
 from margpa_runtime_llm.modules.documentation_rag.ports import CitationEvidenceStorePort
+from margpa_runtime_llm.modules.web_knowledge import (
+    PersistedTurnWebCitationEvidence,
+    WebCitationEvidenceStorePort,
+    WebCitationUnavailable,
+    WebSearchAndFetchResult,
+    build_turn_web_citation_evidence,
+)
 
 from ..contracts import ConversationEvent, ConversationEventType, ConversationSettings
 from ..domain import (
@@ -153,6 +160,19 @@ class PersistentConversationService:
         if not isinstance(self._repository, CitationEvidenceStorePort):
             return {}
         return self._repository.get_conversation_citations(conversation_id.value)
+
+    def get_conversation_web_citations(
+        self,
+        conversation_id: ConversationId,
+    ) -> Mapping[str, PersistedTurnWebCitationEvidence | WebCitationUnavailable]:
+        """Persisted per-turn Manual URL Fetch evidence (P8-A), mirroring
+        `get_conversation_citations()` above exactly — an empty mapping,
+        never an error, when the bound repository does not implement
+        `WebCitationEvidenceStorePort`."""
+
+        if not isinstance(self._repository, WebCitationEvidenceStorePort):
+            return {}
+        return self._repository.get_conversation_web_citations(conversation_id.value)
 
     def list_conversations(
         self,
@@ -400,6 +420,7 @@ class PersistentConversationService:
         operation_id: ConversationOperationId,
         expected_revision: int,
         documentation_augmentation: DocumentationAugmentation | None = None,
+        web_search_result: WebSearchAndFetchResult | None = None,
         provenance: ConversationTurnProvenance | None = None,
     ) -> StoredConversation:
         stored = self._require_revision(conversation_id, expected_revision)
@@ -438,11 +459,21 @@ class PersistentConversationService:
                 turn_id=turn_id.value,
             )
         )
+        web_citation_evidence = (
+            None
+            if web_search_result is None
+            else build_turn_web_citation_evidence(
+                web_search_result,
+                conversation_id=conversation_id.value,
+                turn_id=turn_id.value,
+            )
+        )
         self._commit(
             candidate,
             operation_id=operation_id,
             expected_revision=expected_revision,
             citation_evidence=citation_evidence,
+            web_citation_evidence=web_citation_evidence,
         )
         if turn.request_id is not None:
             with self._request_locations_lock:
@@ -488,7 +519,14 @@ class PersistentConversationService:
         operation_id: ConversationOperationId,
         expected_revision: int,
         failure_reason_code: str | None = None,
+        web_search_result: WebSearchAndFetchResult | None = None,
     ) -> StoredConversation:
+        # P8-MR7-2 (P8-CODEX-014): a Manual Web Evidence attempt that ends
+        # this Turn in an ERROR (Fail-closed Grounding, P8-MR1) is real
+        # Evidence exactly like a COMPLETED Turn's — `complete_generation()`
+        # already persists `session.web_search_result` this same way; the
+        # FAILED terminal must not silently drop it, or Reload/Restart would
+        # show no Web Evidence at all for a Turn the User watched fail Live.
         return self._transition_terminal_or_generating(
             conversation_id=conversation_id,
             turn_id=turn_id,
@@ -496,6 +534,7 @@ class PersistentConversationService:
             operation_id=operation_id,
             expected_revision=expected_revision,
             failure_reason_code=failure_reason_code,
+            web_search_result=web_search_result,
         )
 
     def interrupt_generation(
@@ -969,6 +1008,7 @@ class PersistentConversationService:
                             operation_id=identities.terminal_operation_id,
                             expected_revision=generating.storage_revision,
                             documentation_augmentation=session.documentation_augmentation,
+                            web_search_result=session.web_search_result,
                             provenance=provenance,
                         )
                     )
@@ -996,6 +1036,7 @@ class PersistentConversationService:
                             operation_id=identities.terminal_operation_id,
                             expected_revision=generating.storage_revision,
                             failure_reason_code=failure_reason_code,
+                            web_search_result=session.web_search_result,
                         )
                     )
                     terminal_persisted = True
@@ -1109,6 +1150,7 @@ class PersistentConversationService:
         expected_revision: int,
         request_id: str | None = None,
         failure_reason_code: str | None = None,
+        web_search_result: WebSearchAndFetchResult | None = None,
     ) -> StoredConversation:
         stored = self._require_revision(conversation_id, expected_revision)
         snapshot = stored.conversation
@@ -1125,7 +1167,25 @@ class PersistentConversationService:
         except Exception:
             raise self._invalid_lifecycle() from None
         candidate = self._replace_turn(snapshot, transitioned, updated_at=now)
-        self._commit(candidate, operation_id=operation_id, expected_revision=expected_revision)
+        # P8-MR7-2 (P8-CODEX-014): same projection `complete_generation()`
+        # uses — a `None` Result (every non-FAILED caller of this shared
+        # helper, and a FAILED Turn with no Manual Web Evidence attempt at
+        # all) commits no Web Citation Evidence, exactly as before.
+        web_citation_evidence = (
+            None
+            if web_search_result is None
+            else build_turn_web_citation_evidence(
+                web_search_result,
+                conversation_id=conversation_id.value,
+                turn_id=turn_id.value,
+            )
+        )
+        self._commit(
+            candidate,
+            operation_id=operation_id,
+            expected_revision=expected_revision,
+            web_citation_evidence=web_citation_evidence,
+        )
         return self._require(conversation_id)
 
     @staticmethod
@@ -1186,6 +1246,7 @@ class PersistentConversationService:
         operation_id: ConversationOperationId,
         expected_revision: int | None,
         citation_evidence: PersistedTurnCitationEvidence | None = None,
+        web_citation_evidence: PersistedTurnWebCitationEvidence | None = None,
     ) -> ConversationCommitReceipt:
         command = CommitConversation(
             scope_id=self._scope_id,
@@ -1193,6 +1254,7 @@ class PersistentConversationService:
             expected_revision=expected_revision,
             conversation=snapshot,
             citation_evidence=citation_evidence,
+            web_citation_evidence=web_citation_evidence,
         )
         try:
             return self._repository.commit(command)

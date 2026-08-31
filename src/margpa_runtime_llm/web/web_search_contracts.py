@@ -41,8 +41,28 @@ class WebSearchRequest(_WebSearchContract):
         return value
 
 
+class DirectUrlFetchRequest(_WebSearchContract):
+    url: str = Field(min_length=1, max_length=2048)
+    activation: WebSearchActivation = WebSearchActivation.MANUAL
+
+    @field_validator("url")
+    @classmethod
+    def validate_url(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("URL must not be blank")
+        return value
+
+    @field_validator("activation")
+    @classmethod
+    def validate_activation(cls, value: WebSearchActivation) -> WebSearchActivation:
+        if value is WebSearchActivation.AUTOMATIC:
+            raise ValueError("automatic activation cannot be requested by a client")
+        return value
+
+
 class WebEvidenceResponse(_WebSearchContract):
     evidence_id: str
+    requested_url: str
     canonical_url: str
     title: str
     provider_key: str
@@ -53,6 +73,7 @@ class WebEvidenceResponse(_WebSearchContract):
     withheld_by_governance: bool
     fetched_at: str | None
     content_type: str | None
+    transformation: str | None
     prompt_injection_detected: bool
     rejected: bool
     rejection_reason: str | None
@@ -60,11 +81,16 @@ class WebEvidenceResponse(_WebSearchContract):
 
 class WebCitationResponse(_WebSearchContract):
     citation_id: str
+    requested_url: str
     canonical_url: str
     title: str
     provider_key: str
     source_authority: str
     fetched_at: str | None
+    content_type: str | None
+    transformation: str
+    content_sha512: str | None
+    source_class: str
     selected_order: int
 
 
@@ -87,6 +113,7 @@ def project_web_search_result(value: WebSearchAndFetchResult) -> WebSearchRespon
         evidence=tuple(
             WebEvidenceResponse(
                 evidence_id=item.evidence_id,
+                requested_url=item.requested_url,
                 canonical_url=item.canonical_url,
                 title=item.title,
                 provider_key=item.provider_key,
@@ -97,6 +124,9 @@ def project_web_search_result(value: WebSearchAndFetchResult) -> WebSearchRespon
                 withheld_by_governance=item.withheld_by_governance,
                 fetched_at=item.fetched_at,
                 content_type=item.content_type,
+                transformation=(
+                    item.transformation.value if item.transformation is not None else None
+                ),
                 prompt_injection_detected=item.prompt_injection_detected,
                 rejected=item.rejected,
                 rejection_reason=(
@@ -108,11 +138,16 @@ def project_web_search_result(value: WebSearchAndFetchResult) -> WebSearchRespon
         citations=tuple(
             WebCitationResponse(
                 citation_id=item.citation_id,
+                requested_url=item.requested_url,
                 canonical_url=item.canonical_url,
                 title=item.title,
                 provider_key=item.provider_key,
                 source_authority=item.source_authority.value,
                 fetched_at=item.fetched_at,
+                content_type=item.content_type,
+                transformation=item.transformation.value,
+                content_sha512=item.content_sha512,
+                source_class=item.source_class,
                 selected_order=item.selected_order,
             )
             for item in value.citations

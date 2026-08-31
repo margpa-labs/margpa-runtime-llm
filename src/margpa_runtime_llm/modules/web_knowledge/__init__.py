@@ -3,9 +3,13 @@
 from .application import WebKnowledgeService
 from .contracts import (
     PUBLIC_WEB_SOURCE_CLASS,
+    WEB_CITATION_EVIDENCE_SCHEMA_VERSION,
+    PersistedTurnWebCitationEvidence,
     SourceAuthorityClass,
     UrlRejectionReason,
     WebCitation,
+    WebCitationUnavailable,
+    WebContentTransformation,
     WebEvidence,
     WebEvidenceGovernanceMode,
     WebFetchFailureReason,
@@ -15,17 +19,44 @@ from .contracts import (
     WebSearchQuery,
     WebSearchResultItem,
     WebSearchRun,
+    build_turn_web_citation_evidence,
+    classify_content_transformation,
     classify_source_authority,
 )
-from .ports import FetchedContent, FetchRejected, WebFetchProviderPort, WebSearchProviderPort
+from .domain import (
+    MAX_WEB_EVIDENCE_INJECTION_CHARACTERS,
+    TRUNCATION_NOTICE,
+    GetAddrInfoResult,
+    Resolver,
+    budget_evidence_for_injection,
+    default_resolver,
+    extract_html_title,
+    extract_readable_text,
+)
+from .ports import (
+    FetchedContent,
+    FetchRejected,
+    WebCitationEvidenceStorePort,
+    WebFetchProviderPort,
+    WebSearchProviderPort,
+)
 
 __all__ = [
+    "MAX_WEB_EVIDENCE_INJECTION_CHARACTERS",
     "PUBLIC_WEB_SOURCE_CLASS",
+    "TRUNCATION_NOTICE",
+    "WEB_CITATION_EVIDENCE_SCHEMA_VERSION",
     "FetchRejected",
     "FetchedContent",
+    "GetAddrInfoResult",
+    "PersistedTurnWebCitationEvidence",
+    "Resolver",
     "SourceAuthorityClass",
     "UrlRejectionReason",
     "WebCitation",
+    "WebCitationEvidenceStorePort",
+    "WebCitationUnavailable",
+    "WebContentTransformation",
     "WebEvidence",
     "WebEvidenceGovernanceMode",
     "WebFetchFailureReason",
@@ -38,5 +69,11 @@ __all__ = [
     "WebSearchQuery",
     "WebSearchResultItem",
     "WebSearchRun",
+    "budget_evidence_for_injection",
+    "build_turn_web_citation_evidence",
+    "classify_content_transformation",
     "classify_source_authority",
+    "default_resolver",
+    "extract_html_title",
+    "extract_readable_text",
 ]

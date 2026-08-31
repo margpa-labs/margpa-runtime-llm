@@ -371,3 +371,14 @@ User Manual Acceptance／Closure Gate
 - [ ] Self-reviewをIndependent ReviewとClaimしていない。
 - [ ] Phase Closure／Git／Backup／Roadmap／次Phaseへ進んでいない。
 - [ ] Exact Return Handoffを作成した。
+
+## 13. Current Task継続とFresh Taskの非必須化（Append-only Correction, 2026-08-30）
+
+本書第0節・第1節の`Fresh Task`は、本Contractを最初に導入したPilot時の実行形態を記述したものであり、今後の必須開始条件ではない。
+
+- UserがFresh Task作成を明示指示していない場合、現在のClaude Task、Active Handoff、最新Recovery Indexおよび成立済みBoundaryを継続する。
+- Rework、Independent Review後の差分修正、Manual Compaction後の再開、利用制限からの回復だけを理由に、Taskを初期化しない。
+- Codex ControllerのIndependent Reviewは、ClaudeがActive Scopeを実装した後に行う。「Independent Review前だからCore実装を開始できない」という中間Gateを自己生成しない。
+- Active Handoffで許可された実装を、Blast Radius、Diff規模または慎重さだけを理由に部分Returnへ縮小しない。それらはTest・Review・Recoveryの強度を上げる理由であり、True Stopではない。
+
+本節は旧来の`Fresh Task`前提より後発のCurrent運用訂正として優先する。

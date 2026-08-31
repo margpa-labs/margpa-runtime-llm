@@ -59,12 +59,24 @@ class ConversationSettings(ImmutableContract):
         ContextUsagePromptInjectionMode.DISABLED
     )
     expressive_mode: ExpressiveMode = ExpressiveMode.DISABLED
+    manual_web_evidence_url: str | None = Field(default=None, max_length=2048)
+    """P8-A (P8-REQ-002/P8-ACC-009): a User-supplied URL to fetch and inject
+    as Untrusted External Evidence for this Turn only, if set. `None` (the
+    default) means no Web Evidence is requested — every existing caller/Test
+    that constructs `ConversationSettings` without this Field is unaffected."""
 
     @field_validator("thinking_mode")
     @classmethod
     def reject_model_default_thinking_mode(cls, value: ThinkingMode) -> ThinkingMode:
         if value is ThinkingMode.MODEL_DEFAULT:
             raise ValueError("web thinking mode must be disabled or enabled")
+        return value
+
+    @field_validator("manual_web_evidence_url")
+    @classmethod
+    def reject_blank_manual_web_evidence_url(cls, value: str | None) -> str | None:
+        if value is not None and not value.strip():
+            raise ValueError("manual web evidence URL must not be blank")
         return value
 
 
@@ -99,6 +111,12 @@ class ConversationEventType(StrEnum):
     START = "start"
     STATUS = "status"
     RETRIEVAL = "retrieval"
+    WEB_EVIDENCE = "web_evidence"
+    """P8-A (P8-REQ-006): the Manual URL Fetch analogue of `RETRIEVAL` —
+    fired once per Turn requesting `manual_web_evidence_url`, independent of
+    whether `RETRIEVAL` also fires in the same Turn. An unrecognized event
+    type is silently ignored by every pre-Phase-8 consumer (closed union
+    check, not an exhaustive switch), so adding this Value is additive."""
     DELTA = "delta"
     WARNING = "warning"
     COMPLETED = "completed"

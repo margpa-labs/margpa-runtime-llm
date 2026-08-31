@@ -21,6 +21,10 @@ from margpa_runtime_llm.modules.documentation_rag.contracts import (
     CitationUnavailable,
     PersistedTurnCitationEvidence,
 )
+from margpa_runtime_llm.modules.web_knowledge import (
+    PersistedTurnWebCitationEvidence,
+    WebCitationUnavailable,
+)
 
 WEB_ID_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
 
@@ -148,6 +152,37 @@ class PersistentTurnCitationsResponse(_PersistentContract):
     warning_codes: tuple[str, ...] = ()
 
 
+class PersistentWebCitationResponse(_PersistentContract):
+    """P8-A: same safe projection shape as the live SSE `web_evidence` event."""
+
+    citation_id: str
+    requested_url: str
+    canonical_url: str
+    title: str
+    provider_key: str
+    source_authority: str
+    fetched_at: str | None = None
+    content_type: str | None = None
+    transformation: str
+    content_sha512: str | None = None
+    source_class: str
+    selected_order: int
+
+
+class PersistentTurnWebCitationsResponse(_PersistentContract):
+    """Distinguishes "no Manual URL Fetch was requested" from "Evidence
+    present but unreadable" (mirrors `PersistentTurnCitationsResponse`)."""
+
+    available: bool
+    unavailable_reason: Literal["unsupported_schema_version", "corrupt_record"] | None = None
+    citations: tuple[PersistentWebCitationResponse, ...] = ()
+    failure_reason: str | None = None
+    specific_failure_reason: str | None = None
+    """P8-MR2 (P8-MANUAL-002) / UF-P8-007: the per-Evidence Reason
+    alongside the coarser Aggregate `failure_reason` above — see
+    `PersistedTurnWebCitationEvidence.specific_failure_reason`."""
+
+
 class PersistentTurnResponse(_PersistentContract):
     turn_id: str
     sequence: int
@@ -161,6 +196,7 @@ class PersistentTurnResponse(_PersistentContract):
     failure_reason_code: str | None = None
     messages: tuple[PersistentMessageResponse, ...]
     citations: PersistentTurnCitationsResponse | None = None
+    web_citations: PersistentTurnWebCitationsResponse | None = None
 
 
 class PersistentConversationDetailResponse(_PersistentContract):
@@ -232,11 +268,47 @@ def _project_turn_citations(
     )
 
 
+def _project_turn_web_citations(
+    entry: PersistedTurnWebCitationEvidence | WebCitationUnavailable | None,
+) -> PersistentTurnWebCitationsResponse | None:
+    if entry is None:
+        return None
+    if isinstance(entry, WebCitationUnavailable):
+        if entry.reason == "not_present":
+            return None
+        return PersistentTurnWebCitationsResponse(available=False, unavailable_reason=entry.reason)
+    return PersistentTurnWebCitationsResponse(
+        available=True,
+        citations=tuple(
+            PersistentWebCitationResponse(
+                citation_id=citation.citation_id,
+                requested_url=citation.requested_url,
+                canonical_url=citation.canonical_url,
+                title=citation.title,
+                provider_key=citation.provider_key,
+                source_authority=citation.source_authority.value,
+                fetched_at=citation.fetched_at,
+                content_type=citation.content_type,
+                transformation=citation.transformation.value,
+                content_sha512=citation.content_sha512,
+                source_class=citation.source_class,
+                selected_order=citation.selected_order,
+            )
+            for citation in entry.citations
+        ),
+        failure_reason=(entry.failure_reason.value if entry.failure_reason is not None else None),
+        specific_failure_reason=entry.specific_failure_reason,
+    )
+
+
 def project_persistent_detail(
     stored: StoredConversation,
     *,
     citations_by_turn: Mapping[str, PersistedTurnCitationEvidence | CitationUnavailable]
     | None = None,
+    web_citations_by_turn: (
+        Mapping[str, PersistedTurnWebCitationEvidence | WebCitationUnavailable] | None
+    ) = None,
 ) -> PersistentConversationDetailResponse:
     snapshot: ConversationSnapshot = stored.conversation
     messages_by_turn: dict[str, list[PersistentMessageResponse]] = {}
@@ -282,6 +354,11 @@ def project_persistent_detail(
                 messages=tuple(messages_by_turn.get(turn.turn_id.value, ())),
                 citations=_project_turn_citations(
                     None if citations_by_turn is None else citations_by_turn.get(turn.turn_id.value)
+                ),
+                web_citations=_project_turn_web_citations(
+                    None
+                    if web_citations_by_turn is None
+                    else web_citations_by_turn.get(turn.turn_id.value)
                 ),
             )
             for turn in snapshot.turns

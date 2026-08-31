@@ -145,7 +145,7 @@ interface FetchRoutes {
   featureModesStatus?: unknown;
   runtimeModelStatus?: RuntimeModelStatus | (() => RuntimeModelStatus);
   chatStream?: Response;
-  persistentTurnStream?: Response;
+  persistentTurnStream?: Response | (() => Response);
   persistentDerivedStream?: Response;
   conversationDetail?: Record<
     string,
@@ -267,7 +267,11 @@ function installFetchMock(routes: FetchRoutes): ReturnType<typeof vi.fn> {
     }
     const turnStreamMatch = /^\/api\/v2\/conversations\/([^/]+)\/turns\/stream$/u.exec(path);
     if (turnStreamMatch !== null && method === "POST" && routes.persistentTurnStream !== undefined) {
-      return Promise.resolve(routes.persistentTurnStream);
+      const stream =
+        typeof routes.persistentTurnStream === "function"
+          ? routes.persistentTurnStream()
+          : routes.persistentTurnStream;
+      return Promise.resolve(stream);
     }
     const derivedStreamMatch =
       /^\/api\/v2\/conversations\/([^/]+)\/turns\/([^/]+)\/(?:retry|regenerate)\/stream$/u.exec(path);
@@ -1351,6 +1355,238 @@ describe("App", () => {
 
     await waitFor(() => {
       expect(mutation).toHaveBeenCalled();
+    });
+  });
+
+  // -- P8-MR3 (P8-MANUAL-003): Sidebar is Active-only ----------------------
+
+  test("the sidebar's conversation list fetch requests state=active, never the Backend default of both Active and Archived", async () => {
+    const fetchMock = installFetchMock({
+      persistentRuntime: { enabled: true, source_of_truth: "server" },
+      persistentList: { items: [], next_cursor: null },
+    });
+
+    render(<App />);
+
+    const isListCall = (call: unknown[]): boolean => {
+      const url = call[0] as RequestInfo;
+      return typeof url === "string" && url.startsWith("/api/v2/conversations?");
+    };
+
+    await waitFor(() => {
+      expect(fetchMock.mock.calls.some(isListCall)).toBe(true);
+    });
+    const listCall = fetchMock.mock.calls.find(isListCall);
+    expect(listCall).toBeDefined();
+    expect(listCall?.[0] as string).toContain("state=active");
+  });
+
+  // -- P8-MR9-2 (P8-CODEX-011/UF-UI-011): Current Composer Web Failure -----
+  // Lifecycle: a past Turn's Failure warning belongs to the Current Live
+  // Attempt/Composer only, never to the Application-wide `status` left over
+  // once that Attempt is gone.
+
+  test("switching to another Chat clears a stale Web Failure warning from the Composer, and switching back does not revive it (the Historical Failure bubble itself never changes)", async () => {
+    installFetchMock({
+      persistentRuntime: { enabled: true, source_of_truth: "server" },
+      persistentList: {
+        items: [
+          { conversation_id: "conv-fail-111", updated_at: "2024-01-01T00:00:00Z", state: "active" },
+          { conversation_id: "conv-other-222", updated_at: "2024-01-01T00:00:00Z", state: "active" },
+        ],
+        next_cursor: null,
+      },
+      conversationDetail: {
+        "conv-fail-111": {
+          storage_revision: 2,
+          state: "active",
+          head_turn_id: "turn-1",
+          turns: [
+            {
+              turn_id: "turn-1",
+              state: "failed",
+              messages: [
+                { role: "user", content: "fetch this page" },
+                { role: "assistant", content: "Warning: could not fetch the specified URL." },
+              ],
+            },
+          ],
+        },
+        "conv-other-222": { storage_revision: 1, state: "active" },
+      },
+      persistentTurnStream: sseStreamResponse([
+        { type: "start", data: { request_id: "req-1", turn_id: "turn-1", durable_revision: 2, state: "generating" } },
+        {
+          type: "error",
+          data: { code: "url_rejected", message: "Manual URL fetch failed: DNS error", durable_revision: 3 },
+        },
+      ]),
+    });
+
+    render(<App />);
+    await waitFor(() => {
+      expect(document.querySelectorAll(".chat-list-item")).toHaveLength(2);
+    });
+    fireEvent.click(within(document.querySelector(".chat-list") as HTMLElement).getByText(/conv-fail/));
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Send" })).not.toBeDisabled();
+    });
+
+    fireEvent.change(screen.getByLabelText("Message"), { target: { value: "fetch this page" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    await waitFor(() => {
+      expect(document.querySelector("#generation-status")?.textContent).toContain(
+        "Manual URL fetch failed: DNS error",
+      );
+    });
+
+    fireEvent.click(within(document.querySelector(".chat-list") as HTMLElement).getByText(/conv-other/));
+    await waitFor(() => {
+      expect(document.querySelector("#generation-status")?.textContent).not.toContain(
+        "Manual URL fetch failed: DNS error",
+      );
+    });
+
+    // Switching back must show the unchanged Historical bubble, but must
+    // NOT revive that old Turn's Failure as a Current Composer warning.
+    fireEvent.click(within(document.querySelector(".chat-list") as HTMLElement).getByText(/conv-fail/));
+    await waitFor(() => {
+      expect(screen.getByText("Warning: could not fetch the specified URL.")).toBeInTheDocument();
+    });
+    expect(document.querySelector("#generation-status")?.textContent).not.toContain(
+      "Manual URL fetch failed: DNS error",
+    );
+  });
+
+  test("starting a New Chat clears a stale Web Failure warning from the Composer", async () => {
+    installFetchMock({
+      persistentRuntime: { enabled: true, source_of_truth: "server" },
+      persistentList: {
+        items: [{ conversation_id: "conv-fail-111", updated_at: "2024-01-01T00:00:00Z", state: "active" }],
+        next_cursor: null,
+      },
+      conversationDetail: {
+        "conv-fail-111": { storage_revision: 1, state: "active" },
+      },
+      persistentTurnStream: sseStreamResponse([
+        { type: "start", data: { request_id: "req-1", turn_id: "turn-1", durable_revision: 2, state: "generating" } },
+        {
+          type: "error",
+          data: { code: "url_rejected", message: "Manual URL fetch failed: DNS error", durable_revision: 3 },
+        },
+      ]),
+      mutation: (path) => {
+        if (path === "/api/v2/conversations") {
+          return jsonResponse({
+            detail: {
+              conversation_id: "conv-new-999",
+              state: "active",
+              title: null,
+              storage_revision: 1,
+              head_turn_id: null,
+              turns: [],
+              sessions: [],
+            },
+          });
+        }
+        throw new Error(`unexpected mutation: ${path}`);
+      },
+    });
+
+    render(<App />);
+    await waitFor(() => {
+      expect(document.querySelectorAll(".chat-list-item")).toHaveLength(1);
+    });
+    fireEvent.click(within(document.querySelector(".chat-list") as HTMLElement).getByText(/conv-fail/));
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Send" })).not.toBeDisabled();
+    });
+
+    fireEvent.change(screen.getByLabelText("Message"), { target: { value: "fetch this page" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    await waitFor(() => {
+      expect(document.querySelector("#generation-status")?.textContent).toContain(
+        "Manual URL fetch failed: DNS error",
+      );
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "New Chat" }));
+
+    await waitFor(() => {
+      expect(document.querySelector("#generation-status")?.textContent).not.toContain(
+        "Manual URL fetch failed: DNS error",
+      );
+    });
+  });
+
+  test("a successful next Turn clears a stale Web Failure warning from the Composer", async () => {
+    let turnCallCount = 0;
+    const turnStreams = [
+      sseStreamResponse([
+        { type: "start", data: { request_id: "req-1", turn_id: "turn-1", durable_revision: 2, state: "generating" } },
+        {
+          type: "error",
+          data: { code: "url_rejected", message: "Manual URL fetch failed: DNS error", durable_revision: 3 },
+        },
+      ]),
+      sseStreamResponse([
+        { type: "start", data: { request_id: "req-2", turn_id: "turn-2", durable_revision: 4, state: "generating" } },
+        {
+          type: "completed",
+          data: {
+            durable_revision: 5,
+            assistant_message: { content: "second turn answer" },
+            finish_reason: "stop",
+          },
+        },
+      ]),
+    ];
+
+    installFetchMock({
+      persistentRuntime: { enabled: true, source_of_truth: "server" },
+      persistentList: {
+        items: [{ conversation_id: "conv-fail-111", updated_at: "2024-01-01T00:00:00Z", state: "active" }],
+        next_cursor: null,
+      },
+      conversationDetail: {
+        "conv-fail-111": { storage_revision: 1, state: "active" },
+      },
+      persistentTurnStream: () => {
+        const stream = turnStreams[turnCallCount] ?? turnStreams[turnStreams.length - 1];
+        turnCallCount += 1;
+        return stream as Response;
+      },
+    });
+
+    render(<App />);
+    await waitFor(() => {
+      expect(document.querySelectorAll(".chat-list-item")).toHaveLength(1);
+    });
+    fireEvent.click(within(document.querySelector(".chat-list") as HTMLElement).getByText(/conv-fail/));
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Send" })).not.toBeDisabled();
+    });
+
+    fireEvent.change(screen.getByLabelText("Message"), { target: { value: "fetch this page" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+    await waitFor(() => {
+      expect(document.querySelector("#generation-status")?.textContent).toContain(
+        "Manual URL fetch failed: DNS error",
+      );
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Send" })).not.toBeDisabled();
+    });
+    fireEvent.change(screen.getByLabelText("Message"), { target: { value: "try again" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    await waitFor(() => {
+      expect(document.querySelector("#generation-status")?.textContent).not.toContain(
+        "Manual URL fetch failed: DNS error",
+      );
     });
   });
 });

@@ -107,6 +107,7 @@ class _Session:
         self.request_id = request_id
         self.answer = answer
         self.documentation_augmentation = None
+        self.web_search_result = None
 
     def events(self) -> Iterator[ConversationEvent]:
         yield ConversationEvent(

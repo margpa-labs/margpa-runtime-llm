@@ -19,6 +19,7 @@ from margpa_runtime_llm.modules.conversation.adapters.sqlite_migration import (
     LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_1,
     LEGACY_STORAGE_SCHEMA_VERSION_SQLITE_2,
     TURN_CITATIONS_MIGRATION_STEP,
+    TURN_WEB_CITATIONS_MIGRATION_STEP,
     SQLiteConversationMaintenance,
     SQLiteMigrationEngine,
     SQLiteMigrationStep,
@@ -232,7 +233,11 @@ def test_turn_citations_migration_step_adds_the_table_additively(tmp_path: Path)
 
     maintenance = SQLiteConversationMaintenance(
         store=store,
-        steps=(TURN_CITATIONS_MIGRATION_STEP, CONVERSATION_TITLE_MIGRATION_STEP),
+        steps=(
+            TURN_CITATIONS_MIGRATION_STEP,
+            CONVERSATION_TITLE_MIGRATION_STEP,
+            TURN_WEB_CITATIONS_MIGRATION_STEP,
+        ),
     )
     plan = maintenance.plan_migration(STORAGE_SCHEMA_VERSION)
     receipt = maintenance.migrate(plan, checkpoint_id="turn-citations-checkpoint")
@@ -247,6 +252,7 @@ def test_turn_citations_migration_step_adds_the_table_additively(tmp_path: Path)
         }
         columns = {row[1] for row in connection.execute("PRAGMA table_info(conversations)")}
     assert "turn_citations" in tables
+    assert "turn_web_citations" in tables
     assert "title" in columns
     assert (
         store.get(
@@ -283,7 +289,7 @@ def test_conversation_title_migration_step_adds_the_column_additively(tmp_path: 
 
     maintenance = SQLiteConversationMaintenance(
         store=store,
-        steps=(CONVERSATION_TITLE_MIGRATION_STEP,),
+        steps=(CONVERSATION_TITLE_MIGRATION_STEP, TURN_WEB_CITATIONS_MIGRATION_STEP),
     )
     plan = maintenance.plan_migration(STORAGE_SCHEMA_VERSION)
     receipt = maintenance.migrate(plan, checkpoint_id="title-column-checkpoint")
@@ -293,7 +299,12 @@ def test_conversation_title_migration_step_adds_the_column_additively(tmp_path: 
     assert status.readiness is StorageReadiness.READY
     with sqlite3.connect(store.database_path) as connection:
         columns = {row[1] for row in connection.execute("PRAGMA table_info(conversations)")}
+        tables = {
+            row[0]
+            for row in connection.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
+        }
     assert "title" in columns
+    assert "turn_web_citations" in tables
     stored = store.get(
         ConversationScopeId(value="scope-private"),
         ConversationId(value="conversation-race"),
