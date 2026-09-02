@@ -203,9 +203,14 @@ def test_qwen3guard_active_match_is_additively_visible_in_severity_and_detection
 
     class _FakeActiveQwen3Guard:
         def classify_point(
-            self, *, target: object, content: str, query: str | None = None
+            self,
+            *,
+            target: object,
+            content: str,
+            query: str | None = None,
+            cancellation: object | None = None,
         ) -> Qwen3GuardClassification:
-            del target, content, query
+            del target, content, query, cancellation
             return Qwen3GuardClassification(
                 model_id="guard.qwen3guard-gen-0.6b-q8-0",
                 exact_revision="rev-1",

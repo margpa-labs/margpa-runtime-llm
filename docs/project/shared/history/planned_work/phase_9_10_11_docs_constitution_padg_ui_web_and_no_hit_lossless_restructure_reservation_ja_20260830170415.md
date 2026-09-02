@@ -317,6 +317,7 @@ Local／Project／File Sourceでは、外部URLを捏造せず、PortableなRepo
 - MARGPA EEAE Agent Level 2、MARGPA FCAE Agent Level 3。
 - Generic MCP、Remote Tool、長時間自律、Dynamic Sub-Agent、Deploy／Operate。
 - 外部Gmail／LINE等の重要Gate通知、詳細確認、指示／承認。
+- Phase 10完成後、`<project-root>/constitution/`、`docs/project/shared/constitution/`および`<parent-root>/portable-autonomous-development-governance-package/`の三系統すべてを、新規中立Codex Task／Claude／GPT通常Thread等でCross-provider妥当性評価し、User判断で必要な系統だけ任意再編纂する候補。単体評価と三系統間の相互整合を扱い、Phase 10 Scope／Gateへは追加しない。詳細は`phase_11_plus_cross_provider_constitution_validity_review_and_optional_recompilation_reservation_ja_20260901185439.md`。
 
 ### 6.1 Governed External Web Knowledge Runtime
 

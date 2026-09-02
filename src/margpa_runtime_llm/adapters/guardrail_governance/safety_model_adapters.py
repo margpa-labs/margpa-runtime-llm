@@ -51,6 +51,7 @@ from margpa_runtime_llm.modules.guardrail_governance.ports import (
     SafetyModelPort,
     SafetyModelUnavailable,
 )
+from margpa_runtime_llm.modules.inference.domain.cancellation import CancellationToken
 
 _FAKE_MODEL_ID = "test.fake-safety-model"
 _FAKE_EXACT_REVISION = "test-fixture-1"
@@ -145,7 +146,19 @@ class SafetyModelDetectorAdapter:
     def __init__(self, *, safety_model: SafetyModelPort) -> None:
         self._safety_model = safety_model
 
-    def detect(self, *, content: str) -> GuardDetection:
+    def detect(
+        self,
+        *,
+        content: str,
+        cancellation: CancellationToken | None = None,
+    ) -> GuardDetection:
+        if cancellation is not None and cancellation.is_cancelled():
+            return GuardDetection(
+                detection_id=str(uuid4()),
+                detector_id=self.detector_id,
+                category_id=CATEGORY_UNKNOWN_UNRESOLVED,
+                outcome=DetectionOutcome.UNKNOWN,
+            )
         # P5-CODEX-008 Rework (Codex Fourth Independent Review): the
         # Decoder call itself must sit inside this same Fail-closed
         # boundary, not only the `classify()` call — `Protocol`/return

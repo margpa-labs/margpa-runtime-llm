@@ -10,6 +10,8 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
+from margpa_runtime_llm.modules.inference.domain.cancellation import CancellationToken
+
 from .domain import (
     ActionRegistrySnapshot,
     ApprovalState,
@@ -42,7 +44,12 @@ class DetectorPort(Protocol):
     detector_id: str
     max_match_length: int
 
-    def detect(self, *, content: str) -> GuardDetection: ...
+    def detect(
+        self,
+        *,
+        content: str,
+        cancellation: CancellationToken | None = None,
+    ) -> GuardDetection: ...
 
 
 @runtime_checkable

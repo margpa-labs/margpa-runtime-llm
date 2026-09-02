@@ -62,6 +62,24 @@ class SemanticEvaluationRequest(ImmutableContract):
     evidence_context: tuple[str, ...] = Field(default_factory=tuple, max_length=256)
 
 
+class SemanticEvaluationBudget(ImmutableContract):
+    """Bounded dedicated-evaluator budget and the work actually admitted."""
+
+    max_criteria_per_call: int = Field(gt=0)
+    max_calls: int = Field(ge=0)
+    max_prompt_tokens_per_call: int = Field(ge=0)
+    max_output_tokens_per_call: int = Field(gt=0)
+    context_limit_tokens: int | None = Field(default=None, gt=0)
+    inference_deadline_ms: int = Field(ge=0)
+    calls_started: int = Field(ge=0)
+    calls_completed: int = Field(ge=0)
+    prompt_tokens_by_call: tuple[int, ...] = Field(default_factory=tuple, max_length=64)
+    completion_tokens: int = Field(ge=0)
+    budget_deferred_criteria: int = Field(ge=0)
+    deadline_exceeded: bool = False
+    cancelled: bool = False
+
+
 class SemanticEvaluationResponse(ImmutableContract):
     request_id: str = Field(min_length=1, max_length=128)
     generation: int = Field(gt=0)
@@ -70,6 +88,7 @@ class SemanticEvaluationResponse(ImmutableContract):
     results: tuple[SemanticCriterionResult, ...] = Field(default_factory=tuple, max_length=4096)
     latency_ms: int = Field(ge=0)
     failure_reason: str | None = Field(default=None, max_length=128)
+    budget: SemanticEvaluationBudget | None = None
 
 
 class SemanticActionDecision(ImmutableContract):
@@ -91,4 +110,5 @@ class SemanticRuntimeEvidence(ImmutableContract):
     )
     merged_observations: tuple[Observation, ...] = Field(default_factory=tuple, max_length=4096)
     action: SemanticActionDecision
+    evaluation_budget: SemanticEvaluationBudget | None = None
     evidence_digest_sha512: str = Field(pattern=_SHA512_PATTERN)

@@ -236,6 +236,19 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--phase-6-dedicated-model-authority",
+        action="store_true",
+        help=(
+            "Explicit Startup Opt-in (default: off): grant Real Model Authority "
+            "for the dedicated Selene/Qwen3Guard Role Providers. This flag alone "
+            "never loads a model — it only lets a later, explicit Provider "
+            "Selection/Mode-ON Activation proceed past the Fail-closed "
+            "'dedicated_model_authority_unavailable' gate. Requires local "
+            "loopback access; has no effect unless Phase 6 Runtime Model "
+            "Control or Feature Modes is also enabled."
+        ),
+    )
+    parser.add_argument(
         "--phase-7-local-corpus",
         action="store_true",
         help=(
@@ -356,6 +369,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         feature_modes_enabled = _feature_modes_enabled(
             enabled=args.phase_6_feature_modes,
+            host=args.host,
+            access_mode=web_access_profile.access.mode,
+            authentication_required=access_policy.authentication_required,
+        )
+        dedicated_model_authority_granted = _dedicated_model_authority_enabled(
+            enabled=args.phase_6_dedicated_model_authority,
             host=args.host,
             access_mode=web_access_profile.access.mode,
             authentication_required=access_policy.authentication_required,
@@ -540,6 +559,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             guardrail_governance_enabled=guardrail_governance_enabled,
             runtime_model_control_enabled=runtime_model_control_enabled,
             feature_modes_enabled=feature_modes_enabled,
+            dedicated_model_authority_granted=dedicated_model_authority_granted,
             local_corpus_registry=local_corpus_registry,
             web_knowledge_service=web_knowledge_service,
             web_search_governance_mode=web_search_governance_mode,
@@ -922,6 +942,29 @@ def _feature_modes_enabled(
             safe_message=(
                 "Phase 6 Judge/Repair/Recording Mode requires local loopback access and "
                 "explicit opt-in."
+            ),
+        )
+    return True
+
+
+def _dedicated_model_authority_enabled(
+    *,
+    enabled: bool,
+    host: str,
+    access_mode: WebExposureMode,
+    authentication_required: bool,
+) -> bool:
+    if not enabled:
+        return False
+    if (
+        access_mode is not WebExposureMode.LOCAL
+        or authentication_required
+        or not _is_loopback_host(host)
+    ):
+        raise InferenceError(
+            code=InferenceErrorCode.INVALID_CONFIGURATION,
+            safe_message=(
+                "Dedicated Model Authority requires local loopback access and explicit opt-in."
             ),
         )
     return True

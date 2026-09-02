@@ -21,10 +21,18 @@ Resultは...加算する...Qwen3Guard Model unavailable時のMode RollbackとFai
 
 from __future__ import annotations
 
+import time
 from collections.abc import Callable
+from concurrent.futures import Future
 from dataclasses import dataclass
 from uuid import uuid4
 
+from margpa_runtime_llm.bootstrap.stage_deadline import stage_deadline
+from margpa_runtime_llm.bootstrap.tracked_stage_worker import (
+    TrackedStageWorkerRegistry,
+    run_tracked_stage,
+)
+from margpa_runtime_llm.modules.evaluation.domain.stage_budget import LOCAL_MACOS_QWEN3GUARD_BUDGET
 from margpa_runtime_llm.modules.guardrail_governance.domain import (
     CATEGORY_UNKNOWN_UNRESOLVED,
     CATEGORY_UNSAFE_CONTENT,
@@ -35,6 +43,7 @@ from margpa_runtime_llm.modules.guardrail_governance.domain import (
     Qwen3GuardTarget,
     Severity,
 )
+from margpa_runtime_llm.modules.inference.domain.cancellation import CancellationToken
 
 from .qwen3guard_adapter import Qwen3GuardGenAdapter
 
@@ -71,12 +80,22 @@ class Qwen3GuardDetectorAdapter:
         self,
         *,
         target: Qwen3GuardTarget,
-        begin_role_turn: Callable[[], Qwen3GuardRoleTurn | None],
+        begin_role_turn: Callable[[], Qwen3GuardRoleTurn | None] | None = None,
+        begin_role_turn_with_cancellation: (
+            Callable[[CancellationToken], Qwen3GuardRoleTurn | None] | None
+        ) = None,
         end_role_turn: Callable[[object], None],
+        inference_budget_ms: int = LOCAL_MACOS_QWEN3GUARD_BUDGET.inference_budget_ms,
+        cancel_grace_ms: int = LOCAL_MACOS_QWEN3GUARD_BUDGET.cancel_grace_ms,
+        tracked_stage_registry: TrackedStageWorkerRegistry | None = None,
     ) -> None:
         self._target = target
         self._begin_role_turn = begin_role_turn
+        self._begin_role_turn_with_cancellation = begin_role_turn_with_cancellation
         self._end_role_turn = end_role_turn
+        self._inference_budget_ms = max(0, inference_budget_ms)
+        self._cancel_grace_ms = max(0, cancel_grace_ms)
+        self._tracked_stage_registry = tracked_stage_registry
 
     def _release(self, lease: object) -> None:
         try:
@@ -84,7 +103,20 @@ class Qwen3GuardDetectorAdapter:
         except Exception:
             pass
 
-    def detect(self, *, content: str) -> GuardDetection:
+    def _release_when_done(
+        self, *, lease: object, future: Future[Qwen3GuardClassification]
+    ) -> None:
+        def _release_on_done(_: Future[Qwen3GuardClassification]) -> None:
+            self._release(lease)
+
+        future.add_done_callback(_release_on_done)
+
+    def detect(
+        self,
+        *,
+        content: str,
+        cancellation: CancellationToken | None = None,
+    ) -> GuardDetection:
         # P6-RR-R21 (resolves P6-CODEX-086): resolving the Adapter and
         # acquiring its Turn Lease happen together, in one call
         # (`begin_role_turn`, backed by `RoleProviderLifecycleManager.
@@ -93,8 +125,17 @@ class Qwen3GuardDetectorAdapter:
         # Lease at all, so a concurrent Provider switch, Mode OFF, or
         # Shutdown could Unload this exact Adapter while `classify_point`
         # below was still mid-call.
+        turn_cancellation = cancellation or CancellationToken()
+        if turn_cancellation.is_cancelled():
+            return GuardDetection(
+                detection_id=str(uuid4()),
+                detector_id=self.detector_id,
+                category_id=CATEGORY_UNKNOWN_UNRESOLVED,
+                outcome=DetectionOutcome.UNKNOWN,
+                safe_reason_code="guard_call_cancelled",
+            )
         try:
-            turn = self._begin_role_turn()
+            turn = self._acquire_role_turn(cancellation=turn_cancellation)
         except Exception:
             turn = None
         if turn is None:
@@ -104,8 +145,44 @@ class Qwen3GuardDetectorAdapter:
                 category_id=CATEGORY_UNKNOWN_UNRESOLVED,
                 outcome=DetectionOutcome.UNAVAILABLE,
             )
+        release_deferred = False
+        started = time.monotonic()
         try:
-            classification = turn.adapter.classify_point(target=self._target, content=content)
+            call_cancellation = CancellationToken.linked_to(turn_cancellation)
+            stage_outcome = run_tracked_stage(
+                work=lambda: self._run_bounded_classification(
+                    adapter=turn.adapter,
+                    content=content,
+                    cancellation=call_cancellation,
+                ),
+                budget_ms=self._inference_budget_ms + self._cancel_grace_ms,
+                registry=self._tracked_stage_registry,
+                cancellation=call_cancellation,
+            )
+            if stage_outcome.timed_out or stage_outcome.result is None:
+                call_cancellation.cancel()
+                release_deferred = True
+                self._release_when_done(lease=turn.lease, future=stage_outcome.future)
+                classification = (
+                    turn.adapter.cancelled_classification(
+                        target=self._target,
+                        latency_ms=max(0, int((time.monotonic() - started) * 1000)),
+                    )
+                    if turn_cancellation.is_cancelled()
+                    else turn.adapter.timeout_classification(
+                        target=self._target,
+                        latency_ms=max(0, int((time.monotonic() - started) * 1000)),
+                    )
+                )
+            else:
+                classification = (
+                    turn.adapter.cancelled_classification(
+                        target=self._target,
+                        latency_ms=max(0, int((time.monotonic() - started) * 1000)),
+                    )
+                    if turn_cancellation.is_cancelled()
+                    else stage_outcome.result
+                )
         except Exception:
             return GuardDetection(
                 detection_id=str(uuid4()),
@@ -118,7 +195,8 @@ class Qwen3GuardDetectorAdapter:
             # early UNAVAILABLE `return` above never reaches here (no
             # Lease was ever acquired for it), and both the ERROR `return`
             # and the normal fall-through below run this `finally` first.
-            self._release(turn.lease)
+            if not release_deferred:
+                self._release(turn.lease)
         # P6-RR-R27 (resolves P6-CODEX-091): every real `classification`
         # this point onward — Clear, Match, Unknown, Timeout, Malformed —
         # already carries genuine Identity (`Qwen3GuardGenAdapter` always
@@ -152,6 +230,30 @@ class Qwen3GuardDetectorAdapter:
             severity=highest.severity,
             model_provenance=provenance,
         )
+
+    def _run_bounded_classification(
+        self,
+        *,
+        adapter: Qwen3GuardGenAdapter,
+        content: str,
+        cancellation: CancellationToken,
+    ) -> Qwen3GuardClassification:
+        with stage_deadline(
+            cancellation=cancellation,
+            budget_ms=self._inference_budget_ms,
+        ):
+            return adapter.classify_point(
+                target=self._target,
+                content=content,
+                cancellation=cancellation,
+            )
+
+    def _acquire_role_turn(self, *, cancellation: CancellationToken) -> Qwen3GuardRoleTurn | None:
+        if self._begin_role_turn_with_cancellation is not None:
+            return self._begin_role_turn_with_cancellation(cancellation)
+        if self._begin_role_turn is None:
+            return None
+        return self._begin_role_turn()
 
 
 def _provenance_for(classification: Qwen3GuardClassification) -> ModelDetectionProvenance:

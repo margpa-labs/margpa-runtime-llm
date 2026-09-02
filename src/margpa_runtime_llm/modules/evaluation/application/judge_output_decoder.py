@@ -6,6 +6,7 @@ JudgeDecodeError rather than being coerced to a default recommendation.
 """
 
 import json
+import math
 from dataclasses import dataclass
 
 from ..domain.identifiers import EvaluationExecutionState, EvaluationRecommendation
@@ -26,6 +27,26 @@ _CRITERION_ALLOWED_FIELDS = {
     "reason_code",
     "evidence_refs",
 }
+
+
+def _decode_probability(value: object, *, field_name: str) -> float:
+    if isinstance(value, bool):
+        raise JudgeDecodeError(reason=f"{field_name} must be a number, got {value!r}")
+    if isinstance(value, int | float):
+        decoded = float(value)
+    elif isinstance(value, str):
+        text = value.strip()
+        try:
+            decoded = float(text)
+        except ValueError as exc:
+            raise JudgeDecodeError(
+                reason=f"{field_name} must be numeric when provided as string, got {value!r}"
+            ) from exc
+    else:
+        raise JudgeDecodeError(reason=f"{field_name} must be a number, got {value!r}")
+    if not math.isfinite(decoded) or not (0.0 <= decoded <= 1.0):
+        raise JudgeDecodeError(reason=f"{field_name} out of range [0,1]: {value!r}")
+    return decoded
 
 
 @dataclass(frozen=True, slots=True)
@@ -61,10 +82,7 @@ def decode_judge_output(
         raise JudgeDecodeError(reason=f"unrecognized recommendation value: {recommendation_raw!r}")
 
     confidence_raw = payload.get("confidence")
-    if not isinstance(confidence_raw, int | float) or isinstance(confidence_raw, bool):
-        raise JudgeDecodeError(reason=f"confidence must be a number, got {confidence_raw!r}")
-    if not (0.0 <= float(confidence_raw) <= 1.0):
-        raise JudgeDecodeError(reason=f"confidence out of range [0,1]: {confidence_raw!r}")
+    confidence = _decode_probability(confidence_raw, field_name="confidence")
 
     reasoning_raw = payload.get("reasoning")
     reasoning = reasoning_raw if isinstance(reasoning_raw, str) and reasoning_raw.strip() else None
@@ -87,7 +105,7 @@ def decode_judge_output(
     return LlmJudgeResponse(
         judge_role=judge_role,
         recommendation=EvaluationRecommendation(recommendation_raw),
-        confidence=float(confidence_raw),
+        confidence=confidence,
         reasoning=reasoning,
         criterion_results=criterion_results,
         token_usage=token_usage,
@@ -155,11 +173,9 @@ def _decode_criterion_results(
             raise JudgeDecodeError(
                 reason=f"invalid criterion disposition: {disposition!r}"
             ) from None
-        confidence = item.get("confidence")
-        if not isinstance(confidence, int | float) or isinstance(confidence, bool):
-            raise JudgeDecodeError(reason="criterion confidence must be a number")
-        if not 0.0 <= float(confidence) <= 1.0:
-            raise JudgeDecodeError(reason="criterion confidence is outside [0,1]")
+        confidence = _decode_probability(
+            item.get("confidence"), field_name="criterion confidence"
+        )
         reason_code = item.get("reason_code")
         if reason_code is not None and not isinstance(reason_code, str):
             raise JudgeDecodeError(reason="criterion reason_code must be a string or null")
@@ -171,7 +187,7 @@ def _decode_criterion_results(
         decoded[criterion_id] = JudgeCriterionResult(
             criterion_id=criterion_id,
             disposition=typed_disposition,
-            confidence=float(confidence),
+            confidence=confidence,
             reason_code=reason_code,
             evidence_refs=tuple(evidence_refs),
         )

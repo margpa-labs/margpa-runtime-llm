@@ -48,6 +48,7 @@ from .semantic_criteria import (
 )
 from .semantic_runtime import (
     SemanticActionDecision,
+    SemanticEvaluationBudget,
     SemanticEvaluationRequest,
     SemanticEvaluationResponse,
     SemanticFinalDisposition,
@@ -100,6 +101,7 @@ __all__ = [
     "SemanticCriterionDisposition",
     "SemanticCriterionResult",
     "SemanticDeferredReason",
+    "SemanticEvaluationBudget",
     "SemanticEvaluationMethod",
     "SemanticEvaluationRequest",
     "SemanticEvaluationResponse",

@@ -19,10 +19,12 @@ from margpa_runtime_llm.modules.guardrail_governance.domain import (
 from margpa_runtime_llm.modules.guardrail_governance.ports import SafetyModelUnavailable
 from margpa_runtime_llm.modules.inference.application.inference_service import InferenceService
 from margpa_runtime_llm.modules.inference.contracts.generation import (
+    FinishReason,
     GenerationParameters,
     GenerationRequest,
 )
 from margpa_runtime_llm.modules.inference.contracts.messages import ChatMessage, MessageRole
+from margpa_runtime_llm.modules.inference.domain.cancellation import CancellationToken
 
 from .qwen3guard_manifest import Qwen3GuardManifestUnavailable, load_qwen3guard_manifest
 
@@ -107,6 +109,7 @@ class Qwen3GuardGenAdapter:
         target: Qwen3GuardTarget,
         content: str,
         query: str | None = None,
+        cancellation: CancellationToken | None = None,
     ) -> Qwen3GuardClassification:
         manifest = self._manifest
         # P6-RR-R23 (resolves P6-CODEX-087): `is_complete_and_verified`
@@ -127,8 +130,17 @@ class Qwen3GuardGenAdapter:
                     model_key=self._model_id,
                     messages=_messages_for(target=target, content=content, query=query),
                     parameters=GenerationParameters(max_new_tokens=self._max_new_tokens),
-                )
+                ),
+                cancellation=cancellation,
             )
+            if (
+                generated.finish_reason is FinishReason.CANCELLED
+                or (cancellation is not None and cancellation.is_cancelled())
+            ):
+                return self.cancelled_classification(
+                    target=target,
+                    latency_ms=max(0, int((time.monotonic() - started) * 1000)),
+                )
             latency_ms = max(0, int((time.monotonic() - started) * 1000))
             return decode_qwen3guard_output(
                 raw_text=generated.content,
@@ -153,38 +165,70 @@ class Qwen3GuardGenAdapter:
                 ),
             )
         except TimeoutError:
-            return _failure_classification(
-                model_id=self._model_id,
-                revision=revision,
-                artifact_digest=self._artifact_digest,
-                manifest_digest=self._manifest_digest_sha512,
-                label_schema_id=manifest.label_schema_id,
+            return self._failure_classification_for(
                 target=target,
                 failure=SafetyModelFailureKind.TIMEOUT,
                 latency_ms=max(0, int((time.monotonic() - started) * 1000)),
             )
         except Qwen3GuardDecodeError:
-            return _failure_classification(
-                model_id=self._model_id,
-                revision=revision,
-                artifact_digest=self._artifact_digest,
-                manifest_digest=self._manifest_digest_sha512,
-                label_schema_id=manifest.label_schema_id,
+            return self._failure_classification_for(
                 target=target,
                 failure=SafetyModelFailureKind.MALFORMED_RESPONSE,
                 latency_ms=max(0, int((time.monotonic() - started) * 1000)),
             )
         except Exception:
-            return _failure_classification(
-                model_id=self._model_id,
-                revision=revision,
-                artifact_digest=self._artifact_digest,
-                manifest_digest=self._manifest_digest_sha512,
-                label_schema_id=manifest.label_schema_id,
+            return self._failure_classification_for(
                 target=target,
                 failure=SafetyModelFailureKind.INTERNAL_ERROR,
                 latency_ms=max(0, int((time.monotonic() - started) * 1000)),
             )
+
+    def timeout_classification(
+        self,
+        *,
+        target: Qwen3GuardTarget,
+        latency_ms: int,
+    ) -> Qwen3GuardClassification:
+        return self._failure_classification_for(
+            target=target,
+            failure=SafetyModelFailureKind.TIMEOUT,
+            latency_ms=latency_ms,
+        )
+
+    def cancelled_classification(
+        self,
+        *,
+        target: Qwen3GuardTarget,
+        latency_ms: int,
+    ) -> Qwen3GuardClassification:
+        return self._failure_classification_for(
+            target=target,
+            failure=SafetyModelFailureKind.CANCELLED,
+            latency_ms=latency_ms,
+        )
+
+    def _failure_classification_for(
+        self,
+        *,
+        target: Qwen3GuardTarget,
+        failure: SafetyModelFailureKind,
+        latency_ms: int,
+    ) -> Qwen3GuardClassification:
+        revision = self._manifest.huggingface_source.exact_revision
+        if revision is None:
+            # classify_point() refuses this state before a model call; this fallback
+            # only prevents identity fields from being silently empty in error paths.
+            revision = "manifest_revision_unavailable"
+        return _failure_classification(
+            model_id=self._model_id,
+            revision=revision,
+            artifact_digest=self._artifact_digest,
+            manifest_digest=self._manifest_digest_sha512,
+            label_schema_id=self._manifest.label_schema_id,
+            target=target,
+            failure=failure,
+            latency_ms=latency_ms,
+        )
 
 
 def _messages_for(

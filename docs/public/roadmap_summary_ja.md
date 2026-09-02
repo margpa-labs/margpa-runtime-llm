@@ -2,14 +2,14 @@
 
 ```yaml
 document_type: public_roadmap_summary
-document_state: phase_8_closed_phase_9_ready
+document_state: phase_8_closed_phase_9_1_fail_adjust_rework_required
 language: ja
 created_at: 2026-08-23
-updated_at: 2026-08-31 21:32 JST
+updated_at: 2026-09-01 19:03 JST
 public_author: Nazuna Research
 project: MARGPA Runtime LLM
 canonical_detailed_roadmap: docs/public/roadmap_ja.md
-current_phase: phase_9_ready_not_started
+current_phase: phase_9_1_in_progress_fail_adjust
 ```
 
 MARGPA Runtime LLMは、Model、RAG、Guardrail、Judge、Repair、Agent、Tool、Memory、Audit、Governance Definitionを交換可能なComponentとして扱い、`OFF／OBSERVE／ENFORCE`の差を証跡付きで比較するAI Governance研究Platformである。
@@ -22,14 +22,14 @@ MARGPA Runtime LLMは、Model、RAG、Guardrail、Judge、Repair、Agent、Tool�
 | Phase 1／1-ex | 完了 | Portable LLM Runtime | Mac／Lightning、CLI／Web、Streaming、停止、Thinking、Public／Docs運用を成立 |
 | Phase 2 | 完了 | 永続会話・React・RAG基礎 | Chat List、Resume、Branch、Citation永続化、Settings UI、Cross-provider Pilotを成立 |
 | Phase 3 | 完了 | Generic Governance Definition基盤 | Provider、Manifest、Trusted Adapter、Normalized IR、Compiler、Audit／Evidenceを成立 |
-| Phase 4 | 完了 | Main Model Governance | Main Model前後のGovernance Pointと`OFF／OBSERVE／ENFORCE`を実証 |
+| Phase 4 | 完了 | Main Model Governance | Main Model前後のGovernance Pointと構造Ruleの`OFF／OBSERVE／ENFORCE`を実証。Semantic ENFORCEは後続Debt |
 | Phase 5 | 完了 | Security／Policy／Authority | Guardrail、Injection検知、Policy、Authority、Approvalを独立Component化 |
 | Phase 6 | 最小Closure／既知課題延期 | Judge／Repair／Observability・Model制御 | Model切替等は成立。Semantic 109、独立Judge／Guard、Repairは未解決Registryへ保持 |
 | Phase 7 | 完了／Accepted／Closed | Local RAG／Citation／Data Governance | Local Corpus、Current／Historical Citation、Data Controls、継続性をUser Macで確認。実Web検索はPhase 11以降へ延期 |
 | Phase 8 | 完了／Accepted／Closed | Agent／Tool／Memory／Handoff Governance | 明示URL Evidence、Archive管理、暫定Runtime Constitution、Dev Agent Fixture、Approval／Authority／PersistenceをUser Macで確認 |
-| Phase 9 | READY／未開始 | Semantic Debt／Experiment／Multi-Governance | 9-1中心Debt、9-2比較研究、9-3 Context技術Coreの3 Programを設計Freeze。まず9-1を独立実行 |
+| Phase 9 | 進行中／9-1 FAIL・ADJUST | Semantic Debt／Experiment／Multi-Governance | Qwen3Guard基本経路は実画面成立。Selene、Main-shared Judge、Semantic 109、Main Semantic ENFORCEをP0 Rework中。9-2／9-3は未開始 |
 | Phase 10 | 計画済み | Project-wide Integration | 全Docs二周、Shared Constitution二周、PADG二周、Full Runtime Constitution、後半UI再編を順番に実施 |
-| Phase 11以降 | 将来研究 | Hardening／External Web／Formal Agents／External R&D | 旧Phase 10のCloud、Model、Training、General Web Search、正式Agent Level 1〜3等を後ろ倒し |
+| Phase 11以降 | 将来研究 | Hardening／External Web／Formal Agents／External R&D | Cloud、Model、Training、General Web Search、正式Agent Level 1〜3に加え、Phase 10で作るConstitution 3系統の中立Cross-provider再評価を予約 |
 
 ## これまでの積み上げ
 
@@ -45,7 +45,7 @@ LLM Runtimeの基礎
 → Judge／Evaluation／Repair／Observability（基盤成立・中心Debt保持）
 → Local RAG／Citation／Data Governance＋External Web Scaffold
 → Manual URL Evidence＋Agent／Tool／暫定Constitution Foundation
-→ Semantic Debt Rework＋Multi-Governance研究Platform
+→ Semantic Debt Rework（Phase 9-1 FAIL／ADJUST・継続中）＋Multi-Governance研究Platform
 → 全Docs／Shared Constitution／PADG／Full Runtime Constitution／UI統合
 → Hardening／Cloud／General Web／Formal Agents／External R&D
 ```
@@ -97,7 +97,8 @@ LLM Runtimeの基礎
 
 - Phase 7でLocal Corpus、Data Source、Retrieval Evidence、Document Injection、Citationおよびデータコントロールを成立させ、User Mac Manual Acceptance後にClosedとした。Provider非依存Web Search／Fetch Port、Fixture TestおよびSecurity Scaffoldまでは保持するが、実General Web Searchと自動検索は完成を主張しない。RAG ON＋NO_HIT時にModelを呼ばず設定言語の固定回答へ収束するStrict方式は、必要時だけ再開する保留案である。
 - Phase 8は、Userが明示的に貼ったPublic `http／https` URLの取得・画面表示・Untrusted Evidence／Citation、Branch UI既定非表示、Archive一覧／開く／解除、全Docs統合前の暫定Runtime Constitution、通常Chat／Dev Agent切替、Fixture Workspace、段階的Approval Harness、Authorization Envelope、Run／Step Persistenceを成立させた。正式Agent Level 1、General Search、Generic MCPおよびFull Runtime Constitutionは完成を主張しない。
-- Phase 9は3 Programへ分離する。9-1でSelene、Qwen3Guard、GD Semantic 109、Built-in意味評価、Judge／Repair／RejudgeおよびSemantic ENFORCEの中心Debtを有界Reworkする。9-2でModel／GD／RAG／Judge／Repair／Modeの構成差と複数Governanceを研究し、9-3でContext圧縮・復旧の非Visual技術Coreを条件付きで扱う。各ProgramはGateまでRunし、観点変更二段階自己Review後にCodex Controller Reviewへ返す。
+- Phase 9は3 Programへ分離した。9-1ではSource実装、自動Test、Real Artifact Loadを進め、Qwen3GuardのOBSERVE／ENFORCE／OFFと拒否差分はUser Macで成立した。一方、Seleneは`active`表示後の実Judgeが`unavailable`、Main-shared Judgeは`malformed_output`、Selene等のRole切替後にはMainが`The model is not loaded`へ陥りServer Restartを要した。Main `pre／post`のSemantic 109件も全件Deferredのままで、ARGD／DAGDを含むMain Semantic ENFORCE、Judge→Repair→Rejudgeは未成立である。したがって9-1は`FAIL／ADJUST`であり、Resource Gateや自動Test合格をClosure代替にしない。
+- 9-1で上記P0を実画面成立までReworkした後、9-2でModel／GD／RAG／Judge／Repair／Modeの構成差と複数Governanceを研究し、9-3でContext圧縮・復旧の非Visual技術Coreを条件付きで扱う。各ProgramはGateまでRunし、原則として観点変更二段階自己Review後にCodex Controller Reviewへ返す。
 
 ### Phase 10 — Project-wide Integration
 
@@ -119,6 +120,7 @@ LLM Runtimeの基礎
 - Audit改ざん耐性、Cloud／AWS、Lightning更新、Desktop Application、Product-level Responsive、動画Multimodal、Long Context、Hardware自動適応を後続Gateで扱う。
 - EASA、DLAGSA、OCILNS等の独立R&DはGeneric Port経由で接続する。
 - Phase 8 Previewを、仮称`MARGPA Development Agent` Level 1の正式完成、`MARGPA EEAE Agent` Level 2の一案件完遂、`MARGPA FCAE Agent` Level 3の継続Lifecycle運営へ発展させる。Capability名と内部Agent構成を分離し、名称変更可能なInternal IDを維持する。
+- Phase 10の範囲とMVP順序は変更せず、その後のPhase 11以降に、`constitution/`、`docs/project/shared/constitution/`、親Directoryの`portable-autonomous-development-governance-package/`を新規中立Codex Task、Claude、通常GPT Thread等へ評価させる。FeedbackはCodex Controllerへ戻し、User判断がある場合だけ再編纂する。
 
 ## 開発方法そのものの研究
 
@@ -142,6 +144,6 @@ Codex／Claude Cross-provider Handoff
 
 ## 現在地
 
-Phase 3〜5は完了。Phase 6は主要基盤を成立させた一方、MARGPA Semantic Rule 109件、独立Judge／Guardrail Model、Judge／Repair Golden Pathを未解決として特殊最小Closureした。Phase 7はLocal Corpus／Citation／Data Controlsを、Phase 8はManual URL Evidence／Archive／暫定Constitution／Dev Agent FoundationをUser Mac Manual Acceptance後に`COMPLETE／ACCEPTED／CLOSED`とした。Phase 8最終Dispositionは39 PASS／1既知PARTIALである。現在はPhase 9の3 Program設計と工程がFreezeされ、`READY／NOT STARTED`である。User Backup後にPreflightへ進む。
+Phase 3〜5は完了。Phase 6は主要基盤を成立させた一方、MARGPA Semantic Rule 109件、独立Judge／Guardrail Model、Judge／Repair Golden Pathを未解決として特殊最小Closureした。Phase 7はLocal Corpus／Citation／Data Controlsを、Phase 8はManual URL Evidence／Archive／暫定Constitution／Dev Agent FoundationをUser Mac Manual Acceptance後に`COMPLETE／ACCEPTED／CLOSED`とした。Phase 8最終Dispositionは39 PASS／1既知PARTIALである。現在はPhase 9-1の実装／Review／User Mac Manualまで進んだが、Qwen3Guard基本経路以外の中心目的が未成立のため`FAIL／ADJUST／REWORK REQUIRED`である。Phase 9-2／9-3、Phase 10およびPhase 11以降は未開始である。
 
 詳細は[Roadmap](roadmap_ja.md)、[Overview](overview_ja.md)、[Concept](concept_ja.md)を参照する。

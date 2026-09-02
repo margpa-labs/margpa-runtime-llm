@@ -33,6 +33,7 @@ Artifact is touched (Base Exact Handoff §8.1, P6-RR-DELTA §8):
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 
 from margpa_runtime_llm.adapters.evaluation.selene import (
@@ -43,6 +44,7 @@ from margpa_runtime_llm.adapters.guardrail_governance.qwen3guard_adapter import 
     Qwen3GuardGenAdapter,
 )
 from margpa_runtime_llm.adapters.model_backends.llama_cpp.adapter import LlamaCppModelAdapter
+from margpa_runtime_llm.bootstrap.tracked_stage_worker import TrackedStageWorkerRegistry
 from margpa_runtime_llm.modules.inference.application.inference_service import InferenceService
 from margpa_runtime_llm.modules.inference.contracts.runtime import ModelLoadConfig
 from margpa_runtime_llm.modules.inference.domain.model_definition import ModelDefinition
@@ -71,6 +73,54 @@ from .unavailable_role_adapters import UnavailableRoleProviderAdapter
 _DEDICATED_UNAVAILABLE_REASON = "dedicated_model_authority_unavailable"
 
 
+@dataclass(frozen=True, slots=True)
+class _DedicatedPreflightSuccess:
+    """Artifact/Manifest/Digest/Quantization/Backend/Hardware Preflight
+    Contract output shared by every dedicated Role (P9-1-A-WU-001):
+    the Definition the Authority gate cleared, plus the constructed
+    Adapter/Backend pair `probe_capability()` already validated against
+    it. Only the post-Load construction (`SeleneSemanticEvaluator` vs
+    `Qwen3GuardGenAdapter`) stays Role-specific."""
+
+    llama_adapter: LlamaCppModelAdapter
+    backend: LlamaCppRuntimeModelBackend
+    definition: ModelDefinition
+
+
+def _run_dedicated_preflight(
+    *,
+    provider_id: str,
+    definitions: ModelDefinitionResolverPort,
+    model_root: Path,
+    load_config: ModelLoadConfig,
+    authority_granted: bool,
+) -> tuple[_DedicatedPreflightSuccess | None, str | None]:
+    """Shared static-definition/capability preflight for dedicated roles.
+
+    This stage verifies only authority, model-definition resolution, backend
+    construction, and capability probing. Artifact open/load and role-specific
+    runtime contract checks are handled separately by each adapter.
+    """
+    if not authority_granted:
+        return None, _DEDICATED_UNAVAILABLE_REASON
+    try:
+        definition = definitions.resolve(model_key=provider_id)
+    except ModelDefinitionNotRegistered:
+        return None, "dedicated_model_definition_not_registered"
+    llama_adapter = LlamaCppModelAdapter(model_root=model_root)
+    backend = LlamaCppRuntimeModelBackend(adapter=llama_adapter, base_load_config=load_config)
+    try:
+        backend.probe_capability(definition=definition)
+    except Exception as exc:
+        return None, f"capability_probe_failed:{type(exc).__name__}"
+    return (
+        _DedicatedPreflightSuccess(
+            llama_adapter=llama_adapter, backend=backend, definition=definition
+        ),
+        None,
+    )
+
+
 class SeleneRoleAdapter:
     """`RoleProviderAdapterPort` for the dedicated Selene Judge."""
 
@@ -83,6 +133,7 @@ class SeleneRoleAdapter:
         load_config: ModelLoadConfig,
         authority_granted: bool,
         prompt_manifest_path: Path,
+        tracked_stage_registry: TrackedStageWorkerRegistry | None = None,
     ) -> None:
         self._provider_id = provider_id
         self._definitions = definitions
@@ -90,10 +141,12 @@ class SeleneRoleAdapter:
         self._load_config = load_config
         self._authority_granted = authority_granted
         self._prompt_manifest_path = prompt_manifest_path
+        self._tracked_stage_registry = tracked_stage_registry
         self._llama_adapter: LlamaCppModelAdapter | None = None
         self._backend: LlamaCppRuntimeModelBackend | None = None
         self._pending_definition: ModelDefinition | None = None
         self._loaded_handle: LoadedModelHandle | None = None
+        self._prompt_adapter: SelenePromptAdapter | None = None
         self.semantic_evaluator: SeleneSemanticEvaluator | None = None
 
     @property
@@ -101,27 +154,33 @@ class SeleneRoleAdapter:
         return self._provider_id
 
     def preflight(self) -> tuple[bool, str | None]:
-        if not self._authority_granted:
-            return False, _DEDICATED_UNAVAILABLE_REASON
-        try:
-            definition = self._definitions.resolve(model_key=self._provider_id)
-        except ModelDefinitionNotRegistered:
-            return False, "dedicated_model_definition_not_registered"
-        llama_adapter = LlamaCppModelAdapter(model_root=self._model_root)
-        backend = LlamaCppRuntimeModelBackend(
-            adapter=llama_adapter, base_load_config=self._load_config
+        result, reason = _run_dedicated_preflight(
+            provider_id=self._provider_id,
+            definitions=self._definitions,
+            model_root=self._model_root,
+            load_config=self._load_config,
+            authority_granted=self._authority_granted,
         )
+        if result is None:
+            return False, reason
         try:
-            backend.probe_capability(definition=definition)
+            prompt_adapter = SelenePromptAdapter(manifest_path=self._prompt_manifest_path)
+            prompt_adapter.preflight_contract()
         except Exception as exc:
-            return False, f"capability_probe_failed:{type(exc).__name__}"
-        self._llama_adapter = llama_adapter
-        self._backend = backend
-        self._pending_definition = definition
+            return False, f"selene_prompt_contract_unavailable:{type(exc).__name__}"
+        self._llama_adapter = result.llama_adapter
+        self._backend = result.backend
+        self._pending_definition = result.definition
+        self._prompt_adapter = prompt_adapter
         return True, None
 
     def load(self) -> None:
-        if self._backend is None or self._pending_definition is None or self._llama_adapter is None:
+        if (
+            self._backend is None
+            or self._pending_definition is None
+            or self._llama_adapter is None
+            or self._prompt_adapter is None
+        ):
             raise RuntimeError("preflight must succeed before load")
         self._loaded_handle = self._backend.load(
             definition=self._pending_definition,
@@ -131,7 +190,8 @@ class SeleneRoleAdapter:
         self.semantic_evaluator = SeleneSemanticEvaluator(
             service=inference_service,
             model_key=self._provider_id,
-            prompt_adapter=SelenePromptAdapter(manifest_path=self._prompt_manifest_path),
+            prompt_adapter=self._prompt_adapter,
+            tracked_stage_registry=self._tracked_stage_registry,
         )
 
     def unload(self) -> None:
@@ -141,6 +201,7 @@ class SeleneRoleAdapter:
         self._backend = None
         self._llama_adapter = None
         self._pending_definition = None
+        self._prompt_adapter = None
 
 
 class Qwen3GuardRoleAdapter:
@@ -173,23 +234,18 @@ class Qwen3GuardRoleAdapter:
         return self._provider_id
 
     def preflight(self) -> tuple[bool, str | None]:
-        if not self._authority_granted:
-            return False, _DEDICATED_UNAVAILABLE_REASON
-        try:
-            definition = self._definitions.resolve(model_key=self._provider_id)
-        except ModelDefinitionNotRegistered:
-            return False, "dedicated_model_definition_not_registered"
-        llama_adapter = LlamaCppModelAdapter(model_root=self._model_root)
-        backend = LlamaCppRuntimeModelBackend(
-            adapter=llama_adapter, base_load_config=self._load_config
+        result, reason = _run_dedicated_preflight(
+            provider_id=self._provider_id,
+            definitions=self._definitions,
+            model_root=self._model_root,
+            load_config=self._load_config,
+            authority_granted=self._authority_granted,
         )
-        try:
-            backend.probe_capability(definition=definition)
-        except Exception as exc:
-            return False, f"capability_probe_failed:{type(exc).__name__}"
-        self._llama_adapter = llama_adapter
-        self._backend = backend
-        self._pending_definition = definition
+        if result is None:
+            return False, reason
+        self._llama_adapter = result.llama_adapter
+        self._backend = result.backend
+        self._pending_definition = result.definition
         return True, None
 
     def load(self) -> None:
@@ -281,6 +337,7 @@ class ProductionRoleAdapterFactory:
         dedicated_model_authority_granted: bool = False,
         selene_prompt_manifest_path: Path,
         qwen3guard_contract_manifest_path: Path,
+        tracked_stage_registry: TrackedStageWorkerRegistry | None = None,
     ) -> None:
         self._definitions = definitions
         self._model_root = model_root
@@ -289,6 +346,7 @@ class ProductionRoleAdapterFactory:
         self._authority_granted = dedicated_model_authority_granted
         self._selene_prompt_manifest_path = selene_prompt_manifest_path
         self._qwen3guard_contract_manifest_path = qwen3guard_contract_manifest_path
+        self._tracked_stage_registry = tracked_stage_registry
 
     def create(
         self, *, role: ModelRole, option: ProviderOption
@@ -306,6 +364,7 @@ class ProductionRoleAdapterFactory:
                 load_config=self._load_config,
                 authority_granted=self._authority_granted,
                 prompt_manifest_path=self._selene_prompt_manifest_path,
+                tracked_stage_registry=self._tracked_stage_registry,
             )
         if option.provider_id == QWEN3_GUARD:
             return Qwen3GuardRoleAdapter(

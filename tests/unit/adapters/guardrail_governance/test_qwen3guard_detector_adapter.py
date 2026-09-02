@@ -23,6 +23,9 @@ proves this holds across all 3 Targets and all 5 real Outcome shapes
 
 from __future__ import annotations
 
+import threading
+import time
+
 import pytest
 
 from margpa_runtime_llm.adapters.guardrail_governance.qwen3guard_detector_adapter import (
@@ -46,21 +49,54 @@ _LEASE = "lease-token-1"
 
 class _FakeQwen3GuardAdapter:
     def __init__(
-        self, *, classification: Qwen3GuardClassification | None, raises: bool = False
+        self,
+        *,
+        classification: Qwen3GuardClassification | None,
+        raises: bool = False,
+        block_until: threading.Event | None = None,
     ) -> None:
         self._classification = classification
         self._raises = raises
+        self._block_until = block_until
         self.calls: list[tuple[Qwen3GuardTarget, str]] = []
 
     def classify_point(
-        self, *, target: Qwen3GuardTarget, content: str, query: str | None = None
+        self,
+        *,
+        target: Qwen3GuardTarget,
+        content: str,
+        query: str | None = None,
+        cancellation: object | None = None,
     ) -> Qwen3GuardClassification:
-        del query
+        del query, cancellation
         self.calls.append((target, content))
         if self._raises:
             raise RuntimeError("simulated failure")
+        if self._block_until is not None:
+            self._block_until.wait(timeout=5.0)
         assert self._classification is not None
         return self._classification
+
+    def timeout_classification(
+        self, *, target: Qwen3GuardTarget, latency_ms: int
+    ) -> Qwen3GuardClassification:
+        return Qwen3GuardClassification(
+            model_id=_MODEL_ID,
+            exact_revision="rev-timeout",
+            artifact_digest_sha512="a" * 128,
+            contract_manifest_digest_sha512="b" * 128,
+            label_schema_id="qwen3guard_gen_frozen_line_protocol_v1",
+            target=target,
+            detections=(
+                _detection(
+                    category_id=CATEGORY_UNKNOWN_UNRESOLVED,
+                    outcome=DetectionOutcome.UNKNOWN,
+                    severity=Severity.NONE,
+                ),
+            ),
+            failure=SafetyModelFailureKind.TIMEOUT,
+            latency_ms=latency_ms,
+        )
 
 
 class _ReleaseTracker:
@@ -378,3 +414,29 @@ def test_model_provenance_is_none_when_unavailable_no_classification_exists() ->
     result = detector.detect(content="hello")
     assert result.outcome is DetectionOutcome.UNAVAILABLE
     assert result.model_provenance is None
+
+
+def test_timeout_returns_unknown_and_releases_lease_only_after_worker_finishes() -> None:
+    release = _ReleaseTracker()
+    unblock = threading.Event()
+    fake = _FakeQwen3GuardAdapter(classification=None, block_until=unblock)
+    detector = Qwen3GuardDetectorAdapter(
+        target=Qwen3GuardTarget.INPUT,
+        begin_role_turn=lambda: Qwen3GuardRoleTurn(adapter=fake, lease=_LEASE),  # type: ignore[arg-type]
+        end_role_turn=release,
+        inference_budget_ms=10,
+        cancel_grace_ms=0,
+    )
+
+    result = detector.detect(content="hello")
+    assert result.outcome is DetectionOutcome.UNKNOWN
+    assert result.model_provenance is not None
+    assert result.model_provenance.model_id == _MODEL_ID
+    # Release is deferred until the timed-out worker actually completes.
+    assert release.released == []
+
+    unblock.set()
+    deadline = time.monotonic() + 1.0
+    while time.monotonic() < deadline and release.released != [_LEASE]:
+        time.sleep(0.01)
+    assert release.released == [_LEASE]

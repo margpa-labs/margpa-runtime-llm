@@ -17,6 +17,7 @@ from margpa_runtime_llm.modules.runtime_model_control.application.role_lifecycle
     CompositeRoleStatus,
     ModeReadResult,
     RoleTurnHandle,
+    RoleTurnLease,
 )
 from margpa_runtime_llm.modules.runtime_model_control.domain.identifiers import ModelRole
 from margpa_runtime_llm.modules.runtime_model_control.domain.provider_selection import (
@@ -24,6 +25,7 @@ from margpa_runtime_llm.modules.runtime_model_control.domain.provider_selection 
     ProviderRuntimeState,
     ProviderSelectionError,
 )
+from margpa_runtime_llm.modules.runtime_model_control.ports import RoleProviderAdapterPort
 
 
 def _no_op_read_mode() -> ModeReadResult:
@@ -54,10 +56,10 @@ class _FakeAdapter:
 
 
 class _Factory:
-    def __init__(self, adapters: dict[str, _FakeAdapter]) -> None:
+    def __init__(self, adapters: dict[str, RoleProviderAdapterPort]) -> None:
         self.adapters = adapters
 
-    def create(self, *, role: ModelRole, option: ProviderOption) -> _FakeAdapter:
+    def create(self, *, role: ModelRole, option: ProviderOption) -> RoleProviderAdapterPort:
         del role
         return self.adapters[option.provider_id]
 
@@ -189,6 +191,146 @@ def test_candidate_load_failure_restores_previous_active_adapter() -> None:
     assert judge.failure_reason == "provider_load_failed:RuntimeError"
 
 
+@dataclass
+class _PartiallyLoadedAdapter:
+    provider_id: str
+    fail_unload: bool = False
+    load_calls: int = 0
+    unload_calls: int = 0
+    preflight_calls: int = 0
+
+    def preflight(self) -> tuple[bool, str | None]:
+        self.preflight_calls += 1
+        return True, None
+
+    def load(self) -> None:
+        self.load_calls += 1
+        raise RuntimeError("partial load failed")
+
+    def unload(self) -> None:
+        self.unload_calls += 1
+        if self.fail_unload:
+            raise RuntimeError("cleanup failed")
+
+
+def test_candidate_partial_load_failure_cleans_up_and_marks_degraded_if_cleanup_fails() -> None:
+    selections = ProviderSelectionController()
+    selene = _FakeAdapter(SELENE_JUDGE)
+    candidate = _PartiallyLoadedAdapter(QWEN_MAIN, fail_unload=True)
+    manager = RoleProviderLifecycleManager(
+        selections=selections,
+        factory=_Factory(
+            {
+                SELENE_JUDGE: selene,
+                QWEN_MAIN: candidate,
+            }
+        ),
+    )
+    manager.activate(role=ModelRole.JUDGE)
+    _select_judge(selections, QWEN_MAIN)
+
+    snapshot = manager.activate(role=ModelRole.JUDGE)
+    judge = next(item for item in snapshot.selections if item.role is ModelRole.JUDGE)
+    assert candidate.load_calls == 1
+    assert candidate.unload_calls == 1
+    assert judge.state is ProviderRuntimeState.DEGRADED
+    assert judge.failure_reason == "provider_load_cleanup_failed"
+    assert judge.active_provider is None
+
+
+@dataclass
+class _RequiresRepreflightAdapter:
+    provider_id: str
+    load_calls: int = 0
+    unload_calls: int = 0
+    _prepared: bool = True
+
+    def preflight(self) -> tuple[bool, str | None]:
+        self._prepared = True
+        return True, None
+
+    def load(self) -> None:
+        if not self._prepared:
+            raise RuntimeError("preflight required")
+        self.load_calls += 1
+        self._prepared = False
+
+    def unload(self) -> None:
+        self.unload_calls += 1
+        self._prepared = False
+
+
+def test_candidate_load_failure_rolls_back_previous_with_repreflight() -> None:
+    selections = ProviderSelectionController()
+    previous = _RequiresRepreflightAdapter(SELENE_JUDGE)
+    candidate = _PartiallyLoadedAdapter(QWEN_MAIN, fail_unload=False)
+    manager = RoleProviderLifecycleManager(
+        selections=selections,
+        factory=_Factory(
+            {
+                SELENE_JUDGE: previous,
+                QWEN_MAIN: candidate,
+            }
+        ),
+    )
+    manager.activate(role=ModelRole.JUDGE)
+    assert previous.load_calls == 1
+    _select_judge(selections, QWEN_MAIN)
+
+    snapshot = manager.activate(role=ModelRole.JUDGE)
+    judge = next(item for item in snapshot.selections if item.role is ModelRole.JUDGE)
+    assert candidate.unload_calls == 1
+    assert previous.load_calls == 2
+    assert judge.state is ProviderRuntimeState.UNAVAILABLE
+    assert judge.active_provider == SELENE_JUDGE
+
+
+def test_none_activation_reports_degraded_when_previous_unload_fails() -> None:
+    selections = ProviderSelectionController()
+    selene = _FakeAdapter(SELENE_JUDGE, fail_unload=True)
+    manager = RoleProviderLifecycleManager(
+        selections=selections,
+        factory=_Factory({SELENE_JUDGE: selene}),
+    )
+    manager.activate(role=ModelRole.JUDGE)
+    snapshot = selections.snapshot()
+    selections.select(
+        role=ModelRole.JUDGE,
+        provider_id=NONE_PROVIDER,
+        expected_revision=snapshot.revision,
+        expected_digest=snapshot.digest_sha512,
+    )
+
+    result = manager.activate(role=ModelRole.JUDGE)
+    judge = next(item for item in result.selections if item.role is ModelRole.JUDGE)
+    assert judge.state is ProviderRuntimeState.DEGRADED
+    assert judge.failure_reason == "provider_unload_failed"
+    assert judge.active_provider is None
+
+
+def test_built_in_activation_reports_degraded_when_previous_unload_fails() -> None:
+    selections = ProviderSelectionController()
+    selene = _FakeAdapter(SELENE_JUDGE, fail_unload=True)
+    manager = RoleProviderLifecycleManager(
+        selections=selections,
+        factory=_Factory({SELENE_JUDGE: selene}),
+    )
+    manager.activate(role=ModelRole.JUDGE)
+    snapshot = selections.snapshot()
+    selections.select(
+        role=ModelRole.JUDGE,
+        provider_id="built_in.deterministic",
+        expected_revision=snapshot.revision,
+        expected_digest=snapshot.digest_sha512,
+    )
+
+    result = manager.activate(role=ModelRole.JUDGE)
+    judge = next(item for item in result.selections if item.role is ModelRole.JUDGE)
+    assert judge.state is ProviderRuntimeState.DEGRADED
+    assert judge.failure_reason == "provider_unload_failed"
+    assert judge.active_provider is None
+
+
 def test_off_deactivation_waits_for_active_turn_then_unloads() -> None:
     selections = ProviderSelectionController()
     selene = _FakeAdapter(SELENE_JUDGE)
@@ -306,7 +448,7 @@ def test_composite_status_blocks_until_on_transition_fully_commits() -> None:
     selene = _BlockingAdapter(SELENE_JUDGE, load_started=load_started, release_load=release_load)
     manager = RoleProviderLifecycleManager(
         selections=selections,
-        factory=_Factory({SELENE_JUDGE: selene}),  # type: ignore[dict-item]
+        factory=_Factory({SELENE_JUDGE: selene}),
     )
     _select_judge(selections, SELENE_JUDGE)
 
@@ -375,7 +517,7 @@ def test_composite_status_blocks_until_off_transition_fully_commits() -> None:
     )
     manager = RoleProviderLifecycleManager(
         selections=selections,
-        factory=_Factory({SELENE_JUDGE: selene}),  # type: ignore[dict-item]
+        factory=_Factory({SELENE_JUDGE: selene}),
     )
     _select_judge(selections, SELENE_JUDGE)
     release_load.set()
@@ -437,7 +579,7 @@ def test_composite_status_blocks_for_guard_role_too() -> None:
     )
     manager = RoleProviderLifecycleManager(
         selections=selections,
-        factory=_Factory({QWEN3_GUARD: guard_adapter}),  # type: ignore[dict-item]
+        factory=_Factory({QWEN3_GUARD: guard_adapter}),
     )
     snapshot = selections.snapshot()
     selections.select(
@@ -734,6 +876,50 @@ def test_multiple_concurrent_role_turns_each_track_their_own_lease_generation() 
     assert last is not None
     manager.end_turn(last.lease)
     assert manager.shutdown() is True
+    assert selene.unload_calls == 1
+
+
+def test_duplicate_release_never_consumes_another_active_lease() -> None:
+    selections = ProviderSelectionController()
+    selene = _FakeAdapter(SELENE_JUDGE)
+    manager = RoleProviderLifecycleManager(
+        selections=selections, factory=_Factory({SELENE_JUDGE: selene})
+    )
+    manager.activate(role=ModelRole.JUDGE)
+    first = manager.begin_role_turn(role=ModelRole.JUDGE)
+    second = manager.begin_role_turn(role=ModelRole.JUDGE)
+    assert first is not None and second is not None
+    manager.deactivate(role=ModelRole.JUDGE)
+
+    manager.end_turn(first.lease)
+    manager.end_turn(first.lease)
+    assert selene.unload_calls == 0
+
+    manager.end_turn(second.lease)
+    assert selene.unload_calls == 1
+
+
+def test_forged_or_provider_mismatched_lease_is_ignored() -> None:
+    selections = ProviderSelectionController()
+    selene = _FakeAdapter(SELENE_JUDGE)
+    manager = RoleProviderLifecycleManager(
+        selections=selections, factory=_Factory({SELENE_JUDGE: selene})
+    )
+    manager.activate(role=ModelRole.JUDGE)
+    first = manager.begin_role_turn(role=ModelRole.JUDGE)
+    second = manager.begin_role_turn(role=ModelRole.JUDGE)
+    assert first is not None and second is not None
+    manager.deactivate(role=ModelRole.JUDGE)
+
+    forged = RoleTurnLease(
+        role=first.lease.role,
+        provider_id="forged.provider",
+        generation=first.lease.generation,
+    )
+    manager.end_turn(forged)
+    manager.end_turn(first.lease)
+    assert selene.unload_calls == 0
+    manager.end_turn(second.lease)
     assert selene.unload_calls == 1
 
 

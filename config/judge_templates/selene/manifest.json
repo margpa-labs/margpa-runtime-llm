@@ -1,11 +1,16 @@
 {
   "schema_version": "1",
   "provider_id": "judge.selene-1-mini-llama-3.1-8b-q5-k-m",
-  "template_type": "official_selene_prompt_template_unresolved",
+  "template_type": "project_derived_multi_criterion_v1",
   "upstream_repository_url": "https://github.com/atla-ai/selene-mini/tree/main/prompt-templates",
   "upstream_revision": null,
   "template_file": null,
   "template_sha512": null,
-  "retrieval_status": "unavailable_network_prohibited_by_exact_resume_authority",
+  "derived_template_file": "project_derived_multi_criterion_prompt_v1.txt",
+  "derived_template_sha512": "e93439a6a857066175be0f56d184c30b9d705f7051e13739134917bad8b50409d56ef2f8ddafb4042e05a196e6db27e801a48bb1f941ea1884fa9723eb530fc4",
+  "derived_from_upstream_revision": null,
+  "derived_from_upstream_basis": "unknown_network_prohibited",
+  "project_contract_digest_sha512": "79b4845acd280567758932ec0f3d31a755f6f3832cd5197eb7c79819ecb7fe97970c132e81ca146ceb3b63894a033377a56d7c85e5d4d73b09da4b8ab5179383",
+  "retrieval_status": "project_derived_contract_ready_official_copy_unverified",
   "verified_official_copy": false
 }

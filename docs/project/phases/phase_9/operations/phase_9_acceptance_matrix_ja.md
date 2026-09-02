@@ -23,10 +23,10 @@ phase_9_3_acceptance: P9-ACC-046_to_P9-ACC-050
 | P9-ACC-005 | Phase 9-1完了候補Return前にPhase 9-2／9-3を実装しない。 |
 | P9-ACC-006 | Selene／Qwen3GuardのArtifact、Manifest、Digest、Backend、HardwareおよびAuthority PreflightをEvidence化する。 |
 | P9-ACC-007 | SeleneをConfiguredだけでなくCandidate Load／Strict Contract／Executed ProviderへProduction配線する。 |
-| P9-ACC-008 | Seleneが成立する環境では実Artifact Inferenceを行い、成立しない場合はStage別`RESOURCE_GATED／FAILED`を返す。 |
+| P9-ACC-008 | Seleneで実Artifact Preflight／Load／Inference／Executed Evidence／Stop／UnloadがUser Mac上で成立する。Stage別`RESOURCE_GATED／FAILED`は中間失敗として正直に返すが、本AcceptanceのPASS代替にしない。 |
 | P9-ACC-009 | Selene OutputのMalformed／Timeout／Cancel／UnavailableをStrict DecodeしたTyped Failureへ収束する。 |
 | P9-ACC-010 | Qwen3GuardをConfiguredだけでなくCandidate Load／Target別Contract／Executed ProviderへProduction配線する。 |
-| P9-ACC-011 | Qwen3Guardが成立する環境では実Artifact Inferenceを行い、成立しない場合はStage別`RESOURCE_GATED／FAILED`を返す。 |
+| P9-ACC-011 | Qwen3Guardで実Artifact Preflight／Load／Inference／Executed Evidence／Stop／UnloadがUser Mac上で成立する。Stage別`RESOURCE_GATED／FAILED`は中間失敗として正直に返すが、本AcceptanceのPASS代替にしない。 |
 | P9-ACC-012 | Qwen3GuardのInput／Output Target、Category Set、Line ProtocolおよびEvidence Identityが一致する。 |
 | P9-ACC-013 | Startup全Mode OFFでDedicated Model Call 0、不要なDedicated Role常駐Load 0を維持する。 |
 | P9-ACC-014 | Mode ONはPreflight／Load成功後にAtomic Commitし、OFF／ShutdownはLease終了後にUnloadする。 |

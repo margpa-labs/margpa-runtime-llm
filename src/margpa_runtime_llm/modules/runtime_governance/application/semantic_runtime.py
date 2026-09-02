@@ -386,6 +386,9 @@ class SemanticRuntimeCoordinator:
                 "results": [item.model_dump(mode="json") for item in results],
                 "merged": [item.model_dump(mode="json") for item in merged],
                 "action": action.model_dump(mode="json"),
+                "evaluation_budget": (
+                    response.budget.model_dump(mode="json") if response.budget is not None else None
+                ),
             }
             evidence = SemanticRuntimeEvidence(
                 request_id=response.request_id,
@@ -397,6 +400,7 @@ class SemanticRuntimeCoordinator:
                 criterion_results=tuple(results),
                 merged_observations=merged,
                 action=action,
+                evaluation_budget=response.budget,
                 evidence_digest_sha512=semantic_contract_digest(payload),
             )
             self._recorded_criterion_keys.update(keys)

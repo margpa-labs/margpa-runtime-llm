@@ -28,6 +28,9 @@ Repair -> Rejudge Run has completed."""
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
+from concurrent.futures import Future
+from functools import partial
 from types import SimpleNamespace
 
 from margpa_runtime_llm.bootstrap.judge_live_integration import (
@@ -35,6 +38,7 @@ from margpa_runtime_llm.bootstrap.judge_live_integration import (
     LiveJudgeResult,
     build_judge_completion_hook,
 )
+from margpa_runtime_llm.bootstrap.repair_live_integration import attempt_live_repair
 from margpa_runtime_llm.modules.conversation.application.conversation_generation import (
     JudgeCompletionContext,
 )
@@ -42,6 +46,7 @@ from margpa_runtime_llm.modules.evaluation.application.judge_mode_controller imp
     JudgeModeController,
 )
 from margpa_runtime_llm.modules.evaluation.domain.identifiers import EvaluationMode
+from margpa_runtime_llm.modules.evaluation.domain.llm_judge import JudgeIndependenceClass
 from margpa_runtime_llm.modules.inference.application.model_access_coordinator import (
     ModelAccessCoordinator,
 )
@@ -53,6 +58,7 @@ from margpa_runtime_llm.modules.inference.contracts.generation import (
     TokenUsage,
 )
 from margpa_runtime_llm.modules.inference.contracts.runtime import ModelRuntimeReference
+from margpa_runtime_llm.modules.inference.domain.cancellation import CancellationToken
 from margpa_runtime_llm.modules.repair.application.repair_mode_controller import (
     RepairModeController,
 )
@@ -100,6 +106,44 @@ class _FakeInferenceService:
         )
 
 
+class _MultiStageInferenceService:
+    """A single Fixture Inference Service returning distinct content per
+    real Model Call stage, keyed by the `request_id` suffix `judge_live_
+    integration.py`/`attempt_live_repair` actually use (no suffix =
+    Initial Judge, `:repair` = Repair Candidate Generation, `:rejudge` =
+    Rejudge). Proves the real Production `attempt_live_repair()`
+    Composition genuinely executes Repair Generation and Rejudge as two
+    further distinct real Model Calls — a Fake Repair Executor that
+    returns `accepted=True` immediately (as the pre-P9-CODEX-002 Test did)
+    could never be distinguished from this by content alone."""
+
+    def __init__(self, *, initial_judge: str, repair_candidate: str, rejudge: str) -> None:
+        self._initial_judge = initial_judge
+        self._repair_candidate = repair_candidate
+        self._rejudge = rejudge
+        self.calls: list[GenerationRequest] = []
+
+    def generate(
+        self, request: GenerationRequest, *, cancellation: object = None
+    ) -> GenerationResult:
+        self.calls.append(request)
+        if request.request_id.endswith(":repair"):
+            content = self._repair_candidate
+        elif request.request_id.endswith(":rejudge"):
+            content = self._rejudge
+        else:
+            content = self._initial_judge
+        return GenerationResult(
+            request_id=request.request_id,
+            model_key=request.model_key,
+            content=content,
+            finish_reason=FinishReason.STOP,
+            usage=TokenUsage(prompt_tokens=10, completion_tokens=5, total_tokens=15),
+            timing=GenerationTiming(total_generation_seconds=0.01),
+            runtime_info=_RUNTIME_REF,
+        )
+
+
 class _FakeMainSharedAdapter:
     """Duck-typed `MainSharedJudgeRoleAdapter` shape: only `provider_id`,
     never `semantic_evaluator` — the Dispatch Router must treat any object
@@ -123,7 +167,15 @@ class _FakeSeleneEvaluator:
         # touch Repair are unaffected.
         self.inference_service = inference_service
 
-    def evaluate(self, *, request: SemanticEvaluationRequest) -> SemanticEvaluationResponse:
+    def evaluate(
+        self,
+        *,
+        request: SemanticEvaluationRequest,
+        cancellation: CancellationToken | None = None,
+        inference_budget_ms: int = 0,
+        late_worker_observer: Callable[[Future[object]], None] | None = None,
+    ) -> SemanticEvaluationResponse:
+        del cancellation, inference_budget_ms, late_worker_observer
         self.calls.append(request)
         return self._response
 
@@ -280,6 +332,346 @@ def test_main_shared_active_adapter_is_dispatched_and_tagged_as_executed_provide
     assert result.judge_role.value == "main_self"
     assert result.executed_provider == _DEEPSEEK_PROVIDER_ID
     assert result.execution_state == "completed"
+
+
+def test_main_shared_active_adapter_genuinely_evaluates_semantic_criteria() -> None:
+    """P9-1-B-WU-004 (Phase 9-1): the Built-in Judge Provider can never
+    genuinely evaluate any of the 109 Semantic Criteria -- every compiled
+    Criterion uses `CLASSIFICATION*`/`ABSOLUTE_SCORING`
+    (`semantic_criterion_adapter.py`'s `_ARGD_MAP`/`_mapping_for()`), an
+    inherently qualitative judgment no deterministic check can honestly
+    resolve (`_run_built_in_semantic_judge()`'s own docstring). The one
+    Judge Provider that genuinely escapes `Deferred`/`evaluated 0` without
+    any dedicated Model Authority is Main-shared self-judge -- it reuses
+    whichever Model is already loaded for MAIN, so it needs no separate
+    Load/Artifact/Network at all. The existing
+    `test_main_shared_active_adapter_is_dispatched_and_tagged_as_executed_
+    provider` test above only proves routing/tagging with a criterion-free
+    response; this proves the real per-criterion Decode/Evidence path a
+    Semantic Snapshot actually exercises through Main-self."""
+    criterion = _criterion()
+    frozen = freeze_semantic_turn(
+        request_id="req-main-shared-semantic-1",
+        generation=1,
+        criteria=(criterion,),
+        language="en",
+        main_mode="observe",
+        judge_mode="enforce",
+        repair_mode="off",
+        configured_provider=_DEEPSEEK_PROVIDER_ID,
+        active_provider=_DEEPSEEK_PROVIDER_ID,
+        provider_state=SemanticProviderState.ACTIVE,
+        budget_profile="test",
+        max_criteria=8,
+    )
+    judge_output = (
+        '{"recommendation": "accept", "confidence": 0.93, "reasoning": "fixture", '
+        '"criterion_results": [{"criterion_id": "semantic.argd.evidence.1", '
+        '"disposition": "pass", "confidence": 0.91, "reason_code": "fixture_result", '
+        '"evidence_refs": ["REFERENCE SENTINEL"]}]}'
+    )
+    recorded: list[object] = []
+    controller = JudgeModeController()
+    controller.apply_mode(EvaluationMode.OBSERVE)
+    service = _FakeInferenceService(content=judge_output)
+    hook, composition = build_judge_completion_hook(
+        service=service,  # type: ignore[arg-type]
+        judge_mode_controller=controller,
+        model_access_coordinator=ModelAccessCoordinator(),
+        semantic_snapshot_provider=lambda request_id: (
+            frozen.snapshot if request_id == "req-main-shared-semantic-1" else None
+        ),
+        semantic_result_recorder=recorded.append,
+        begin_judge_role_turn=lambda: _handle(
+            _FakeMainSharedAdapter(provider_id=_DEEPSEEK_PROVIDER_ID)
+        ),
+    )
+
+    hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id="req-main-shared-semantic-1",
+            user_input="Question",
+            assistant_content="Answer",
+        )
+    )
+    result = _wait_for_result(composition)
+
+    assert len(service.calls) == 1
+    assert service.calls[0].model_key == _DEEPSEEK_PROVIDER_ID
+    assert result.judge_role.value == "main_self"
+    assert result.executed_provider == _DEEPSEEK_PROVIDER_ID
+    assert result.recommendation == "accept"
+    assert result.execution_state == "completed"
+    # The crux: genuinely evaluated, not Deferred/0 -- the actual escape
+    # from the User Mac Evidence's "everything Deferred/evaluated 0" symptom.
+    assert result.criteria_selected == 1
+    assert result.criteria_evaluated == 1
+    assert result.criteria_passed == 1
+    assert result.criteria_deferred == 0
+    # Evidence must be Lossless: `_record_semantic_result()` recorded the
+    # real decoded per-criterion PASS, not a fabricated/empty projection.
+    assert len(recorded) == 1
+
+
+def test_main_shared_judge_needs_repair_and_rejudge_reuses_the_same_main_service_single_turn_e2e() -> (  # noqa: E501
+    None
+):
+    """Scope note (P9-CODEX-002, Controller Finding Ledger): this Test's
+    own `_fake_repair_executor` returns `accepted=True` immediately --
+    it never runs a real Repair Candidate Generation or Rejudge Model
+    Call. It is correctly scoped as a Parameter/Frozen Identity Wiring
+    Test only: it proves `_run_judge_and_repair()` calls whatever Repair
+    Executor it is given with the right `rejudge_service`/`rejudge_
+    model_key`/`rejudge_role` values (the same already-loaded Main
+    Service/Provider, never a fresh/different one). It does NOT prove the
+    Production Repair Executor itself (`attempt_live_repair()`) genuinely
+    executes -- see `test_main_shared_judge_repair_and_rejudge_genuinely_
+    execute_via_the_production_repair_composition` below for that real
+    end-to-end proof (real Repair Generation + real Rejudge, 2 further
+    real Model Calls on the same Fixture Service).
+
+    P9-1-C-WU-002/003/006 (Phase 9-1): the Selene analog of this Test
+    (`test_selene_initial_judge_repair_and_frozen_selene_rejudge_single_
+    turn_e2e` below) proves Initial Judge -> Repair -> Frozen Selene
+    Rejudge as one continuous Turn -- but that path is unreachable without
+    dedicated Model Authority this Task does not have. This is the
+    Main-shared (Authority-independent) analog: a real Semantic-109
+    Criterion resolves DEVIATION (-> `needs_repair`), Repair Eligibility
+    resolves ELIGIBLE, and the Repair Executor's Rejudge Identity is the
+    *same* already-loaded Main Service/Provider -- Main-self Judge and
+    Main-self Rejudge share one Model, never a fresh/different one --
+    proving the Criterion/Judge/Repair/Rejudge Identity Chain holds for
+    the one Judge Provider this Task's Authority can actually exercise
+    end to end."""
+    criterion = _criterion()
+    frozen = freeze_semantic_turn(
+        request_id="req-main-shared-repair-1",
+        generation=1,
+        criteria=(criterion,),
+        language="en",
+        main_mode="observe",
+        judge_mode="enforce",
+        repair_mode="enforce",
+        configured_provider=_DEEPSEEK_PROVIDER_ID,
+        active_provider=_DEEPSEEK_PROVIDER_ID,
+        provider_state=SemanticProviderState.ACTIVE,
+        budget_profile="test",
+        max_criteria=8,
+    )
+    judge_output = (
+        '{"recommendation": "needs_repair", "confidence": 0.4, "reasoning": "vague", '
+        '"criterion_results": [{"criterion_id": "semantic.argd.evidence.1", '
+        '"disposition": "deviation", "confidence": 0.85, "reason_code": "unsupported_claim", '
+        '"evidence_refs": ["REFERENCE SENTINEL"]}]}'
+    )
+    service = _FakeInferenceService(content=judge_output)
+    controller = JudgeModeController()
+    controller.apply_mode(EvaluationMode.ENFORCE)
+    repair_controller = RepairModeController()
+    repair_controller.apply_mode(RepairMode.ENFORCE)
+
+    captured_calls: list[dict[str, object]] = []
+
+    def _fake_repair_executor(
+        *,
+        request_id: str,
+        model_key: str,
+        user_input: str,
+        original_answer: str,
+        before_recommendation: object,
+        judge_reasoning: str,
+        dialogue_context: tuple[str, ...],
+        evidence_context: tuple[str, ...],
+        governance_post_hook: object,
+        guardrail_post_hook: object,
+        cancellation: object = None,
+        model_runtime_info: object = None,
+        stage_hook: object = None,
+        persist_accepted_attempt: bool = True,
+        stage_budget: object = None,
+        rejudge_service: object = None,
+        rejudge_model_key: str | None = None,
+        rejudge_role: object = None,
+        language: str = "en",
+    ) -> object:
+        from margpa_runtime_llm.bootstrap.repair_live_integration import RepairExecutionResult
+
+        captured_calls.append(
+            {
+                "before_recommendation": before_recommendation,
+                "rejudge_service": rejudge_service,
+                "rejudge_model_key": rejudge_model_key,
+                "rejudge_role": rejudge_role,
+            }
+        )
+        return RepairExecutionResult(
+            request_id=request_id,
+            outcome="improved",
+            accepted=True,
+            new_turn_id="new-turn-main-shared-1",
+            rejected_reason=None,
+            presented_content="A corrected answer",
+        )
+
+    release = _ReleaseTracker()
+    recorded: list[object] = []
+    hook, composition = build_judge_completion_hook(
+        service=service,  # type: ignore[arg-type]
+        judge_mode_controller=controller,
+        model_access_coordinator=ModelAccessCoordinator(),
+        repair_mode_controller=repair_controller,
+        repair_executor=_fake_repair_executor,  # type: ignore[arg-type]
+        semantic_snapshot_provider=lambda request_id: (
+            frozen.snapshot if request_id == "req-main-shared-repair-1" else None
+        ),
+        semantic_result_recorder=recorded.append,
+        begin_judge_role_turn=lambda: _handle(
+            _FakeMainSharedAdapter(provider_id=_DEEPSEEK_PROVIDER_ID),
+            lease="main-shared-repair-lease",
+        ),
+        end_judge_role_turn=release,
+    )
+
+    hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id="req-main-shared-repair-1",
+            user_input="Question",
+            assistant_content="A shaky answer",
+            enforce_presented_final=True,
+        )
+    )
+    result = _wait_for_result(composition)
+
+    assert len(service.calls) == 1
+    assert result.judge_role.value == "main_self"
+    assert result.executed_provider == _DEEPSEEK_PROVIDER_ID
+    assert result.recommendation == "needs_repair"
+    assert result.criteria_evaluated == 1
+    assert result.criteria_deviated == 1
+    assert len(recorded) == 1
+    assert len(captured_calls) == 1
+    call = captured_calls[0]
+    assert call["before_recommendation"] == "needs_repair"
+    # The crux: Rejudge's Identity is the *same* already-loaded Main
+    # Service/Provider -- never a fresh or different one.
+    assert call["rejudge_service"] is service
+    assert call["rejudge_model_key"] == _DEEPSEEK_PROVIDER_ID
+    rejudge_role = call["rejudge_role"]
+    assert rejudge_role is JudgeIndependenceClass.MAIN_SELF
+    assert result.repair_outcome == "improved"
+    assert result.repair_accepted is True
+    assert result.repair_new_turn_id == "new-turn-main-shared-1"
+    # The single Turn Lease acquired at Hook entry is held across Initial
+    # Judge -> Repair -> Rejudge and Released exactly once.
+    assert release.released == ["main-shared-repair-lease"]
+
+
+def test_main_shared_judge_repair_and_rejudge_genuinely_execute_via_the_production_repair_composition() -> (  # noqa: E501
+    None
+):
+    """P9-CODEX-002 (Controller Finding Ledger): the Test above proves the
+    Repair Executor is *invoked* with the right Frozen Identity, but its
+    Fake Executor returns `accepted=True` immediately -- it never proves
+    the real Production `attempt_live_repair()` Composition (2 further
+    real Model Calls: Repair Candidate Generation, then Rejudge) actually
+    runs. This Test wires the exact Production function
+    (`repair_live_integration.attempt_live_repair`, bound via
+    `functools.partial` the same way `web_application.py`'s Composition
+    Root binds `service`/`model_key`/`persistent`) as the real Repair
+    Executor, backed by one Fixture Inference Service that returns
+    distinct content per real Model Call stage -- proving all 3 real
+    Model Calls (Initial Judge, Repair Candidate, Rejudge) genuinely
+    happen, in that order, on the same Main-shared Service, ending in a
+    real Adopt."""
+    criterion = _criterion()
+    frozen = freeze_semantic_turn(
+        request_id="req-main-shared-real-repair-1",
+        generation=1,
+        criteria=(criterion,),
+        language="en",
+        main_mode="observe",
+        judge_mode="enforce",
+        repair_mode="enforce",
+        configured_provider=_DEEPSEEK_PROVIDER_ID,
+        active_provider=_DEEPSEEK_PROVIDER_ID,
+        provider_state=SemanticProviderState.ACTIVE,
+        budget_profile="test",
+        max_criteria=8,
+    )
+    initial_judge_output = (
+        '{"recommendation": "needs_repair", "confidence": 0.4, "reasoning": "vague", '
+        '"criterion_results": [{"criterion_id": "semantic.argd.evidence.1", '
+        '"disposition": "deviation", "confidence": 0.85, "reason_code": "unsupported_claim", '
+        '"evidence_refs": ["REFERENCE SENTINEL"]}]}'
+    )
+    service = _MultiStageInferenceService(
+        initial_judge=initial_judge_output,
+        repair_candidate="A corrected, source-grounded answer.",
+        rejudge='{"recommendation": "accept", "confidence": 0.9}',
+    )
+    controller = JudgeModeController()
+    controller.apply_mode(EvaluationMode.ENFORCE)
+    repair_controller = RepairModeController()
+    repair_controller.apply_mode(RepairMode.ENFORCE)
+
+    release = _ReleaseTracker()
+    recorded: list[object] = []
+    hook, composition = build_judge_completion_hook(
+        service=service,  # type: ignore[arg-type]
+        judge_mode_controller=controller,
+        model_access_coordinator=ModelAccessCoordinator(),
+        repair_mode_controller=repair_controller,
+        repair_executor=partial(
+            attempt_live_repair,
+            service=service,  # type: ignore[arg-type]
+            model_key=_DEEPSEEK_PROVIDER_ID,
+            persistent=None,
+        ),
+        semantic_snapshot_provider=lambda request_id: (
+            frozen.snapshot if request_id == "req-main-shared-real-repair-1" else None
+        ),
+        semantic_result_recorder=recorded.append,
+        begin_judge_role_turn=lambda: _handle(
+            _FakeMainSharedAdapter(provider_id=_DEEPSEEK_PROVIDER_ID),
+            lease="main-shared-real-repair-lease",
+        ),
+        end_judge_role_turn=release,
+    )
+
+    hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id="req-main-shared-real-repair-1",
+            user_input="Question",
+            assistant_content="A shaky answer",
+            enforce_presented_final=True,
+        )
+    )
+    result = _wait_for_result(composition)
+
+    # The crux: 3 distinct real Model Calls actually happened, in order --
+    # Initial Judge, then real Repair Candidate Generation, then real
+    # Rejudge -- never a Fake Executor short-circuit.
+    assert [call.request_id for call in service.calls] == [
+        "req-main-shared-real-repair-1:judge",
+        "req-main-shared-real-repair-1:repair",
+        "req-main-shared-real-repair-1:rejudge",
+    ]
+    assert result.judge_role.value == "main_self"
+    assert result.executed_provider == _DEEPSEEK_PROVIDER_ID
+    assert result.recommendation == "needs_repair"
+    assert result.criteria_evaluated == 1
+    assert result.criteria_deviated == 1
+    assert len(recorded) == 1
+    assert result.repair_outcome == "improved"
+    assert result.repair_accepted is True
+    # `persist_accepted_attempt=False` (the synchronous ENFORCE-Presented-
+    # Final path) -- Adopt returns the real generated candidate content
+    # directly, never a persisted-Turn id.
+    assert result.repair_new_turn_id is None
+    assert release.released == ["main-shared-real-repair-lease"]
 
 
 def test_selene_shaped_active_adapter_dispatches_via_semantic_evaluator_never_touches_main_service() -> (  # noqa: E501

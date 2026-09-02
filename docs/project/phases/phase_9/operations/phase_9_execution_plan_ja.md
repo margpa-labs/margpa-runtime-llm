@@ -53,7 +53,7 @@ Exit：ゼロから再実装する領域、既存再利用領域、Real Artifact
 - **P9-1-A-WU-004**：Mode ON時のCandidate Preflight／Load後Atomic Commit、Frozen Lease、OFF／Shutdown UnloadおよびFailure Recoveryを検証する。
 - **P9-1-A-WU-005**：Real Local Artifact Smokeを個別Gateで実行し、Call Count、Memory／Latency、Configured／Active／ExecutedおよびFailure Stageを記録する。
 
-Exit：Dedicated各Roleが実Artifactで動くか、物理的／Authority上動かない理由がStage別に確定する。Fixture PASSだけでDedicated PASSを主張しない。
+Exit：Selene／Qwen3Guardの両RoleがUser Mac上の実ArtifactでPreflight／Load／Inference／Executed Evidence／Stop／UnloadまでPASSする。物理的／Authority上動かない理由のStage別確定は中間EvidenceでありExit代替ではない。Fixture PASSだけでDedicated PASSを主張しない。
 
 ### P9-1-B Semantic 109／Built-in Evaluation — 5 WU
 
@@ -83,7 +83,7 @@ Exit：Judge -> Repair -> Rejudge -> Adopt／Fallbackが実Turnで成立し、Se
 - **P9-1-D-WU-003**：観点変更二段階Internal Review。Cycle 1はRequirement／Negative／Concurrency／Resource、Cycle 2はEvidence Truthfulness／Acceptance／User Journey／PoC停止線。
 - **P9-1-D-WU-004**：Traceability、Real Artifact Disposition、User Mac Manual Sheet、Recovery IndexおよびExact Return Handoff。
 
-Exit：`P9_1_COMPLETE_CANDIDATE_FOR_CONTROLLER_REVIEW`。Phase 9-2はまだ開始しない。
+Exit：Selene／Qwen3Guardの実Artifact AcceptanceとUser Manual Gateを含めて成立した`P9_1_COMPLETE_CANDIDATE_FOR_CONTROLLER_REVIEW`。Phase 9-2はまだ開始しない。
 
 ## 4. Phase 9-1 Fast Closure Rules
 

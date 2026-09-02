@@ -28,6 +28,7 @@ from margpa_runtime_llm.modules.guardrail_governance.domain import (
     TypedSpan,
 )
 from margpa_runtime_llm.modules.guardrail_governance.ports import DetectorPort
+from margpa_runtime_llm.modules.inference.domain.cancellation import CancellationToken
 
 # Invisible/zero-width characters used in several documented evasion
 # techniques — stripped before any Pattern match (P5-DET-004).
@@ -127,7 +128,18 @@ class MarkerDetector:
         # itself — the true, exact bound (P5-CODEX-004).
         self.max_match_length = max((len(marker) for marker in markers), default=0)
 
-    def detect(self, *, content: str) -> GuardDetection:
+    def detect(
+        self,
+        *,
+        content: str,
+        cancellation: CancellationToken | None = None,
+    ) -> GuardDetection:
+        if cancellation is not None and cancellation.is_cancelled():
+            return _detection(
+                detector_id=self.detector_id,
+                category_id=self._category_id,
+                outcome=DetectionOutcome.UNKNOWN,
+            )
         try:
             normalized = normalize_for_detection(content).lower()
         except Exception:
@@ -186,7 +198,18 @@ class SecretPatternDetector:
     detector_id = "deterministic.secret_pattern"
     max_match_length = _SECRET_MAX_MATCH_LENGTH
 
-    def detect(self, *, content: str) -> GuardDetection:
+    def detect(
+        self,
+        *,
+        content: str,
+        cancellation: CancellationToken | None = None,
+    ) -> GuardDetection:
+        if cancellation is not None and cancellation.is_cancelled():
+            return _detection(
+                detector_id=self.detector_id,
+                category_id=CATEGORY_SECRET,
+                outcome=DetectionOutcome.UNKNOWN,
+            )
         try:
             normalized = normalize_for_detection(content)
         except Exception:
@@ -220,7 +243,18 @@ class PiiPatternDetector:
     detector_id = "deterministic.pii_pattern"
     max_match_length = _PII_MAX_MATCH_LENGTH
 
-    def detect(self, *, content: str) -> GuardDetection:
+    def detect(
+        self,
+        *,
+        content: str,
+        cancellation: CancellationToken | None = None,
+    ) -> GuardDetection:
+        if cancellation is not None and cancellation.is_cancelled():
+            return _detection(
+                detector_id=self.detector_id,
+                category_id=CATEGORY_PII,
+                outcome=DetectionOutcome.UNKNOWN,
+            )
         try:
             normalized = normalize_for_detection(content)
         except Exception:

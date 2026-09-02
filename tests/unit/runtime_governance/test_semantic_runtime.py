@@ -25,6 +25,7 @@ from margpa_runtime_llm.modules.runtime_governance.domain import (
     SemanticEvaluationStage,
     SemanticFinalDisposition,
     SemanticProviderState,
+    SemanticTurnSnapshot,
     Severity,
 )
 
@@ -308,6 +309,91 @@ def test_action_resolver_keeps_recommendation_separate_from_execution() -> None:
     )
     assert decision.recommended_disposition is SemanticFinalDisposition.REPAIR_REQUESTED
     assert decision.executed_disposition is SemanticFinalDisposition.OBSERVED
+
+
+def _enforce_snapshot(
+    *, criteria: tuple[SemanticCriterion, ...], repair_mode: str
+) -> SemanticTurnSnapshot:
+    frozen = freeze_semantic_turn(
+        request_id="req-enforce-conflict",
+        generation=1,
+        criteria=criteria,
+        language="en",
+        main_mode="enforce",
+        judge_mode="enforce",
+        repair_mode=repair_mode,
+        configured_provider="judge.selene",
+        active_provider="judge.selene",
+        provider_state=SemanticProviderState.ACTIVE,
+        budget_profile="local",
+        max_criteria=8,
+    )
+    return frozen.snapshot
+
+
+def test_enforce_conflict_uncertain_takes_priority_over_deviation() -> None:
+    """P9-1-C-WU-004 (Phase 9-1): `resolve_semantic_action()` is Preserved
+    As-built (checked before Deviation, per its own `if has_uncertain` /
+    `if has_deviation` branch order), but no existing Test exercised more
+    than one simultaneous Criterion under `main_mode="enforce"` -- so this
+    exact Conflict/Priority ordering (a genuinely UNCERTAIN Criterion must
+    force Safe Fallback even when a different Criterion in the same batch
+    would otherwise only need Repair) was never actually proven, only
+    implied by reading the branch order."""
+    criteria = (_criterion(1), _criterion(2))
+    snapshot = _enforce_snapshot(criteria=criteria, repair_mode="enforce")
+    decision = resolve_semantic_action(
+        snapshot=snapshot,
+        results=(
+            _result(criteria[0], SemanticCriterionDisposition.DEVIATION),
+            _result(criteria[1], SemanticCriterionDisposition.UNKNOWN),
+        ),
+    )
+    assert decision.recommended_disposition is SemanticFinalDisposition.SAFE_FALLBACK
+    assert decision.executed_disposition is SemanticFinalDisposition.SAFE_FALLBACK
+    assert decision.repair_eligible is False
+    assert decision.reason_code == "semantic_result_inconclusive"
+
+
+def test_enforce_multiple_deviations_resolve_as_one_repair_request_when_authorized() -> None:
+    """A Conflict between two simultaneously-DEVIATION Criteria (no
+    Uncertain one) resolves to exactly one coherent Repair Request, not a
+    per-Criterion split decision -- `resolve_semantic_action()` decides
+    once for the whole batch."""
+    criteria = (_criterion(1), _criterion(2))
+    snapshot = _enforce_snapshot(criteria=criteria, repair_mode="enforce")
+    decision = resolve_semantic_action(
+        snapshot=snapshot,
+        results=(
+            _result(criteria[0], SemanticCriterionDisposition.PASS),
+            _result(criteria[1], SemanticCriterionDisposition.DEVIATION),
+        ),
+    )
+    assert decision.recommended_disposition is SemanticFinalDisposition.REPAIR_REQUESTED
+    assert decision.executed_disposition is SemanticFinalDisposition.REPAIR_REQUESTED
+    assert decision.repair_eligible is True
+    assert decision.reason_code == "repair_authorized"
+
+
+def test_enforce_deviation_never_executes_repair_when_repair_authority_is_off() -> None:
+    """P9-1-C-WU-004 Authority非拡張: ENFORCE Judge alone never expands into
+    an executed Repair -- `repair_mode="off"` must still *recommend*
+    REPAIR_REQUESTED honestly (the Judge's own finding is not hidden) but
+    the *executed* Disposition safe-falls, and `repair_eligible` stays
+    False, exactly like the existing single-Criterion OBSERVE-mode Test
+    above proves recommendation/execution stay separate -- this is the
+    same separation, but for a real ENFORCE-mode Authority boundary
+    instead of an OBSERVE non-intervention boundary."""
+    criteria = (_criterion(1),)
+    snapshot = _enforce_snapshot(criteria=criteria, repair_mode="off")
+    decision = resolve_semantic_action(
+        snapshot=snapshot,
+        results=(_result(criteria[0], SemanticCriterionDisposition.DEVIATION),),
+    )
+    assert decision.recommended_disposition is SemanticFinalDisposition.REPAIR_REQUESTED
+    assert decision.executed_disposition is SemanticFinalDisposition.SAFE_FALLBACK
+    assert decision.repair_eligible is False
+    assert decision.reason_code == "repair_unavailable"
 
 
 def test_judge_off_is_recorded_per_criterion_with_reason() -> None:

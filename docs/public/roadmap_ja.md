@@ -5,7 +5,7 @@ document_type: public_roadmap
 document_state: current
 language: ja
 created_at: 2026-07-22
-updated_at: 2026-08-31 21:32:32 JST
+updated_at: 2026-09-01 19:03 JST
 public_author: Nazuna Research
 project: MARGPA Runtime LLM
 ```
@@ -142,9 +142,9 @@ FutureまたはPlannedと書かれた項目は、実装済みを意味しない�
 
 ---
 
-## 4. 現在地 — Phase 7 Closed／Phase 8 READY
+## 4. 現在地 — Phase 8 Closed／Phase 9-1 FAIL・ADJUST
 
-2026年8月30日時点の現在地は次のとおりである。
+2026年9月1日時点の現在地は次のとおりである。
 
 ```text
 Phase 0                               : Complete
@@ -222,7 +222,12 @@ Phase 6 Recording                     : Request Correlation／Stop／Historical 
 Phase 6 Closure                       : Special Minimal Closure／Known Debt Deferred／Technical Core ADJUST
 Phase 7                               : Complete／Accepted／Closed／User Mac Manual Passed
 Phase 8                               : Complete／Accepted／Closed／39 PASS・1 Known Partial
-Phase 9                               : Design Accepted／Frozen／READY／Implementation Not Started
+Phase 9                               : In Progress／Phase 9-1 User Mac FAIL・ADJUST／Rework Required
+Phase 9-1 Qwen3Guard                  : Real OBSERVE／ENFORCE／OFF User Mac Path Passed
+Phase 9-1 Selene                      : Real Artifact Active／Judge unavailable／Not Accepted
+Phase 9-1 Main-shared Judge           : malformed_output／Post-role-switch Model Lifecycle Failure Observed
+Phase 9-1 Semantic 109／Main ENFORCE  : All Deferred／ARGD・DAGD Semantic Action Not Established
+Phase 9-2／9-3                        : Not Started
 High-performance Main Model Expansion : DeepSeek Mac Q4 Switch／反復防止Passed／回答品質・Judge品質Failed
 AWS Deployment Foundation             : Deferred to Phase 11以降／Phase 6～10から分離
 Optional English Documentation        : Formally Deferred／Non-blocking／History Excluded
@@ -238,7 +243,9 @@ Userは金銭、利用可能量、Portfolio TimingおよびPoC／MVP停止線を
 
 P7-RW5-Eまでに、NO_HIT CitationのFinal／Reload後保持、Local Corpus Citationの登録Title表示、Synthetic Pathから実保存Registry PathへのCorrectionおよび配信Static Buildを完了した。User Mac Final Manualでは登録／更新／削除、Current Revision回答、過去Turn Citation不変、NO_HIT、Reload／Restart／別TabおよびData Controlsを確認したため、Phase 7は`COMPLETE／ACCEPTED／CLOSED`である。`RAG ON＋NO_HITならModelを呼ばず設定言語の固定回答へ収束する`方式は将来候補として保留し、過去Context FactやQwen言語DriftはPhase 9へ保持する。
 
-Phase 8はManual URL Evidence、Branch UI非表示、Archive管理、Provisional Runtime Constitution、Dev Agent／Tool／Approval Harness Foundationを実装し、Controller Review／ReworkとUser Mac Manual Acceptanceを完了した。最終Dispositionは`39 PASS／1 PARTIAL／40 TOTAL`で、P8-ACC-038のGD／Guard相関だけをFoundation境界の既知PARTIALとして保持し、`COMPLETE／ACCEPTED／CLOSED`とした。現在はPhase 9を9-1／9-2／9-3の3 Programへ分解し、設計・工程・Acceptanceを`ACCEPTED／FROZEN／READY／NOT STARTED`としている。User Backup後にPreflightへ進む。
+Phase 8はManual URL Evidence、Branch UI非表示、Archive管理、Provisional Runtime Constitution、Dev Agent／Tool／Approval Harness Foundationを実装し、Controller Review／ReworkとUser Mac Manual Acceptanceを完了した。最終Dispositionは`39 PASS／1 PARTIAL／40 TOTAL`で、P8-ACC-038のGD／Guard相関だけをFoundation境界の既知PARTIALとして保持し、`COMPLETE／ACCEPTED／CLOSED`とした。
+
+Phase 9は9-1／9-2／9-3の3 Programへ分解し、Phase 9-1の実装、複数回Review、Real Artifact EvidenceおよびUser Mac Manualまで進んだ。Qwen3GuardはOBSERVE／ENFORCE／OFFと拒否差分を実画面で確認した。一方、Seleneは`active`になっても実Judgeが`unavailable`、Main-shared Judgeは`malformed_output`、Selene等のRole切替後にはMainが`The model is not loaded`となりServer Restartを要した。Main `pre／post`のSemantic 109件も全件Deferredのままである。Source／自動Test／Artifact Loadの成立だけではPhase目的を満たさないため、Phase 9-1は`FAIL／ADJUST／REWORK REQUIRED`、Phase 9-2／9-3は`NOT STARTED`とする。
 
 以下のPhase 1／2詳細は成立過程のCurrent-to-date説明として保持する。最新の短い入口は[Roadmap要約版](roadmap_summary_ja.md)、技術判断は[技術選定](technology_selection_ja.md)を参照する。
 
@@ -1466,17 +1473,17 @@ Tool／Completion Gate、Authorization EnvelopeおよびRestart-safe Run Persist
 
 ## 15. Phase 9 — Experiment and Multi-Governance Research Platform
 
-**State: `Design Accepted／Frozen／READY — Implementation Not Started`**
+**State: `Implementation In Progress — Phase 9-1 User Mac FAIL／ADJUST／Rework Required`**
 
 各Componentと各Governance Pointを組み替え、単一の成功例ではなく、構成差を比較する研究Platformへ進める。
 
 Phase 9は一つの巨大Runにせず、次の3 Programへ分離する。
 
-1. **Phase 9-1**：Phase 6 Governance Semantic中心Debtを23 Work Unit／38 Acceptanceで速やかに独立完了候補へ送る。
+1. **Phase 9-1**：Phase 6 Governance Semantic中心Debtを独立完了候補へ送る。初期23 Work Unit／38 Acceptanceは入口であり、User Macで露出した実動作Gapを解消するまでClosureしない。
 2. **Phase 9-2**：Experiment／Evaluation／Multi-Governance／Semantic Research Platformを独立Checkpointで成立させる。
 3. **Phase 9-3**：9-2成立後、Resource／Priorityを再評価してContext Compaction／Recoveryの非Visual技術Coreを条件付き実行する。
 
-各ProgramはGateまでLong-runし、観点変更二段階自己Review後にCodex Controller Reviewへ返す。Phase 9 READYはSource実装、Real Model Load、Networkまたは外部Authorityを生成せず、User Backup、PreflightおよびExact Handoffを別途必要とする。
+各ProgramはGateまでLong-runし、原則として観点変更二段階自己Review後にCodex Controller Reviewへ返す。Phase 9-1はPreflight、Source実装、Real Model Load、Controller ReviewおよびUser Mac Manualまで進行したが、実機結果により完了候補を撤回してReworkへ戻した。Phase 9-2／9-3の開始Authorityはまだ生成しない。
 
 ### Bounded Governance Semantic Debt Rework
 
@@ -1490,7 +1497,15 @@ Phase 6で成立したProvider Registry、Role Lifecycle、Budget、Deadline、C
 - Main Governance Semantic ENFORCE、Conflict／Priority／Budget。
 - Configured／Active／Executed／Evidence Identityの一致。
 
-専用ModelがCurrent Hardwareで成立しない場合も、Built-in／Rule-based／Noneの正直なBaselineでTechnical Coreを閉じる。Phase目的の主機能が動き、Data破損や虚偽成功表示がなく、次Phaseの土台としてUser実画面Testへ渡せる段階で止める。一発で企業Product級完全性を目指さず、細かなHardeningをClosure Blockerへ昇格しない。
+専用ModelのHardware／Resource／Lifecycle Failureは正直な途中状態として記録するが、Built-in／Rule-based／Noneや`RESOURCE_GATED`をPhase 9-1 Closureの代替にはしない。最低でもQwen3GuardとSeleneの実用可能なRole Lifecycle、ARGD／DAGDを含むSemantic Criterion評価、Main Semantic ENFORCEおよびJudge→Repair→RejudgeのUser実画面経路を成立させる。Main／Judge／Guardの切替後にModel Lifecycleが壊れず、OFF後は通常Chatへ戻れることも必須とする。一方、個人R&D／PoC／MVPの停止線を維持し、製品品質、完全な内部Observability UI、未解決0件または細かなHardeningをClosure Blockerへ昇格しない。
+
+2026年9月1日のUser Mac Manualで確認したCurrent Dispositionは次のとおりである。
+
+- Qwen3GuardはReal ArtifactでOBSERVEの検知・非介入、ENFORCEの拒否、OFF後の非Active化を確認した。基本Guard経路はPASSである。
+- SeleneはArtifactをLoadして`active`表示へ到達したが、32 Criterionが`unknown`、77件がDeferredとなり、Judgeは`unavailable`で失敗した。重いだけでなく、現時点では機能Acceptance不成立である。
+- Main-shared Judgeは実行できる場合もあるが、今回のManualでは`malformed_output`となった。Selene／Guard／Judgeの切替後にはMain Modelが`The model is not loaded`へ陥り、Server Restartでのみ復旧した。
+- Main Governanceの`pre／post`ではSemantic 109件が全件Deferredであり、Phase 4の構造Rule ENFORCEと、MARGPA 18 GD群のSemantic ENFORCEを同一視しない。少なくともARGD／DAGDの実Action成立がP0である。
+- 現UIからModel Call 0、Late Result 0、Worker Drain、Artifact／Manifest詳細Identity、Prompt Build、Strict Decode内部状態等を直接証明する機能はない。将来Observability候補として保持するが、MVP最優先のPhase 9-1 Closureを無期限に止めない。
 
 ### Experiment Runtime
 
@@ -1649,6 +1664,8 @@ Research／Developer内部設定の非表示化、Sidebar環境情報、回答�
 ### Phase 9 Milestone
 
 > **Composable Multi-Governance Research Platform**
+
+Phase 9-1の直近Checkpointは、`Qwen3Guard basic path PASS／Selene・Main-shared Judge・Semantic 109・Main Semantic ENFORCE FAIL／ADJUST`である。Phase 9全体Milestone、Phase 9-1 Closure、Phase 9-2 READYまたはPhase 10 READYはまだClaimしない。
 
 ---
 
@@ -2073,6 +2090,14 @@ Phase 8の明示貼付URL EvidenceをBaselineとし、General SearchとAutomatic
 
 詳細正本は`docs/project/phases/phase_7/history/operations/phase_7_external_web_runtime_phase_11_plus_deferral_decision_ja_20260829222647.md`、予約正本は`docs/project/shared/history/planned_work/phase_11_plus_governed_external_web_knowledge_runtime_reservation_ja_20260829222647.md`とする。
 
+### 17.15 Constitution 3系統のCross-provider妥当性再評価
+
+Phase 10では予定どおり、`<project-root>/constitution/`、`<project-root>/docs/project/shared/constitution/`および`<parent-root>/portable-autonomous-development-governance-package/`の3系統を、定めた順序で作成・統合する。MVP完成をさらに遅らせないため、Phase 10中に外部評価Roundを追加せず、Phase 10のScope、順序およびCompletion Gateを変更しない。
+
+Phase 11以降の独立予約として、3系統すべてを新規中立Codex Task、Claude、通常GPT Threadその他の利用可能な異系統Evaluatorへ提示し、妥当性、Rule漏れ、過剰Authority、過剰停止、Provider Bias、Runtime／Development混同、Portable性およびUser意図整合を評価する。各評価を多数決や自動Authorityとして扱わず、一次EvidenceとEvaluator Biasを分離してCodex ControllerへFeedbackする。再編纂、第二版または保持の最終判断はUserが行う。
+
+詳細予約は`docs/project/shared/history/planned_work/phase_11_plus_cross_provider_constitution_validity_review_and_optional_recompilation_reservation_ja_20260901185439.md`に保持する。
+
 ### Phase 11+ Milestone
 
 > **Hardened, distributed, evidence-aware and autonomously extensible AI Governance Platform**
@@ -2088,10 +2113,10 @@ Phase 8の明示貼付URL EvidenceをBaselineとし、General SearchとAutomatic
 | Main | Qwen3-4B GGUF Q4_K_M | Current Default／Low-resource Governance Baseline |
 | Main Candidate | DeepSeek-R1-0528-Qwen3-8B GGUF Q4_K_M | Local Load／Switch Passed／User Mac Quality Acceptance Failed／Not Promoted |
 | Server／Cloud Candidate | DeepSeek-V4-Flash-0731 | Official Snapshot retained／Mac Local対象外／Not Loaded |
-| Guard | Qwen3Guard-Gen-0.6B GGUF Q8_0 | Future Guard Phase |
-| Judge | Selene-1-Mini-Llama-3.1-8B GGUF Q5_K_M | Future／Experimental |
+| Guard | Qwen3Guard-Gen-0.6B GGUF Q8_0 | Real Load／OBSERVE・ENFORCE・OFF User Mac Basic Path Passed／Lifecycle Rework対象 |
+| Judge | Selene-1-Mini-Llama-3.1-8B GGUF Q5_K_M | Real Load Active／User Mac Judge unavailable／Not Accepted／Lighter Candidate探索予約 |
 
-将来、GuardとJudgeではCanonical Weight、GGUF Artifact、Safetensors、Cloud Backend等を同一Evaluation Setで比較する。
+GuardとJudgeではCanonical Weight、GGUF Artifact、Safetensors、Cloud Backend等を同一Evaluation Setで比較する。Seleneを継続して使える状態へ修復すると同時に、Current Hardwareでより軽量なLLM-as-a-Judge Candidateも後続の小規模比較対象とする。
 
 Main Modelの目標構成は、高性能DeepSeek系を主要候補としつつ、Qwen3-4Bを低資源環境およびGovernance差分検証用の選択可能なBaselineとして残す形である。これは現時点のCurrent Model変更ではなく、Phase 3 Closure後に独立Acceptanceを通すCandidate Strategyである。
 

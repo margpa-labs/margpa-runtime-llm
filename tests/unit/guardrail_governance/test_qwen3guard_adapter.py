@@ -39,6 +39,7 @@ from margpa_runtime_llm.modules.guardrail_governance.domain import (
 )
 from margpa_runtime_llm.modules.guardrail_governance.ports import SafetyModelUnavailable
 from margpa_runtime_llm.modules.inference.contracts.generation import GenerationRequest
+from margpa_runtime_llm.modules.inference.domain.cancellation import CancellationToken
 
 _MODEL = "guard.qwen3guard-gen-0.6b-q8-0"
 _REVISION = "test.fixture.revision.1"
@@ -166,15 +167,18 @@ class _Usage:
 class _Generated:
     content: str
     usage: _Usage | None = _Usage()
+    finish_reason: str = "stop"
 
 
 class _FakeService:
     def __init__(self, content: str | BaseException) -> None:
         self.content = content
         self.requests: list[GenerationRequest] = []
+        self.cancellations: list[object | None] = []
 
-    def generate(self, request: GenerationRequest) -> _Generated:
+    def generate(self, request: GenerationRequest, *, cancellation: object = None) -> _Generated:
         self.requests.append(request)
+        self.cancellations.append(cancellation)
         if isinstance(self.content, BaseException):
             raise self.content
         return _Generated(self.content)
@@ -288,6 +292,14 @@ def test_unverified_production_contract_is_unavailable_without_model_call(
     with pytest.raises(SafetyModelUnavailable):
         adapter.classify(content="x")
     assert service.requests == []
+
+
+def test_classify_forwards_cancellation_token_to_inference_service(tmp_path: Path) -> None:
+    adapter, service = _adapter("Safety: Safe\nCategories: None", tmp_path=tmp_path)
+    token = CancellationToken()
+    result = adapter.classify_point(target=Qwen3GuardTarget.INPUT, content="x", cancellation=token)
+    assert service.cancellations[-1] is token
+    assert result.failure is SafetyModelFailureKind.NONE
 
 
 def test_bridge_adds_model_detection_without_erasing_deterministic_match(

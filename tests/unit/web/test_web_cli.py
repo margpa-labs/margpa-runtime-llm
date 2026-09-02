@@ -11,6 +11,9 @@ from typing import cast
 import pytest
 from fastapi import FastAPI
 
+from margpa_runtime_llm.adapters.runtime_model_control.dedicated_role_adapters import (
+    ProductionRoleAdapterFactory,
+)
 from margpa_runtime_llm.bootstrap import web_application as web_application_module
 from margpa_runtime_llm.bootstrap.documentation_rag import (
     LocalDocumentationRagComposition,
@@ -72,6 +75,7 @@ def test_web_help_documents_safe_defaults_and_placeholders() -> None:
     assert "--phase-3-governance-definitions-root" in help_text
     assert "--phase-4-runtime-governance" in help_text
     assert "--phase-4-runtime-governance-definitions-root" in help_text
+    assert "--phase-6-dedicated-model-authority" in help_text
 
 
 def test_conversation_persistence_requires_explicit_local_loopback_inputs(
@@ -282,6 +286,64 @@ def test_guardrail_governance_opt_in_is_passed_only_for_local_runtime(
 
     assert web_cli.main(["--phase-5-guardrail-governance"]) == 0
     assert captured == [True]
+
+
+def test_dedicated_model_authority_gate_requires_explicit_local_loopback() -> None:
+    assert web_cli._dedicated_model_authority_enabled(
+        enabled=True,
+        host="127.0.0.1",
+        access_mode=WebExposureMode.LOCAL,
+        authentication_required=False,
+    )
+    assert not web_cli._dedicated_model_authority_enabled(
+        enabled=False,
+        host="0.0.0.0",
+        access_mode=WebExposureMode.PUBLIC_DEMO,
+        authentication_required=False,
+    )
+    for mode, host, auth in (
+        (WebExposureMode.PUBLIC_DEMO, "0.0.0.0", False),
+        (WebExposureMode.BASIC_PREVIEW, "0.0.0.0", True),
+        (WebExposureMode.LOCAL, "0.0.0.0", False),
+        (WebExposureMode.LOCAL, "127.0.0.1", True),
+    ):
+        with pytest.raises(InferenceError, match="Dedicated Model Authority"):
+            web_cli._dedicated_model_authority_enabled(
+                enabled=True,
+                host=host,
+                access_mode=mode,
+                authentication_required=auth,
+            )
+
+
+def test_dedicated_model_authority_opt_in_is_passed_only_for_local_runtime(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """P9-CODEX-001: Default False must reach the Runtime Factory unchanged
+    when the flag is omitted, and only an explicit
+    `--phase-6-dedicated-model-authority` Opt-in raises it to True — the gap
+    the Controller Finding Ledger's P9-CODEX-001 identified (no CLI/Config/
+    Environment entry point ever passed True to `ProductionRoleAdapterFactory`)."""
+    captured: list[object] = []
+
+    def fake_create_web_app(**kwargs: object) -> FastAPI:
+        runtime_factory = kwargs["runtime_factory"]
+        assert isinstance(runtime_factory, partial)
+        captured.append(runtime_factory.keywords["dedicated_model_authority_granted"])
+        return FastAPI()
+
+    monkeypatch.setattr(
+        "margpa_runtime_llm.entrypoints.web.main.create_web_app",
+        fake_create_web_app,
+    )
+    monkeypatch.setattr(
+        "margpa_runtime_llm.entrypoints.web.main.uvicorn.run",
+        lambda *_args, **_kwargs: None,
+    )
+
+    assert web_cli.main([]) == 0
+    assert web_cli.main(["--phase-6-dedicated-model-authority"]) == 0
+    assert captured == [False, True]
 
 
 def test_governance_mode_value_reader_fails_closed_to_off_without_a_runtime() -> None:
@@ -705,6 +767,98 @@ def test_web_runtime_builds_a_real_runtime_governance_composition_when_enabled(
     assert runtime.runtime_governance_composition is not None
     assert runtime.runtime_governance_composition.mode_controller.current_mode_value() == "off"
     runtime.close()
+
+
+def test_web_runtime_wires_dedicated_model_authority_opt_in_into_the_role_provider_factory(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """P9-CODEX-001 Rework: the real `build_phase1_web_runtime()` Composition
+    Root, not a hand-built `ProductionRoleAdapterFactory`, must receive the
+    Opt-in. Default (flag omitted) still constructs the Factory with
+    `dedicated_model_authority_granted=False` (existing Fail-closed
+    behaviour preserved byte-for-byte); only an explicit True at this
+    boundary reaches the Factory. This alone never touches a Real Artifact
+    or calls `preflight()`/`load()` — it only proves the previously-missing
+    wire now exists (Finding Ledger P9-CODEX-001)."""
+
+    class FakeLoadedService:
+        runtime_info = SimpleNamespace(
+            model_key="main.qwen3-4b-q4-k-m",
+            backend_key="metal",
+            loaded_context_size=4096,
+            effective_capabilities=SimpleNamespace(features=frozenset()),
+            device_kind="gpu",
+            acceleration_api="metal",
+        )
+
+        def count_text_tokens(self, text: str) -> int:
+            return len(text.split())
+
+        def count_chat_prompt_tokens(
+            self, messages: tuple[ChatMessage, ...], thinking_mode: ThinkingMode
+        ) -> int:
+            del messages, thinking_mode
+            return 0
+
+    presentation = ResolvedThinkingPresentationPolicy(
+        visibility=ThinkingVisibility.HIDDEN,
+        display_label="推論過程",
+        persistence=ThinkingPersistence.DISABLED,
+        visibility_source=ThinkingPresentationSource.APPLICATION,
+        display_label_source=ThinkingPresentationSource.APPLICATION,
+        persistence_source=ThinkingPresentationSource.APPLICATION,
+    )
+    config = SimpleNamespace(
+        selected_model="main.qwen3-4b-q4-k-m",
+        profile_key="mac.local",
+        generation=GenerationParameters(max_new_tokens=2048),
+        response=SimpleNamespace(language=ResponseLanguage.JA),
+        presentation=presentation,
+        summarization=SummarizationConfig(),
+        model_root=PROJECT_ROOT,
+        load=ModelLoadConfig(),
+    )
+    application = cast(
+        Phase1Application,
+        SimpleNamespace(
+            service=FakeLoadedService(),
+            config=config,
+            presentation_service=object(),
+            close=lambda: None,
+        ),
+    )
+    monkeypatch.setattr(
+        web_application_module,
+        "build_phase1_application",
+        lambda **_kwargs: application,
+    )
+
+    default_runtime = build_phase1_web_runtime(
+        project_root=PROJECT_ROOT,
+        profile_path=None,
+        registry_path=PROJECT_ROOT / "config/models/qwen3_4b_q4_k_m.toml",
+        feature_modes_enabled=True,
+    )
+    assert default_runtime.role_provider_lifecycle is not None
+    default_factory = cast(
+        ProductionRoleAdapterFactory, default_runtime.role_provider_lifecycle._factory
+    )
+    assert default_factory._authority_granted is False
+    default_runtime.close()
+
+    granted_runtime = build_phase1_web_runtime(
+        project_root=PROJECT_ROOT,
+        profile_path=None,
+        registry_path=PROJECT_ROOT / "config/models/qwen3_4b_q4_k_m.toml",
+        feature_modes_enabled=True,
+        dedicated_model_authority_granted=True,
+    )
+    assert granted_runtime.role_provider_lifecycle is not None
+    granted_factory = cast(
+        ProductionRoleAdapterFactory, granted_runtime.role_provider_lifecycle._factory
+    )
+    assert granted_factory._authority_granted is True
+    granted_runtime.close()
 
 
 def test_web_runtime_builds_a_real_request_correlation_registry_when_feature_modes_enabled(

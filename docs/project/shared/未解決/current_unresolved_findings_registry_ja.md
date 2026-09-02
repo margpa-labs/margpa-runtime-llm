@@ -6,13 +6,13 @@ document_type: shared_stable_current_unresolved_findings_source
 document_state: current
 language: ja
 created_at: 2026-08-29 10:51:39 JST
-last_reclassified_at: 2026-08-31 21:32:32 JST
+last_reclassified_at: 2026-09-02 10:32:28 JST
 decision_authority: user
 authority_owner: Nazuna Research
 maintainer_role: プロジェクト責任者兼設計統括者役
 current_project_stage: individual_poc_mvp_portfolio
 current_delivery_target: phase_9_mvp_then_phase_10_portable_autonomous_development_governance_package
-history_snapshot: ../history/未解決/phase_8_final_closure_and_phase_9_ready_unresolved_snapshot_ja_20260831213232.md
+history_snapshot: ../history/未解決/phase_9_1_all_judge_operational_failure_and_rework_order_snapshot_ja_20260902103228.md
 ```
 
 ## 1. 本書の役割
@@ -940,6 +940,126 @@ reopen_condition: phase_9_progressive_enforce_presentation_work
 
 Candidateを未検証の最終回答として見せず、生成中／確認中のProgressive表示を行い、検証後に確定、置換またはFallbackへ収束する。規定値はProgressive方式。単純な一括表示を最終UXにしない。
 
+### UF-P9-001 — Internal Execution ObservabilityをCurrent UIから確認できない
+
+```yaml
+status: reserved_timing_unknown_mvp_non_blocking
+severity: research_observability
+priority: P2
+closure_blocker: false
+impact_scope: model_judge_guard_repair_tool_lifecycle_execution_trace
+deferral_target: timing_unknown_after_mvp_or_future_research_trace_ui
+reopen_condition: observability_ui_design_start_or_internal_execution_proof_is_needed_in_live_experiment
+reservation: ../history/planned_work/phase_9_1_post_manual_internal_observability_judge_lifecycle_selene_and_lightweight_judge_reservation_ja_20260901180418.md
+```
+
+Model／Artifact／Manifest Identity、Stage別Preflight〜Evidence Projection、Call 0、Worker Drain、Late Result 0、Exactly-once Release、Cancellation Token、Candidate Identity、Deadline／Budget／Repair回数等はSource／Automated Test上のAcceptanceであり、Current UIに専用表示がない。
+
+研究用Platformとして将来表示価値はあるが、既存Settingsは既に情報量が多い。MVPを優先し、通常画面へ全件を直書きせず、将来のResearch Trace、詳細Drawer／右PanelまたはExportable Evidenceとして段階表示する。実装時期は未定とする。
+
+### UF-P9-002 — Selene Activation後のJudge `unavailable`とMain-shared Lifecycle不安定
+
+```yaml
+status: open_user_reproduced_common_judge_substrate_first_hypothesis
+severity: major_phase_9_1_core_runtime
+priority: P0_for_phase_9_1_completion
+closure_blocker: true_for_phase_9_1
+impact_scope: selene_judge_main_shared_role_lifecycle_budget_deadline_cancellation
+deferral_target: next_phase_9_1_bounded_rework
+reopen_condition: immediate_next_phase_9_1_rework
+reservation: ../history/planned_work/phase_9_1_post_manual_internal_observability_judge_lifecycle_selene_and_lightweight_judge_reservation_ja_20260901180418.md
+latest_evidence: ../../phases/phase_9/history/operations/phase_9_1_all_judge_operational_failure_common_substrate_hypothesis_and_rework_order_ja_20260902103228.md
+```
+
+SeleneはUI上`Active／State active`へ到達するが、Judgeは`selected 32／evaluated 0／unknown 32／failure unavailable`となり、実用可能なJudge結果へ到達しない。さらにSelene使用後のMain-shared Qwenで`The model is not loaded`が生じ、Server Restartで回復する可能性が観測された。
+
+これはPCスペックだけへ帰属しない。Seleneの実Inference／Decode／Result、Role切替、Unload、Lease、Cancellation、Batch、Whole-stage Budget／Deadlineを次のBounded Reworkで切り分ける。Seleneをいつでも実用できる状態はPhase 9-1成立条件のまま保持する。
+
+2026-09-02の再確認では、Seleneを使用していないCleanなMain-shared QwenもOBSERVE／ENFORCE双方で`malformed_output`となり、Built-in Deterministicも`selected 32／evaluated 0／not_applicable 32／deferred 77`で確定判定を返せなかった。三Providerの直接Failureは異なるため同一Root Causeとは断定しないが、個別Model修正より先に共通Judge基盤を横断診断する。
+
+### UF-P9-003 — Local Mac向け軽量LLM-as-a-Judge候補
+
+```yaml
+status: authorized_next_phase_9_1_entry_candidate_selection
+severity: performance_and_research_usability
+priority: P0_sequence_entry_for_next_phase_9_1_rework
+closure_blocker: false_if_selene_and_main_shared_are_stable
+impact_scope: local_judge_model_selection_latency_memory_structured_output
+deferral_target: next_phase_9_1_package_if_resource_permits_or_later_model_research
+reopen_condition: quota_recovery_and_next_phase_9_1_exact_authority
+reservation: ../history/planned_work/phase_9_1_post_manual_internal_observability_judge_lifecycle_selene_and_lightweight_judge_reservation_ja_20260901180418.md
+```
+
+Selene 8B Q5_K_MはUser Macで非常に重い。Seleneを修復して選択肢として残しつつ、より軽量な独立Judge候補を比較する。既存Judge Port／Lifecycle Contractを再利用できれば小〜中規模候補だが、Artifact取得、License、Prompt／Decoder差分およびReal Local Smokeは別途必要である。
+
+2026-09-02 User Decisionにより、AI利用可能量回復後の次Packageは軽量Judge候補の選定／取得から開始する。軽量Judge追加だけでSelene、Main-shared、Built-inまたは共通Judge基盤を解決済みにせず、四Provider比較Matrixの一対象として使用する。
+
+### UF-P9-004 — Main Runtime Governance Semantic ENFORCE未成立
+
+```yaml
+status: open_user_reproduced_phase_9_1_core_blocker
+severity: critical_phase_objective
+priority: P0_for_phase_9_1
+closure_blocker: true_for_phase_9_1
+impact_scope: ARGD_DAGD_semantic_109_main_runtime_governance_enforce
+deferral_target: immediate_next_phase_9_1_bounded_rework
+reopen_condition: immediate
+manual_evidence: ../../phases/phase_9/history/operations/phase_9_1_user_mac_full_manual_result_unresolved_and_reservation_evidence_ja_20260901184023.md
+```
+
+User ManualではMain Runtime GovernanceをOBSERVEでのみ実行し、pre／postともSemantic 109件が全件Deferredのままだった。ARGD／DAGDを含むLive Criterion実評価、Supported Semantic ActionおよびMain Runtime Governance ENFORCE Golden Pathは成立も確認もしていない。
+
+これはUI Polishまたは将来Hardeningではなく、MARGPA Runtime LLMのPhase 9-1中心目的である。Selene／Main-shared Judge安定化、Semantic実評価、Judge→Repair→RejudgeおよびMain ENFORCEを一つの中心経路として完了するまでPhase 9-1を閉じない。
+
+### UF-P9-005 — Qwen3Guard ENFORCE Refusalの本文／Warning重複
+
+```yaml
+status: open_user_reproduced_minor_presentation_deferred
+severity: minor_ui_presentation
+priority: P2
+closure_blocker: false
+impact_scope: guardrail_enforce_refusal_and_warning_presentation
+deferral_target: opportunistic_ui_cleanup_or_later_presentation_work
+reopen_condition: guardrail_failure_presentation_cleanup
+manual_evidence: ../../phases/phase_9/history/operations/phase_9_1_user_mac_full_manual_result_unresolved_and_reservation_evidence_ja_20260901184023.md
+```
+
+Qwen3Guard ENFORCEはPrompt InjectionをMatch 1／Action 1で拒否したが、同じRefusal文をAssistant回答とWarningへ二重表示した。Guard Enforcement自体は成立しているためPhase 9-1中心Blockerにせず、表示整理へ延期する。
+
+### UF-P9-006 — Dev Agent Fixture一覧へ`.DS_Store`が現れる
+
+```yaml
+status: observed_hold_no_current_fix_request
+severity: trivial_fixture_presentation
+priority: P3
+closure_blocker: false
+impact_scope: dev_agent_fixture_workspace_list_files
+deferral_target: opportunistic_fixture_cleanup
+reopen_condition: fixture_listing_cleanup_or_hidden_file_policy_design
+manual_evidence: ../../phases/phase_9/history/operations/phase_9_1_user_mac_full_manual_result_unresolved_and_reservation_evidence_ja_20260901184023.md
+```
+
+Dev Agent `list_files`は実File Fixture Workspaceから`.DS_Store`も返した。Userは修正要求ではなく保留観測とした。Hidden File PolicyまたはFixture Cleanupを行う時まで変更しない。
+
+### UF-P9-007 — 全Judgeの実用判定不成立と共通Judge基盤回帰仮説
+
+```yaml
+status: open_user_reproduced_phase_9_1_p0_bounded_rework
+severity: critical_phase_objective
+priority: P0_for_phase_9_1
+closure_blocker: true_for_phase_9_1
+impact_scope: built_in_main_shared_selene_lightweight_judge_common_pipeline
+deferral_target: immediate_after_ai_quota_recovery
+reopen_condition: quota_recovery_and_exact_rework_handoff
+evidence: ../../phases/phase_9/history/operations/phase_9_1_all_judge_operational_failure_common_substrate_hypothesis_and_rework_order_ja_20260902103228.md
+```
+
+2026-09-02の実画面では、Main-shared QwenがOBSERVE／ENFORCE双方で`malformed_output`、Built-in Deterministicが`evaluated 0`となり、確定Judge結果を返さなかった。前日のSelene `unavailable／evaluated 0`と合わせ、現時点で利用可能なJudge経路はない。
+
+直接Failure CodeはProviderごとに異なる。したがって「全Modelが同じ理由で壊れた」と断定せず、Criteria Selection、Semantic Snapshot、Prompt Build、Inference Result、Strict Decode、Result Projection、Recording、Role Lifecycle、Mode TransitionおよびCancellation／Deadlineを共有経路として先に比較する。
+
+Guardrail ON／OFFで結果が変わらないため、Qwen3Guardは今回のJudge不成立原因から分離する。軽量Judge取得後、Built-in／Main-shared／Selene／軽量Judgeの同一条件Matrixを作り、共通層修復、Provider固有修復、Judge→Repair→Rejudge、Semantic実評価、Main Runtime Governance ENFORCEの順で完了する。
+
 ## 9. Phase 10以降のHardening／条件付き課題
 
 ### UF-HARD-001 — Hardware自動検出とContext自動昇格
@@ -1049,3 +1169,13 @@ Findingを追加・変更する場合：
 - Phase 8最終Dispositionは`39 PASS／1 PARTIAL／40 TOTAL`である。P8-ACC-038のGD／Guard相関だけをFoundation境界の既知PARTIALとしてPhase 9へ渡す。
 - Phase 8は2026-08-31 User判断により`COMPLETE／ACCEPTED／CLOSED`とする。未解決0件、正式Agent Level 1、General Search、Generic MCPまたはProduct HardeningをClosure条件へ追加しない。
 - Phase 9は9-1／9-2／9-3の3 Program設計をFreezeし、`READY／NOT STARTED`とする。User Backup後にPreflightへ進む。
+- 2026-09-01 Phase 9-1 User Mac Manualは実行完了したが、結果は`FAIL／ADJUST`でありPhase 9-1を閉じない。
+- Qwen3Guardの基本OBSERVE／ENFORCE／OFFはUser-visible中心経路でPASSした。
+- SeleneはUI上Activeへ到達したがJudge `unavailable／evaluated 0`であり、実用成立していない。
+- Main-shared Qwen Judgeは`malformed_output`、Selene／Role切替後は`The model is not loaded`を再現し、Server Restartで回復したためLifecycle Reworkを必要とする。
+- Semantic 109はMain pre／postとも全件Deferredを継続し、Main Runtime Governance ENFORCEはManualから脱落して未成立である。UF-P9-004をPhase 9-1 P0として扱う。
+- 2026-09-02再確認ではMain-shared QwenがOBSERVE／ENFORCEとも`malformed_output`、Built-in Deterministicが`evaluated 0／not_applicable 32／deferred 77`となり、JudgeはProvider横断で実用不成立だった。
+- Selene、Main-shared、Built-inの直接原因が同一とは断定しない。Provider別修正前に共通Judge基盤を第一仮説として横断診断する。
+- AI利用可能量回復後は軽量独立Judge候補を選定／取得し、Built-in／Main-shared／Selene／軽量Judgeの比較Matrixを作る。
+- 修復順序は、共通Judge基盤、Provider固有差分、Judge OBSERVE／ENFORCE、Repair／Rejudge、Semantic実評価、ARGD／DAGDを含むMain Runtime Governance ENFORCEとする。
+- 現時点でUserの追加Manual Actionはない。Quota回復前に新しいModel取得、Source ReworkまたはGD系ENFORCE試験へ進まない。

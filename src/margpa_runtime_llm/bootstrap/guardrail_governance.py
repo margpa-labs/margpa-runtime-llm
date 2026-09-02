@@ -16,7 +16,7 @@ from __future__ import annotations
 import logging
 import threading
 from collections.abc import Callable
-from typing import Protocol
+from typing import Protocol, cast
 from uuid import uuid4
 
 from margpa_runtime_llm.adapters.guardrail_governance.deterministic_detectors import (
@@ -38,6 +38,10 @@ from margpa_runtime_llm.adapters.guardrail_governance.registered_actions import 
 )
 from margpa_runtime_llm.adapters.guardrail_governance.unavailable_approval_port import (
     UnavailableApprovalPort,
+)
+from margpa_runtime_llm.bootstrap.tracked_stage_worker import TrackedStageWorkerRegistry
+from margpa_runtime_llm.modules.evaluation.domain.stage_budget import (
+    LOCAL_MACOS_QWEN3GUARD_BUDGET,
 )
 from margpa_runtime_llm.modules.guardrail_governance.application import (
     GuardrailModeController,
@@ -71,6 +75,7 @@ from margpa_runtime_llm.modules.guardrail_governance.ports import (
     DetectorRegistryPort,
     GuardActionAdapterPort,
 )
+from margpa_runtime_llm.modules.inference.domain.cancellation import CancellationToken
 
 logger = logging.getLogger(__name__)
 
@@ -169,8 +174,12 @@ class GuardrailGovernanceComposition:
     def __init__(
         self,
         *,
-        qwen3guard_begin_role_turn: (Callable[[], Qwen3GuardRoleTurn | None] | None) = None,
+        qwen3guard_begin_role_turn: Callable[[], Qwen3GuardRoleTurn | None] | None = None,
+        qwen3guard_begin_role_turn_with_cancellation: (
+            Callable[[CancellationToken], Qwen3GuardRoleTurn | None] | None
+        ) = None,
         qwen3guard_end_role_turn: (Callable[[object], None] | None) = None,
+        tracked_stage_registry: TrackedStageWorkerRegistry | None = None,
     ) -> None:
         self.policy_provider = LocalPolicyProvider()
         # P5-CODEX-007 Rework: the live Provider itself, not a Snapshot
@@ -201,7 +210,13 @@ class GuardrailGovernanceComposition:
         # same class of threat as a malicious User Input, just arriving
         # through a different Channel (P5-CODEX-001 Rework, P5-ACC-007).
         context_source_detectors = build_input_detectors()
-        if qwen3guard_begin_role_turn is not None and qwen3guard_end_role_turn is not None:
+        if (
+            (
+                qwen3guard_begin_role_turn is not None
+                or qwen3guard_begin_role_turn_with_cancellation is not None
+            )
+            and qwen3guard_end_role_turn is not None
+        ):
             # P6-RR-O-WU-002 (Production Wiring Delta, resolves
             # P6-CODEX-048): additive to the Rule/Pattern Detectors above
             # — never replaces them, never removed from the static
@@ -222,7 +237,11 @@ class GuardrailGovernanceComposition:
                 Qwen3GuardDetectorAdapter(
                     target=Qwen3GuardTarget.INPUT,
                     begin_role_turn=qwen3guard_begin_role_turn,
+                    begin_role_turn_with_cancellation=qwen3guard_begin_role_turn_with_cancellation,
                     end_role_turn=qwen3guard_end_role_turn,
+                    inference_budget_ms=LOCAL_MACOS_QWEN3GUARD_BUDGET.inference_budget_ms,
+                    cancel_grace_ms=LOCAL_MACOS_QWEN3GUARD_BUDGET.cancel_grace_ms,
+                    tracked_stage_registry=tracked_stage_registry,
                 ),
             )
             output_detectors = (
@@ -230,7 +249,11 @@ class GuardrailGovernanceComposition:
                 Qwen3GuardDetectorAdapter(
                     target=Qwen3GuardTarget.OUTPUT_CANDIDATE,
                     begin_role_turn=qwen3guard_begin_role_turn,
+                    begin_role_turn_with_cancellation=qwen3guard_begin_role_turn_with_cancellation,
                     end_role_turn=qwen3guard_end_role_turn,
+                    inference_budget_ms=LOCAL_MACOS_QWEN3GUARD_BUDGET.inference_budget_ms,
+                    cancel_grace_ms=LOCAL_MACOS_QWEN3GUARD_BUDGET.cancel_grace_ms,
+                    tracked_stage_registry=tracked_stage_registry,
                 ),
             )
             context_source_detectors = (
@@ -238,7 +261,11 @@ class GuardrailGovernanceComposition:
                 Qwen3GuardDetectorAdapter(
                     target=Qwen3GuardTarget.CONTEXT_SOURCE,
                     begin_role_turn=qwen3guard_begin_role_turn,
+                    begin_role_turn_with_cancellation=qwen3guard_begin_role_turn_with_cancellation,
                     end_role_turn=qwen3guard_end_role_turn,
+                    inference_budget_ms=LOCAL_MACOS_QWEN3GUARD_BUDGET.inference_budget_ms,
+                    cancel_grace_ms=LOCAL_MACOS_QWEN3GUARD_BUDGET.cancel_grace_ms,
+                    tracked_stage_registry=tracked_stage_registry,
                 ),
             )
         self._input_runtime = GuardrailPointRuntime(detectors=input_detectors)
@@ -278,7 +305,14 @@ class GuardrailGovernanceComposition:
         self._last_results: dict[str, GuardrailResult] = {}
         self._last_results_lock = threading.Lock()
 
-    def invoke_input(self, *, invocation_id: str, mode: str, content: str) -> GuardrailResult:
+    def invoke_input(
+        self,
+        *,
+        invocation_id: str,
+        mode: str,
+        content: str,
+        cancellation: CancellationToken | None = None,
+    ) -> GuardrailResult:
         return self._input_runtime.invoke(
             invocation_id=invocation_id,
             point_id=GUARDRAIL_INPUT_POINT_ID,
@@ -291,9 +325,17 @@ class GuardrailGovernanceComposition:
             detector_registry_provider=self._input_detector_registry_provider,
             registry=self._registry_entries,
             adapters=self._adapters,
+            cancellation=cancellation,
         )
 
-    def invoke_output(self, *, invocation_id: str, mode: str, content: str) -> GuardrailResult:
+    def invoke_output(
+        self,
+        *,
+        invocation_id: str,
+        mode: str,
+        content: str,
+        cancellation: CancellationToken | None = None,
+    ) -> GuardrailResult:
         return self._output_runtime.invoke(
             invocation_id=invocation_id,
             point_id=GUARDRAIL_OUTPUT_CANDIDATE_POINT_ID,
@@ -306,6 +348,7 @@ class GuardrailGovernanceComposition:
             detector_registry_provider=self._output_detector_registry_provider,
             registry=self._registry_entries,
             adapters=self._adapters,
+            cancellation=cancellation,
         )
 
     def invoke_context_source(
@@ -314,6 +357,7 @@ class GuardrailGovernanceComposition:
         invocation_id: str,
         mode: str,
         content_sources: tuple[ContextSourceUnit, ...],
+        cancellation: CancellationToken | None = None,
     ) -> GuardrailResult:
         return self._context_source_runtime.invoke(
             invocation_id=invocation_id,
@@ -328,6 +372,7 @@ class GuardrailGovernanceComposition:
             detector_registry_provider=self._context_source_detector_registry_provider,
             registry=self._registry_entries,
             adapters=self._adapters,
+            cancellation=cancellation,
         )
 
     def record_stream_guard_summary(self, summary: _StreamGuardSummaryLike) -> None:
@@ -471,6 +516,26 @@ class _ContextSourceItemLike(Protocol):
     def content(self) -> str: ...
 
 
+class _CancellationAwareGuardrailHook:
+    """Compatibility wrapper for production hooks with turn cancellation."""
+
+    supports_turn_cancellation = True
+
+    def __init__(
+        self,
+        invoke: Callable[[object, CancellationToken | None], tuple[bool, str]],
+    ) -> None:
+        self._invoke = invoke
+
+    def __call__(
+        self,
+        value: object,
+        *,
+        cancellation: CancellationToken | None = None,
+    ) -> tuple[bool, str]:
+        return self._invoke(value, cancellation)
+
+
 def build_guardrail_hooks(
     *,
     composition: GuardrailGovernanceComposition,
@@ -493,7 +558,10 @@ def build_guardrail_hooks(
     `mode_unavailable` contract exactly.
     """
 
-    def guardrail_pre_hook(request: object) -> tuple[bool, str]:
+    def guardrail_pre_hook(
+        request: object,
+        cancellation: CancellationToken | None,
+    ) -> tuple[bool, str]:
         mode = _safe_mode(mode_provider)
         if mode == "off":
             return False, ""
@@ -503,12 +571,17 @@ def build_guardrail_hooks(
         content = _pre_input_snapshot(getattr(request, "messages", ()))
         try:
             result = composition.invoke_input(
-                invocation_id=invocation_id, mode=mode, content=content
+                invocation_id=invocation_id,
+                mode=mode,
+                content=content,
+                cancellation=cancellation,
             )
         except Exception:
             logger.warning("guardrail_governance: input point invocation failed", exc_info=True)
             if mode == "enforce":
                 return True, "guardrail_enforce_evaluation_failed"
+            return False, ""
+        if cancellation is not None and cancellation.is_cancelled():
             return False, ""
         composition.record_result(point_id=GUARDRAIL_INPUT_POINT_ID, result=result)
         for action in result.executed_actions:
@@ -516,7 +589,11 @@ def build_guardrail_hooks(
                 return True, "guardrail_reject_input"
         return False, ""
 
-    def guardrail_post_hook(content: str) -> tuple[bool, str]:
+    def guardrail_post_hook(
+        value: object,
+        cancellation: CancellationToken | None,
+    ) -> tuple[bool, str]:
+        content = value if isinstance(value, str) else ""
         mode = _safe_mode(mode_provider)
         if mode == "off":
             return False, ""
@@ -525,12 +602,17 @@ def build_guardrail_hooks(
         invocation_id = str(uuid4())
         try:
             result = composition.invoke_output(
-                invocation_id=invocation_id, mode=mode, content=content
+                invocation_id=invocation_id,
+                mode=mode,
+                content=content,
+                cancellation=cancellation,
             )
         except Exception:
             logger.warning("guardrail_governance: output point invocation failed", exc_info=True)
             if mode == "enforce":
                 return True, "guardrail_enforce_evaluation_failed"
+            return False, ""
+        if cancellation is not None and cancellation.is_cancelled():
             return False, ""
         composition.record_result(point_id=GUARDRAIL_OUTPUT_CANDIDATE_POINT_ID, result=result)
         for action in result.executed_actions:
@@ -539,8 +621,14 @@ def build_guardrail_hooks(
         return False, ""
 
     def guardrail_context_source_hook(
-        sources: tuple[_ContextSourceItemLike, ...],
+        value: object,
+        cancellation: CancellationToken | None,
     ) -> tuple[bool, str]:
+        sources = (
+            cast(tuple[_ContextSourceItemLike, ...], value)
+            if isinstance(value, tuple)
+            else ()
+        )
         mode = _safe_mode(mode_provider)
         if mode == "off":
             return False, ""
@@ -557,7 +645,10 @@ def build_guardrail_hooks(
         )
         try:
             result = composition.invoke_context_source(
-                invocation_id=invocation_id, mode=mode, content_sources=content_sources
+                invocation_id=invocation_id,
+                mode=mode,
+                content_sources=content_sources,
+                cancellation=cancellation,
             )
         except Exception:
             logger.warning(
@@ -566,10 +657,16 @@ def build_guardrail_hooks(
             if mode == "enforce":
                 return True, "guardrail_enforce_evaluation_failed"
             return False, ""
+        if cancellation is not None and cancellation.is_cancelled():
+            return False, ""
         composition.record_result(point_id=GUARDRAIL_CONTEXT_SOURCE_POINT_ID, result=result)
         for action in result.executed_actions:
             if action.action_id == ActionId.STOP_BEFORE_GENERATION.value and action.executed:
                 return True, "guardrail_context_source_rejected"
         return False, ""
 
-    return guardrail_pre_hook, guardrail_post_hook, guardrail_context_source_hook
+    return (
+        _CancellationAwareGuardrailHook(guardrail_pre_hook),
+        _CancellationAwareGuardrailHook(guardrail_post_hook),
+        _CancellationAwareGuardrailHook(guardrail_context_source_hook),
+    )

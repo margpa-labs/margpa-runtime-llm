@@ -12,7 +12,11 @@ from margpa_runtime_llm.adapters.evaluation.selene import (
     SelenePromptUnavailable,
     SeleneSemanticEvaluator,
 )
-from margpa_runtime_llm.modules.inference.contracts.generation import GenerationRequest
+from margpa_runtime_llm.modules.inference.contracts.generation import (
+    FinishReason,
+    GenerationRequest,
+    ThinkingMode,
+)
 from margpa_runtime_llm.modules.runtime_governance.application import freeze_semantic_turn
 from margpa_runtime_llm.modules.runtime_governance.domain import (
     SemanticCriterion,
@@ -96,13 +100,40 @@ def _verified_adapter(tmp_path: Path) -> SelenePromptAdapter:
     return SelenePromptAdapter(manifest_path=manifest_path)
 
 
-def test_production_manifest_fails_closed_without_official_revision() -> None:
+def _unresolved_adapter(tmp_path: Path) -> SelenePromptAdapter:
+    manifest_path = tmp_path / "manifest-unresolved.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "schema_version": "1",
+                "provider_id": _PROVIDER,
+                "template_type": "official_selene_prompt_template_unresolved",
+                "upstream_repository_url": "https://example.invalid/upstream",
+                "upstream_revision": None,
+                "template_file": None,
+                "template_sha512": None,
+                "retrieval_status": "unavailable_network_prohibited_by_exact_resume_authority",
+                "verified_official_copy": False,
+            }
+        ),
+        encoding="utf-8",
+    )
+    return SelenePromptAdapter(manifest_path=manifest_path)
+
+
+def test_production_manifest_builds_with_project_derived_contract() -> None:
     manifest_path = Path(__file__).parents[3] / "config/judge_templates/selene/manifest.json"
     adapter = SelenePromptAdapter(manifest_path=manifest_path)
     assert adapter.manifest.verified_official_copy is False
-    assert adapter.manifest.upstream_revision is None
+    assert adapter.manifest.template_type == "project_derived_multi_criterion_v1"
+    prompt = adapter.build(request=_request())
+    assert "QUERY SENTINEL" in prompt
+    assert "semantic.argd.evidence.1" in prompt
+
+
+def test_unresolved_manifest_stays_fail_closed(tmp_path: Path) -> None:
     with pytest.raises(SelenePromptUnavailable, match="network_prohibited"):
-        adapter.build(request=_request())
+        _unresolved_adapter(tmp_path).build(request=_request())
 
 
 def test_prompt_adapter_preserves_query_candidate_reference_and_criterion(
@@ -126,14 +157,25 @@ class _Usage:
 class _Generated:
     content: str
     usage: _Usage | None = _Usage()
+    finish_reason: FinishReason = FinishReason.STOP
 
 
 class _FakeService:
     def __init__(self, content: str) -> None:
         self.content = content
         self.requested_model: str | None = None
+        self.runtime_info = None
 
-    def generate(self, request: GenerationRequest) -> _Generated:
+    def count_chat_prompt_tokens(
+        self,
+        messages: tuple[object, ...],
+        thinking_mode: ThinkingMode,
+    ) -> int:
+        del thinking_mode
+        return sum(len(str(getattr(message, "content", ""))) for message in messages)
+
+    def generate(self, request: GenerationRequest, *, cancellation: object = None) -> _Generated:
+        del cancellation
         self.requested_model = request.model_key
         return _Generated(content=self.content)
 

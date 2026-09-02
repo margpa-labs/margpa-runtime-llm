@@ -72,6 +72,8 @@ from concurrent.futures import TimeoutError as FutureTimeoutError
 from dataclasses import dataclass
 from typing import Any
 
+from margpa_runtime_llm.modules.inference.domain.cancellation import CancellationToken
+
 
 @dataclass(frozen=True, slots=True)
 class TrackedStageOutcome[T]:
@@ -198,6 +200,7 @@ def run_tracked_stage[T](
     work: Callable[[], T],
     budget_ms: int,
     registry: TrackedStageWorkerRegistry | None = None,
+    cancellation: CancellationToken | None = None,
 ) -> TrackedStageOutcome[T]:
     """Run `work` on a dedicated Thread, waiting at most `budget_ms`.
 
@@ -217,6 +220,10 @@ def run_tracked_stage[T](
     Outcome a real Budget expiry would produce — `work` is simply never
     run.
     """
+    if cancellation is not None and cancellation.is_cancelled():
+        cancelled: Future[T] = Future()
+        cancelled.set_exception(RuntimeError("tracked_stage_cancelled_before_start"))
+        return TrackedStageOutcome(result=None, timed_out=True, future=cancelled)
     if budget_ms <= 0:
         result = work()
         immediate: Future[T] = Future()
@@ -238,8 +245,15 @@ def run_tracked_stage[T](
         # regardless; Python cannot safely kill it, and this module never
         # claims otherwise.
         executor.shutdown(wait=False)
-    try:
-        result = future.result(timeout=budget_ms / 1000)
-    except FutureTimeoutError:
-        return TrackedStageOutcome(result=None, timed_out=True, future=future)
-    return TrackedStageOutcome(result=result, timed_out=False, future=future)
+    deadline = time.monotonic() + budget_ms / 1000
+    while True:
+        if cancellation is not None and cancellation.is_cancelled():
+            return TrackedStageOutcome(result=None, timed_out=True, future=future)
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            return TrackedStageOutcome(result=None, timed_out=True, future=future)
+        try:
+            result = future.result(timeout=min(remaining, 0.01))
+        except FutureTimeoutError:
+            continue
+        return TrackedStageOutcome(result=result, timed_out=False, future=future)

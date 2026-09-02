@@ -61,7 +61,7 @@ Phase 11+: General Web Search、正式Agent Level、Cloud／External R&D／Harde
 | P9-REQ-105 | OBSERVE／ENFORCE遷移時だけPreflight後にLoadし、OFF／ShutdownでLease終了後に安全に解放する。 |
 | P9-REQ-106 | Load、Inference、Deadline、Cancel、UnloadおよびLate ResultをRole Lifecycle／Tracked Worker契約へ従わせる。 |
 | P9-REQ-107 | Real Model Call 0／1以上、実行Provider、Stage、Latency、BudgetおよびFailure Reasonを観測可能にする。 |
-| P9-REQ-108 | Current HardwareでDedicated Artifactが成立しない場合、失敗StageとResource理由をTyped Evidenceにし、Built-in／Rule-based／Noneの正直なBaselineを維持する。 |
+| P9-REQ-108 | Current HardwareでDedicated Artifactが成立しない場合、失敗StageとResource理由をTyped Evidenceにし、Built-in／Rule-based／Noneの正直なBaselineを維持する。ただしCurrent User Decisionでは、そのStateは中間失敗でありPhase 9-1成立条件の代替にしない。 |
 
 ### 4.2 Semantic Criterion／Built-in Evaluator
 
@@ -93,9 +93,8 @@ Phase 9-1は次を満たした時点で`P9_1_COMPLETE_CANDIDATE_FOR_CONTROLLER_R
 
 ```text
 Dedicated Judge／Guard:
-  Local ArtifactとAuthorityが成立する場合は、実Load／Inference／Stop／UnloadをUser Macで確認する。
-  Hardware／Artifact／Authorityが成立しない場合は、原因をStage別Typed Evidenceで固定し、
-  Dedicated PASSを主張せず、UserがResource-gated Dispositionを判断できる。
+  SeleneとQwen3Guardの両方で、実Artifact Preflight／Load／Inference／Executed Evidence／Stop／UnloadをUser Macで確認する。
+  RESOURCE_GATED／FAILEDはStage別の中間状態として正直に表示するが、Phase 9-1完了候補の代替にしない。
 
 Semantic:
   109件一律Deferredを解消し、少なくとも対応Criterionの実評価Golden Pathを成立させる。
@@ -110,7 +109,7 @@ Integrity:
   Conversation、RAG、Citation、Recording、Cancel、RestartへMaterial Regressionがない。
 ```
 
-Dedicated Artifactが物理的に成立しない場合の`RESOURCE_GATED`は技術PASSではない。ただし、Phase 9-1全体を無期限に止めず、Built-in／Rule-based Baseline成立とUser Dispositionを条件に次Checkpointへ進める。
+Dedicated Artifactが成立しない場合の`RESOURCE_GATED`は技術PASSではなく、Current User Decision上はPhase 9-1を成立させない。Stage別Evidenceを保持して原因を解消し、Selene／Qwen3Guard両方の実Artifact経路がPASSするまで次Checkpointへ進まない。新しいNetwork／License／Cost／Root外Mutation Authorityが必要な場合だけ、具体的なAuthority GateをUserへ戻す。
 
 ## 5. Phase 9-2 — Experiment／Multi-Governance／Semantic Research
 

@@ -35,6 +35,7 @@ class SafetyModelFailureKind(StrEnum):
     ever treat as such."""
 
     TIMEOUT = "timeout"
+    CANCELLED = "cancelled"
     MALFORMED_RESPONSE = "malformed_response"
     UNKNOWN_LABEL = "unknown_label"
     LOW_CONFIDENCE = "low_confidence"

@@ -250,6 +250,7 @@ def build_phase1_web_runtime(
     guardrail_governance_enabled: bool = False,
     runtime_model_control_enabled: bool = False,
     feature_modes_enabled: bool = False,
+    dedicated_model_authority_granted: bool = False,
     local_corpus_registry: LocalCorpusRegistryPort | None = None,
     web_knowledge_service: WebKnowledgeService | None = None,
     web_search_governance_mode: WebEvidenceGovernanceMode = WebEvidenceGovernanceMode.OFF,
@@ -318,6 +319,7 @@ def build_phase1_web_runtime(
         guardrail_post_hook = None
         guardrail_context_source_hook = None
         guardrail_governance_composition: GuardrailGovernanceComposition | None = None
+        tracked_stage_registry = TrackedStageWorkerRegistry() if feature_modes_enabled else None
         # P6-RR-O-WU-002 (Production Wiring Delta): `RoleProviderLifecycle
         # Manager` is only built further below (it needs `provider_selection
         # _control`, built after this point) — same mutable-box idiom as
@@ -326,7 +328,9 @@ def build_phase1_web_runtime(
         # during bootstrap.
         role_provider_lifecycle_ref: list[RoleProviderLifecycleManager | None] = [None]
 
-        def _qwen3guard_begin_role_turn() -> Qwen3GuardRoleTurn | None:
+        def _qwen3guard_begin_role_turn(
+            cancellation: CancellationToken,
+        ) -> Qwen3GuardRoleTurn | None:
             # P6-RR-R21 (resolves P6-CODEX-086): Adapter resolution and
             # Turn Lease acquisition happen together, inside
             # `RoleProviderLifecycleManager.begin_role_turn()`'s single
@@ -339,7 +343,10 @@ def build_phase1_web_runtime(
             lifecycle = role_provider_lifecycle_ref[0]
             if lifecycle is None:
                 return None
-            handle = lifecycle.begin_role_turn(role=ModelRole.GUARD)
+            handle = lifecycle.begin_role_turn(
+                role=ModelRole.GUARD,
+                cancellation=cancellation,
+            )
             if handle is None:
                 return None
             # `Qwen3GuardRoleAdapter.guard_adapter` is `None` until
@@ -364,8 +371,9 @@ def build_phase1_web_runtime(
 
         if guardrail_governance_enabled:
             guardrail_governance_composition = GuardrailGovernanceComposition(
-                qwen3guard_begin_role_turn=_qwen3guard_begin_role_turn,
+                qwen3guard_begin_role_turn_with_cancellation=_qwen3guard_begin_role_turn,
                 qwen3guard_end_role_turn=_qwen3guard_end_role_turn,
+                tracked_stage_registry=tracked_stage_registry,
             )
             guardrail_pre_hook, guardrail_post_hook, guardrail_context_source_hook = (
                 build_guardrail_hooks(
@@ -388,11 +396,10 @@ def build_phase1_web_runtime(
         )
         # P6-RR-R22 (Post-Codex Independent Review Rework, resolves the
         # rest of P6-CODEX-081): one Registry per Runtime, shared by every
-        # Judge Run's Prompt Build/Decode Tracked Stage submissions — same
-        # lifetime/sharing model as `request_correlation_registry` above.
-        # `WebRuntime.close()` Bounded-Joins it, before Model Unload, via
-        # the `tracked_stage_registry=` wiring below.
-        tracked_stage_registry = TrackedStageWorkerRegistry() if feature_modes_enabled else None
+        # Judge Run's Prompt Build/Decode and Qwen3Guard bounded inference
+        # Tracked Stage submission. `WebRuntime.close()` Bounded-Joins it,
+        # before Model Unload, via the `tracked_stage_registry=` wiring
+        # below.
         provider_selection_control = (
             ProviderSelectionController(current_main_provider=runtime_info.model_key)
             if runtime_model_control_enabled or feature_modes_enabled
@@ -411,11 +418,18 @@ def build_phase1_web_runtime(
                 selections=provider_selection_control,
                 # Selene/Qwen3Guard are real, but Fail-closed without a
                 # separately human-granted Exact Model Authority Receipt
-                # (Base Exact Handoff §8.1) — `dedicated_model_authority_
-                # granted` stays False here; this Handoff does not grant
-                # it. An explicit Main-model Judge selection is routed to
-                # Main's own already-loaded runtime instead of a second
-                # concurrent Load.
+                # (Base Exact Handoff §8.1). `dedicated_model_authority_
+                # granted` defaults to False here (P9-CODEX-001: the CLI's
+                # `--phase-6-dedicated-model-authority` opt-in is the only
+                # caller that can raise it — see `entrypoints/web/main.py`).
+                # Raising it alone never Loads a Dedicated Model: this
+                # value only lets `preflight()` proceed past its own
+                # Fail-closed gate the *next* time a caller explicitly
+                # selects and activates Selene/Qwen3Guard (Mode Transition
+                # ON) — see `dedicated_role_adapters.py`'s `_run_dedicated_
+                # preflight()`. An explicit Main-model Judge selection is
+                # routed to Main's own already-loaded runtime instead of a
+                # second concurrent Load, unaffected by this flag.
                 factory=ProductionRoleAdapterFactory(
                     definitions=DirectoryModelDefinitionRegistry(
                         registry_dir=project_root / DEFAULT_MODEL_REGISTRY_DIR
@@ -423,7 +437,7 @@ def build_phase1_web_runtime(
                     model_root=application.config.model_root,
                     load_config=application.config.load,
                     runtime_model_control_ref=role_provider_runtime_model_control_ref,
-                    dedicated_model_authority_granted=False,
+                    dedicated_model_authority_granted=dedicated_model_authority_granted,
                     selene_prompt_manifest_path=(
                         project_root / "config/judge_templates/selene/manifest.json"
                     ),
@@ -434,6 +448,7 @@ def build_phase1_web_runtime(
                     qwen3guard_contract_manifest_path=(
                         project_root / "config/guardrail/qwen3guard/manifest.json"
                     ),
+                    tracked_stage_registry=tracked_stage_registry,
                 ),
             )
             if provider_selection_control is not None
@@ -730,8 +745,13 @@ def build_phase1_web_runtime(
                 # Lease, so a concurrent Provider switch/Mode OFF/Shutdown
                 # could Unload the Adapter while a real Judge Model Call
                 # was still in flight against it.
-                begin_judge_role_turn=(
-                    (lambda: role_provider_lifecycle.begin_role_turn(role=ModelRole.JUDGE))
+                begin_judge_role_turn_with_cancellation=(
+                    (
+                        lambda cancellation: role_provider_lifecycle.begin_role_turn(
+                            role=ModelRole.JUDGE,
+                            cancellation=cancellation,
+                        )
+                    )
                     if role_provider_lifecycle is not None
                     else None
                 ),

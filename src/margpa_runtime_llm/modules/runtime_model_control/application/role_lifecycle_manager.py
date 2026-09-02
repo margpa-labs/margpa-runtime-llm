@@ -5,6 +5,7 @@ from __future__ import annotations
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Protocol
 
 from ..domain.identifiers import ModelRole
 from ..domain.provider_selection import (
@@ -51,6 +52,10 @@ class ModeReadResult:
 
     revision: int | None
     value: str
+
+
+class _CancellationPort(Protocol):
+    def cancel(self) -> None: ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -126,6 +131,8 @@ class RoleProviderLifecycleManager:
         self._resource_gate = resource_gate or AllowAllRoleResourceGate()
         self._active_adapters: dict[ModelRole, RoleProviderAdapterPort] = {}
         self._active_turns: dict[ModelRole, int] = {role: 0 for role in ModelRole}
+        self._active_leases: dict[int, RoleTurnLease] = {}
+        self._lease_cancellations: dict[int, _CancellationPort] = {}
         self._turn_generation = 0
         self._pending_unload: set[ModelRole] = set()
         self._shutting_down = False
@@ -326,15 +333,24 @@ class RoleProviderLifecycleManager:
                 safe_message="The configured provider is not registered.",
             )
         if option.kind is ProviderKind.NONE:
-            self._unload_locked(role)
+            unload_ok = self._unload_locked(role)
             return self._selections.replace_runtime_state(
                 role=role,
                 configured_provider=selection.configured_provider,
                 active_provider=None,
-                state=ProviderRuntimeState.NONE,
+                state=ProviderRuntimeState.NONE if unload_ok else ProviderRuntimeState.DEGRADED,
+                failure_reason=(None if unload_ok else "provider_unload_failed"),
             )
         if option.kind is ProviderKind.BUILT_IN:
-            self._unload_locked(role)
+            unload_ok = self._unload_locked(role)
+            if not unload_ok:
+                return self._selections.replace_runtime_state(
+                    role=role,
+                    configured_provider=selection.configured_provider,
+                    active_provider=None,
+                    state=ProviderRuntimeState.DEGRADED,
+                    failure_reason="provider_unload_failed",
+                )
             snapshot = self._selections.replace_runtime_state(
                 role=role,
                 configured_provider=selection.configured_provider,
@@ -387,13 +403,35 @@ class RoleProviderLifecycleManager:
         try:
             candidate.load()
         except Exception as exc:
+            cleanup_failed = False
+            try:
+                candidate.unload()
+            except Exception:
+                cleanup_failed = True
             rollback_failed = False
             if previous is not None:
                 try:
+                    rollback_ready, _rollback_reason = previous.preflight()
+                    if not rollback_ready:
+                        raise RuntimeError("previous_provider_repreflight_failed")
                     previous.load()
                     self._active_adapters[role] = previous
                 except Exception:
                     rollback_failed = True
+            if cleanup_failed or rollback_failed:
+                return self._selections.replace_runtime_state(
+                    role=role,
+                    configured_provider=selection.configured_provider,
+                    active_provider=None,
+                    state=ProviderRuntimeState.DEGRADED,
+                    failure_reason=(
+                        "provider_load_cleanup_and_rollback_failed"
+                        if cleanup_failed and rollback_failed
+                        else "provider_load_cleanup_failed"
+                        if cleanup_failed
+                        else "provider_load_rollback_failed"
+                    ),
+                )
             return self._selections.replace_runtime_state(
                 role=role,
                 configured_provider=selection.configured_provider,
@@ -401,14 +439,10 @@ class RoleProviderLifecycleManager:
                     previous_provider if previous is not None and not rollback_failed else None
                 ),
                 state=(
-                    ProviderRuntimeState.FAILED
-                    if rollback_failed
-                    else ProviderRuntimeState.UNAVAILABLE
+                    ProviderRuntimeState.UNAVAILABLE
                 ),
                 failure_reason=(
-                    "provider_load_and_rollback_failed"
-                    if rollback_failed
-                    else f"provider_load_failed:{type(exc).__name__}"
+                    f"provider_load_failed:{type(exc).__name__}"
                 ),
             )
         self._active_adapters[role] = candidate
@@ -434,6 +468,7 @@ class RoleProviderLifecycleManager:
             commit_mode()
         selection = self._selections.selection_for(role)
         if self._active_turns[role] > 0:
+            self._cancel_active_role_turns_locked(role=role)
             self._pending_unload.add(role)
             return self._selections.replace_runtime_state(
                 role=role,
@@ -553,9 +588,25 @@ class RoleProviderLifecycleManager:
             try:
                 candidate.load()
             except Exception as exc:
+                cleanup_failed = False
+                try:
+                    candidate.unload()
+                except Exception:
+                    cleanup_failed = True
+                if cleanup_failed:
+                    self._selections.replace_runtime_state(
+                        role=role,
+                        configured_provider=previous.configured_provider,
+                        active_provider=None,
+                        state=ProviderRuntimeState.DEGRADED,
+                        failure_reason="provider_load_cleanup_failed",
+                    )
                 raise ProviderSelectionError(
                     code=ProviderSelectionErrorCode.ACTIVATION_FAILED,
-                    safe_message=f"Provider load failed: {type(exc).__name__}",
+                    safe_message=(
+                        f"Provider load failed: {type(exc).__name__}"
+                        + ("; cleanup failed" if cleanup_failed else "")
+                    ),
                 ) from exc
 
         previous_adapter = self._active_adapters.get(role)
@@ -631,7 +682,12 @@ class RoleProviderLifecycleManager:
         with self._condition:
             return self._active_adapters.get(role)
 
-    def begin_role_turn(self, *, role: ModelRole) -> RoleTurnHandle | None:
+    def begin_role_turn(
+        self,
+        *,
+        role: ModelRole,
+        cancellation: _CancellationPort | None = None,
+    ) -> RoleTurnHandle | None:
         """P6-RR-R21-WU-001 (Post-Codex Independent Review Rework, resolves
         P6-CODEX-086): atomically resolves the currently-loaded dedicated
         Model Adapter AND acquires its Turn Lease under one acquisition of
@@ -703,6 +759,9 @@ class RoleProviderLifecycleManager:
                 provider_id=selection.active_provider,
                 generation=self._turn_generation,
             )
+            self._active_leases[lease.generation] = lease
+            if cancellation is not None:
+                self._lease_cancellations[lease.generation] = cancellation
             return RoleTurnHandle(lease=lease, adapter=adapter)
 
     def begin_turn(self, *, role: ModelRole) -> RoleTurnLease:
@@ -719,14 +778,25 @@ class RoleProviderLifecycleManager:
                 )
             self._active_turns[role] += 1
             self._turn_generation += 1
-            return RoleTurnLease(
+            lease = RoleTurnLease(
                 role=role,
                 provider_id=selection.active_provider,
                 generation=self._turn_generation,
             )
+            self._active_leases[lease.generation] = lease
+            return lease
 
     def end_turn(self, lease: RoleTurnLease) -> None:
         with self._condition:
+            active_lease = self._active_leases.get(lease.generation)
+            if (
+                active_lease is None
+                or active_lease.role is not lease.role
+                or active_lease.provider_id != lease.provider_id
+            ):
+                return
+            self._active_leases.pop(lease.generation, None)
+            self._lease_cancellations.pop(lease.generation, None)
             if self._active_turns[lease.role] > 0:
                 self._active_turns[lease.role] -= 1
             if self._active_turns[lease.role] == 0 and lease.role in self._pending_unload:
@@ -760,12 +830,22 @@ class RoleProviderLifecycleManager:
     def shutdown(self) -> bool:
         with self._condition:
             self._shutting_down = True
+            for role in ModelRole:
+                self._cancel_active_role_turns_locked(role=role)
             if any(self._active_turns.values()):
                 return False
             clean = True
             for role in tuple(self._active_adapters):
                 clean = self._unload_locked(role) and clean
             return clean
+
+    def _cancel_active_role_turns_locked(self, *, role: ModelRole) -> None:
+        for generation, lease in tuple(self._active_leases.items()):
+            if lease.role is not role:
+                continue
+            cancellation = self._lease_cancellations.get(generation)
+            if cancellation is not None:
+                cancellation.cancel()
 
     def _unload_locked(self, role: ModelRole) -> bool:
         adapter = self._active_adapters.get(role)

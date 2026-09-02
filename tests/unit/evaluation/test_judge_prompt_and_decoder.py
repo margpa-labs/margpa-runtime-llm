@@ -74,6 +74,34 @@ def test_decode_accepts_a_well_formed_response() -> None:
     assert response.reasoning == "matches"
 
 
+def test_decode_accepts_numeric_string_confidence_values() -> None:
+    raw = json.dumps(
+        {
+            "recommendation": "needs_repair",
+            "confidence": "0.1",
+            "reasoning": "fixture",
+            "criterion_results": [
+                {
+                    "criterion_id": "c1",
+                    "disposition": "deviation",
+                    "confidence": "0.9",
+                    "reason_code": "x",
+                    "evidence_refs": [],
+                }
+            ],
+        }
+    )
+    response = decode_judge_output(
+        raw_text=raw,
+        judge_role=JudgeIndependenceClass.INDEPENDENT_ARTIFACT,
+        token_usage=1,
+        latency_ms=1,
+        expected_criterion_ids=("c1",),
+    )
+    assert response.confidence == 0.1
+    assert response.criterion_results[0].confidence == 0.9
+
+
 @pytest.mark.parametrize(
     "raw_text",
     [
@@ -142,6 +170,7 @@ def test_decode_reasoning_falls_back_to_none_on_blank_or_non_string(
         json.dumps(["accept", 0.9]),
         json.dumps({"recommendation": "definitely_probably_yes", "confidence": 0.9}),
         json.dumps({"recommendation": "accept", "confidence": "high"}),
+        json.dumps({"recommendation": "accept", "confidence": "1e999"}),
         json.dumps({"recommendation": "accept", "confidence": 1.5}),
         json.dumps({"recommendation": "accept"}),
     ],

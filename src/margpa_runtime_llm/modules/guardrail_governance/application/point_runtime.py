@@ -42,6 +42,8 @@ from __future__ import annotations
 import time
 from typing import Protocol
 
+from margpa_runtime_llm.modules.inference.domain.cancellation import CancellationToken
+
 from ..domain import (
     ActionRegistryEntry,
     AuthorityDecision,
@@ -50,6 +52,7 @@ from ..domain import (
     DetectionOutcome,
     ExecutedAction,
     ExecutionState,
+    GuardDetection,
     GuardrailResult,
     PolicyApplicability,
     PolicyDecision,
@@ -161,6 +164,7 @@ class GuardrailPointRuntime:
         registry: dict[str, ActionRegistryEntry],
         adapters: dict[str, GuardActionAdapterPort],
         content_sources: tuple[ContextSourceUnit, ...] | None = None,
+        cancellation: CancellationToken | None = None,
     ) -> GuardrailResult:
         if mode == "off":
             return GuardrailResult(
@@ -169,6 +173,8 @@ class GuardrailPointRuntime:
                 mode=mode,
                 execution_state=ExecutionState.NOT_EVALUATED,
             )
+        if cancellation is not None and cancellation.is_cancelled():
+            return _cancelled_result(invocation_id=invocation_id, point_id=point_id, mode=mode)
 
         started = time.monotonic()
         # Entry Binding (P5-CODEX-007): captured exactly once, used for
@@ -186,16 +192,39 @@ class GuardrailPointRuntime:
             # Source's own `content` independently, never a joined
             # mega-string, so a Safe aggregate Decision is made *after*
             # per-Source Detection, not before it.
-            detections = tuple(
-                detector.detect(content=source.content)
-                for source in content_sources
-                for detector in self._detectors
-            )
+            detected: list[GuardDetection] = []
+            for source in content_sources:
+                for detector in self._detectors:
+                    if cancellation is not None and cancellation.is_cancelled():
+                        return _cancelled_result(
+                            invocation_id=invocation_id, point_id=point_id, mode=mode
+                        )
+                    detected.append(
+                        detector.detect(content=source.content, cancellation=cancellation)
+                        if cancellation is not None
+                        else detector.detect(content=source.content)
+                    )
+            detections = tuple(detected)
             content_length = sum(len(source.content) for source in content_sources)
         else:
-            detections = tuple(detector.detect(content=content) for detector in self._detectors)
+            detected = []
+            for detector in self._detectors:
+                if cancellation is not None and cancellation.is_cancelled():
+                    return _cancelled_result(
+                        invocation_id=invocation_id, point_id=point_id, mode=mode
+                    )
+                detected.append(
+                    detector.detect(content=content, cancellation=cancellation)
+                    if cancellation is not None
+                    else detector.detect(content=content)
+                )
+            detections = tuple(detected)
             content_length = len(content)
+        if cancellation is not None and cancellation.is_cancelled():
+            return _cancelled_result(invocation_id=invocation_id, point_id=point_id, mode=mode)
         policy_decisions = policy_provider.evaluate(point_id=point_id, detections=detections)
+        if cancellation is not None and cancellation.is_cancelled():
+            return _cancelled_result(invocation_id=invocation_id, point_id=point_id, mode=mode)
 
         # Entry Binding cross-checks (P5-CODEX-007 Rework, Codex Third
         # Independent Review Probes A/B/C): the Revision/Expiry/Digest
@@ -287,6 +316,8 @@ class GuardrailPointRuntime:
                 or resolution_detector_registry.digest_sha512 != detector_registry.digest_sha512
                 or resolution_action_registry.digest_sha512 != action_registry.digest_sha512
             )
+            if cancellation is not None and cancellation.is_cancelled():
+                return _cancelled_result(invocation_id=invocation_id, point_id=point_id, mode=mode)
             executed_actions = resolve_actions(
                 recommended_actions=tuple(recommended),
                 point_id=point_id,
@@ -347,3 +378,13 @@ class GuardrailPointRuntime:
             latency_ms=latency_ms,
             call_count=0,
         )
+
+
+def _cancelled_result(*, invocation_id: str, point_id: str, mode: str) -> GuardrailResult:
+    return GuardrailResult(
+        invocation_id=invocation_id,
+        point_id=point_id,
+        mode=mode,
+        execution_state=ExecutionState.NOT_EVALUATED,
+        unavailable_reason_code="guard_call_cancelled",
+    )

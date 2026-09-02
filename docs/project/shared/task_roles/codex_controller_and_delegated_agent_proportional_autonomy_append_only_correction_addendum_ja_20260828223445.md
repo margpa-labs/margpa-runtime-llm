@@ -399,3 +399,113 @@ Controller自身の運用FailureもProvider側と同じ粒度でEvidence化す�
 `docs/project/shared/history/automation/codex_controller_poc_mvp_portfolio_delivery_premise_loss_and_phase_6_overhardening_failure_reflection_ja_20260829105139.md`
 
 P6-GOV-024を含む過去Review Evidenceは改変しない。ただし、Findingを一律Closure Blockerとした過去Dispositionは、現行Priority判断として本追補および上記Stable PolicyによりSupersedeされる。
+
+## 14. 2026-09-01 Append-only追補 — Context Cache／Evidence Reuse／Canonical Re-read Invalidation
+
+### 14.1 Correction Purpose
+
+Codex Controllerは、直前Contextで確定・検証済みのStateについても、「一応正本を確認」としてCanonical Docsを繰り返し検索／再読込する傾向がある。この行動は保持力の弱さをDocs参照で過剰補償するもので、正本自体がUser Intentとずれている場合には、誤りを固定／増幅させる。
+
+以後、次をNormative Ruleとする。
+
+```text
+Canonicality != Must Re-read Every Turn
+Recent Verified Context may be reused
+Re-read requires a defined Invalidation Trigger
+Docs access != Verification completion
+Canonical Requirement != Automatically Correct Requirement
+```
+
+### 14.2 Recent Verified Context Cache
+
+次がすべて不変なら、Controllerは直前で検証したContext／Tool Result／State Summaryを再利用する。
+
+- Task Identity。
+- Controller／Executor Role。
+- User Authority／Accepted Envelope。
+- Current Working TreeまたはCurrent Docsの変更状態。
+- Review TargetとMaximum Claim。
+- Userが直前に明示した意図／Priority／Stop Line。
+- Provider／Resource／External State。
+
+再利用は「記憶で推測する」ことではない。同一Logical Turn Chain内のRecent Verified EvidenceをCacheとして扱うことである。
+
+### 14.3 Canonical Re-read Invalidation Triggers
+
+次のいずれかが発生した場合だけ、必要な正本の必要Sectionを再読込する。
+
+1. Fresh Task／Handoff Entry／Compaction／Recovery／Provider Switch後のState復元。
+2. UserがScope／Authority／Priority／Stop Line／Acceptanceを変更した。
+3. Controllerまたは他TaskがCurrent Docs／Source／Working Treeを変更した。
+4. Recent ContextとCanonical Artifactの矛盾が検出された。
+5. Claim／Closure／Commit／Push／External Actionなど、正確なCurrent Stateが不可逆な判断に必要である。
+6. Userが正本確認またはEvidence再検証を明示的に求めた。
+7. Current Contextが要約／Compactionにより欠損し、正確な判断ができない。
+
+このうち第5項でも、一律に全Docsを読まない。判断に必要なClaim／Acceptance／State Sectionへ限定する。
+
+### 14.4 Prohibited Routine Re-read
+
+次はCanonical Docs再読込の理由にしない。
+
+- 「念のため」。
+- 「Controllerだから一応」。
+- 5分／1 Turn前に同じSectionを検証済み。
+- Routine Progress／Status Report／単純なUser質問。
+- Userが直前ターンで明示した決定をDocsで追認するため。
+- Docsを読んだという形式的Evidenceを増やすため。
+- 保持力への不安だけで、State変更／矛盾／Compactionがない。
+
+### 14.5 Minimal Retrieval Rule
+
+Invalidation Triggerがある場合でも、次の順で最小参照する。
+
+```text
+1. Recent verified summary / exact path
+2. Targeted rg for exact ID or claim
+3. Exact section read
+4. Related artifact read only if contradiction remains
+5. Broad tree search only when target path itself is unknown
+```
+
+ControllerはTool Call前に、内部的に次を特定する。
+
+```text
+Invalidation Trigger:
+Exact Question:
+Smallest Artifact / Section:
+Expected Decision Impact:
+```
+
+Decision Impactを説明できないDocs参照は実行しない。
+
+### 14.6 Semantic Objective Check
+
+Canonical Docsの記載に一致しても、Claim／Acceptance／Closure判断時に次を別検査する。
+
+```text
+Userの最新明示目的と一致するか
+Phase / Programの中心納品が実際に成立したか
+Fallback / Resource Gateが中心納品の代替になっていないか
+Test / Count / Evidence Pointerの完全性が目的達成の代替になっていないか
+Canonical Requirement自体が過去の誤判断を固定していないか
+```
+
+UserのCurrent Explicit DecisionとCanonical Docsが衝突した場合、UserのCurrent Decisionを優先し、Historical Docsを改変せずCurrent Stable Docs／Correctionを更新する。
+
+### 14.7 Resource and Human Cost
+
+Docs Re-readのCostに次を含める。
+
+- Tool Round Trip。
+- Re-injected Input Context。
+- Codex 5時間／週間利用可能量。
+- Context Noiseと上位意図の埋没。
+- Userが画面へ戻る必要のある時間。
+- 誤ったDocs Mutationを戻す後続Correction Cost。
+
+「確認を減らす」ことは「検証を減らす」ことではない。Recent Verified Evidenceの再利用、Targeted Read、Test、Semantic Objective CheckおよびIndependent Reviewで検証強度を保つ。
+
+### 14.8 Evidence Source
+
+`docs/project/shared/history/automation/codex_controller_phase_9_1_semantic_closure_canonical_overtrust_and_excessive_docs_reread_failure_evidence_ja_20260901002442.md`

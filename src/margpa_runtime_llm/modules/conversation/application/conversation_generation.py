@@ -10,7 +10,7 @@ import time
 from collections.abc import Callable, Generator, Iterator
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 from uuid import uuid4
 
 from margpa_runtime_llm.modules.documentation_rag.contracts import (
@@ -141,8 +141,34 @@ GovernancePostHook = Callable[[str], "tuple[bool, str]"]
 # where `Decision` only needs `safe_release`/`terminated`/`reason_code`
 # (structurally satisfied by `IncrementalStreamGuard`/`StreamGuardDecision`
 # without this module importing them).
-GuardrailPreHook = Callable[[GenerationRequest], "tuple[bool, str]"]
-GuardrailPostHook = Callable[[str], "tuple[bool, str]"]
+@runtime_checkable
+class CancellationAwareGuardrailPreHook(Protocol):
+    supports_turn_cancellation: bool
+
+    def __call__(
+        self,
+        request: GenerationRequest,
+        *,
+        cancellation: CancellationToken | None = None,
+    ) -> tuple[bool, str]: ...
+
+
+@runtime_checkable
+class CancellationAwareGuardrailPostHook(Protocol):
+    supports_turn_cancellation: bool
+
+    def __call__(
+        self,
+        content: str,
+        *,
+        cancellation: CancellationToken | None = None,
+    ) -> tuple[bool, str]: ...
+
+
+GuardrailPreHook = (
+    Callable[[GenerationRequest], "tuple[bool, str]"] | CancellationAwareGuardrailPreHook
+)
+GuardrailPostHook = Callable[[str], "tuple[bool, str]"] | CancellationAwareGuardrailPostHook
 
 
 # `guardrail.context_source` (P5-CODEX-001 Rework, then P5-CODEX-006
@@ -170,7 +196,22 @@ class ContextSourceItemLike(Protocol):
     def content(self) -> str: ...
 
 
-GuardrailContextSourceHook = Callable[["tuple[ContextSourceItemLike, ...]"], "tuple[bool, str]"]
+@runtime_checkable
+class CancellationAwareGuardrailContextSourceHook(Protocol):
+    supports_turn_cancellation: bool
+
+    def __call__(
+        self,
+        sources: tuple[ContextSourceItemLike, ...],
+        *,
+        cancellation: CancellationToken | None = None,
+    ) -> tuple[bool, str]: ...
+
+
+GuardrailContextSourceHook = (
+    Callable[["tuple[ContextSourceItemLike, ...]"], "tuple[bool, str]"]
+    | CancellationAwareGuardrailContextSourceHook
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -770,6 +811,7 @@ class ConversationGenerationSession:
         self._terminal_status = "failed"
         self._cancel_requested = threading.Event()
         self._judge_cancellation = CancellationToken()
+        self._guardrail_cancellation = CancellationToken()
         self._finished = threading.Event()
         self._consumption_lock = threading.Lock()
         self._stream_lock = threading.Lock()
@@ -800,6 +842,7 @@ class ConversationGenerationSession:
     def request_cancel(self) -> None:
         self._cancel_requested.set()
         self._judge_cancellation.cancel()
+        self._guardrail_cancellation.cancel()
 
     def wait(self, timeout: float | None = None) -> bool:
         return self._finished.wait(timeout)
@@ -809,6 +852,7 @@ class ConversationGenerationSession:
 
         self._cancel_requested.set()
         self._judge_cancellation.cancel()
+        self._guardrail_cancellation.cancel()
         with self._stream_lock:
             stream = self._active_stream
         if stream is not None:
@@ -1902,9 +1946,17 @@ class ConversationGenerationSession:
             return None
         assert self._request is not None
         try:
-            should_stop, reason_code = self._guardrail_pre_hook(self._request)
+            if isinstance(self._guardrail_pre_hook, CancellationAwareGuardrailPreHook):
+                should_stop, reason_code = self._guardrail_pre_hook(
+                    self._request,
+                    cancellation=self._guardrail_cancellation,
+                )
+            else:
+                should_stop, reason_code = self._guardrail_pre_hook(self._request)
         except Exception:
             return None
+        if self._guardrail_cancellation.is_cancelled():
+            return self._cancelled_event()
         if not should_stop:
             return None
         return self._error_event(
@@ -1924,9 +1976,17 @@ class ConversationGenerationSession:
         if self._guardrail_post_hook is None:
             return None
         try:
-            should_reject, reason_code = self._guardrail_post_hook(content)
+            if isinstance(self._guardrail_post_hook, CancellationAwareGuardrailPostHook):
+                should_reject, reason_code = self._guardrail_post_hook(
+                    content,
+                    cancellation=self._guardrail_cancellation,
+                )
+            else:
+                should_reject, reason_code = self._guardrail_post_hook(content)
         except Exception:
             return None
+        if self._guardrail_cancellation.is_cancelled():
+            return self._cancelled_event()
         if not should_reject:
             return None
         return self._error_event(
@@ -2097,9 +2157,20 @@ class ConversationGenerationSession:
         if not sources:
             return None
         try:
-            should_stop, reason_code = self._guardrail_context_source_hook(sources)
+            if isinstance(
+                self._guardrail_context_source_hook,
+                CancellationAwareGuardrailContextSourceHook,
+            ):
+                should_stop, reason_code = self._guardrail_context_source_hook(
+                    sources,
+                    cancellation=self._guardrail_cancellation,
+                )
+            else:
+                should_stop, reason_code = self._guardrail_context_source_hook(sources)
         except Exception:
             return None
+        if self._guardrail_cancellation.is_cancelled():
+            return self._cancelled_event()
         if not should_stop:
             return None
         return self._error_event(
@@ -2128,9 +2199,20 @@ class ConversationGenerationSession:
         if not sources:
             return None
         try:
-            should_stop, reason_code = self._guardrail_context_source_hook(sources)
+            if isinstance(
+                self._guardrail_context_source_hook,
+                CancellationAwareGuardrailContextSourceHook,
+            ):
+                should_stop, reason_code = self._guardrail_context_source_hook(
+                    sources,
+                    cancellation=self._guardrail_cancellation,
+                )
+            else:
+                should_stop, reason_code = self._guardrail_context_source_hook(sources)
         except Exception:
             return None
+        if self._guardrail_cancellation.is_cancelled():
+            return self._cancelled_event()
         if not should_stop:
             return None
         return self._error_event(

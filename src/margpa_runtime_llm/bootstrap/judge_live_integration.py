@@ -69,6 +69,7 @@ import json
 import threading
 import time
 from collections.abc import Callable
+from concurrent.futures import Future
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from typing import Literal, Protocol, cast
@@ -328,6 +329,7 @@ class _PendingJudgeEvidence:
 class _JudgeWorkerOutcome:
     result: LiveJudgeResult
     pending_evidence: _PendingJudgeEvidence | None = None
+    deferred_role_release: Future[object] | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -510,6 +512,9 @@ def build_judge_completion_hook(
     judge_provider_is_built_in: Callable[[], bool] | None = None,
     guardrail_mode_resolver: Callable[[], str] | None = None,
     begin_judge_role_turn: Callable[[], object | None] | None = None,
+    begin_judge_role_turn_with_cancellation: (
+        Callable[[CancellationToken], object | None] | None
+    ) = None,
     end_judge_role_turn: Callable[[object], None] | None = None,
     stage_budget: StageBudgetProfile = _LIVE_STAGE_BUDGET,
     stage_budget_resolver: Callable[[str | None], StageBudgetProfile] = (
@@ -567,7 +572,9 @@ def build_judge_completion_hook(
         except Exception:
             return None
 
-    def _begin_judge_role_turn() -> tuple[object | None, object | None]:
+    def _begin_judge_role_turn(
+        cancellation: CancellationToken,
+    ) -> tuple[object | None, object | None]:
         """P6-RR-R2-WU-001, extended P6-RR-R21 (resolves P6-CODEX-086):
         read once per Hook invocation (frozen alongside judge_mode/
         repair_mode/recording_mode/built_in_active/frozen_guard_mode) —
@@ -583,10 +590,17 @@ def build_judge_completion_hook(
         crash and never a silent fallback. `lease` is `None` whenever
         `adapter` is `None` — there is never a Lease to release without a
         corresponding Adapter this Run actually dispatches through."""
-        if begin_judge_role_turn is None:
+        if (
+            begin_judge_role_turn is None
+            and begin_judge_role_turn_with_cancellation is None
+        ):
             return None, None
         try:
-            handle = begin_judge_role_turn()
+            handle = (
+                begin_judge_role_turn_with_cancellation(cancellation)
+                if begin_judge_role_turn_with_cancellation is not None
+                else begin_judge_role_turn()
+            )
         except Exception:
             return None, None
         if handle is None:
@@ -608,6 +622,16 @@ def build_judge_completion_hook(
             end_judge_role_turn(lease)
         except Exception:
             pass
+
+    def _release_judge_role_turn_when_done(
+        *,
+        lease: object | None,
+        future: Future[object],
+    ) -> None:
+        def release(_: Future[object]) -> None:
+            _end_judge_role_turn(lease)
+
+        future.add_done_callback(release)
 
     def _frozen_stage_budget(
         *, semantic_snapshot: SemanticTurnSnapshot | None, active_adapter: object | None
@@ -1311,7 +1335,31 @@ def build_judge_completion_hook(
             dialogue_context=context.dialogue_context,
             evidence_context=context.evidence_context,
         )
-        response = evaluator.evaluate(request=semantic_request)  # type: ignore[attr-defined]
+        late_worker: Future[object] | None = None
+
+        def record_late_worker(future: Future[object]) -> None:
+            nonlocal late_worker
+            late_worker = future
+
+        response = evaluator.evaluate(  # type: ignore[attr-defined]
+            request=semantic_request,
+            cancellation=cancellation,
+            inference_budget_ms=stage_budget.inference_budget_ms,
+            late_worker_observer=record_late_worker,
+        )
+        if cancellation.is_cancelled():
+            return _JudgeWorkerOutcome(
+                result=LiveJudgeResult(
+                    request_id=context.request_id,
+                    judge_role=JudgeIndependenceClass.INDEPENDENT_ARTIFACT,
+                    recommendation="unknown",
+                    confidence=0.0,
+                    execution_state="cancelled",
+                    failure_reason="selene_cancelled",
+                    executed_provider=executed_provider,
+                ),
+                deferred_role_release=late_worker,
+            )
         if semantic_result_recorder is not None:
             # Selene's own SemanticEvaluationResponse already carries the
             # correct `provider_id` (`SeleneSemanticEvaluator.evaluate()`
@@ -1632,7 +1680,13 @@ def build_judge_completion_hook(
             # Run that ever touches the leased Adapter; nothing after this
             # point (Presented Final normalization, Evidence Recorder
             # scheduling, `composition.record_result`) does.
-            _end_judge_role_turn(role_turn_lease)
+            if outcome.deferred_role_release is None:
+                _end_judge_role_turn(role_turn_lease)
+            else:
+                _release_judge_role_turn_when_done(
+                    lease=role_turn_lease,
+                    future=outcome.deferred_role_release,
+                )
         result = outcome.result
         if context.enforce_presented_final and result.presentation_outcome is None:
             # Early typed failures (Model call, cancellation, unexpected
@@ -1741,7 +1795,10 @@ def build_judge_completion_hook(
         # a bare None-check on the resolver Callable itself — no Lease is
         # acquired by computing it, so it stays safe to read before the
         # Judge OFF check below.
-        provider_selection_wired = begin_judge_role_turn is not None
+        provider_selection_wired = (
+            begin_judge_role_turn is not None
+            or begin_judge_role_turn_with_cancellation is not None
+        )
         if judge_mode is EvaluationMode.OFF:
             _record_semantic_deferred(context.request_id, SemanticDeferredReason.JUDGE_OFF)
             composition.mark_skipped(request_id=context.request_id, reason="judge_off")
@@ -1755,11 +1812,13 @@ def build_judge_completion_hook(
         # OFF-mode Turn's early `return None` would acquire a Lease this
         # function then never releases (Judge OFF never reaches `_run_
         # judge`, the sole `_end_judge_role_turn` call site).
+        cancellation = context.cancellation or CancellationToken()
         active_adapter, judge_role_lease = (
-            (None, None) if built_in_active else _begin_judge_role_turn()
+            (None, None)
+            if built_in_active
+            else _begin_judge_role_turn(cancellation)
         )
         try:
-            cancellation = context.cancellation or CancellationToken()
             correlation_snapshot = _semantic_snapshot(context.request_id)
             run_stage_budget = _frozen_stage_budget(
                 semantic_snapshot=correlation_snapshot,
