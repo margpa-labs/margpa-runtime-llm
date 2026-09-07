@@ -37,6 +37,9 @@ from margpa_runtime_llm.modules.presentation.contracts.thinking import (
     ThinkingPresentationSource,
     ThinkingVisibility,
 )
+from margpa_runtime_llm.modules.runtime_model_control.application import (
+    AllowAllRoleResourceGate,
+)
 from margpa_runtime_llm.modules.summarization.public import SummarizationConfig
 from margpa_runtime_llm.web.access_profiles import (
     DocumentationRagEffectiveState,
@@ -817,6 +820,7 @@ def test_web_runtime_wires_dedicated_model_authority_opt_in_into_the_role_provid
         summarization=SummarizationConfig(),
         model_root=PROJECT_ROOT,
         load=ModelLoadConfig(),
+        dedicated_role_load=ModelLoadConfig(),
     )
     application = cast(
         Phase1Application,
@@ -859,6 +863,88 @@ def test_web_runtime_wires_dedicated_model_authority_opt_in_into_the_role_provid
     )
     assert granted_factory._authority_granted is True
     granted_runtime.close()
+
+
+def test_web_runtime_never_gates_dedicated_role_activation_on_a_memory_estimate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """P9-1 SSS Recovery: the real `build_phase1_web_runtime()` Composition
+    Root must not inject any Resource Gate that can pre-emptively deny a
+    dedicated (Selene/Gemma/Qwen3Guard) Role Activation from a memory
+    *estimate* alone. Product Contract, not a re-derivation of any Gate's
+    own arithmetic: `RoleProviderLifecycleManager`'s own constructor
+    default (`resource_gate=None` -> `AllowAllRoleResourceGate()`) is the
+    Pre-Package-2 baseline this asserts is what Production still wires --
+    never `SystemMemoryRoleResourceGate` or any other candidate that can
+    return `(False, ...)` before Load is even attempted. This is the
+    Oracle the SSS Incident record explicitly requires (Recovery
+    Acceptance / Recovery Principle 3): it does not import or recompute
+    `memory_resource_gate.py`'s own `required`/`available` formula, so it
+    cannot pass merely because a denial matches its own implementation."""
+
+    class FakeLoadedService:
+        runtime_info = SimpleNamespace(
+            model_key="main.qwen3-4b-q4-k-m",
+            backend_key="metal",
+            loaded_context_size=4096,
+            effective_capabilities=SimpleNamespace(features=frozenset()),
+            device_kind="gpu",
+            acceleration_api="metal",
+        )
+
+        def count_text_tokens(self, text: str) -> int:
+            return len(text.split())
+
+        def count_chat_prompt_tokens(
+            self, messages: tuple[ChatMessage, ...], thinking_mode: ThinkingMode
+        ) -> int:
+            del messages, thinking_mode
+            return 0
+
+    presentation = ResolvedThinkingPresentationPolicy(
+        visibility=ThinkingVisibility.HIDDEN,
+        display_label="推論過程",
+        persistence=ThinkingPersistence.DISABLED,
+        visibility_source=ThinkingPresentationSource.APPLICATION,
+        display_label_source=ThinkingPresentationSource.APPLICATION,
+        persistence_source=ThinkingPresentationSource.APPLICATION,
+    )
+    config = SimpleNamespace(
+        selected_model="main.qwen3-4b-q4-k-m",
+        profile_key="mac.local",
+        generation=GenerationParameters(max_new_tokens=2048),
+        response=SimpleNamespace(language=ResponseLanguage.JA),
+        presentation=presentation,
+        summarization=SummarizationConfig(),
+        model_root=PROJECT_ROOT,
+        load=ModelLoadConfig(),
+        dedicated_role_load=ModelLoadConfig(),
+    )
+    application = cast(
+        Phase1Application,
+        SimpleNamespace(
+            service=FakeLoadedService(),
+            config=config,
+            presentation_service=object(),
+            close=lambda: None,
+        ),
+    )
+    monkeypatch.setattr(
+        web_application_module,
+        "build_phase1_application",
+        lambda **_kwargs: application,
+    )
+
+    runtime = build_phase1_web_runtime(
+        project_root=PROJECT_ROOT,
+        profile_path=None,
+        registry_path=PROJECT_ROOT / "config/models/qwen3_4b_q4_k_m.toml",
+        feature_modes_enabled=True,
+        dedicated_model_authority_granted=True,
+    )
+    assert runtime.role_provider_lifecycle is not None
+    assert type(runtime.role_provider_lifecycle._resource_gate) is AllowAllRoleResourceGate
+    runtime.close()
 
 
 def test_web_runtime_builds_a_real_request_correlation_registry_when_feature_modes_enabled(
@@ -915,6 +1001,7 @@ def test_web_runtime_builds_a_real_request_correlation_registry_when_feature_mod
         profile_key="mac.local",
         model_root=PROJECT_ROOT,
         load=ModelLoadConfig(),
+        dedicated_role_load=ModelLoadConfig(),
         generation=GenerationParameters(max_new_tokens=2048),
         response=SimpleNamespace(language=ResponseLanguage.JA),
         presentation=presentation,

@@ -110,6 +110,25 @@ class InferenceService:
                 model_key=request.model_key,
                 details={"roles": ",".join(sorted(role.value for role in unsupported_roles))},
             )
+        # Gemma Judge-only Constrained Decoding Rework (WU-02): a Request
+        # that carries a `structured_output` constraint against a Backend
+        # that has not genuinely verified Grammar support (see
+        # `LlamaCppModelAdapter._build_runtime_info()`'s own real
+        # `hasattr(LlamaGrammar, "from_json_schema")` probe) is rejected
+        # here, Typed, before it ever reaches the Backend's own Grammar
+        # compiler -- never silently ignored, never falling back to
+        # unconstrained generation.
+        if (
+            request.parameters.structured_output is not None
+            and CapabilityFeature.JSON_SCHEMA not in capabilities.features
+        ):
+            raise InferenceError(
+                code=InferenceErrorCode.UNSUPPORTED_CAPABILITY,
+                safe_message="The loaded runtime does not support structured output constraints.",
+                request_id=request.request_id,
+                model_key=request.model_key,
+                details={"capabilities": CapabilityFeature.JSON_SCHEMA.value},
+            )
 
     @staticmethod
     def _validate_capabilities(

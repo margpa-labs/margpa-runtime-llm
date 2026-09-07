@@ -208,7 +208,7 @@ tests/unit/dev_agent/test_dev_agent_contracts.py（Ruff Format限定、機械的
 tests/unit/dev_agent/test_run_service.py（Ruff Format限定、機械的）
 
 # Docs
-docs/project/shared/未解決/current_unresolved_findings_registry_ja.md（UF-P8-002へ状況Note追記、statusは未変更）
+docs/project/shared/unresolved_work/current_unresolved_findings_registry_ja.md（UF-P8-002へ状況Note追記、statusは未変更）
 docs/project/phases/phase_8/operations/phase_8_post_manual_rework_controller_findings_acceptance_correction_addendum_ja_20260831143355.md（新規）
 docs/project/phases/phase_8/history/index/phase_8_claude_post_manual_rework_controller_findings_corrected_user_manual_recheck_sheet_ja_20260831143355.md（新規）
 

@@ -6,7 +6,7 @@ document_type: shared_stable_task_role_operating_contract
 document_state: current
 language: ja
 created_at: 2026-08-28 16:02:59 JST
-last_updated_at: 2026-08-28 16:02:59 JST
+last_updated_at: 2026-09-04 17:00:41 JST
 decision_authority: user
 provider: Claude
 target_role: 設計者兼実装者役
@@ -58,7 +58,13 @@ Userの最新Exact Instruction
 → 本Internal Review／Rework Loop Contract
 ```
 
-下位文書は上位文書を緩和できない。Conflictがある場合は、より上位かつより厳しいBoundaryを維持し、ConflictをEvidence化する。本ContractをGit、Network、Root外Action、Provider Memory、外部Account、User Runtime Data、Destructive Actionまたは未許可Stable MutationのAuthorityにしない。
+下位文書は上位文書を緩和できない。Conflictがある場合は、より上位かつより厳しいBoundaryを維持し、ConflictをEvidence化する。本ContractをGit、Network、未許可Root外Action、未許可Provider Memory、外部Account、User Runtime Data、Destructive Actionまたは未許可Stable MutationのAuthorityにしない。
+
+### 2.1 Claude Code限定Memory例外
+
+2026-09-04 User Decisionにより、Claude Codeの本Project対応単一`MEMORY.md`／`Memory.md`とProject Root直下`.claude/**`は、非正本の作業補助として利用してよい。RoutineなRead／Write／保持はViolationまたは逐次報告対象にしない。
+
+Codexその他Roleは、これらを原則として読まず、削除・修正・Cleanup・Commit対象化しない。内容はAuthority、Handoff、Evidence、Recovery SourceまたはAcceptanceにならず、Repository Sourceで再検証する。他のProvider MemoryまたはRoot外領域への許可は生成しない。
 
 ## 3. Role／Claim Boundary
 
@@ -105,7 +111,7 @@ Active Exact Handoffが指定するWork Unitを順に実行する。
 - Open Finding。
 - Incident／Near Miss。
 - Active Process／Model Load／Temporary Artifact。
-- Authority／Root／Git／Network／Provider Memory／User Runtime Data Action Inventory。
+- Authority／Root／Git／Network／未許可Provider Memory／User Runtime Data Action Inventory（§2.1のRoutine利用は除外）。
 - Internal Review開始地点。
 
 このFreezeはCompletion Claimではない。
@@ -229,7 +235,7 @@ Return Handoffには次を含める。
 
 - Command、Scope、Exit、File Count、Test CountおよびDigestが実測と一致するか。
 - ReadしていないSource、実行していないTest、利用していないModelをClaimしていないか。
-- Root外、Git、Network、Provider Memory、User Runtime Data Actionが正確か。
+- Root外、Git、Network、未許可Provider Memory、User Runtime Data Actionが正確か（§2.1の二対象は非正本の許可済み補助状態として分離）。
 - Recovery IndexとReturn Handoffだけで新Taskが再開できるか。
 
 ## 6. No Routine Confirmation／Continuous Execution
@@ -263,8 +269,8 @@ Clarification前には、ユーザーの明示語、Active Handoff、Addendum、
 
 停止できるのは、Active Exact Handoffが定めるTrue Stop Conditionまたは上位Rule上の実質的Stopだけである。代表例は次のとおり。
 
-- Authorized Root外Actionまたはその成立可能性。
-- Git、Network、外部Account、Provider Memory、User Runtime Data等の未許可Action。
+- 未許可のAuthorized Root外Actionまたはその成立可能性（§2.1のClaude Memory例外を除く）。
+- Git、Network、外部Account、未許可Provider Memory、User Runtime Data等の未許可Action。§2.1の二対象だけはこのStop条件に含めない。
 - Secret／Credential／Privacyへの予期しない接触。
 - 不可逆／Destructive Actionが必要。
 - Frozen Contract間の実質的Conflict。
@@ -382,3 +388,15 @@ User Manual Acceptance／Closure Gate
 - Active Handoffで許可された実装を、Blast Radius、Diff規模または慎重さだけを理由に部分Returnへ縮小しない。それらはTest・Review・Recoveryの強度を上げる理由であり、True Stopではない。
 
 本節は旧来の`Fresh Task`前提より後発のCurrent運用訂正として優先する。
+
+## 14. Return提出とAppend-onlyの終了前確認（2026-09-04追記）
+
+- 完了／未完了の返却前に、Exact Return Handoffを実ファイルとして作成し、存在・内容・Indexの参照先を確認する。最終回答にPath・最大Claim・残件を提示して初めて返却完了とする。チャットの進捗要約だけで代用しない。
+- Handoff／Return／Historyはappend-only。既存ファイルへの訂正は末尾追記のみ。構成整理、Template変更、全文改訂は未使用の新規Pathに作り、旧ファイルを削除・上書きしない。Write前に対象Pathの存在を確認する。
+- 既存Returnが十分なら再構成せず提示する。形式合わせだけの大量書き直し・複製は不要。新規版が必要な場合だけ、旧版への参照と置き換える範囲を明記する。
+- Userが認めた直編集の例外は指定対象・操作に限る。フォルダ移転のPath置換許可を、Handoff本文の上書き許可へ拡張しない。
+- 次回以降のExact Handoff／指示文にも、このReturn終了条件と上書き禁止を短く明記する。今回の上書き旧内容の復元・追加鑑識はUser判断により行わない。
+
+## 15. Claude Memory共同管理の限定更新（2026-09-04 23:03 JST追記）
+
+第2.1節の単一Memory限定・Codex不干渉は、[Provider Memory契約 第11節](../automation/provider_memory_and_repository_canonical_authority_ja.md#11-claude-memoryのproject内配置と共同管理2026-09-04-2303-jst追記)により更新する。Project内`docs/project/shared/claude_memory/`をClaude／Codexが共同管理し、元のClaude読込場所は同実体へのリンクとする。Git除外・非正本・他領域への権限非拡張を維持し、Memory利用のためのRoutine確認や新規Handoff作成は不要。

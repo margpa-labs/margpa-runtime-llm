@@ -27,6 +27,12 @@ const RECORDING_MODES = ["off", "metadata", "full"] as const;
 interface FeatureModesPanelProps {
   language: UiLanguage;
   visible: boolean;
+  /** P9-1 UF-UI-017: fires after a Judge Mode apply genuinely commits (never
+   * on Repair/Recording Mode, which never affects Main Governance's own
+   * ENFORCE readiness) -- lets a parent refresh Main Runtime Governance
+   * status (e.g. RuntimeGovernancePanel's ENFORCE button availability)
+   * without this Panel itself depending on that other Panel's state. */
+  onJudgeReadinessChanged?: () => void;
 }
 
 function mergeCanonicalStatus(
@@ -45,7 +51,11 @@ function mergeCanonicalStatus(
   };
 }
 
-export default function FeatureModesPanel({ language, visible }: FeatureModesPanelProps) {
+export default function FeatureModesPanel({
+  language,
+  visible,
+  onJudgeReadinessChanged,
+}: FeatureModesPanelProps) {
   const [capability, setCapability] = useState<LoadCapability>("loading");
   const [status, setStatus] = useState<FeatureModesStatus | null>(null);
   const [resultText, setResultText] = useState("");
@@ -91,12 +101,21 @@ export default function FeatureModesPanel({ language, visible }: FeatureModesPan
   const applyOne = (
     apply: (mode: string) => Promise<FeatureModesStatus>,
     requestedMode: string,
+    notifyReadinessChange: boolean,
   ) => {
     const run = async (): Promise<void> => {
       try {
         const next = await apply(requestedMode);
         setStatus((current) => mergeCanonicalStatus(current, next));
         setResultText(translate(language, "featureModesApplySuccess"));
+        // P9-1 UF-UI-017: a genuinely committed Judge Mode change can move
+        // Main Governance's own ENFORCE readiness (`semantic_enforce_
+        // readiness()` depends on Judge Mode/Provider state) -- notify only
+        // on real success, never on a failed/rolled-back apply, so a stale
+        // parent status is never refreshed away from an unrelated failure.
+        if (notifyReadinessChange) {
+          onJudgeReadinessChanged?.();
+        }
       } catch {
         setResultText(translate(language, "featureModesApplyFailed"));
         try {
@@ -116,6 +135,7 @@ export default function FeatureModesPanel({ language, visible }: FeatureModesPan
     modes: readonly string[],
     current: string | null,
     apply: (mode: string) => Promise<FeatureModesStatus>,
+    notifyReadinessChange = false,
   ) => (
     <div className="configuration-controls">
       <div className="configuration-toggle" role="radiogroup" aria-label={translate(language, labelKey)}>
@@ -129,7 +149,7 @@ export default function FeatureModesPanel({ language, visible }: FeatureModesPan
             role="radio"
             aria-checked={current === mode}
             onClick={() => {
-              applyOne(apply, mode);
+              applyOne(apply, mode, notifyReadinessChange);
             }}
           >
             {mode}
@@ -241,6 +261,12 @@ export default function FeatureModesPanel({ language, visible }: FeatureModesPan
               <li>
                 {translate(language, "featureModesRepairAccepted")}:{" "}
                 {String(lastResult.repair_accepted)}
+              </li>
+            )}
+            {lastResult.repair_requested_by == null ? null : (
+              <li id="feature-modes-judge-repair-requested-by">
+                {translate(language, "featureModesRepairRequestedBy")}:{" "}
+                {lastResult.repair_requested_by}
               </li>
             )}
             {lastResult.repair_new_turn_id === null ? null : (
@@ -383,6 +409,7 @@ export default function FeatureModesPanel({ language, visible }: FeatureModesPan
             JUDGE_MODES,
             status.judge.current_mode,
             applyJudgeMode,
+            true,
           )}
           {renderJudgeStatus(status.judge)}
           {renderModeGroup(

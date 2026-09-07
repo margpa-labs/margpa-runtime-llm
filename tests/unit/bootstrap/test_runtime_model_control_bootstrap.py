@@ -160,6 +160,41 @@ def test_builds_a_controller_whose_initial_snapshot_matches_the_loaded_model() -
     assert snapshot.role_bindings[0].artifact_digest == _ARTIFACT_DIGEST_VALUE
 
 
+def test_builds_a_controller_matching_the_package_3_16k_context_and_8192_output_ceiling() -> None:
+    """P9-1 Package 3 (P3-WU-01/02/04): the real Composition path
+    (`build_runtime_model_controller`) against the real target numbers --
+    Context 16384/16384 (loaded/effective), Output 4096 (Current, from
+    Config's `generation.max_new_tokens`) / 8192 (Maximum, from the new
+    explicit `max_output_tokens_ceiling` -- never `context - 1`, which
+    would otherwise be 16383)."""
+    definition = make_model_definition(
+        model_key="main.qwen3-4b-q4-k-m", native_context_limit=40960
+    )
+    runtime_info = _real_runtime_info(definition=definition, context_size=16384)
+    application = _FakeApplication(
+        service=_FakeInferenceService(runtime_info=runtime_info),
+        definition=definition,
+        config=_FakeConfig(
+            load=ModelLoadConfig(context_size=16384, max_output_tokens_ceiling=8192),
+            generation=_FakeGeneration(max_new_tokens=4096),
+        ),
+        adapter=object(),
+    )
+
+    controller = build_runtime_model_controller(
+        application=application,  # type: ignore[arg-type]
+        model_access_coordinator=ModelAccessCoordinator(),
+        project_root=_PROJECT_ROOT,
+    )
+    snapshot = controller.snapshot()
+
+    assert snapshot.loaded_context_size == 16384
+    assert snapshot.deployment_verified_context_limit == 16384
+    assert snapshot.effective_context_limit == 16384
+    assert snapshot.max_output_token_limit == 8192
+    assert snapshot.current_max_new_tokens == 4096
+
+
 def test_raises_when_the_application_has_no_loaded_runtime_info() -> None:
     definition = make_model_definition(model_key="main.qwen3-4b-q4-k-m")
     application = _FakeApplication(

@@ -1,5 +1,8 @@
 import pytest
 
+from margpa_runtime_llm.modules.runtime_model_control.application.runtime_model_controller import (
+    RuntimeModelController,
+)
 from margpa_runtime_llm.modules.runtime_model_control.domain.errors import (
     RuntimeModelContextLimitExceeded,
     RuntimeModelMaxNewTokensExceeded,
@@ -7,7 +10,14 @@ from margpa_runtime_llm.modules.runtime_model_control.domain.errors import (
 )
 from margpa_runtime_llm.modules.runtime_model_control.domain.identifiers import RuntimeState
 
-from .test_runtime_model_controller import _QWEN_KEY, _FakeBackend, _make_controller
+from .test_runtime_model_controller import (
+    _QWEN_KEY,
+    _FakeAccessLease,
+    _FakeBackend,
+    _FakeDefinitionResolver,
+    _initial_snapshot,
+    _make_controller,
+)
 
 
 def test_context_change_reloads_the_same_model_at_the_new_size() -> None:
@@ -145,6 +155,40 @@ def test_set_max_new_tokens_accepts_minimum_and_effective_maximum() -> None:
         assert updated.current_max_new_tokens == requested
         assert backend.load_calls == []
         assert backend.unload_calls == 0
+
+
+def test_set_max_new_tokens_accepts_8192_and_rejects_8193_at_the_real_package_3_ceiling() -> None:
+    """P9-1 Package 3 (P3-WU-04): pins the literal real-deployment boundary
+    (Maximum max_new_tokens 8192) the generic `+1`/`-1`-relative tests above
+    already exercise for arbitrary Fixture numbers -- this Test fixes the
+    Fixture's own `max_output_token_limit` to the real Package 3 value
+    (8192) so the boundary itself, not just the mechanism, is pinned."""
+    snapshot = _initial_snapshot().model_copy(
+        update={"max_output_token_limit": 8192, "current_max_new_tokens": 4096}
+    )
+    controller = RuntimeModelController(
+        initial_snapshot=snapshot,
+        backend=_FakeBackend(),
+        access_lease=_FakeAccessLease(),
+        definitions=_FakeDefinitionResolver(),
+    )
+    initial = controller.snapshot()
+
+    accepted = controller.set_max_new_tokens(
+        expected_revision=initial.revision,
+        expected_digest=initial.digest_sha512,
+        requested_max_new_tokens=8192,
+    )
+    assert accepted.current_max_new_tokens == 8192
+
+    with pytest.raises(RuntimeModelMaxNewTokensExceeded) as excinfo:
+        controller.set_max_new_tokens(
+            expected_revision=accepted.revision,
+            expected_digest=accepted.digest_sha512,
+            requested_max_new_tokens=8193,
+        )
+    assert excinfo.value.max_output_token_limit == 8192
+    assert excinfo.value.requested_max_new_tokens == 8193
 
 
 def test_set_max_new_tokens_with_stale_cas_is_rejected() -> None:

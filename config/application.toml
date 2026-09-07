@@ -12,7 +12,7 @@ verbose_backend = false
 verify_artifact_hash = true
 
 [generation]
-max_new_tokens = 2048
+max_new_tokens = 4096
 temperature = 0.7
 top_p = 0.8
 top_k = 20

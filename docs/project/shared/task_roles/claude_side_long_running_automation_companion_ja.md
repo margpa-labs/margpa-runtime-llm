@@ -6,7 +6,7 @@ status: provisional_self_maintained
 owner_role: Claude側設計統括者役
 decision_authority: user
 created_at: 2026-08-19 16:28:22 JST
-last_updated_at: 2026-08-21 16:33:49 JST
+last_updated_at: 2026-09-04 02:42:50 JST
 language: ja
 provisional: true
 long_running_mode_active: true
@@ -26,7 +26,7 @@ long_running_mode_context: phase_3_implementation_p3_0_wu_002_onward
 
 **長期戦Mode中は、指示範囲・Scope・Rules・Governanceの範囲内である限り、作業中に一度もユーザーへ確認を求めない。** 1回でも確認を挟めば、長期戦Automation実験自体が成立しなくなる。設計・実施方法の判断は自己判断で行い、根拠をIndex／Evidence Docへ記録する（4.1節）。運用メモ第2.2節のEscalation Gate（Scope外・規則Conflict・重大Risk等での確認）は、この範囲内では原則停止する。
 
-**よっぽどの場合（指示範囲・Scope外に出る、Rules・Governanceと矛盾する、致命的Risk等）は、例外として停止・確認してよい。** Git禁止・Root境界・Provider Memory禁止等の絶対的禁止事項自体は、そもそも変更されない。
+**よっぽどの場合（指示範囲・Scope外に出る、Rules・Governanceと矛盾する、致命的Risk等）は、例外として停止・確認してよい。** Git禁止・Root境界・Provider MemoryのDefault禁止等の境界は変更されない。ただし、Claude Codeの単一`MEMORY.md`／`Memory.md`とProject Root直下`.claude/**`は、2026-09-04 User Decisionによる非正本の限定例外である。
 
 Backupはユーザー側で事前取得済みの前提で運用する。
 

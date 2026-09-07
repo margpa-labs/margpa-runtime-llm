@@ -4,6 +4,7 @@
 document_id: public_concept
 status: current
 language: ja
+project_initiated_at: 2026-07-18 17:46:37 JST
 created_at: 2026-07-27 10:49:00 JST
 updated_at: 2026-08-04 06:11:04 JST
 owner: Nazuna Research

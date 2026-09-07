@@ -33,12 +33,15 @@ Artifact is touched (Base Exact Handoff §8.1, P6-RR-DELTA §8):
 
 from __future__ import annotations
 
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
 from margpa_runtime_llm.adapters.evaluation.selene import (
+    GemmaPromptAdapter,
     SelenePromptAdapter,
     SeleneSemanticEvaluator,
+    build_gemma_judge_structured_output_constraint,
 )
 from margpa_runtime_llm.adapters.guardrail_governance.qwen3guard_adapter import (
     Qwen3GuardGenAdapter,
@@ -46,10 +49,12 @@ from margpa_runtime_llm.adapters.guardrail_governance.qwen3guard_adapter import 
 from margpa_runtime_llm.adapters.model_backends.llama_cpp.adapter import LlamaCppModelAdapter
 from margpa_runtime_llm.bootstrap.tracked_stage_worker import TrackedStageWorkerRegistry
 from margpa_runtime_llm.modules.inference.application.inference_service import InferenceService
+from margpa_runtime_llm.modules.inference.contracts.generation import StructuredOutputConstraint
 from margpa_runtime_llm.modules.inference.contracts.runtime import ModelLoadConfig
 from margpa_runtime_llm.modules.inference.domain.model_definition import ModelDefinition
 from margpa_runtime_llm.modules.runtime_model_control.application import (
     DEEPSEEK_MAIN,
+    GEMMA_E2B_JUDGE,
     QWEN3_GUARD,
     QWEN_MAIN,
     SELENE_JUDGE,
@@ -71,6 +76,26 @@ from .model_definition_registry import ModelDefinitionNotRegistered
 from .unavailable_role_adapters import UnavailableRoleProviderAdapter
 
 _DEDICATED_UNAVAILABLE_REASON = "dedicated_model_authority_unavailable"
+
+# R2-WU-04 (Controller Review IR-CI-05, Handoff §5): a Role-specific,
+# explicit, reproducible Generation Sampling Contract for the Gemma 4 E2B
+# Judge only -- never the generic Main Generation Default, and never
+# spread unconditionally to Selene (still library-default/unpinned) or
+# Main-shared batched dispatch. `top_k=1` forces greedy decoding
+# regardless of how a given backend treats `temperature=0` in isolation;
+# `seed` is fixed for byte-reproducible diagnosis across real trials.
+# `max_new_tokens` is deliberately absent -- the existing Provider/Stage
+# Budget stays exactly as it is; only the *sampling* is pinned.
+GEMMA_JUDGE_DETERMINISTIC_SAMPLING: Mapping[str, object] = {
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "top_k": 1,
+    "min_p": 0.0,
+    "presence_penalty": 0.0,
+    "frequency_penalty": 0.0,
+    "repeat_penalty": 1.0,
+    "seed": 0,
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -122,7 +147,13 @@ def _run_dedicated_preflight(
 
 
 class SeleneRoleAdapter:
-    """`RoleProviderAdapterPort` for the dedicated Selene Judge."""
+    """`RoleProviderAdapterPort` for a dedicated (non-Main-shared)
+    Semantic-Evaluator-backed Judge -- Selene originally, and reused
+    unchanged for the Package 1 lightweight independent Judge candidate
+    (Gemma 4 E2B, P9-1 Package 2) via `provider_label`/`prompt_manifest_
+    path`: nothing in this class's own logic is Selene-specific, only its
+    name (kept for established call sites/Fixture history) and its default
+    `provider_label`."""
 
     def __init__(
         self,
@@ -134,6 +165,12 @@ class SeleneRoleAdapter:
         authority_granted: bool,
         prompt_manifest_path: Path,
         tracked_stage_registry: TrackedStageWorkerRegistry | None = None,
+        provider_label: str = "selene",
+        sampling_overrides: Mapping[str, object] | None = None,
+        prompt_adapter_factory: type[SelenePromptAdapter] = SelenePromptAdapter,
+        structured_output_schema_factory: (
+            Callable[[tuple[str, ...]], StructuredOutputConstraint] | None
+        ) = None,
     ) -> None:
         self._provider_id = provider_id
         self._definitions = definitions
@@ -142,6 +179,25 @@ class SeleneRoleAdapter:
         self._authority_granted = authority_granted
         self._prompt_manifest_path = prompt_manifest_path
         self._tracked_stage_registry = tracked_stage_registry
+        self._provider_label = provider_label
+        # R2-WU-04: threaded, unchanged, into the `SeleneSemanticEvaluator`
+        # this Adapter's own `.load()` constructs below -- `None` for every
+        # existing caller (Selene) preserves the pre-Rework unpinned
+        # Sampling behavior exactly; only `ProductionRoleAdapterFactory`'s
+        # Gemma branch supplies a concrete override.
+        self._sampling_overrides = sampling_overrides
+        # R3-WU-04: which concrete `SelenePromptAdapter` (base class or the
+        # Gemma-only `GemmaPromptAdapter` override) this Role actually
+        # Prompt-builds with -- defaults to the base class unchanged for
+        # every existing caller (Selene); only `ProductionRoleAdapterFactory`
+        # 's Gemma branch supplies `GemmaPromptAdapter`.
+        self._prompt_adapter_factory = prompt_adapter_factory
+        # Gemma Judge-only Constrained Decoding Rework (WU-03): `None` for
+        # every existing caller (Selene) -- only `ProductionRoleAdapterFactory`
+        # 's Gemma branch supplies `build_gemma_judge_structured_output_
+        # constraint`, mirroring `sampling_overrides`/`prompt_adapter_
+        # factory`'s own established Composition-Root-decides pattern.
+        self._structured_output_schema_factory = structured_output_schema_factory
         self._llama_adapter: LlamaCppModelAdapter | None = None
         self._backend: LlamaCppRuntimeModelBackend | None = None
         self._pending_definition: ModelDefinition | None = None
@@ -164,7 +220,7 @@ class SeleneRoleAdapter:
         if result is None:
             return False, reason
         try:
-            prompt_adapter = SelenePromptAdapter(manifest_path=self._prompt_manifest_path)
+            prompt_adapter = self._prompt_adapter_factory(manifest_path=self._prompt_manifest_path)
             prompt_adapter.preflight_contract()
         except Exception as exc:
             return False, f"selene_prompt_contract_unavailable:{type(exc).__name__}"
@@ -192,6 +248,9 @@ class SeleneRoleAdapter:
             model_key=self._provider_id,
             prompt_adapter=self._prompt_adapter,
             tracked_stage_registry=self._tracked_stage_registry,
+            provider_label=self._provider_label,
+            sampling_overrides=self._sampling_overrides,
+            structured_output_schema_factory=self._structured_output_schema_factory,
         )
 
     def unload(self) -> None:
@@ -337,6 +396,7 @@ class ProductionRoleAdapterFactory:
         dedicated_model_authority_granted: bool = False,
         selene_prompt_manifest_path: Path,
         qwen3guard_contract_manifest_path: Path,
+        gemma_e2b_prompt_manifest_path: Path | None = None,
         tracked_stage_registry: TrackedStageWorkerRegistry | None = None,
     ) -> None:
         self._definitions = definitions
@@ -346,6 +406,7 @@ class ProductionRoleAdapterFactory:
         self._authority_granted = dedicated_model_authority_granted
         self._selene_prompt_manifest_path = selene_prompt_manifest_path
         self._qwen3guard_contract_manifest_path = qwen3guard_contract_manifest_path
+        self._gemma_e2b_prompt_manifest_path = gemma_e2b_prompt_manifest_path
         self._tracked_stage_registry = tracked_stage_registry
 
     def create(
@@ -365,6 +426,44 @@ class ProductionRoleAdapterFactory:
                 authority_granted=self._authority_granted,
                 prompt_manifest_path=self._selene_prompt_manifest_path,
                 tracked_stage_registry=self._tracked_stage_registry,
+            )
+        if option.provider_id == GEMMA_E2B_JUDGE:
+            if self._gemma_e2b_prompt_manifest_path is None:
+                # P9-1 Package 2: mirrors the same fail-closed default every
+                # other unregistered Provider gets below -- a Composition
+                # Root that never wired a Gemma prompt manifest path must
+                # never silently dispatch through an unvalidated Prompt
+                # Contract.
+                return UnavailableRoleProviderAdapter(
+                    provider_id=option.provider_id,
+                    reason="gemma_e2b_prompt_manifest_not_configured",
+                )
+            return SeleneRoleAdapter(
+                provider_id=option.provider_id,
+                definitions=self._definitions,
+                model_root=self._model_root,
+                load_config=self._load_config,
+                authority_granted=self._authority_granted,
+                prompt_manifest_path=self._gemma_e2b_prompt_manifest_path,
+                tracked_stage_registry=self._tracked_stage_registry,
+                provider_label="gemma_e2b",
+                sampling_overrides=GEMMA_JUDGE_DETERMINISTIC_SAMPLING,
+                # R3-WU-04: Gemma-only Prompt Schema non-ambiguation --
+                # never propagated to Selene/Main-shared (see `GemmaPrompt
+                # Adapter`'s own docstring).
+                prompt_adapter_factory=GemmaPromptAdapter,
+                # Gemma Judge-only Constrained Decoding Rework (WU-03): the
+                # ONE place in the whole Composition that decides Gemma
+                # gets a Grammar constraint -- Selene's own construction
+                # above passes no such Factory at all, and the Main-shared
+                # Judge dispatch (`judge_live_integration.py`) builds its
+                # own separate `SeleneSemanticEvaluator` instance with no
+                # Factory either. Same Factory `attempt_live_repair()`'s
+                # own Rejudge Call reuses (via `SeleneSemanticEvaluator.
+                # structured_output_schema_factory`), so the initial Judge
+                # dispatch and the Repair Rejudge are always constrained by
+                # the identical Schema-generation rule.
+                structured_output_schema_factory=build_gemma_judge_structured_output_constraint,
             )
         if option.provider_id == QWEN3_GUARD:
             return Qwen3GuardRoleAdapter(

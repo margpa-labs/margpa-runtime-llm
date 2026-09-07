@@ -9,6 +9,7 @@ from pydantic import ValidationError
 
 from margpa_runtime_llm.bootstrap.config_loader import (
     ApplicationConfig,
+    DeploymentLoadOverrides,
     DeploymentProfile,
     load_application_config,
     load_deployment_profile,
@@ -93,7 +94,11 @@ def test_application_config_owns_common_phase1_defaults() -> None:
     assert application.model_root.default == Path("models")
     assert application.load_defaults.context_size == 4096
     assert application.load_defaults.verify_artifact_hash
-    assert application.generation.max_new_tokens == 2048
+    # P9-1 Package 3: Application-level default raised 2048 -> 4096; the
+    # 4096/8192 (Current/Maximum) Output Ceiling contract is anchored by
+    # this value and the local_macos_arm64 Profile's own
+    # `max_output_tokens_ceiling=8192` override.
+    assert application.generation.max_new_tokens == 4096
     assert application.generation.thinking_mode is ThinkingMode.DISABLED
     assert application.response.language is ResponseLanguage.JA
     assert application.presentation.thinking.visibility == "hidden"
@@ -509,7 +514,18 @@ def test_application_loader_rejects_invalid_summarization_policy(
     assert captured.value.code == "invalid_configuration"
 
 
-def test_migration_preserves_previous_effective_macos_values() -> None:
+def test_local_macos_profile_resolves_package_3_context_and_output_ceiling_values() -> None:
+    """P9-1 Package 3: renamed from `test_migration_preserves_previous_
+    effective_macos_values` -- this Test's own name claimed value
+    *preservation*, which is no longer true now that the real
+    `local_macos_arm64` Profile intentionally changes Context 8192->16384
+    and introduces an explicit 8192 Output Ceiling (independent of Context
+    Size, no longer derived as `context - 1`). Both real-machine-verified:
+    Main alone AND Main+Gemma concurrent both real-Loaded successfully at
+    16384 (see the Exact Return's Main+Gemma 16K Real Smoke). What this
+    Test still checks is unchanged: `resolve_effective_config()` against
+    the real, checked-in `application.toml`/`local_macos_arm64.toml`
+    produces the exact effective values this deployment actually uses."""
     effective = resolve_effective_config(
         load_application_config(APPLICATION_PATH),
         load_deployment_profile(PROFILE_PATH),
@@ -522,7 +538,8 @@ def test_migration_preserves_previous_effective_macos_values() -> None:
     assert (
         effective.load.model_dump()
         == ModelLoadConfig(
-            context_size=8192,
+            context_size=16384,
+            max_output_tokens_ceiling=8192,
             batch_size=256,
             micro_batch_size=256,
             threads=6,
@@ -534,7 +551,7 @@ def test_migration_preserves_previous_effective_macos_values() -> None:
             verify_artifact_hash=True,
         ).model_dump()
     )
-    assert effective.generation.max_new_tokens == 2048
+    assert effective.generation.max_new_tokens == 4096
     assert effective.generation.temperature == 0.7
     assert effective.generation.top_p == 0.8
     assert effective.generation.thinking_mode is ThinkingMode.DISABLED
@@ -547,6 +564,49 @@ def test_migration_preserves_previous_effective_macos_values() -> None:
     assert effective.presentation.display_label == DEFAULT_THINKING_DISPLAY_LABEL
     assert effective.presentation.persistence is ThinkingPersistence.DISABLED
     assert effective.presentation.visibility_source is ThinkingPresentationSource.APPLICATION
+    # P9-1 Judge Dispatch Fix Round 5: dedicated Roles (Selene/Gemma/
+    # Qwen3Guard) get their own, smaller `context_size` (8192) than Main's
+    # 16384 -- real-hardware evidence confirmed a genuine native
+    # `llama_decode` failure when a dedicated Role Loads at the same large
+    # `context_size` as an already-ACTIVE Main model.
+    assert effective.dedicated_role_load.context_size == 8192
+    assert effective.dedicated_role_load.model_dump(
+        exclude={"context_size"}
+    ) == effective.load.model_dump(exclude={"context_size"})
+
+
+def test_dedicated_role_load_defaults_to_mains_load_and_can_be_overridden_independently() -> None:
+    """P9-1 Judge Dispatch Fix Round 5: a Profile that never sets
+    `dedicated_role_load_overrides` (every Profile except
+    `local_macos_arm64` today) must leave dedicated Roles inheriting
+    Main's own resolved `load` verbatim -- the exact pre-Round-5 behavior,
+    never silently changed by this Round's own Profile-level opt-in
+    mechanism. A Profile that does set it only ever affects
+    `dedicated_role_load`, never Main's own `load`."""
+    application = load_application_config(APPLICATION_PATH)
+    profile = load_deployment_profile(PROFILE_PATH)
+    unset_override = profile.model_copy(
+        update={"dedicated_role_load_overrides": DeploymentLoadOverrides()}
+    )
+
+    unset_effective = resolve_effective_config(
+        application, unset_override, project_root=PROJECT_ROOT, environment={}
+    )
+    assert unset_effective.dedicated_role_load.model_dump() == unset_effective.load.model_dump()
+
+    set_override = profile.model_copy(
+        update={
+            "dedicated_role_load_overrides": DeploymentLoadOverrides(context_size=1234),
+        }
+    )
+    set_effective = resolve_effective_config(
+        application, set_override, project_root=PROJECT_ROOT, environment={}
+    )
+    assert set_effective.dedicated_role_load.context_size == 1234
+    assert set_effective.load.context_size == 16384
+    assert set_effective.dedicated_role_load.model_dump(
+        exclude={"context_size"}
+    ) == set_effective.load.model_dump(exclude={"context_size"})
 
 
 def test_thinking_presentation_uses_field_specific_precedence_and_sources() -> None:

@@ -70,7 +70,7 @@ Phase 6のSelene、Qwen3Guard、Semantic 109、Built-in Judge／Repair等を解�
 ### Boundary／Known Debt
 
 11. `docs/project/phases/phase_6/history/operations/phase_6_special_minimal_closure_with_known_debt_ja_20260829171422.md`
-12. `docs/project/shared/未解決/current_unresolved_findings_registry_ja.md`
+12. `docs/project/shared/unresolved_work/current_unresolved_findings_registry_ja.md`
 13. `docs/project/shared/history/planned_work/post_phase_6_closure_claude_copilot_forward_execution_candidates_ja_20260829171422.md`
 
 ## 3. As-built Source Entry

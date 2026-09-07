@@ -42,7 +42,7 @@ latest_recovery:
   path: docs/project/phases/phase_8/history/index/phase_8_claude_manual_url_final_two_blockers_micro_rework_recovery_ja_20260831150330.md
   sha512_match: true
 current_unresolved_registry:
-  path: docs/project/shared/未解決/current_unresolved_findings_registry_ja.md
+  path: docs/project/shared/unresolved_work/current_unresolved_findings_registry_ja.md
   sha512_match: true
 ```
 

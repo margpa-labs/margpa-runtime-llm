@@ -1,0 +1,16 @@
+{
+  "schema_version": "1",
+  "provider_id": "judge.gemma-4-e2b-it-q4-0",
+  "template_type": "project_derived_multi_criterion_v1",
+  "upstream_repository_url": "https://huggingface.co/google/gemma-4-E2B-it-qat-q4_0-gguf",
+  "upstream_revision": null,
+  "template_file": null,
+  "template_sha512": null,
+  "derived_template_file": "project_derived_multi_criterion_prompt_v1.txt",
+  "derived_template_sha512": "8b4b0fe45010cd6f9f94e0e6133c1fb02c5e6f9729852b8cca3001c420e6c62b5a4418b82eb44946a953a8032f06900fbbd6c267e7e5670fbfac77193346c95a",
+  "derived_from_upstream_revision": null,
+  "derived_from_upstream_basis": "project_derived_provider_neutral_contract_shared_with_selene",
+  "project_contract_digest_sha512": "e5f9e07ea7cb4904f0eb7b13b5f6dc3911407a039679b9b6de99090967931c0eadedfa7aa04f23b7a3552716299595fd3539c0851eb81e1081f733ac27d517b9",
+  "retrieval_status": "project_derived_contract_ready_no_official_judge_template_published",
+  "verified_official_copy": false
+}

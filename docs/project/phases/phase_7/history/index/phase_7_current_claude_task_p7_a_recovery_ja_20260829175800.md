@@ -53,7 +53,7 @@ Chat Composer統合を要する識別のため、その部分はPhase 10へ延�
 判定根拠: Architecture §6 Attachment Sizing Boundary、Requirements §4 Scope外
   （MP4等動画Multimodal分析）、Resource Gate（Disk約33GiB、個人PoC、金銭・Hardware制約）。
 延期Registry記録先: 本Package Recovery（本書）。P7完了後、
-  `docs/project/shared/未解決/current_unresolved_findings_registry_ja.md`のPhase 10候補区分
+  `docs/project/shared/unresolved_work/current_unresolved_findings_registry_ja.md`のPhase 10候補区分
   （UF-HARD-*相当）へ、Controller Independent Review後に正式追記されることを想定する
   （本Claude TaskはStable未解決Registryへの直接書込み権限を持たないため、Evidence自体は
   本Recovery IndexとReturn Handoffへ記録し、Registry反映はController判断に委ねる）。

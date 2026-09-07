@@ -200,7 +200,7 @@ P1〜P2:
 - Chat Composer汎用File Attachment（Phase 10延期、P7-A判定）。
 ```
 
-上記は全て`docs/project/shared/未解決/current_unresolved_findings_registry_ja.md`への
+上記は全て`docs/project/shared/unresolved_work/current_unresolved_findings_registry_ja.md`への
 反映をController判断に委ねる（本Claude TaskはStable未解決Registryへの直接書込み権限を
 持たない）。
 

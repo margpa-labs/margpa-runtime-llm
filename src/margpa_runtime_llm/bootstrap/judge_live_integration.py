@@ -68,12 +68,16 @@ import hashlib
 import json
 import threading
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from concurrent.futures import Future
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from typing import Literal, Protocol, cast
 
+from margpa_runtime_llm.adapters.evaluation.selene import (
+    BatchDispatchEvidence,
+    SeleneSemanticEvaluator,
+)
 from margpa_runtime_llm.bootstrap.stage_deadline import stage_deadline
 from margpa_runtime_llm.bootstrap.tracked_stage_worker import (
     TrackedStageWorkerRegistry,
@@ -105,6 +109,7 @@ from margpa_runtime_llm.modules.evaluation.application.judge_output_decoder impo
 )
 from margpa_runtime_llm.modules.evaluation.application.judge_prompt_builder import (
     JudgePromptCriterion,
+    MainSemanticPromptAdapter,
     build_judge_prompt,
 )
 from margpa_runtime_llm.modules.evaluation.domain.dataset import EvaluationCase
@@ -133,6 +138,7 @@ from margpa_runtime_llm.modules.inference.application.model_access_coordinator i
 from margpa_runtime_llm.modules.inference.contracts.generation import (
     GenerationParameters,
     GenerationRequest,
+    StructuredOutputConstraint,
 )
 from margpa_runtime_llm.modules.inference.contracts.messages import ChatMessage, MessageRole
 from margpa_runtime_llm.modules.inference.contracts.runtime import ModelRuntimeInfo
@@ -147,12 +153,15 @@ from margpa_runtime_llm.modules.repair.application.repair_mode_controller import
 from margpa_runtime_llm.modules.repair.domain.budget import RepairBudgetUsage
 from margpa_runtime_llm.modules.repair.domain.identifiers import RepairMode
 from margpa_runtime_llm.modules.runtime_governance.domain import (
+    SemanticActionDecision,
     SemanticCriterionDisposition,
     SemanticCriterionResult,
     SemanticDeferredReason,
     SemanticEvaluationRequest,
     SemanticEvaluationResponse,
+    SemanticFinalDisposition,
     SemanticProviderState,
+    SemanticRuntimeEvidence,
     SemanticTurnSnapshot,
 )
 from margpa_runtime_llm.modules.runtime_observability.application.recording_mode_controller import (
@@ -194,6 +203,12 @@ class RepairExecutorPort(Protocol):
         rejudge_model_key: str | None = None,
         rejudge_role: JudgeIndependenceClass = JudgeIndependenceClass.MAIN_SELF,
         language: str = "en",
+        rejudge_criteria: tuple[JudgePromptCriterion, ...] = (),
+        tracked_stage_registry: TrackedStageWorkerRegistry | None = None,
+        rejudge_structured_output_schema_factory: (
+            Callable[[tuple[str, ...]], StructuredOutputConstraint] | None
+        ) = None,
+        rejudge_sampling_overrides: Mapping[str, object] | None = None,
     ) -> RepairExecutionResult | None: ...
 
 
@@ -299,6 +314,18 @@ class LiveJudgeResult:
     failure_language: str | None = None
     repair_rejudge_provider: str | None = None
     repair_rejudge_role: str | None = None
+    repair_requested_by: str | None = None
+    """P9-1 Judge/Governance Rework (WU-03): `"judge"` / `"main_governance"`
+    / `"judge_and_main"`, set only when a Repair Attempt actually ran
+    (`repair_result is not None`) -- surfaces which side(s) authorized the
+    Repair Executor invocation this Run made, so a Status reader can tell
+    Main Governance's own ENFORCE-origin correction apart from the
+    pre-existing Judge/Repair-Mode-origin one (or both, when they
+    converged on the same Candidate) without inferring it from `frozen_
+    repair_mode` alone -- which, since this Rework, no longer implies
+    whether a Repair actually happened. `None` whenever no Repair Attempt
+    ran at all (never fabricated as "requested" just because either side's
+    own recommendation/Eligibility check would have allowed one)."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -507,7 +534,9 @@ def build_judge_completion_hook(
     repair_executor: RepairExecutorPort | None = None,
     judge_evidence_recorder: JudgeEvidenceRecorder | None = None,
     semantic_snapshot_provider: Callable[[str], SemanticTurnSnapshot | None] | None = None,
-    semantic_result_recorder: Callable[[SemanticEvaluationResponse], object] | None = None,
+    semantic_result_recorder: (
+        Callable[[SemanticEvaluationResponse], SemanticRuntimeEvidence | None] | None
+    ) = None,
     semantic_deferred_recorder: (Callable[[str, SemanticDeferredReason], object] | None) = None,
     judge_provider_is_built_in: Callable[[], bool] | None = None,
     guardrail_mode_resolver: Callable[[], str] | None = None,
@@ -663,9 +692,21 @@ def build_judge_completion_hook(
         criterion_results: tuple[object, ...],
         latency_ms: int,
         failure_reason: str | None,
-    ) -> None:
+    ) -> SemanticActionDecision | None:
+        """P9-1 Judge/Governance Rework (WU-03): now returns Main
+        Governance's own `SemanticActionDecision` (via `semantic_result_
+        recorder`'s typed `SemanticRuntimeEvidence | None` return, no
+        longer a discarded `object`) so a caller reaching a genuinely
+        Decoded/Completed result can pass it on to `_finalize_judge_
+        dispatch()` as `main_action` -- see that function's own docstring
+        for how a Main-origin repair request is reconciled with a
+        Judge-origin one. `None` whenever recording did not happen at all
+        (no snapshot, no recorder wired) or the recorder itself raised --
+        never fabricated from a failure/cancellation, since those callers
+        below never reach the subsequent `_finalize_judge_dispatch()` call
+        this return value would otherwise feed."""
         if snapshot is None or semantic_result_recorder is None:
-            return
+            return None
         translated: list[SemanticCriterionResult] = []
         descriptors = {item.criterion_id: item.descriptor_id for item in snapshot.criteria}
         for raw in criterion_results:
@@ -712,9 +753,11 @@ def build_judge_completion_hook(
             failure_reason=failure_reason,
         )
         try:
-            semantic_result_recorder(response)
+            evidence = semantic_result_recorder(response)
         except Exception:
             composition.record_evidence_publication_failure(reason="semantic_result_record_failed")
+            return None
+        return evidence.action if evidence is not None else None
 
     def _judge_criterion_counts(response: LlmJudgeResponse, *, deferred: int) -> _CriterionCounts:
         passed = sum(
@@ -892,8 +935,20 @@ def build_judge_completion_hook(
         pending_evidence = _pending_evidence(
             judge_evidence_recorder,
             context=context,
-            model_key=context.model_key,
-            model_runtime_info=context.model_runtime_info,
+            # R3-WU-02 (Controller Review IR-R2-02): the EXECUTED Judge
+            # Provider here genuinely IS `built_in.deterministic` -- never
+            # `context.model_key` (Main's own identity, the Model being
+            # EVALUATED, not the one that executed this Judge Run). Passing
+            # Main's own `model_key`/`model_runtime_info` here re-mixed
+            # Built-in's own Model-Call-0 Evidence with Main's real
+            # Artifact/Backend/Version, exactly the confirmed real bug this
+            # fixes. `model_runtime_info=None` is itself the honest signal
+            # (no Model Artifact backs this Provider Type at all) --
+            # `_pending_evidence()`'s own caller-side contract already
+            # renders a `None` Runtime Info as `"unavailable"`, never a
+            # fabricated value.
+            model_key=_BUILT_IN_JUDGE_PROVIDER_ID,
+            model_runtime_info=None,
             recording_mode=recording_mode,
             recommendation="unknown",
             confidence=0.0,
@@ -903,11 +958,46 @@ def build_judge_completion_hook(
             failure_reason=None,
             judge_role=JudgeIndependenceClass.BUILT_IN,
             prompt="(built_in.deterministic: no prompt; zero Model Calls)",
+            configured_judge_provider=(
+                semantic_snapshot.configured_provider if semantic_snapshot is not None else None
+            ),
+            active_judge_provider=(
+                semantic_snapshot.active_provider if semantic_snapshot is not None else None
+            ),
         )
         return _JudgeWorkerOutcome(result=result, pending_evidence=pending_evidence)
 
+    def _judge_failure_reason_from_semantic_response(
+        response: SemanticEvaluationResponse,
+    ) -> JudgeFailureReason:
+        """P9-1 Package 2 Common Substrate fix: `SeleneSemanticEvaluator`
+        (shared by every LLM-backed Judge provider, not only Selene) tags
+        its own `failure_reason` string precisely — `"malformed_output:..."`
+        for a genuine Strict-Decode rejection, `"..._inference_deadline_
+        exceeded"`/`"..._cancelled"`/`"..._generation_cancelled"` for a
+        timeout or cancellation, anything else for a real adapter/
+        infrastructure failure. Previously every non-ACTIVE `provider_state`
+        collapsed to the single `JudgeFailureReason.UNAVAILABLE` here,
+        discarding that distinction — so a truncated/invalid JSON response
+        (the model *did* respond) was indistinguishable from the model
+        genuinely being unreachable, for every provider using this shared
+        engine. This mirrors the same `JudgeFailureReason` vocabulary the
+        Main-self decode pipeline (`judge_output_decoder.
+        decode_judge_output_fail_closed`) already uses, so failure
+        presentation is consistent across every LLM-backed Judge provider."""
+        reason = response.failure_reason or ""
+        if reason.startswith("malformed_output"):
+            return JudgeFailureReason.MALFORMED_OUTPUT
+        if "deadline_exceeded" in reason:
+            return JudgeFailureReason.TIMEOUT
+        if "cancelled" in reason:
+            return JudgeFailureReason.CANCELLED
+        return JudgeFailureReason.UNAVAILABLE
+
     def _judge_response_from_semantic_results(
         response: SemanticEvaluationResponse,
+        *,
+        judge_role: JudgeIndependenceClass = JudgeIndependenceClass.INDEPENDENT_ARTIFACT,
     ) -> LlmJudgeResponse:
         """P6-RR-R2-WU-002: bridges Selene's criterion-shaped
         `SemanticEvaluationResponse` into the same `LlmJudgeResponse` shape
@@ -917,24 +1007,57 @@ def build_judge_completion_hook(
         `runtime_governance.application.semantic_runtime.resolve_semantic_
         action()`'s own has_deviation/has_uncertain classification, applied
         here to derive an `EvaluationRecommendation` instead of a
-        `SemanticFinalDisposition`."""
+        `SemanticFinalDisposition`.
+
+        P9-1 Package 2: `judge_role` defaults to `INDEPENDENT_ARTIFACT`
+        (Selene's own, unchanged, correct identity) but the Main-shared
+        semantic-criteria dispatch now reusing this same bridge (see
+        `_run_selene_dispatch`'s caller in the semantic-criteria branch of
+        `_run_judge_and_repair`) passes `MAIN_SELF` explicitly — a Main
+        Model judging its own answer must never be displayed as an
+        Independent Judge Artifact (module docstring, P6-ACC-020).
+
+        Gemma Judge-only Constrained Decoding Rework (WU-05): `token_usage`
+        is `response.budget.completion_tokens` -- the real accumulated sum
+        across every Batch Call this Run actually made (`SeleneSemantic
+        Evaluator.evaluate()`'s own `completion_tokens` accumulator, which
+        already increments before a Batch's own Decode outcome is known) --
+        never the previous hardcoded `0`, in both the FAILED and COMPLETED
+        branches below."""
+        real_token_usage = response.budget.completion_tokens if response.budget is not None else 0
         if response.provider_state is not SemanticProviderState.ACTIVE:
             return LlmJudgeResponse(
-                judge_role=JudgeIndependenceClass.INDEPENDENT_ARTIFACT,
+                judge_role=judge_role,
                 recommendation=EvaluationRecommendation.UNKNOWN,
                 confidence=0.0,
                 execution_state=EvaluationExecutionState.FAILED,
-                failure_reason=JudgeFailureReason.UNAVAILABLE,
-                token_usage=0,
+                failure_reason=_judge_failure_reason_from_semantic_response(response),
+                token_usage=real_token_usage,
                 latency_ms=response.latency_ms,
             )
         results = response.results
         has_deviation = any(
             item.disposition is SemanticCriterionDisposition.DEVIATION for item in results
         )
+        # P9-1 Judge Dispatch Fix Round 6 Self-review correction (Round 4,
+        # Finding from an independent existing-role/backward-compat audit):
+        # NOT_APPLICABLE added here too, keeping this genuinely in sync
+        # with `resolve_semantic_action()`'s own Round 6 has_uncertain fix
+        # (semantic_runtime.py) that this function's own docstring already
+        # claims to "Mirror". Not reachable today (this bridge is only ever
+        # fed Selene/Main-shared results, whose Disposition Mapping in
+        # `adapters/evaluation/selene.py` never produces NOT_APPLICABLE —
+        # only the separate Built-in Judge path does, and it never calls
+        # this function), but keeping the two has_uncertain definitions
+        # identical now avoids a silent, hard-to-notice re-divergence if
+        # that ever changes.
         has_uncertain = any(
             item.disposition
-            in (SemanticCriterionDisposition.UNKNOWN, SemanticCriterionDisposition.DEFERRED)
+            in (
+                SemanticCriterionDisposition.UNKNOWN,
+                SemanticCriterionDisposition.DEFERRED,
+                SemanticCriterionDisposition.NOT_APPLICABLE,
+            )
             for item in results
         )
         recommendation = (
@@ -945,7 +1068,7 @@ def build_judge_completion_hook(
             else EvaluationRecommendation.ACCEPT
         )
         return LlmJudgeResponse(
-            judge_role=JudgeIndependenceClass.INDEPENDENT_ARTIFACT,
+            judge_role=judge_role,
             recommendation=recommendation,
             confidence=(1.0 if recommendation is EvaluationRecommendation.ACCEPT else 0.0),
             criterion_results=tuple(
@@ -961,7 +1084,7 @@ def build_judge_completion_hook(
                 )
                 for item in results
             ),
-            token_usage=0,
+            token_usage=real_token_usage,
             latency_ms=response.latency_ms,
             execution_state=EvaluationExecutionState.COMPLETED,
         )
@@ -1004,6 +1127,37 @@ def build_judge_completion_hook(
                 semantic_snapshot=semantic_snapshot,
                 recording_mode=recording_mode,
             )
+        if (
+            active_adapter is not None
+            and semantic_snapshot is not None
+            and semantic_snapshot.active_provider is not None
+            and getattr(active_adapter, "provider_id", None) != semantic_snapshot.active_provider
+        ):
+            # R3-WU-01 (Controller Review IR-R2-01 residual): the Dedicated
+            # Adapter genuinely resolved at Judge Completion time must
+            # match the Active Provider this Turn already froze at Turn
+            # start -- a live Provider switch landing between the two
+            # moments must never silently dispatch a real Model Call
+            # against a DIFFERENT Provider than the one this Turn's own
+            # Snapshot/Evidence already claims. Model Call 0; the Lease
+            # `hook()` already acquired for `active_adapter` is released by
+            # `_run_judge`'s own unconditional `finally`, exactly as the
+            # sibling `active_adapter is None` branch below already relies
+            # on without a manual release call here.
+            _record_semantic_deferred(
+                context.request_id, SemanticDeferredReason.PROVIDER_IDENTITY_MISMATCH
+            )
+            return _JudgeWorkerOutcome(
+                result=LiveJudgeResult(
+                    request_id=context.request_id,
+                    judge_role=JudgeIndependenceClass.UNAVAILABLE,
+                    recommendation="unknown",
+                    confidence=0.0,
+                    execution_state="failed",
+                    failure_reason="judge_provider_identity_mismatch",
+                    executed_provider=None,
+                )
+            )
         if active_adapter is None and provider_selection_wired:
             # P6-RR-R2-WU-003/006: Provider Selection is genuinely wired
             # for this deployment (a `begin_judge_role_turn` resolver was
@@ -1031,11 +1185,30 @@ def build_judge_completion_hook(
             else None
         )
         if selene_evaluator is not None:
+            # R2-WU-02 (Controller Review IR-CI-02): the real executing
+            # identity's own Runtime Info -- the Dedicated Role's own real
+            # Load Receipt (`SeleneRoleAdapter.load()`'s `InferenceService
+            # (port=self._llama_adapter)`, exposed via `SeleneSemanticEvaluator
+            # .inference_service`), never `context.model_runtime_info`
+            # (Main's own identity). This is the confirmed real bug: a
+            # genuinely `independent_artifact`-role Gemma Run recorded
+            # `artifact_digest_sha512`/`backend_key`/`backend_version` as
+            # Main Qwen's own, even though `model_identity` (fixed last
+            # Round) already correctly said "Gemma".
+            executed_service = getattr(selene_evaluator, "inference_service", None)
+            executed_model_runtime_info = (
+                getattr(executed_service, "runtime_info", None)
+                if executed_service is not None
+                else None
+            )
             return _run_selene_dispatch(
                 context,
                 semantic_snapshot=semantic_snapshot,
                 evaluator=selene_evaluator,
                 executed_provider=getattr(active_adapter, "provider_id", None),
+                executed_model_runtime_info=cast(
+                    "ModelRuntimeInfo | None", executed_model_runtime_info
+                ),
                 judge_mode=judge_mode,
                 repair_mode=repair_mode,
                 recording_mode=recording_mode,
@@ -1051,6 +1224,54 @@ def build_judge_completion_hook(
         executed_provider = (
             getattr(active_adapter, "provider_id", None) if active_adapter is not None else None
         )
+        if semantic_snapshot is not None and semantic_snapshot.criteria:
+            # P9-1 Package 2 Common Substrate fix: a real Semantic Turn
+            # Snapshot with Criteria to evaluate must go through the same
+            # token-bounded batch planner every LLM-backed Judge provider
+            # now shares (`SeleneSemanticEvaluator` — provider-neutral
+            # despite its name, see its own module docstring), never a
+            # single unbatched call for up to `max_criteria` (32) Criteria
+            # against a small fixed output-token cap. That single-call
+            # shape is exactly what silently truncated the requested
+            # `criterion_results` JSON array and surfaced as Main-shared's
+            # `malformed_output` failure (P9-1 Package 2 diagnosis) — never
+            # reached by this branch anymore. `_run_selene_dispatch` is
+            # itself already provider-neutral (duck-typed `evaluator:
+            # object`); reused unchanged here rather than duplicating its
+            # batching/decode/failure-mapping logic a second time. The
+            # general-quality branch below (no Semantic Criteria selected)
+            # is unaffected — its own single-call/200-token shape was never
+            # the broken one.
+            evaluator = SeleneSemanticEvaluator(
+                service=service,
+                model_key=executed_provider or context.model_key,
+                prompt_adapter=MainSemanticPromptAdapter(rubric_id=_LIVE_RUBRIC_ID),
+                tracked_stage_registry=tracked_stage_registry,
+                provider_label="main_shared",
+            )
+            return _run_selene_dispatch(
+                context,
+                semantic_snapshot=semantic_snapshot,
+                evaluator=evaluator,
+                executed_provider=executed_provider,
+                # R2-WU-02: this batched-criteria evaluator wraps Main's
+                # own shared `service` (constructed just above) -- the
+                # executing identity genuinely IS Main's own frozen
+                # Runtime Info here, unlike the dedicated Gemma/Selene
+                # branch above.
+                executed_model_runtime_info=context.model_runtime_info,
+                judge_mode=judge_mode,
+                repair_mode=repair_mode,
+                recording_mode=recording_mode,
+                cancellation=cancellation,
+                run_generation=run_generation,
+                stage_budget=run_stage_budget,
+                judge_role=JudgeIndependenceClass.MAIN_SELF,
+                prompt_description=(
+                    "(main-shared batched evaluator: prompt built per-batch by "
+                    "MainSemanticPromptAdapter/build_judge_prompt)"
+                ),
+            )
         prompt_criteria = (
             tuple(
                 JudgePromptCriterion(
@@ -1157,7 +1378,15 @@ def build_judge_completion_hook(
                 pending_evidence=_pending_evidence(
                     judge_evidence_recorder,
                     context=context,
-                    model_key=context.model_key,
+                    # P9-1 Component Independence Rework (WU-04): the real
+                    # executing identity for this Run, matching the
+                    # `GenerationRequest.model_key` actually dispatched
+                    # above -- never unconditionally `context.model_key`
+                    # (Main's own identity), which conflates "the Model
+                    # evaluated" with "the Model that executed this Judge
+                    # Run" whenever Provider Selection genuinely chose a
+                    # different explicit Main-shared `executed_provider`.
+                    model_key=executed_provider or context.model_key,
                     model_runtime_info=context.model_runtime_info,
                     recording_mode=recording_mode,
                     recommendation="unknown",
@@ -1168,20 +1397,42 @@ def build_judge_completion_hook(
                     failure_reason=model_failure_reason,
                     judge_role=JudgeIndependenceClass.MAIN_SELF,
                     prompt=prompt,
+                    configured_judge_provider=(
+                        semantic_snapshot.configured_provider
+                        if semantic_snapshot is not None
+                        else None
+                    ),
+                    active_judge_provider=(
+                        semantic_snapshot.active_provider if semantic_snapshot is not None else None
+                    ),
                 ),
             )
         if cancellation.is_cancelled():
-            # P6-CODEX-019/020: Main-priority preemption reached this Run —
-            # never decode a possibly-truncated partial response as if it
-            # were a genuine Judge answer. P6-RR-R14-WU-001..005: this Stage's
-            # own Timer (`stage_deadline` above) can also be what fired —
-            # attributed distinctly from an external Main-priority
-            # preemption so an operator never sees a Timeout mislabeled as
-            # a preemption or vice versa.
+            # P9-1 Component Independence Rework (WU-04), Race-fixed by
+            # R2-WU-03 (Controller Review IR-CI-03): a signalled
+            # Cancellation Token reaching this point has at least three
+            # structurally distinct real origins this module can itself
+            # tell apart -- this Stage's own local Timer (`stage_deadline`
+            # above), genuine Main-priority preemption (`ModelAccessCoordinator
+            # .acquire_main()` signalling this Run's own registered `cancel`
+            # directly -- see its own `was_preempted()` docstring), and a
+            # genuine external Stop/disconnect (`ConversationGeneration
+            # Session.request_cancel()`/`force_cancel()`, never routed
+            # through that Coordinator at all). `was_preempted()` is now a
+            # non-destructive peek -- this Worker-thread read and the
+            # ENFORCE Wait Loop's own concurrent read (below) can no
+            # longer race for a single one-shot consumption of the same
+            # flag; both always see the same, correct answer. The single
+            # internal Reason string is shared with that other call site
+            # (unified by R2-WU-03; both still classify to the identical
+            # Typed `CANCELLED` presentation via `classify_evaluation_
+            # failure()`, unchanged).
             cancel_reason = (
                 "inference_stage_deadline_exceeded"
                 if inference_stage_timed_out()
-                else "preempted_by_main_priority"
+                else "cancelled_by_main_priority_preemption"
+                if model_access_coordinator.was_preempted(task_id=context.request_id)
+                else "cancelled_by_request"
             )
             _record_semantic_result(
                 snapshot=semantic_snapshot,
@@ -1203,7 +1454,7 @@ def build_judge_completion_hook(
                 pending_evidence=_pending_evidence(
                     judge_evidence_recorder,
                     context=context,
-                    model_key=context.model_key,
+                    model_key=executed_provider or context.model_key,
                     model_runtime_info=context.model_runtime_info,
                     recording_mode=recording_mode,
                     recommendation="unknown",
@@ -1214,6 +1465,14 @@ def build_judge_completion_hook(
                     failure_reason=cancel_reason,
                     judge_role=JudgeIndependenceClass.MAIN_SELF,
                     prompt=prompt,
+                    configured_judge_provider=(
+                        semantic_snapshot.configured_provider
+                        if semantic_snapshot is not None
+                        else None
+                    ),
+                    active_judge_provider=(
+                        semantic_snapshot.active_provider if semantic_snapshot is not None else None
+                    ),
                 ),
             )
         latency_ms = int((time.monotonic() - started) * 1000)
@@ -1254,7 +1513,7 @@ def build_judge_completion_hook(
             max_wall_time_ms=run_stage_budget.inference_budget_ms,
         )
         gated = apply_judge_budget_gate(budget=judge_budget, response=decoded)
-        _record_semantic_result(
+        main_action = _record_semantic_result(
             snapshot=semantic_snapshot,
             provider_state=(
                 SemanticProviderState.ACTIVE
@@ -1270,8 +1529,19 @@ def build_judge_completion_hook(
         return _finalize_judge_dispatch(
             context,
             gated=gated,
+            main_action=main_action,
             prompt=prompt,
             executed_provider=executed_provider,
+            # R2-WU-02: this branch dispatches via Main's own shared
+            # `service` (`service.generate(...)` above) -- the executing
+            # identity genuinely IS Main's own frozen Runtime Info here.
+            executed_model_runtime_info=context.model_runtime_info,
+            configured_judge_provider=(
+                semantic_snapshot.configured_provider if semantic_snapshot is not None else None
+            ),
+            active_judge_provider=(
+                semantic_snapshot.active_provider if semantic_snapshot is not None else None
+            ),
             judge_mode=judge_mode,
             repair_mode=repair_mode,
             recording_mode=recording_mode,
@@ -1290,6 +1560,12 @@ def build_judge_completion_hook(
                     else 0
                 ),
             ),
+            # `prompt_criteria` is always empty on this path: reached only
+            # when `semantic_snapshot is None or not semantic_snapshot.
+            # criteria` (the real Semantic-criteria case redirects to
+            # `_run_selene_dispatch` above, before this branch). No Frozen
+            # Criterion set exists to preserve for the Rejudge here.
+            rejudge_criteria=prompt_criteria,
         )
 
     def _run_selene_dispatch(
@@ -1298,12 +1574,17 @@ def build_judge_completion_hook(
         semantic_snapshot: SemanticTurnSnapshot | None,
         evaluator: object,
         executed_provider: str | None,
+        executed_model_runtime_info: ModelRuntimeInfo | None,
         judge_mode: EvaluationMode,
         repair_mode: RepairMode | None,
         recording_mode: RecordingMode,
         cancellation: CancellationToken,
         run_generation: int,
         stage_budget: StageBudgetProfile,
+        judge_role: JudgeIndependenceClass = JudgeIndependenceClass.INDEPENDENT_ARTIFACT,
+        prompt_description: str = (
+            "(dedicated Selene evaluator: prompt built internally by SelenePromptAdapter)"
+        ),
     ) -> _JudgeWorkerOutcome:
         """P6-RR-R2-WU-002 (Dedicated Selene明示Dispatch): dispatches to
         `SeleneRoleAdapter.semantic_evaluator` (a `SeleneSemanticEvaluator`,
@@ -1314,12 +1595,20 @@ def build_judge_completion_hook(
         Receipt (`SeleneRoleAdapter.preflight()` Fail-closes otherwise) —
         the dispatch itself is real and Fixture-tested (R7-WU-001), but
         cannot be exercised against a real Selene Artifact in this Task's
-        current Authority state."""
+        current Authority state.
+
+        P9-1 Package 2: also reused, unchanged, for the Main-shared Judge's
+        semantic-criteria dispatch (`_run_judge_and_repair`'s semantic-
+        criteria branch, passing its own freshly-constructed
+        `SeleneSemanticEvaluator` instance plus `judge_role=MAIN_SELF` and a
+        Main-accurate `prompt_description`) — the whole point of sharing
+        this function is that neither caller repeats the other's Batching/
+        Decode/Failure-mapping Workaround."""
         if semantic_snapshot is None:
             return _JudgeWorkerOutcome(
                 result=LiveJudgeResult(
                     request_id=context.request_id,
-                    judge_role=JudgeIndependenceClass.INDEPENDENT_ARTIFACT,
+                    judge_role=judge_role,
                     recommendation="unknown",
                     confidence=0.0,
                     execution_state="failed",
@@ -1341,17 +1630,26 @@ def build_judge_completion_hook(
             nonlocal late_worker
             late_worker = future
 
+        # Gemma Judge-only Constrained Decoding Rework (WU-05): collected
+        # regardless of Provider (Selene/Gemma/Main-shared all share this
+        # one batching Engine) -- an empty list for a caller whose own
+        # `evaluate()` never emits any (impossible today, since every
+        # `SeleneSemanticEvaluator` instance now supports the Observer) is
+        # handled identically to "no Batch ran at all" by `_finalize_judge_
+        # dispatch()`'s own fallback below.
+        batch_evidence: list[BatchDispatchEvidence] = []
         response = evaluator.evaluate(  # type: ignore[attr-defined]
             request=semantic_request,
             cancellation=cancellation,
             inference_budget_ms=stage_budget.inference_budget_ms,
             late_worker_observer=record_late_worker,
+            batch_evidence_observer=batch_evidence.append,
         )
         if cancellation.is_cancelled():
             return _JudgeWorkerOutcome(
                 result=LiveJudgeResult(
                     request_id=context.request_id,
-                    judge_role=JudgeIndependenceClass.INDEPENDENT_ARTIFACT,
+                    judge_role=judge_role,
                     recommendation="unknown",
                     confidence=0.0,
                     execution_state="cancelled",
@@ -1360,24 +1658,65 @@ def build_judge_completion_hook(
                 ),
                 deferred_role_release=late_worker,
             )
+        main_action: SemanticActionDecision | None = None
         if semantic_result_recorder is not None:
             # Selene's own SemanticEvaluationResponse already carries the
             # correct `provider_id` (`SeleneSemanticEvaluator.evaluate()`
             # sets it directly, no Configured-fallback anti-pattern) —
             # recorded as-is, mirroring the Built-in path's own bypass of
             # `_record_semantic_result()`'s Main-self-shaped translation.
+            # P9-1 Judge/Governance Rework (WU-03): the recorder's typed
+            # `SemanticRuntimeEvidence | None` return is captured here too
+            # (this Selene/Main-shared-batched dispatch path is the one
+            # that actually carries real Semantic Criteria, so it is the
+            # one Main Governance's own `resolve_semantic_action()` can
+            # produce a genuine `REPAIR_REQUESTED` for).
             try:
-                semantic_result_recorder(response)
+                evidence = semantic_result_recorder(response)
+                main_action = evidence.action if evidence is not None else None
             except Exception:
                 composition.record_evidence_publication_failure(
                     reason="semantic_result_record_failed"
                 )
-        gated = _judge_response_from_semantic_results(response)
+        gated = _judge_response_from_semantic_results(response, judge_role=judge_role)
+        # Controller Review (2026-09-04 19:16, IR-02) fix: the exact Frozen
+        # Criterion definitions (instruction/evaluation method/source
+        # pointer, not merely the ids) `gated.criterion_results` was itself
+        # just decoded against this Run -- restricted to that same id set
+        # (never the full `semantic_snapshot.criteria`, which may include
+        # PRE-stage or otherwise not-dispatched-this-call entries `gated`
+        # never actually evaluated) so a Repair Attempt's Rejudge re-scores
+        # under the identical conditions, not a superset or a silently
+        # narrower one.
+        evaluated_criterion_ids = {item.criterion_id for item in gated.criterion_results}
+        rejudge_criteria = (
+            tuple(
+                JudgePromptCriterion(
+                    criterion_id=item.criterion_id,
+                    instruction=item.instruction,
+                    evaluation_method=item.evaluation_method.value,
+                    source_pointer=item.source_pointer,
+                )
+                for item in semantic_snapshot.criteria
+                if item.criterion_id in evaluated_criterion_ids
+            )
+            if semantic_snapshot is not None
+            else ()
+        )
+        frozen_batch_evidence = tuple(batch_evidence)
         return _finalize_judge_dispatch(
             context,
             gated=gated,
-            prompt="(dedicated Selene evaluator: prompt built internally by SelenePromptAdapter)",
+            main_action=main_action,
+            prompt=prompt_description,
             executed_provider=executed_provider,
+            executed_model_runtime_info=executed_model_runtime_info,
+            configured_judge_provider=(
+                semantic_snapshot.configured_provider if semantic_snapshot is not None else None
+            ),
+            active_judge_provider=(
+                semantic_snapshot.active_provider if semantic_snapshot is not None else None
+            ),
             judge_mode=judge_mode,
             repair_mode=repair_mode,
             recording_mode=recording_mode,
@@ -1386,17 +1725,60 @@ def build_judge_completion_hook(
             stage_budget=stage_budget,
             rejudge_service=getattr(evaluator, "inference_service", None),
             rejudge_model_key=executed_provider,
-            rejudge_role=JudgeIndependenceClass.INDEPENDENT_ARTIFACT,
+            rejudge_role=judge_role,
             frozen_language=context.response_language,
             criterion_counts=_semantic_criterion_counts(semantic_snapshot, response),
+            rejudge_criteria=rejudge_criteria,
+            # Gemma Judge-only Constrained Decoding Rework (WU-03): `None`
+            # for Selene/Main-shared (their own `SeleneSemanticEvaluator`
+            # instances never receive a Factory) -- only the real Gemma-
+            # configured instance exposes a non-`None` one here.
+            rejudge_structured_output_schema_factory=getattr(
+                evaluator, "structured_output_schema_factory", None
+            ),
+            # Gemma Constrained Decoding Final Contract Micro Rework
+            # (IR-FC-01): `None`/empty for Selene/Main-shared (their own
+            # `SeleneSemanticEvaluator` instances never receive Sampling
+            # Overrides) -- only the real Gemma-configured instance exposes
+            # a non-empty mapping here, via `sampling_overrides`'s own
+            # read-only property (mirrors `structured_output_schema_
+            # factory`'s established getattr pattern immediately above).
+            rejudge_sampling_overrides=getattr(evaluator, "sampling_overrides", None),
+            # WU-05: real per-Batch/Run Evidence, replacing the pre-Rework
+            # flat `call_count=1`/`token_usage=0`/`seed=unpinned`/generic
+            # single-call `config_digest_sha512` for this Dedicated batched
+            # dispatch (Selene, Gemma, and the Main-shared semantic-
+            # criteria dispatch all share this fix, since all three share
+            # this one Engine).
+            #
+            # Gemma Constrained Decoding Final Contract Micro Rework
+            # (IR-FC-03) fix: the previous `or 1` fallback fabricated a
+            # single Call whenever zero real Batches ever reached the Model
+            # (e.g. every Criterion Budget-Deferred before dispatch) --
+            # this Evidence field must honestly record `0` for a genuine
+            # Model-Call-0 Run, distinguishable from a genuine single real
+            # Call, never silently indistinguishable from one.
+            call_count=len(frozen_batch_evidence),
+            seed=(
+                frozen_batch_evidence[0].parameters.seed if frozen_batch_evidence else None
+            ),
+            config_digest_sha512=getattr(
+                evaluator, "config_digest_sha512", _LIVE_JUDGE_CONFIG_DIGEST_SHA512
+            ),
+            prompt_digest_sha512_override=_batch_dispatch_prompt_digest_sha512(
+                frozen_batch_evidence
+            ),
+            batch_evidence_json=_batch_dispatch_evidence_json(frozen_batch_evidence),
         )
 
     def _finalize_judge_dispatch(
         context: JudgeCompletionContext,
         *,
         gated: LlmJudgeResponse,
+        main_action: SemanticActionDecision | None,
         prompt: str,
         executed_provider: str | None,
+        executed_model_runtime_info: ModelRuntimeInfo | None,
         judge_mode: EvaluationMode,
         repair_mode: RepairMode | None,
         recording_mode: RecordingMode,
@@ -1408,12 +1790,62 @@ def build_judge_completion_hook(
         rejudge_role: JudgeIndependenceClass,
         frozen_language: str,
         criterion_counts: _CriterionCounts,
+        rejudge_criteria: tuple[JudgePromptCriterion, ...] = (),
+        configured_judge_provider: str | None = None,
+        active_judge_provider: str | None = None,
+        rejudge_structured_output_schema_factory: (
+            Callable[[tuple[str, ...]], StructuredOutputConstraint] | None
+        ) = None,
+        rejudge_sampling_overrides: Mapping[str, object] | None = None,
+        call_count: int = 1,
+        seed: int | None = None,
+        config_digest_sha512: str = _LIVE_JUDGE_CONFIG_DIGEST_SHA512,
+        prompt_digest_sha512_override: str | None = None,
+        batch_evidence_json: str | None = None,
     ) -> _JudgeWorkerOutcome:
         """Shared Repair/Presentation tail (P6-RR-R2): identical for every
         real Dispatch target (Main-shared, Selene) — only `gated`/`prompt`/
         `executed_provider`/`criteria_selected` differ per caller. Extracted
         unchanged from the pre-Rework single Main-self body so this Rework
-        never alters that already-tested Repair/Presentation behavior."""
+        never alters that already-tested Repair/Presentation behavior.
+
+        P9-1 Judge/Governance Rework (WU-03): `main_action` is Main
+        Governance's own `resolve_semantic_action()` recommendation for
+        this exact Turn (`None` whenever no real Semantic Criteria were
+        evaluated this Run, e.g. the general-quality Main-shared shape
+        with no Criteria selected -- see `resolve_semantic_action()`'s
+        own `if not results` early return). When `main_action.executed_
+        disposition is REPAIR_REQUESTED`, Main Governance itself is
+        authorizing a correction for a confirmed Rule violation,
+        independent of the separate Judge-side Repair Mode toggle (see
+        `resolve_semantic_action()`'s own WU-03 docstring for why). Both
+        origins converge on invoking `repair_executor` **at most once**
+        per Run below (Codex Controller Handoff WU-03's Matrix "既存
+        Repair=ENFORCE" row: Judge- and Main-origin both authorize --
+        never runs the Repair Executor twice for the same Candidate).
+        Neither origin ever bypasses Guardrail Deny/Budget: both still go
+        through the shared `resolve_repair_eligibility()` Resolver, just
+        with a different `mode` argument reflecting which side is doing
+        the authorizing (`repair_mode` for Judge-origin, unchanged;
+        `RepairMode.ENFORCE` for Main-origin, representing Main
+        Governance's own ENFORCE decision -- never a rewrite of the
+        actual `repair_mode_controller`/frozen `repair_mode` value used
+        anywhere else in this function or Evidence).
+
+        Controller Review (2026-09-04 19:16, IR-02) fix: `rejudge_criteria`
+        is the exact Frozen `SemanticCriterion` set (id/instruction/
+        evaluation method/source pointer) `gated` was itself just scored
+        against this Run -- carried through to `repair_executor` unchanged
+        so the Rejudge inside it re-evaluates under the *same* conditions,
+        never the previous silent fallback to a fixed, criteria-less
+        `correctness`/`safety`/`coherence` triad that let a Rejudge accept
+        with no per-criterion evidence at all (see `repair_live_
+        integration.attempt_live_repair()`'s own `rejudge_criteria`
+        docstring for the reproduced defect and full fix rationale). Empty
+        whenever `gated` itself carries no `criterion_results` (the
+        pre-existing unstructured general-quality shape) -- there is no
+        Frozen Criterion set to preserve, so the Rejudge correctly keeps
+        its prior unstructured shape unchanged."""
         disposition = resolve_evaluation_disposition(
             mode=judge_mode,
             execution_state=gated.execution_state,
@@ -1421,20 +1853,33 @@ def build_judge_completion_hook(
         )
         eligibility: RepairEligibility | None = None
         repair_result: RepairExecutionResult | None = None
+        judge_authorized = False
+        main_authorized = False
         judge_is_enforcing = judge_mode is EvaluationMode.ENFORCE
-        if (
-            judge_is_enforcing
-            and repair_mode is not None
-            and repair_mode_controller is not None
-            and gated.execution_state is EvaluationExecutionState.COMPLETED
+        main_requests_repair = (
+            main_action is not None
+            and main_action.executed_disposition is SemanticFinalDisposition.REPAIR_REQUESTED
+        )
+        judge_gate_open = (
+            judge_is_enforcing and repair_mode is not None and repair_mode_controller is not None
+        )
+        if gated.execution_state is EvaluationExecutionState.COMPLETED and (
+            judge_gate_open or main_requests_repair
         ):
-            eligibility = resolve_repair_eligibility(
-                mode=repair_mode,
-                guardrail_denied=False,
-                judge_recommendation=gated.recommendation,
-                budget=LIVE_REPAIR_BUDGET,
-                usage=_ZERO_REPAIR_USAGE,
-            )
+            judge_eligibility: RepairEligibility | None = None
+            if judge_gate_open:
+                # `judge_gate_open`'s own definition already requires
+                # `repair_mode is not None` -- re-asserted here only so
+                # the type checker narrows it the same way this branch's
+                # own guard already guarantees at runtime.
+                assert repair_mode is not None
+                judge_eligibility = resolve_repair_eligibility(
+                    mode=repair_mode,
+                    guardrail_denied=False,
+                    judge_recommendation=gated.recommendation,
+                    budget=LIVE_REPAIR_BUDGET,
+                    usage=_ZERO_REPAIR_USAGE,
+                )
             # P6-ACC-026/P6-GOV-002 (Second Rework): `resolve_repair_eligibility()`
             # itself treats OBSERVE identically to ENFORCE for Eligibility
             # classification purposes (it only excludes OFF) — Eligibility
@@ -1447,12 +1892,31 @@ def build_judge_completion_hook(
             # silently cause the same additional Generation ENFORCE does.
             # `repair_mode` here is the one Frozen Snapshot value read at
             # Hook entry (P6-CODEX-020) — never re-read mid-Run.
-            if (
-                eligibility is RepairEligibility.ELIGIBLE
+            judge_authorized = (
+                judge_eligibility is RepairEligibility.ELIGIBLE
                 and disposition.repair_requested
                 and repair_mode is RepairMode.ENFORCE
-                and repair_executor is not None
-            ):
+            )
+            main_eligibility: RepairEligibility | None = None
+            if main_requests_repair:
+                main_eligibility = resolve_repair_eligibility(
+                    mode=RepairMode.ENFORCE,
+                    guardrail_denied=False,
+                    judge_recommendation=gated.recommendation,
+                    budget=LIVE_REPAIR_BUDGET,
+                    usage=_ZERO_REPAIR_USAGE,
+                )
+            main_authorized = main_eligibility is RepairEligibility.ELIGIBLE
+            # Judge-origin Eligibility is reported whenever it was
+            # classified at all (`judge_gate_open`), matching the
+            # pre-existing Status/observability contract unchanged by this
+            # Rework: a Status reader must see "this would be Eligible"
+            # even under OBSERVE/OFF, never silently blank just because
+            # Main Governance's own separate request happened to exist
+            # too. Only falls back to Main-origin Eligibility when Judge
+            # never classified one at all (e.g. `judge_mode != enforce`).
+            eligibility = judge_eligibility if judge_eligibility is not None else main_eligibility
+            if (judge_authorized or main_authorized) and repair_executor is not None:
 
                 def _apply_repair_stage(stage: str) -> None:
                     """`repair_executor`'s own `stage_hook` boundary is
@@ -1521,11 +1985,50 @@ def build_judge_completion_hook(
                     # Turn's Canonical Presented Final instead of creating
                     # a second derived Turn behind the user's answer.
                     persist_accepted_attempt=not context.enforce_presented_final,
+                    # Controller Review IR-02 fix: the same Frozen Criterion
+                    # set `gated` was scored against this Run.
+                    rejudge_criteria=rejudge_criteria,
+                    # Controller Review (2026-09-05 00:35, IR-R4-01) fix:
+                    # the same Registry this Hook's own Prompt Build/Decode
+                    # Stages already share, so Repair's own Rejudge Token-
+                    # counting Stage is tracked by, and Bounded-Joined at
+                    # Shutdown by, the identical single Owner.
+                    tracked_stage_registry=tracked_stage_registry,
+                    # Gemma Judge-only Constrained Decoding Rework (WU-03):
+                    # `None` for every caller except the real Gemma-
+                    # configured dedicated dispatch (`_run_selene_dispatch`
+                    # reads it off its own `evaluator.structured_output_
+                    # schema_factory`) -- the identical Factory the initial
+                    # Judge dispatch used constrains the Rejudge Call too.
+                    rejudge_structured_output_schema_factory=(
+                        rejudge_structured_output_schema_factory
+                    ),
+                    # Gemma Constrained Decoding Final Contract Micro Rework
+                    # (IR-FC-01): `None` for every caller except the real
+                    # Gemma-configured dedicated dispatch (`_run_selene_
+                    # dispatch` reads it off its own `evaluator.sampling_
+                    # overrides`) -- the identical frozen Sampling contract
+                    # the initial Judge Batches used also governs the
+                    # Rejudge Call.
+                    rejudge_sampling_overrides=rejudge_sampling_overrides,
                 )
         execution_state = gated.execution_state.value
         failure_reason: str | None = (
             gated.failure_reason.value if gated.failure_reason is not None else None
         )
+        # P9-1 Judge/Governance Rework (WU-03): only set when a Repair
+        # Attempt genuinely ran (never fabricated from an Eligibility
+        # check alone) — see `LiveJudgeResult.repair_requested_by`'s own
+        # docstring.
+        repair_requested_by: str | None = None
+        if repair_result is not None:
+            repair_requested_by = (
+                "judge_and_main"
+                if judge_authorized and main_authorized
+                else "judge"
+                if judge_authorized
+                else "main_governance"
+            )
         if (
             repair_result is not None
             and not repair_result.accepted
@@ -1542,8 +2045,31 @@ def build_judge_completion_hook(
         pending_evidence = _pending_evidence(
             judge_evidence_recorder,
             context=context,
-            model_key=context.model_key,
-            model_runtime_info=context.model_runtime_info,
+            # P9-1 Component Independence Rework (WU-04, confirmed real
+            # Failure: `judge_run_evidence` for a genuinely `independent_
+            # artifact`-role Gemma Run recorded `metadata_fields.
+            # model_identity` as Main's own `main.qwen3-4b-q4-k-m` instead
+            # of the real executing Gemma identity, even though the UI's
+            # own Executed Provider correctly showed Gemma): this shared
+            # tail serves both the Main-shared dispatch AND the dedicated
+            # Selene/Gemma dispatch (`_run_selene_dispatch`'s own caller
+            # above) -- `context.model_key` is only ever the real executing
+            # identity for the former. `executed_provider` (already
+            # correctly populated by both callers) is the real executing
+            # identity either way; `context.model_key` is kept only as the
+            # legacy fallback for the one deployment shape with no Provider
+            # Selection concept at all (`executed_provider is None`).
+            model_key=executed_provider or context.model_key,
+            # R2-WU-02 (Controller Review IR-CI-02): `executed_model_
+            # runtime_info` is each caller's own already-correct Runtime
+            # Info for the identity that actually executed -- Main's own
+            # for the Main-shared branches, the Dedicated Role's own real
+            # Load Receipt for Gemma/Selene. Never `context.model_runtime_
+            # info` unconditionally (the confirmed bug: that stayed Main's
+            # own even for a genuinely Dedicated Gemma Run).
+            model_runtime_info=executed_model_runtime_info,
+            configured_judge_provider=configured_judge_provider,
+            active_judge_provider=active_judge_provider,
             recording_mode=recording_mode,
             recommendation=gated.recommendation.value,
             confidence=gated.confidence,
@@ -1554,6 +2080,11 @@ def build_judge_completion_hook(
             judge_role=gated.judge_role,
             prompt=prompt,
             repair_result=repair_result,
+            call_count=call_count,
+            seed=seed,
+            config_digest_sha512=config_digest_sha512,
+            prompt_digest_sha512_override=prompt_digest_sha512_override,
+            batch_evidence_json=batch_evidence_json,
         )
         presentation_outcome = "observed_candidate"
         candidate_withheld = False
@@ -1617,6 +2148,7 @@ def build_judge_completion_hook(
                 repair_rejudge_role=(
                     repair_result.rejudge_role if repair_result is not None else None
                 ),
+                repair_requested_by=repair_requested_by,
             ),
             pending_evidence=pending_evidence,
         )
@@ -2026,12 +2558,89 @@ def build_judge_completion_hook(
                     # User Stop win the terminal race instead of becoming a
                     # Safe-Fallback ``completed`` event.
                     if cancellation.is_cancelled():
-                        result = _safe_enforcement_result(
-                            context,
-                            execution_state="cancelled",
-                            failure_reason="cancelled_by_request",
-                            frozen_language=frozen_language,
-                        )
+                        # P9-1 Component Independence Rework (WU-04), Race-
+                        # fixed by R2-WU-03 (Controller Review IR-CI-03),
+                        # residual Race fixed by R3-WU-03 (Controller
+                        # Review IR-R2-03): a signalled Cancellation Token
+                        # has at least two structurally distinct real
+                        # origins this module can itself tell apart -- a
+                        # genuine external Stop/disconnect
+                        # (`ConversationGenerationSession.request_cancel()`/
+                        # `force_cancel()`, never routed through `model_
+                        # access_coordinator`) and Main-priority preemption
+                        # (`ModelAccessCoordinator.acquire_main()` signalling
+                        # this exact Run's own registered `cancel` directly,
+                        # with no User/Client action at all -- see that
+                        # Coordinator's own `was_preempted()` docstring).
+                        # Reporting both as the same generic `cancelled_by_
+                        # request` misattributes an ordinary Main-priority
+                        # scheduling event as if the User had asked to stop,
+                        # which they did not.
+                        #
+                        # R3-WU-03: this Wait Loop runs on the caller's own
+                        # thread. The Worker's own Terminal boundary
+                        # (`ModelAccessCoordinator.start_background()`'s own
+                        # `_run()` `finally`) discards this exact `task_id`
+                        # from `_preempted_task_ids` the INSTANT the Worker
+                        # itself returns -- which can genuinely happen
+                        # before this Loop's own next iteration runs (the
+                        # Worker completing first, then this Loop's own
+                        # `cancellation.is_cancelled()` check landing after
+                        # that discard already occurred, a real Schedule a
+                        # Controller Probe reproduced). A fresh `was_
+                        # preempted()` re-classification at that point would
+                        # then wrongly see `False` and silently overwrite
+                        # the Worker's own ALREADY-correct classification
+                        # with a generic `cancelled_by_request`. When the
+                        # Worker has already produced its own genuinely
+                        # terminal `cancelled` outcome, THAT stored
+                        # classification is authoritative and is reused
+                        # verbatim here -- never re-derived from a
+                        # bookkeeping flag that may have already been
+                        # cleaned up.
+                        #
+                        # R4-WU-03 (Controller Review IR-R3-03): an ordinary
+                        # Worker `failed` outcome is deliberately EXCLUDED
+                        # from this reuse -- only a Worker's own already-
+                        # classified `cancelled` is authoritative here. A
+                        # `failed` result (e.g. a genuine Model/Decode
+                        # error, unrelated to Cancellation) that happens to
+                        # become Ready at the exact instant a User Stop or
+                        # Main-priority Preemption is detected must never
+                        # silently override that Cancellation with the
+                        # unrelated Failure -- "Cancellation has
+                        # deterministic priority" (this Loop's own opening
+                        # comment) applies to a genuine Cancellation origin
+                        # racing a Worker Failure exactly as much as it
+                        # already applies to a Worker Completion; reusing a
+                        # `failed` Worker outcome here previously let an
+                        # ordinary Failure silently masquerade as this
+                        # Turn's own outcome instead of surfacing as the
+                        # User Stop / Main-priority Cancellation that
+                        # actually occurred. A `failed` outcome always falls
+                        # through to the fresh classification below, exactly
+                        # like a still-running Worker would.
+                        worker_outcome = outcome_holder[0] if outcome_holder else None
+                        if (
+                            result_ready.is_set()
+                            and worker_outcome is not None
+                            and worker_outcome.result.execution_state == "cancelled"
+                        ):
+                            result = worker_outcome.result
+                        else:
+                            failure_reason = (
+                                "cancelled_by_main_priority_preemption"
+                                if model_access_coordinator.was_preempted(
+                                    task_id=context.request_id
+                                )
+                                else "cancelled_by_request"
+                            )
+                            result = _safe_enforcement_result(
+                                context,
+                                execution_state="cancelled",
+                                failure_reason=failure_reason,
+                                frozen_language=frozen_language,
+                            )
                         _decide_publication(False)
                         break
                     if result_ready.is_set():
@@ -2129,6 +2738,77 @@ def build_judge_completion_hook(
     return hook, composition
 
 
+def _batch_dispatch_evidence_json(batch_evidence: tuple[BatchDispatchEvidence, ...]) -> str | None:
+    """Gemma Judge-only Constrained Decoding Rework (WU-05): a compact JSON
+    Array of every real Batch this Run made -- digests/counts/enums/numbers
+    only (`raw_output_sha512`/`raw_output_byte_length` stand in for the Raw
+    Model output text itself, never persisted). `None` (never `"[]"`) when
+    no Batch ran at all, so a Reader can tell "the still-unbatched Main-self
+    general-quality dispatch" apart from "a batched dispatch that
+    genuinely made zero Batch Calls" (the latter should not occur in
+    practice, but this keeps the two honestly distinguishable)."""
+    if not batch_evidence:
+        return None
+    entries = [
+        {
+            "batch_index": item.batch_index,
+            "prompt_digest_sha512": item.prompt_digest_sha512,
+            "expected_criterion_ids_digest_sha512": item.expected_criterion_ids_digest_sha512,
+            "expected_criterion_count": item.expected_criterion_count,
+            "max_new_tokens": item.parameters.max_new_tokens,
+            "seed": item.parameters.seed,
+            "temperature": item.parameters.temperature,
+            "top_p": item.parameters.top_p,
+            "top_k": item.parameters.top_k,
+            "min_p": item.parameters.min_p,
+            "structured_output_enabled": item.parameters.structured_output is not None,
+            "structured_output_schema_digest_sha512": (
+                item.parameters.structured_output.schema_digest_sha512
+                if item.parameters.structured_output is not None
+                else None
+            ),
+            "finish_reason": item.finish_reason,
+            "prompt_tokens": item.prompt_tokens,
+            "completion_tokens": item.completion_tokens,
+            "raw_output_byte_length": item.raw_output_byte_length,
+            "raw_output_sha512": item.raw_output_sha512,
+            "strict_decode_state": item.strict_decode_state,
+            "strict_decode_reason": item.strict_decode_reason,
+        }
+        for item in batch_evidence
+    ]
+    return json.dumps(entries, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def _batch_dispatch_prompt_digest_sha512(
+    batch_evidence: tuple[BatchDispatchEvidence, ...],
+) -> str:
+    """WU-05: a genuine, real-content-derived digest for the flat legacy
+    `prompt_digest_sha512` field -- the SHA-512 of the ordered concatenation
+    of every real per-Batch Prompt Digest, never a fixed description-string
+    Placeholder.
+
+    Gemma Final Contract Micro Rework (IR-FC-04) fix: previously returned
+    `None` when no Batch ran, which `record_judge_evidence()` interpreted
+    as "no override supplied" and fell back to hashing the caller's own
+    `prompt` argument -- for this Dedicated batched dispatch route, that
+    argument is never real Prompt content, only the fixed description
+    string `"(dedicated Selene evaluator: prompt built internally by
+    SelenePromptAdapter)"`. A genuine Model-Call-0 Run (no real Batch ever
+    reached the Model) therefore still recorded a legitimate-looking
+    128-hex-digit `prompt_digest_sha512`, indistinguishable from a real
+    Prompt Digest. Returning the literal `"unavailable"` string here
+    instead -- the same fixed-string-for-truly-unknown convention already
+    used by `config_digest_sha512`/`artifact_digest_sha512`/`backend_key`
+    in this same Evidence record -- is passed straight through as a
+    non-`None` override, so it is recorded verbatim rather than triggering
+    that fallback hash."""
+    if not batch_evidence:
+        return "unavailable"
+    joined = "".join(item.prompt_digest_sha512 for item in batch_evidence)
+    return hashlib.sha512(joined.encode("utf-8")).hexdigest()
+
+
 def _pending_evidence(
     recorder: JudgeEvidenceRecorder | None,
     *,
@@ -2145,6 +2825,13 @@ def _pending_evidence(
     judge_role: JudgeIndependenceClass,
     prompt: str,
     repair_result: RepairExecutionResult | None = None,
+    configured_judge_provider: str | None = None,
+    active_judge_provider: str | None = None,
+    call_count: int = 1,
+    seed: int | None = None,
+    config_digest_sha512: str = _LIVE_JUDGE_CONFIG_DIGEST_SHA512,
+    prompt_digest_sha512_override: str | None = None,
+    batch_evidence_json: str | None = None,
 ) -> _PendingJudgeEvidence | None:
     # Recording OFF is zero Recorder Calls, not merely a Recorder call that
     # notices OFF internally. Synchronous ENFORCE stores this closure only
@@ -2157,11 +2844,28 @@ def _pending_evidence(
         recorder(
             request_id=context.request_id,
             recording_mode=recording_mode,
+            # R2-WU-02 (Controller Review IR-CI-02): `model_key` here is
+            # always the Executed Judge Provider (each caller already
+            # resolves it that way -- see `_finalize_judge_dispatch()`'s
+            # own `executed_provider or context.model_key`), never the
+            # Main Candidate being evaluated. `context.model_key` (the
+            # Main Model actually evaluated) is a distinct, separate
+            # identity, recorded below unconditionally regardless of which
+            # Judge Role executed this Run.
             model_identity=model_key,
+            evaluated_model_identity=context.model_key,
+            configured_judge_provider=configured_judge_provider,
+            active_judge_provider=active_judge_provider,
             # P6-CODEX-022: the Artifact Digest and Backend Identity/Version
             # actually loaded — `model_identity` alone (a bare config key) is
             # not enough to distinguish a re-download or backend upgrade of the
             # same key, which P6-LJG-002's "necessary Traces" also requires.
+            # R2-WU-02: `model_runtime_info` here must already be the
+            # EXECUTED identity's own Runtime Info (each caller resolves
+            # this correctly per dispatch route -- Main-shared routes pass
+            # `context.model_runtime_info` because that IS the executing
+            # identity there; the dedicated Gemma/Selene route passes its
+            # own Loaded Adapter's Runtime Info instead, never Main's).
             artifact_digest_sha512=(
                 model_runtime_info.artifact_digest.value if model_runtime_info is not None else None
             ),
@@ -2183,7 +2887,11 @@ def _pending_evidence(
             repair_outcome=repair_result.outcome if repair_result is not None else None,
             repair_accepted=(repair_result.accepted if repair_result is not None else None),
             repair_new_turn_id=(repair_result.new_turn_id if repair_result is not None else None),
-            config_digest_sha512=_LIVE_JUDGE_CONFIG_DIGEST_SHA512,
+            call_count=call_count,
+            seed=seed,
+            config_digest_sha512=config_digest_sha512,
+            prompt_digest_sha512_override=prompt_digest_sha512_override,
+            batch_evidence_json=batch_evidence_json,
         )
 
     return _PendingJudgeEvidence(publish_action=_publish)

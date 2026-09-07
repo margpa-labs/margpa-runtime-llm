@@ -438,12 +438,8 @@ class RoleProviderLifecycleManager:
                 active_provider=(
                     previous_provider if previous is not None and not rollback_failed else None
                 ),
-                state=(
-                    ProviderRuntimeState.UNAVAILABLE
-                ),
-                failure_reason=(
-                    f"provider_load_failed:{type(exc).__name__}"
-                ),
+                state=(ProviderRuntimeState.UNAVAILABLE),
+                failure_reason=(f"provider_load_failed:{type(exc).__name__}"),
             )
         self._active_adapters[role] = candidate
         self._pending_unload.discard(role)
@@ -544,7 +540,21 @@ class RoleProviderLifecycleManager:
                 safe_message="An active role turn must drain before provider transition.",
             )
         current = self._selections.snapshot()
-        if current.revision != expected_revision or current.digest_sha512 != expected_digest:
+        # P9-1 Judge Dispatch Fix Round 6 (Finding 4, Self-review
+        # correction): this used to compare `expected_revision`/
+        # `expected_digest` directly against `current`, duplicating (and
+        # thereby missing) `ProviderSelectionController`'s own CAS logic --
+        # a Judge/Guard Mode-ON re-selection (the only caller of this
+        # method, via `apply_provider_selection`'s `mode_is_on()` branch)
+        # was still spuriously rejected merely because an *unrelated* Role
+        # (typically MAIN, via a concurrent Main switch) advanced the
+        # shared revision counter, exactly the bug Finding 4 fixed for
+        # `select()`/`select_active()` but missed here. Delegates to the
+        # Controller's own public `cas_satisfied()` so both entry points
+        # share one CAS implementation.
+        if not self._selections.cas_satisfied(
+            role=role, expected_revision=expected_revision, expected_digest=expected_digest
+        ):
             raise ProviderSelectionError(
                 code=ProviderSelectionErrorCode.REVISION_CONFLICT,
                 safe_message="The provider selection changed; reload and retry.",

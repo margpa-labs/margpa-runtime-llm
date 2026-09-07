@@ -6,8 +6,10 @@ import hashlib
 from pathlib import Path
 from typing import Any, cast
 
+import pydantic
 import pytest
 from llama_cpp import Llama
+from llama_cpp.llama_grammar import LlamaGrammar
 
 from margpa_runtime_llm.adapters.model_backends.llama_cpp.adapter import LlamaCppModelAdapter
 from margpa_runtime_llm.adapters.model_backends.llama_cpp.chat_template import (
@@ -31,6 +33,7 @@ from margpa_runtime_llm.modules.inference.contracts.generation import (
     GenerationParameters,
     GenerationRequest,
     GenerationTerminalState,
+    StructuredOutputConstraint,
     ThinkingMode,
 )
 from margpa_runtime_llm.modules.inference.contracts.messages import ChatMessage, MessageRole
@@ -98,6 +101,28 @@ class FakeTemplateModelWithSpecialTokens(FakeTemplateModel):
         return b""
 
 
+class FakeCompletionModel(FakeTemplateModel):
+    """Gemma Judge-only Constrained Decoding Rework (WU-02/WU-06): the
+    existing `FakeTemplateModel` family never implemented `create_
+    completion()` at all -- `LlamaCppChatTemplate.create_chat_completion()`'s
+    real `Llama.create_completion(...)` call site had no direct Unit Test
+    coverage before this Rework, only real-hardware exercise. This Fake
+    records every kwarg it was called with, so a Test can assert exactly
+    what `grammar=` value a given `GenerationParameters` produces without
+    touching a real Model."""
+
+    def __init__(self, template: str) -> None:
+        super().__init__(template)
+        self.create_completion_calls: list[dict[str, Any]] = []
+
+    def create_completion(self, **kwargs: Any) -> dict[str, Any]:
+        self.create_completion_calls.append(kwargs)
+        return {
+            "choices": [{"text": "ok", "finish_reason": "stop"}],
+            "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+        }
+
+
 class ClosableNativeIterator:
     def __init__(self, payloads: list[dict[str, Any]]) -> None:
         self._payloads = iter(payloads)
@@ -144,9 +169,13 @@ def assert_terminal_state(
     assert stream.terminal_state is expected
 
 
-def runtime_info(context_size: int = 4096) -> ModelRuntimeInfo:
+def runtime_info(
+    context_size: int = 4096,
+    *,
+    extra_features: frozenset[CapabilityFeature] = frozenset(),
+) -> ModelRuntimeInfo:
     capabilities = ModelCapabilities(
-        features=MAC_RUNTIME_CAPABILITIES,
+        features=MAC_RUNTIME_CAPABILITIES | extra_features,
         native_context_limit=32768,
         loaded_context_size=context_size,
         supported_message_roles=frozenset(
@@ -295,7 +324,7 @@ def test_text_token_counter_failure_does_not_expose_raw_text() -> None:
     assert raw_text not in str(captured.value)
 
 
-def test_adapter_token_counter_obeys_loaded_and_busy_lifecycle(tmp_path: Path) -> None:
+def test_adapter_token_counter_obeys_loaded_lifecycle(tmp_path: Path) -> None:
     template = (
         "{% for message in messages %}{{ message['content'] }} {% endfor %}"
         "{% if enable_thinking %}THINKING_ON{% else %}THINKING_OFF{% endif %}"
@@ -316,18 +345,52 @@ def test_adapter_token_counter_obeys_loaded_and_busy_lifecycle(tmp_path: Path) -
     assert enabled_count == controller.format_prompt(messages, ThinkingMode.ENABLED).token_count
     assert b"THINKING_ON" in model.tokenize_calls[-1][0]
 
-    assert adapter._generation_lock.acquire(blocking=False)
-    try:
-        with pytest.raises(InferenceError) as busy:
-            adapter.count_chat_prompt_tokens(messages, ThinkingMode.DISABLED)
-    finally:
-        adapter._generation_lock.release()
-    assert busy.value.code is InferenceErrorCode.MODEL_BUSY
-
     adapter._state = ModelLifecycleState.UNLOADED
     with pytest.raises(InferenceError) as unloaded:
         adapter.count_chat_prompt_tokens(messages, ThinkingMode.DISABLED)
     assert unloaded.value.code is InferenceErrorCode.MODEL_NOT_LOADED
+    with pytest.raises(InferenceError) as unloaded_text:
+        adapter.count_text_tokens("one two")
+    assert unloaded_text.value.code is InferenceErrorCode.MODEL_NOT_LOADED
+
+
+def test_adapter_token_counter_is_never_gated_by_an_in_flight_generation(
+    tmp_path: Path,
+) -> None:
+    """P9-1 Judge Dispatch "unavailable" Root Cause Fix regression test.
+
+    Confirmed by real-hardware reproduction: `SeleneSemanticEvaluator.
+    _plan_batches()` calls `count_chat_prompt_tokens()` ahead of every Judge
+    Batch dispatch. Before this fix, that call raised `MODEL_BUSY` whenever a
+    prior real `generate()` call on the same dedicated Judge/Guard Adapter
+    was still in flight on an orphaned `run_tracked_stage()` background
+    Thread (`tracked_stage_worker.py`'s documented "abandoned Thread keeps
+    running" design) — collapsing to the generic displayed "unavailable"
+    failure category for every subsequent Turn on that Adapter instance,
+    identically for Selene and Gemma (both share this exact code path).
+    Tokenization only reads the loaded model's vocab/chat template, never
+    the mutable generation state `_generation_lock` actually protects, so it
+    must succeed regardless of `_state`/`_generation_lock` reflecting an
+    in-flight `generate()` (`GENERATING`) — this is what `_begin_generation`
+    sets while real generation work is running, the exact real-world
+    condition an orphaned Thread leaves behind past its own caller's
+    Timeout."""
+    template = "{% for message in messages %}{{ message['content'] }}{% endfor %}"
+    model = FakeTemplateModel(template)
+    controller = LlamaCppChatTemplate(cast(Llama, model))
+    adapter = LlamaCppModelAdapter(model_root=tmp_path)
+    adapter._state = ModelLifecycleState.LOADED
+    adapter._chat_template = controller
+    messages = (ChatMessage(role=MessageRole.USER, content="hello"),)
+
+    assert adapter._generation_lock.acquire(blocking=False)
+    try:
+        adapter._state = ModelLifecycleState.GENERATING
+        assert adapter.count_text_tokens("one two") == 2
+        count = adapter.count_chat_prompt_tokens(messages, ThinkingMode.DISABLED)
+        assert count == controller.format_prompt(messages, ThinkingMode.DISABLED).token_count
+    finally:
+        adapter._generation_lock.release()
 
 
 def test_stream_maps_sequence_terminal_usage_and_timing() -> None:
@@ -571,6 +634,240 @@ def test_artifact_integrity_rejects_same_size_different_digest(tmp_path: Path) -
     with pytest.raises(InferenceError) as captured:
         adapter._verify_artifact(mismatch)
     assert captured.value.code is InferenceErrorCode.MODEL_INTEGRITY_MISMATCH
+
+
+_GEMMA_STRUCTURED_SCHEMA = {
+    "type": "object",
+    "properties": {"recommendation": {"type": "string", "enum": ["accept"]}},
+    "required": ["recommendation"],
+    "additionalProperties": False,
+}
+
+
+def test_create_chat_completion_passes_grammar_none_without_structured_output() -> None:
+    """Gemma Judge-only Constrained Decoding Rework (WU-02/WU-06 isolation
+    item 3/4/5): a Request with no `structured_output` (every Main/Repair/
+    Guard Request, unchanged by this Rework) must build `grammar=None` --
+    byte-identical to `Llama.create_completion()`'s own default, never a
+    silently different code path."""
+    template = "{% for message in messages %}{{ message['content'] }}{% endfor %}"
+    model = FakeCompletionModel(template)
+    controller = LlamaCppChatTemplate(cast(Llama, model))
+
+    controller.create_chat_completion(
+        (ChatMessage(role=MessageRole.USER, content="hello"),),
+        GenerationParameters(max_new_tokens=8),
+        stream=False,
+    )
+
+    assert model.create_completion_calls[-1]["grammar"] is None
+
+
+def test_create_chat_completion_builds_a_real_grammar_when_structured_output_is_set() -> None:
+    """WU-02: a Request that DOES carry a `structured_output` constraint
+    builds a genuine `LlamaGrammar` (not a stub/sentinel) and passes it
+    through to the real Backend call -- the one and only Request shape
+    this Rework changes."""
+    template = "{% for message in messages %}{{ message['content'] }}{% endfor %}"
+    model = FakeCompletionModel(template)
+    controller = LlamaCppChatTemplate(cast(Llama, model))
+    constraint = StructuredOutputConstraint.from_schema(_GEMMA_STRUCTURED_SCHEMA)
+
+    controller.create_chat_completion(
+        (ChatMessage(role=MessageRole.USER, content="hello"),),
+        GenerationParameters(max_new_tokens=8, structured_output=constraint),
+        stream=False,
+    )
+
+    grammar = model.create_completion_calls[-1]["grammar"]
+    assert isinstance(grammar, LlamaGrammar)
+
+
+def test_create_chat_completion_never_falls_back_to_unconstrained_on_grammar_compile_failure() -> (
+    None
+):
+    """WU-02: "Grammar構築失敗を通常生成へFallbackしてはならない" -- a Schema
+    this Contract's own lightweight validation accepts (non-empty, JSON-
+    serializable, bounded size) but the real llama.cpp JSON-Schema-to-
+    Grammar converter cannot compile (an unrecognized `type` value) must
+    fail the whole call closed with a Typed `InferenceError`, never
+    silently retry the real Model call with `grammar=None`."""
+    template = "{% for message in messages %}{{ message['content'] }}{% endfor %}"
+    model = FakeCompletionModel(template)
+    controller = LlamaCppChatTemplate(cast(Llama, model))
+    constraint = StructuredOutputConstraint.from_schema(
+        {"type": "not-a-real-json-schema-type"}
+    )
+
+    with pytest.raises(InferenceError) as captured:
+        controller.create_chat_completion(
+            (ChatMessage(role=MessageRole.USER, content="hello"),),
+            GenerationParameters(max_new_tokens=8, structured_output=constraint),
+            stream=False,
+        )
+
+    assert captured.value.code is InferenceErrorCode.INVALID_CONFIGURATION
+    assert model.create_completion_calls == []
+
+
+def test_create_chat_completion_fails_closed_when_schema_mutated_after_construction() -> None:
+    """Codex Controller Review (2026-09-06 12:44, IR-FC-02) fix: `frozen=
+    True` blocks reassigning `StructuredOutputConstraint.json_schema`
+    itself, but `dict` is still a mutable object -- Controller's own Probe
+    confirmed `constraint.json_schema["type"] = "number"` still succeeds
+    after construction, leaving `schema_digest_sha512` stale (describing
+    the ORIGINAL Schema, not the mutated one). `_build_grammar()` now
+    re-serializes and re-hashes `constraint.json_schema` immediately
+    before compiling and Fails Closed on a Digest mismatch -- a mutated
+    Schema must never silently reach the real Backend under a Digest that
+    no longer describes it."""
+    template = "{% for message in messages %}{{ message['content'] }}{% endfor %}"
+    model = FakeCompletionModel(template)
+    controller = LlamaCppChatTemplate(cast(Llama, model))
+    constraint = StructuredOutputConstraint.from_schema(_GEMMA_STRUCTURED_SCHEMA)
+    # `GenerationParameters(...)`'s own constructor still validates a
+    # freshly-attached, not-yet-mutated `constraint` -- the real gap this
+    # fix closes is a `GenerationParameters` instance that was ALREADY
+    # frozen/validated having its nested Schema `dict` mutated afterward
+    # (e.g. by code still holding a reference to the same `StructuredOutput
+    # Constraint` object), which no further Pydantic validation ever
+    # revisits. Mutating only after this Request-shaped Parameters object
+    # already exists reproduces that exact window.
+    parameters = GenerationParameters(max_new_tokens=8, structured_output=constraint)
+    assert parameters.structured_output is not None
+    parameters.structured_output.json_schema["type"] = "number"
+
+    with pytest.raises(InferenceError) as captured:
+        controller.create_chat_completion(
+            (ChatMessage(role=MessageRole.USER, content="hello"),),
+            parameters,
+            stream=False,
+        )
+
+    assert captured.value.code is InferenceErrorCode.INVALID_CONFIGURATION
+    assert model.create_completion_calls == []
+
+
+def test_structured_output_constraint_from_schema_converges_non_serializable_input_to_typed_failure() -> (  # noqa: E501
+    None
+):
+    """Codex Controller Review (2026-09-06 12:44, IR-FC-02) fix:
+    "from_schema()のJSON非直列化可能入力がRaw TypeErrorで終わる現状も、既存
+    ContractのTyped Validation Failureと整合させる" -- before this fix, a
+    non-JSON-serializable `json_schema` raised a raw `TypeError` straight
+    out of `from_schema()`, bypassing the Contract's own `_validate_schema`
+    entirely. Must now converge to the same `pydantic.ValidationError`
+    every other invalid `json_schema` (empty, oversized, digest-mismatched)
+    already produces via direct construction."""
+    with pytest.raises(pydantic.ValidationError) as captured:
+        StructuredOutputConstraint.from_schema({"type": object()})
+
+    assert "not JSON-serializable" in str(captured.value)
+
+
+def test_create_chat_completion_other_sampling_arguments_are_unaffected_by_grammar() -> None:
+    """WU-06 isolation item 7: every OTHER `create_completion()` argument
+    (temperature/top_p/top_k/min_p/seed/max_tokens/penalties) stays exactly
+    what the unchanged pre-Rework call already produced, whether or not a
+    `structured_output` constraint is attached -- only `grammar=` differs."""
+    template = "{% for message in messages %}{{ message['content'] }}{% endfor %}"
+    model = FakeCompletionModel(template)
+    controller = LlamaCppChatTemplate(cast(Llama, model))
+    parameters = GenerationParameters(
+        max_new_tokens=8, temperature=0.3, top_p=0.5, top_k=7, seed=42
+    )
+
+    controller.create_chat_completion(
+        (ChatMessage(role=MessageRole.USER, content="hello"),), parameters, stream=False
+    )
+    unconstrained_call = dict(model.create_completion_calls[-1])
+    del unconstrained_call["grammar"]
+
+    constraint = StructuredOutputConstraint.from_schema(_GEMMA_STRUCTURED_SCHEMA)
+    controller.create_chat_completion(
+        (ChatMessage(role=MessageRole.USER, content="hello"),),
+        parameters.model_copy(update={"structured_output": constraint}),
+        stream=False,
+    )
+    constrained_call = dict(model.create_completion_calls[-1])
+    del constrained_call["grammar"]
+
+    assert unconstrained_call == constrained_call
+
+
+class _FakeGenerationPort:
+    """A minimal duck-typed `ModelPort` stand-in that only ever needs to
+    answer `.runtime_info`/`.state` -- `InferenceService._validate_request()`
+    must reject an unsupported `structured_output` Request before this
+    Port's own `generate()` is ever reached."""
+
+    def __init__(
+        self,
+        *,
+        runtime_info: ModelRuntimeInfo,
+        state: ModelLifecycleState = ModelLifecycleState.LOADED,
+    ) -> None:
+        self.runtime_info = runtime_info
+        self.state = state
+        self.generate_calls = 0
+
+    def generate(
+        self, request: GenerationRequest, *, cancellation: object | None = None
+    ) -> Any:
+        self.generate_calls += 1
+        from margpa_runtime_llm.modules.inference.contracts.generation import (
+            GenerationResult,
+            GenerationTiming,
+        )
+
+        return GenerationResult(
+            request_id=request.request_id,
+            model_key=request.model_key,
+            content="ok",
+            finish_reason=FinishReason.STOP,
+            timing=GenerationTiming(total_generation_seconds=0.01),
+            runtime_info=self.runtime_info.reference(),
+        )
+
+
+def test_structured_output_request_is_rejected_when_backend_lacks_json_schema_capability() -> None:
+    """WU-02: "Backend Versionの実Capability、Request validation、Typed
+    failureを整合させる" -- a Request that carries `structured_output`
+    against a Backend whose own `effective_capabilities.features` does not
+    genuinely include `JSON_SCHEMA` must be rejected, Typed, before it ever
+    reaches the Backend's own `generate()`."""
+    info = runtime_info()
+    assert CapabilityFeature.JSON_SCHEMA not in info.effective_capabilities.features
+    port = _FakeGenerationPort(runtime_info=info)
+    service = InferenceService(port)  # type: ignore[arg-type]
+    constraint = StructuredOutputConstraint.from_schema(_GEMMA_STRUCTURED_SCHEMA)
+    req = request().model_copy(
+        update={"parameters": GenerationParameters(structured_output=constraint)}
+    )
+
+    with pytest.raises(InferenceError) as captured:
+        service.generate(req)
+
+    assert captured.value.code is InferenceErrorCode.UNSUPPORTED_CAPABILITY
+    assert port.generate_calls == 0
+
+
+def test_structured_output_request_is_accepted_when_backend_reports_the_capability() -> None:
+    """WU-02: the same Request succeeds once the Backend genuinely reports
+    `JSON_SCHEMA` support -- validation is a real Capability check, not a
+    blanket rejection of every `structured_output` Request."""
+    info = runtime_info(extra_features=frozenset({CapabilityFeature.JSON_SCHEMA}))
+    port = _FakeGenerationPort(runtime_info=info)
+    service = InferenceService(port)  # type: ignore[arg-type]
+    constraint = StructuredOutputConstraint.from_schema(_GEMMA_STRUCTURED_SCHEMA)
+    req = request().model_copy(
+        update={"parameters": GenerationParameters(structured_output=constraint)}
+    )
+
+    result = service.generate(req)
+
+    assert result.content == "ok"
+    assert port.generate_calls == 1
 
 
 def test_inference_core_does_not_import_llama_cpp() -> None:

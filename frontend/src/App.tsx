@@ -53,6 +53,7 @@ import type {
 } from "./components/DataControlsPanel";
 import MessageList from "./components/MessageList";
 import Composer from "./components/Composer";
+import ExperimentPanel from "./components/ExperimentPanel";
 import type { SettingsFormState } from "./components/SettingsPanel";
 
 const UI_LANGUAGE_KEY = "margpa.ui_language.v1";
@@ -82,6 +83,7 @@ export default function App() {
   );
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+  const [experimentPanelOpen, setExperimentPanelOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.lang = uiLanguage;
@@ -133,7 +135,7 @@ export default function App() {
 
   const [settingsForm, setSettingsForm] = useState<SettingsFormState>({
     responseLanguage: "ja",
-    maxNewTokens: "2048",
+    maxNewTokens: "4096",
     thinkingMode: false,
     thinkingVisibility: false,
     webSearchMode: "disabled",
@@ -1006,7 +1008,7 @@ export default function App() {
     }
     const maxNewTokens = Number(settingsForm.maxNewTokens);
     const currentRuntimeMaxNewTokens =
-      runtimeModelControlState.status?.current_max_new_tokens ?? 2048;
+      runtimeModelControlState.status?.current_max_new_tokens ?? 4096;
     if (
       !Number.isInteger(maxNewTokens) ||
       maxNewTokens < 1 ||
@@ -1237,7 +1239,7 @@ export default function App() {
     }
     const maxNewTokens = Number(settingsForm.maxNewTokens);
     const currentRuntimeMaxNewTokens =
-      runtimeModelControlState.status?.current_max_new_tokens ?? 2048;
+      runtimeModelControlState.status?.current_max_new_tokens ?? 4096;
     if (
       !Number.isInteger(maxNewTokens) ||
       maxNewTokens < 1 ||
@@ -1626,6 +1628,9 @@ export default function App() {
           theme={uiTheme}
           onLanguageChange={setUiLanguage}
           onThemeChange={setUiTheme}
+          onOpenExperiment={() => {
+            setExperimentPanelOpen(true);
+          }}
         />
 
         <MessageList
@@ -1686,6 +1691,7 @@ export default function App() {
         runtimeGovernanceState={runtimeGovernanceState}
         onRuntimeGovernanceRefresh={() => void loadRuntimeGovernanceStatus()}
         onRuntimeGovernanceApply={handleRuntimeGovernanceApply}
+        onJudgeReadinessChanged={() => void loadRuntimeGovernanceStatus()}
         guardrailGovernanceBootstrapEnabled={guardrailGovernanceBootstrapEnabled}
         guardrailGovernanceState={guardrailGovernanceState}
         onGuardrailGovernanceRefresh={() => void loadGuardrailGovernanceStatus()}
@@ -1717,6 +1723,14 @@ export default function App() {
         onArchivedChatsClose={closeArchivedChats}
         onArchivedChatsOpen={(id) => void openArchivedChat(id)}
         onArchivedChatsUnarchive={(id) => void unarchiveArchivedChat(id)}
+      />
+
+      <ExperimentPanel
+        language={uiLanguage}
+        open={experimentPanelOpen}
+        onClose={() => {
+          setExperimentPanelOpen(false);
+        }}
       />
     </div>
   );

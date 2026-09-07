@@ -111,7 +111,7 @@ Built-in Judge evaluated 0、Judge／Repair Golden Path未成立。
 ```
 
 Phase 7のRAG／Web Evidence機能が上記を解決済みへ読み替えることはない
-（`docs/project/shared/未解決/current_unresolved_findings_registry_ja.md`が正本のまま）。
+（`docs/project/shared/unresolved_work/current_unresolved_findings_registry_ja.md`が正本のまま）。
 
 ## 5. Test／Temp／Network Boundary固定
 

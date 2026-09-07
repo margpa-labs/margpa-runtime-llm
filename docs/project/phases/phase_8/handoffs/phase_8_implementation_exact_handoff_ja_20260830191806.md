@@ -29,7 +29,7 @@ Phase 8の`Governed Agentic Execution Research Foundation`を、P8-0〜P8-Fの�
 5. `docs/project/phases/phase_8/operations/phase_8_acceptance_matrix_ja.md`
 6. `docs/project/phases/phase_7/history/operations/phase_7_minimal_final_closure_ja_20260830191806.md`
 7. `docs/project/phases/phase_7/history/operations/phase_7_user_mac_final_rag_citation_context_freshness_manual_acceptance_ja_20260830190930.md`
-8. `docs/project/shared/未解決/current_unresolved_findings_registry_ja.md`
+8. `docs/project/shared/unresolved_work/current_unresolved_findings_registry_ja.md`
 9. `docs/project/shared/task_roles/poc_mvp_portfolio_resource_constrained_delivery_and_closure_operating_policy_ja.md`
 10. `docs/project/shared/history/planned_work/phase_8_entry_manual_url_fetch_and_llm_evidence_reservation_ja_20260830083225.md`
 11. `docs/project/shared/history/planned_work/phase_8_entry_branch_ui_hide_and_archived_chat_management_reservation_ja_20260830175855.md`

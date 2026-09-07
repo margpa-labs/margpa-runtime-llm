@@ -60,7 +60,7 @@ describe("FeatureModesPanel", () => {
     ).toBe("true");
   });
 
-  test("clicking Judge Enforce applies only the Judge mode and shows success", async () => {
+  test("clicking Judge Enforce applies only the Judge mode, shows success, and notifies readiness changed", async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(allOffStatus) })
@@ -73,7 +73,14 @@ describe("FeatureModesPanel", () => {
           }),
       });
     vi.stubGlobal("fetch", fetchMock);
-    render(<FeatureModesPanel language="en" visible={true} />);
+    const onJudgeReadinessChanged = vi.fn();
+    render(
+      <FeatureModesPanel
+        language="en"
+        visible={true}
+        onJudgeReadinessChanged={onJudgeReadinessChanged}
+      />,
+    );
     await waitFor(() => {
       expect(document.querySelector("#feature-modes-judge-enforce")).not.toBeNull();
     });
@@ -89,6 +96,73 @@ describe("FeatureModesPanel", () => {
     expect(url).toBe("/api/v5/feature-modes/judge");
     expect(JSON.parse(init.body)).toEqual({ requested_mode: "enforce" });
     expect(document.querySelector("#feature-modes-judge-apply")).toBeNull();
+    // P9-1 UF-UI-017: a genuinely committed Judge Mode change must notify a
+    // parent that wants to refresh Main Governance's own ENFORCE readiness.
+    expect(onJudgeReadinessChanged).toHaveBeenCalledTimes(1);
+  });
+
+  test("P9-1 UF-UI-017: a Repair Mode change never notifies Judge readiness changed", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(allOffStatus) })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            ...allOffStatus,
+            repair: { ...allOffStatus.repair, revision: 2, current_mode: "enforce" },
+          }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+    const onJudgeReadinessChanged = vi.fn();
+    render(
+      <FeatureModesPanel
+        language="en"
+        visible={true}
+        onJudgeReadinessChanged={onJudgeReadinessChanged}
+      />,
+    );
+    await waitFor(() => {
+      expect(document.querySelector("#feature-modes-repair-enforce")).not.toBeNull();
+    });
+
+    fireEvent.click(document.querySelector("#feature-modes-repair-enforce") as Element);
+
+    await waitFor(() => {
+      expect(screen.getByText("Applied.")).toBeTruthy();
+    });
+    // Repair Mode is independent of Judge readiness (Acceptance P6-ACC-025)
+    // -- must never trigger a Main Governance status refresh.
+    expect(onJudgeReadinessChanged).not.toHaveBeenCalled();
+  });
+
+  test("P9-1 UF-UI-017: a failed Judge Mode apply never notifies Judge readiness changed", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(allOffStatus) })
+      .mockResolvedValueOnce({ ok: false, json: () => Promise.resolve({ code: "boom" }) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(allOffStatus) });
+    vi.stubGlobal("fetch", fetchMock);
+    const onJudgeReadinessChanged = vi.fn();
+    render(
+      <FeatureModesPanel
+        language="en"
+        visible={true}
+        onJudgeReadinessChanged={onJudgeReadinessChanged}
+      />,
+    );
+    await waitFor(() => {
+      expect(document.querySelector("#feature-modes-judge-enforce")).not.toBeNull();
+    });
+
+    fireEvent.click(document.querySelector("#feature-modes-judge-enforce") as Element);
+
+    await waitFor(() => {
+      expect(screen.getByText("Failed to apply.")).toBeTruthy();
+    });
+    // A failed/rolled-back apply must never trigger a stale-refresh either
+    // -- only a genuine commit does.
+    expect(onJudgeReadinessChanged).not.toHaveBeenCalled();
   });
 
   test("rapid clicks are serialized and converge to the last server-canonical mode", async () => {
@@ -164,6 +238,7 @@ describe("FeatureModesPanel", () => {
           criteria_passed: 3,
           criteria_deviated: 1,
           criteria_unknown: 0,
+          repair_requested_by: "main_governance",
         },
       },
     };
@@ -190,6 +265,15 @@ describe("FeatureModesPanel", () => {
     expect(lastResult?.textContent).toContain("judge.selene");
     expect(lastResult?.textContent).toContain("local_macos_selene_judge_v1");
     expect(lastResult?.textContent).toContain("selected=4");
+    // P9-1 Judge/Governance Rework (WU-03), Round 1 Self-review finding:
+    // a prior version of this Rework computed `repair_requested_by` on
+    // the Backend and threaded it through the Web API contract, but
+    // never rendered it here -- a User had no way to see which side
+    // (Judge / Main Governance / both) actually authorized a Repair that
+    // ran.
+    expect(document.querySelector("#feature-modes-judge-repair-requested-by")?.textContent).toBe(
+      "Repair requested by: main_governance",
+    );
   });
 
   test("P6-CODEX-012: a stale last result while a Run is in flight is labeled as such", async () => {

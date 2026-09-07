@@ -46,7 +46,7 @@ Phase 7 Transition: USER AUTHORIZED
 - Main Runtime Governanceの意味ENFORCE未成立。
 - Qwen／DeepSeekの回答品質、Grounding、訂正追随は不合格。
 
-正本は`docs/project/shared/未解決/current_unresolved_findings_registry_ja.md`とする。
+正本は`docs/project/shared/unresolved_work/current_unresolved_findings_registry_ja.md`とする。
 
 ## 4. Claim Correction
 

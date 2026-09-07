@@ -7,10 +7,10 @@
   "template_file": null,
   "template_sha512": null,
   "derived_template_file": "project_derived_multi_criterion_prompt_v1.txt",
-  "derived_template_sha512": "e93439a6a857066175be0f56d184c30b9d705f7051e13739134917bad8b50409d56ef2f8ddafb4042e05a196e6db27e801a48bb1f941ea1884fa9723eb530fc4",
+  "derived_template_sha512": "e84bebe9c4f538fa285f84d78607811cf46004e38a694b45fd31e8bda975581131462e06ed3b201f1a31754c2f8a2fde6f7fd8c148ba50eea874c8185834fa34",
   "derived_from_upstream_revision": null,
   "derived_from_upstream_basis": "unknown_network_prohibited",
-  "project_contract_digest_sha512": "79b4845acd280567758932ec0f3d31a755f6f3832cd5197eb7c79819ecb7fe97970c132e81ca146ceb3b63894a033377a56d7c85e5d4d73b09da4b8ab5179383",
+  "project_contract_digest_sha512": "e13dae53f1d89d8ccd0ab05ab4db3ac21a4daa6a9f4f31c1dd705f386c7c6e2aad1c295fb35d20ff4744d8fd7b1da38d9e382db5c87fb5b475c383f0bba2c617",
   "retrieval_status": "project_derived_contract_ready_official_copy_unverified",
   "verified_official_copy": false
 }

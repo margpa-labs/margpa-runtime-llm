@@ -82,7 +82,7 @@ Mechanical Enforcement  : RESEARCH CANDIDATES／NOT IMPLEMENTED
 - [Phase 6 Special Minimal Closure](../phases/phase_6/history/operations/phase_6_special_minimal_closure_with_known_debt_ja_20260829171422.md)
 - [Phase 6難度回顧／後続Phase再配置Evidence](../phases/phase_6/history/operations/phase_6_governance_semantic_runtime_difficulty_retrospective_and_phase_10_transfer_ja_20260829175551.md)
 - [Phase 6／7 Recovery](../phases/phase_6/history/index/phase_6_special_minimal_closure_and_phase_7_ready_recovery_ja_20260829171422.md)
-- [Current Unresolved Registry](../shared/未解決/current_unresolved_findings_registry_ja.md)
+- [Current Unresolved Registry](../shared/unresolved_work/current_unresolved_findings_registry_ja.md)
 - [Phase 7 Index](../phases/phase_7/phase_index_ja.md)
 - [Phase 7 Requirements](../phases/phase_7/requirements/phase_7_requirements_ja.md)
 - [Phase 7 Architecture](../phases/phase_7/architecture/phase_7_architecture_ja.md)

@@ -85,6 +85,48 @@ def test_probe_capability_reports_declared_limits_without_loading() -> None:
     assert fake_adapter.load_calls == []
 
 
+def test_probe_capability_uses_explicit_output_ceiling_independent_of_context() -> None:
+    """P9-1 Package 3: `max_output_tokens_ceiling` is an explicit Deployment/
+    Application Profile Output Ceiling, no longer derived as `context - 1`
+    (the pre-Package-3 behavior, still exercised above when the Config
+    leaves the ceiling unset -- P3-WU-01's own "existing Portable Default
+    and Migration/Backward Compatibility" requirement). Pins the real
+    Package 3 target numbers: Context 16384, Output Ceiling 8192."""
+    fake_adapter = _FakeLlamaCppModelAdapter()
+    backend = LlamaCppRuntimeModelBackend(
+        adapter=fake_adapter,  # type: ignore[arg-type]
+        base_load_config=ModelLoadConfig(context_size=16384, max_output_tokens_ceiling=8192),
+    )
+    definition = make_model_definition(
+        model_key="main.qwen3-4b-q4-k-m", native_context_limit=40960
+    )
+
+    result = backend.probe_capability(definition=definition)
+
+    assert result.deployment_verified_context_limit == 16384  # min(40960, base 16384)
+    assert result.effective_context_limit == 16384
+    # The Ceiling (8192), never context - 1 (16383).
+    assert result.max_output_token_limit == 8192
+    assert fake_adapter.load_calls == []
+
+
+def test_probe_capability_clamps_an_output_ceiling_that_would_exceed_context() -> None:
+    """Defensive: a misconfigured Ceiling >= the deployment-verified Context
+    must never produce a `max_output_token_limit` that leaves no room for
+    any prompt tokens at all."""
+    fake_adapter = _FakeLlamaCppModelAdapter()
+    backend = LlamaCppRuntimeModelBackend(
+        adapter=fake_adapter,  # type: ignore[arg-type]
+        base_load_config=ModelLoadConfig(context_size=512, max_output_tokens_ceiling=8192),
+    )
+    definition = make_model_definition(model_key="main.qwen3-4b-q4-k-m", native_context_limit=40960)
+
+    result = backend.probe_capability(definition=definition)
+
+    assert result.deployment_verified_context_limit == 512
+    assert result.max_output_token_limit == 511  # min(8192, 512 - 1), never 8192
+
+
 def test_load_overrides_context_size_and_reports_measured_capability() -> None:
     fake_adapter = _FakeLlamaCppModelAdapter()
     backend = _backend(fake_adapter=fake_adapter)

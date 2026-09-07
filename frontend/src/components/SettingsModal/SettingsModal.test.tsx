@@ -113,6 +113,7 @@ function baseProps(overrides: Partial<Parameters<typeof SettingsModal>[0]> = {})
     runtimeGovernanceState: RUNTIME_GOVERNANCE_STATE,
     onRuntimeGovernanceRefresh: vi.fn(),
     onRuntimeGovernanceApply: vi.fn(),
+    onJudgeReadinessChanged: vi.fn(),
     guardrailGovernanceBootstrapEnabled: true,
     guardrailGovernanceState: GUARDRAIL_GOVERNANCE_STATE,
     onGuardrailGovernanceRefresh: vi.fn(),

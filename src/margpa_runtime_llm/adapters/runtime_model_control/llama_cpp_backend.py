@@ -45,7 +45,16 @@ class LlamaCppRuntimeModelBackend:
     def probe_capability(self, *, definition: ModelDefinition) -> CapabilityProbeResult:
         declared = definition.model.native_context_limit
         deployment_verified = min(declared, self._base_load_config.context_size)
-        max_output = max(1, deployment_verified - 1)
+        # P9-1 Package 3: `max_output_tokens_ceiling` (Config->Resolver, see
+        # `ModelLoadConfig`'s own docstring) is an explicit Deployment/
+        # Application Profile Output Ceiling, independent of Context Size.
+        # `None` (unset by any Profile, the Portable Default) preserves the
+        # pre-Package-3 `context - 1` derivation exactly.
+        ceiling = self._base_load_config.max_output_tokens_ceiling
+        context_derived_max = max(1, deployment_verified - 1)
+        max_output = (
+            min(ceiling, context_derived_max) if ceiling is not None else context_derived_max
+        )
         return CapabilityProbeResult(
             native_context_limit=declared,
             # llama.cpp does not expose a separate lower Context ceiling for

@@ -73,7 +73,7 @@ General Web Search、Automatic SearchおよびHostile-site対応はPhase 11以�
 - Server Canonical Web OFF／Consent／PII Enforcement未成立。
 - 一般URL Fetch／Hostile-site Sandbox未成立。
 
-詳細は`docs/project/shared/未解決/current_unresolved_findings_registry_ja.md`を正本とする。
+詳細は`docs/project/shared/unresolved_work/current_unresolved_findings_registry_ja.md`を正本とする。
 
 ## Stop Line
 

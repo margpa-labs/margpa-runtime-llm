@@ -29,6 +29,7 @@ from margpa_runtime_llm.modules.inference.contracts.runtime import ModelLoadConf
 from margpa_runtime_llm.modules.inference.domain.model_definition import ModelDefinition
 from margpa_runtime_llm.modules.runtime_model_control.application import (
     DEEPSEEK_MAIN,
+    GEMMA_E2B_JUDGE,
     QWEN3_GUARD,
     QWEN_MAIN,
     SELENE_JUDGE,
@@ -197,6 +198,58 @@ def test_factory_dispatches_selene_and_qwen3guard_to_dedicated_adapters(tmp_path
     assert isinstance(selene, SeleneRoleAdapter)
     guard = factory.create(role=ModelRole.GUARD, option=_option_for(ModelRole.GUARD, QWEN3_GUARD))
     assert isinstance(guard, Qwen3GuardRoleAdapter)
+
+
+def test_factory_dispatches_gemma_e2b_to_dedicated_adapter_when_manifest_configured(
+    tmp_path: Path,
+) -> None:
+    """P9-1 Package 2: the Package 1 lightweight independent Judge candidate
+    (Gemma 4 E2B) is registered as a Model Definition but was not yet wired
+    into Provider Selection/the Production Factory -- this proves the Package
+    2 wiring (`GEMMA_E2B_JUDGE` branch in `ProductionRoleAdapterFactory.
+    create()`) actually dispatches to the shared `SeleneRoleAdapter` engine
+    (same class Selene uses, provider-neutral -- see its own docstring),
+    never a bespoke duplicate adapter."""
+    factory = ProductionRoleAdapterFactory(
+        definitions=_NullDefinitionResolver(),
+        model_root=tmp_path,
+        load_config=ModelLoadConfig(),
+        runtime_model_control_ref=[
+            _FakeRuntimeModelController(  # type: ignore[list-item]
+                selected_model_key=QWEN_MAIN
+            )
+        ],
+        selene_prompt_manifest_path=tmp_path / "manifest.json",
+        qwen3guard_contract_manifest_path=tmp_path / "qwen3guard_manifest.json",
+        gemma_e2b_prompt_manifest_path=tmp_path / "gemma_manifest.json",
+    )
+    gemma = factory.create(
+        role=ModelRole.JUDGE, option=_option_for(ModelRole.JUDGE, GEMMA_E2B_JUDGE)
+    )
+    assert isinstance(gemma, SeleneRoleAdapter)
+
+
+def test_factory_returns_unavailable_for_gemma_e2b_when_manifest_not_configured(
+    tmp_path: Path,
+) -> None:
+    """A Composition Root that never wires a Gemma prompt manifest path must
+    fail closed, never dispatch through an unvalidated Prompt Contract."""
+    factory = ProductionRoleAdapterFactory(
+        definitions=_NullDefinitionResolver(),
+        model_root=tmp_path,
+        load_config=ModelLoadConfig(),
+        runtime_model_control_ref=[
+            _FakeRuntimeModelController(  # type: ignore[list-item]
+                selected_model_key=QWEN_MAIN
+            )
+        ],
+        selene_prompt_manifest_path=tmp_path / "manifest.json",
+        qwen3guard_contract_manifest_path=tmp_path / "qwen3guard_manifest.json",
+    )
+    adapter = factory.create(
+        role=ModelRole.JUDGE, option=_option_for(ModelRole.JUDGE, GEMMA_E2B_JUDGE)
+    )
+    assert isinstance(adapter, UnavailableRoleProviderAdapter)
 
 
 def test_factory_dispatches_explicit_main_judge_to_shared_adapter(tmp_path: Path) -> None:

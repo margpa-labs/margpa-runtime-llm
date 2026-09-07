@@ -135,6 +135,133 @@ def test_main_actively_preempts_the_background_task_via_its_cancel_callback() ->
     coordinator.release_main(task_id="main-1")
 
 
+def _wait_for_no_background_task(
+    coordinator: ModelAccessCoordinator, *, timeout: float = 2.0
+) -> None:
+    deadline = time.monotonic() + timeout
+    while coordinator.current_background_task_id() is not None and time.monotonic() < deadline:
+        time.sleep(0.005)
+
+
+def test_was_preempted_reports_true_for_a_preempted_task_still_running() -> None:
+    """R2-WU-03 (Controller Review IR-CI-03): `was_preempted()` is a
+    non-destructive peek, not the prior one-shot `consume_preemption()` —
+    it must report `True` for as long as the preempted Task's own Run has
+    not yet reached its genuine Terminal (`start_background()`'s own
+    `_run()` `finally`), regardless of how many times it is read. The
+    Task's own `target` deliberately does not return the instant `cancel`
+    fires (a second gate, `may_finish`, held closed by this test) — this
+    is what makes the assertion meaningful: a real Judge Worker also reads
+    this *before* it returns, not after."""
+    coordinator = ModelAccessCoordinator(main_wait_for_background_timeout_seconds=2.0)
+    cancel_signalled = threading.Event()
+    may_finish = threading.Event()
+
+    def _target() -> None:
+        cancel_signalled.wait(timeout=2.0)
+        may_finish.wait(timeout=2.0)
+
+    assert coordinator.start_background(
+        task_id="bg-preempted-1", target=_target, cancel=cancel_signalled.set
+    )
+
+    def _preempt() -> None:
+        coordinator.acquire_main(task_id="main-1")
+        coordinator.release_main(task_id="main-1")
+
+    # `acquire_main()` signals `cancel` immediately but then blocks,
+    # waiting (bounded) for the Background Task to actually release the
+    # slot -- which this Task deliberately withholds via `may_finish`
+    # until after the assertions below, so it must run on its own Thread.
+    preemptor = threading.Thread(target=_preempt)
+    preemptor.start()
+    assert cancel_signalled.wait(timeout=2.0)
+
+    # Two independent reads (standing in for the Worker's own inner
+    # classification and a concurrent ENFORCE Wait Loop reader) must see
+    # the identical answer -- the prior one-shot design let only the first
+    # of these see `True`.
+    assert coordinator.was_preempted(task_id="bg-preempted-1") is True
+    assert coordinator.was_preempted(task_id="bg-preempted-1") is True
+
+    may_finish.set()
+    preemptor.join(timeout=2.0)
+    _wait_for_no_background_task(coordinator)
+
+    # Cleaned up exactly once, at the Task's own genuine Terminal --
+    # never left dangling for a reused/unrelated later `task_id`.
+    assert coordinator.was_preempted(task_id="bg-preempted-1") is False
+
+
+def test_was_preempted_reports_false_for_a_task_never_preempted() -> None:
+    """A Background Task that completes or is cancelled some other way
+    (e.g. a genuine external Stop) without ever being preempted by
+    `acquire_main()` must never be misreported as preempted."""
+    coordinator = ModelAccessCoordinator()
+    release_gate = threading.Event()
+    assert coordinator.start_background(
+        task_id="bg-never-preempted-1",
+        target=lambda: _wait_for_event(release_gate),
+        cancel=lambda: None,
+    )
+    release_gate.set()
+
+    assert coordinator.was_preempted(task_id="bg-never-preempted-1") is False
+
+
+def test_concurrent_readers_never_race_for_a_single_preemption_answer() -> None:
+    """R2-WU-03's own reproduced defect: the prior one-shot `consume_
+    preemption()` meant two genuinely concurrent Consumers for the same
+    Run (the Worker thread's own inner classification and the ENFORCE
+    Wait Loop polling on the caller's thread) raced for a single `True` —
+    whichever won saw the correct answer, the loser saw `False` and
+    misreported an ordinary Main-priority preemption as
+    `cancelled_by_request`. This drives many real concurrent readers
+    against one preempted Task and asserts every single one agrees."""
+    coordinator = ModelAccessCoordinator(main_wait_for_background_timeout_seconds=2.0)
+    cancel_signalled = threading.Event()
+    may_finish = threading.Event()
+
+    def _target() -> None:
+        cancel_signalled.wait(timeout=2.0)
+        may_finish.wait(timeout=2.0)
+
+    assert coordinator.start_background(
+        task_id="bg-race-1", target=_target, cancel=cancel_signalled.set
+    )
+
+    def _preempt() -> None:
+        coordinator.acquire_main(task_id="main-1")
+        coordinator.release_main(task_id="main-1")
+
+    preemptor = threading.Thread(target=_preempt)
+    preemptor.start()
+    assert cancel_signalled.wait(timeout=2.0)
+
+    results: list[bool] = []
+    results_lock = threading.Lock()
+    start_gate = threading.Event()
+
+    def _reader() -> None:
+        start_gate.wait()
+        outcome = coordinator.was_preempted(task_id="bg-race-1")
+        with results_lock:
+            results.append(outcome)
+
+    readers = [threading.Thread(target=_reader) for _ in range(16)]
+    for reader in readers:
+        reader.start()
+    start_gate.set()
+    for reader in readers:
+        reader.join(timeout=2.0)
+
+    may_finish.set()
+    preemptor.join(timeout=2.0)
+    _wait_for_no_background_task(coordinator)
+
+    assert results == [True] * 16
+
+
 def test_main_raises_distinct_preemption_error_if_background_never_honors_cancel() -> None:
     """A Task that ignores its Cancellation Token entirely is a genuine
     internal fault, not an ordinary capacity conflict — it must never be

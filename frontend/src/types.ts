@@ -266,6 +266,9 @@ export interface JudgeLastResult {
   failure_language?: string | null;
   repair_rejudge_provider?: string | null;
   repair_rejudge_role?: string | null;
+  /** P9-1 Judge/Governance Rework (WU-03): "judge" | "main_governance" |
+   * "judge_and_main", set only when a Repair Attempt actually ran. */
+  repair_requested_by?: string | null;
 }
 
 export interface JudgeModeSnapshot extends FeatureModeSnapshot {
@@ -879,4 +882,160 @@ export interface LiveJudgeBadge {
   requestId: string;
   state: string;
   repairAccepted: boolean | null;
+}
+
+// Phase 9-2 WU-A A4 / WU-E E4 (R1-WU-03/04/05): the Minimal Experiment
+// screen's own Backend surface (`/api/v7/experiment`). A Run's
+// `fixture_only` reflects the REAL `execution_mode` its own Raw Evidence
+// recorded — `false` only for a genuine Production Turn, never assumed.
+export interface ExperimentComponentSelection {
+  component_key: string;
+  selector_id: string | null;
+  mode: string | null;
+}
+
+export interface ExperimentVariantPreset {
+  variant_id: string;
+  label: string;
+  components: ExperimentComponentSelection[];
+}
+
+export interface ExperimentCasePreset {
+  case_id: string;
+  revision: string;
+  input: string;
+  requires_human_review: boolean;
+}
+
+export interface ExperimentPresets {
+  enabled: boolean;
+  cases: ExperimentCasePreset[];
+  variants: ExperimentVariantPreset[];
+}
+
+// Phase 9-2 R3-WU-01/05 (IR-P9-2-R2-01/03 fix): this Variant's own
+// "Desired Configuration" -- its declared Components overlaid onto
+// whatever was Live at Plan-creation time. A pre-Run planning reference
+// ONLY, never the same thing as a Run's own genuine Frozen Configuration
+// (`ExperimentVariantRun.frozen_configuration_digest_sha512` below,
+// captured fresh at THAT Run's own start) -- the two are never rendered
+// under the same label.
+export interface ExperimentVariantConfiguration {
+  variant_id: string;
+  desired_configuration_digest_sha512: string | null;
+  desired_components: ExperimentComponentSelection[];
+}
+
+export interface ExperimentPlan {
+  experiment_id: string;
+  case_id: string;
+  case_revision: string;
+  variant_ids: string[];
+  plan_digest_sha512: string;
+  // Phase 9-2 R3-WU-01 (IR-P9-2-R2-07 fix): Frozen Identity, decided once
+  // here at Plan-creation time -- a Run started against this Plan always
+  // uses this value; there is no longer a per-Run choice.
+  execution_mode: ExperimentExecutionMode;
+  variant_configurations: ExperimentVariantConfiguration[];
+}
+
+export type ExperimentExecutionMode = "fixture" | "production";
+
+export interface ExperimentVariantRun {
+  run_id: string;
+  experiment_id: string;
+  variant_id: string;
+  request_id: string;
+  // Phase 9-2 R2-WU-04 (IR-P9-2-R1-07 fix): Frozen Identity, set once at
+  // Run start and never inferred from whether Raw Evidence happens to
+  // exist yet -- authoritative over `fixture_only` below, which is kept
+  // only as a plain derived alias for existing readers.
+  execution_mode: ExperimentExecutionMode;
+  state: string;
+  generation: number;
+  started_at: string | null;
+  completed_at: string | null;
+  failure_reason: string | null;
+  fixture_only: boolean;
+  // Phase 9-2 R3-WU-01/05 (IR-P9-2-R2-03 fix): this Run's OWN genuine
+  // Frozen Configuration digest, captured fresh, live, at THIS Run's own
+  // Call-0 check -- never the Plan-level "Desired" digest above. `null`
+  // for a Fixture Run, or a Production Run whose Call-0 check has not
+  // yet completed.
+  frozen_configuration_digest_sha512: string | null;
+}
+
+// Phase 9-2 R3-WU-02 (IR-P9-2-R2-04 fix): a genuine three-state shape --
+// `called: null` means this Round's Evidence source genuinely cannot
+// tell whether this Component was called (e.g. Guard's own
+// `unavailable_correlation`), and must be rendered as Unknown/"—", never
+// as a confirmed `false`/`0`.
+export interface ExperimentActorInvocation {
+  component_key: string;
+  called: boolean | null;
+  outcome: string;
+  mutation_count: number | null;
+  evidence_count: number | null;
+  authority_exercised: boolean | null;
+}
+
+export interface ExperimentVariantRunResult {
+  run: ExperimentVariantRun;
+  invocations: ExperimentActorInvocation[];
+  production_request_id: string | null;
+  assistant_content: string | null;
+  final_disposition: string | null;
+}
+
+export interface ExperimentRunList {
+  experiment_id: string;
+  runs: ExperimentVariantRun[];
+}
+
+export interface ExperimentEvaluationObservation {
+  evaluator_kind: string;
+  evaluator_identity: string;
+  outcome: string;
+  score: number | null;
+  reason: string | null;
+}
+
+export interface ExperimentMetric {
+  runtime_state: string;
+  latency_ms: number | null;
+  call_count: number | null;
+  // Phase 9-2 R3-WU-02 (IR-P9-2-R2-04 fix): `call_count` above is a lower
+  // bound only (CONFIRMED calls) -- how many Components report
+  // `called: null` (not_observed) is this field, kept separate so
+  // Unknown is never silently folded into `call_count`'s own `0`.
+  unknown_component_count: number | null;
+  deviation_count: number | null;
+  repair_adopted: boolean | null;
+  false_positive: boolean | null;
+  false_grounding: boolean | null;
+  correction_acceptance: boolean | null;
+}
+
+export interface ExperimentComparisonRow {
+  variant_id: string;
+  run_id: string;
+  execution_mode: ExperimentExecutionMode | null;
+  runtime_state: string;
+  metric: ExperimentMetric | null;
+  observations: ExperimentEvaluationObservation[];
+  failure_reason: string | null;
+  raw_evidence_pointer: string;
+  variant_components: ExperimentComponentSelection[];
+  // Phase 9-2 R3-WU-01/05 (IR-P9-2-R2-03 fix): this ROW's own Run's
+  // genuine Frozen Configuration digest -- lets a Comparison reader see,
+  // side by side, that two Production Variant Runs really executed under
+  // two DIFFERENT Live Configurations.
+  frozen_configuration_digest_sha512: string | null;
+}
+
+export interface ExperimentComparison {
+  experiment_id: string;
+  case_id: string;
+  case_revision: string;
+  rows: ExperimentComparisonRow[];
 }

@@ -352,3 +352,132 @@ docs/public/technology_selection_ja.md
 - History、Metadataおよび公開境界が守られている。
 
 本Rulesに反する場合、内部Docs上の文章が正確であっても、対外向けDocumentとしてはRework対象とする。
+
+## 15. 指定4文書の累積作成Rules
+
+```yaml
+effective_from: 2026-09-07 09:37:50 JST
+decision_authority: user
+rule_scope: four_public_documents_only
+history_policy: append_only
+```
+
+本Sectionは、既存の全Rulesを維持したまま、次の4文書を作成または更新するときの追加必須Rulesを累積して定める。
+
+```text
+docs/public/roadmap_portfolio_edition_ja.md
+docs/public/roadmap_summary_ja.md
+docs/public/technology_selection_ja.md
+docs/public/technology_selection_portfolio_edition_ja.md
+```
+
+### 15.1 着手前の必須読込
+
+上記4文書のいずれかへ着手するたび、作業担当は最初に本Fileを先頭から末尾まで読み、対外向けDocumentの作成Rulesを確認する。
+
+過去に読んだ記憶、会話Context、要約または別TaskのHandoffだけで代用しない。
+
+### 15.2 表現上のBase
+
+表現、文章の流れおよび情報粒度は、Nazuna Researchが直接再編集した次の2文書のCurrent版を最初のBaseとする。
+
+```text
+docs/public/roadmap_portfolio_edition_ja.md
+docs/public/technology_selection_portfolio_edition_ja.md
+```
+
+ただし、この2文書も現時点では初見の読者にとって難解な箇所が残る。文章を機械的に模倣せず、内容の正確性を保ちながら、さらに平易で読みやすい表現へ改善する。
+
+### 15.3 作成者の視点
+
+- Nazuna Researchが作成する文書を、Codex等のAgent視点から`User`の成果として書かない。
+- 作成主体を示す必要がある場合は、`Nazuna Research`、`本Project`または自然な主語省略を使う。
+- 製品を操作する一般利用者、UI用語、Code上の正式名称など、用語として必要な場合だけ`User`または`user`を使用できる。
+- `User Interaction`等の一般的な技術用語まで不自然に置き換える必要はない。ただし、単なる書き手視点の癖として`User`を多用しない。
+
+### 15.4 正直さと対外的な見せ方
+
+- 未実装、未検証または不安定なものを完成済みとして書かない。
+- 事実を隠して誤認させる表現、誇大Claimおよび虚偽は禁止する。
+- 一方で、内部Failure、試行錯誤、Raw Error、弱点または不利な経緯を、読者の理解に不要なのに自発的かつ過剰に列挙しない。
+- 正直に書くことを、Nazuna Researchが就職・転職等であえて不利になる表現を選ぶことと混同しない。
+- 成立した成果、技術的価値および検証済み範囲を先に明確に示す。
+- 未完成部分を示す必要がある場合は、現在地を正確に保ちながら、`調整中`、`次工程`、`将来拡張`等の簡潔で中立的な表現を使う。
+- 内部のFailure報告や事故記録に必要な厳しさを、そのままPortfolio本文へ持ち込まない。
+
+### 15.5 用語の統一
+
+- 同じ概念に対して、日本語と英語または複数の言い換えをSectionごとに無秩序に切り替えない。
+- 文書ごとに基本表記を一つ決め、本文全体で統一する。
+- 日本語を基本とする場合、必要に応じて初出時だけ`意味評価（Semantic Evaluation）`のように英語を補足し、その後は`意味評価`へ統一する。
+- 業界で英語表記が一般的な固有技術用語は維持できるが、日本語と英語を装飾目的で混在させない。
+- 表、見出し、本文およびMetadataの間でも、同じ概念の表記を可能な限り揃える。
+- 既存文書内で表記揺れがある場合、正確な意味を保ったまま、初見の読者に分かりやすい側へ統一する。
+
+### 15.6 初見の読者を前提にした構成
+
+- MARGPA Runtime LLMを知らず、Repository、Phase構成、内部略語および過去の開発経緯へアクセスできない読者を前提にする。
+- 冒頭で「何を作っているか」「何ができるか」「何が特徴か」「現在どこまで進んでいるか」を平易に示す。
+- Phase番号、内部Component名、略語または独自概念は、初出時に役割を短く説明する。
+- 読者が内部Docsや別Fileを見なければ本文を理解できない構成にしない。
+- 抽象的な設計用語を連ねる前に、利用者から見える価値または実装結果を示す。
+- 一文へ複数の主張を詰め込まず、長いSlash列、括弧の連続、英単語の過剰連結および前提説明のない略称を避ける。
+- 詳細を削るだけで平易化したことにせず、必要な前提を短く補い、情報の順番を整える。
+
+### 15.7 情報量とFormat
+
+- 元文書の目的、基本Flow、YAML Metadataおよび視覚的Formatを尊重する。
+- 全Sectionを同じ粒度にせず、Projectの価値、成果、技術選定、検証方法および現在地を優先する。
+- 読者の判断に不要な内部経緯、重複説明、長い免責および細かなFailure列挙で行数を増やさない。
+- Tableは比較に適した情報へ限定し、長文をCellへ詰め込まない。
+- 個別Testの人物名、作品名、団体名、質問文および検証用の固有値を掲載しない。
+- 閲覧できないRepository内Fileへの参照で、本文の説明不足を補わない。
+
+### 15.8 更新頻度の既存Ruleを維持する
+
+- `roadmap_summary_ja.md`は、既存Rulesどおり通常更新対象とする。
+- `roadmap_portfolio_edition_ja.md`、`technology_selection_ja.md`および`technology_selection_portfolio_edition_ja.md`は、既存Rulesどおり原則保護対象とする。
+- 保護対象は、Phase 10の全Docs統合、通常Full ClosureまたはNazuna Researchの明示指示がある場合だけ更新する。
+- 本Sectionの追加を、4文書を毎回まとめて更新する義務や、保護対象をRoutine更新へ変更する根拠として扱わない。
+
+### 15.9 4文書限定の生成直後History完全Copy
+
+上記4文書に限り、通常の更新前History Snapshotに加えて、作業担当が新たに作成したStable本文を、その作成直後かつNazuna Researchによる直接編集前に、対応するHistoryへ完全Copyする。
+
+```text
+Roadmap系
+  -> docs/public/history/roadmap/
+
+Technology Selection系
+  -> docs/public/history/technology_selection/
+```
+
+- History側は新規Timestamp付きFileとし、既存Historyを上書きしない。
+- 作業担当が生成したStableとHistory Copyは、Metadataを含めて同一内容とする。
+- History用の説明やMetadataを本文へ追加して内容差を作らない。作成者や目的はHistoryのFile名で識別する。
+- StableとHistory CopyのSHA-512が一致することを確認する。
+- これにより、後からNazuna ResearchがStableを直接編集した場合、生成直後版との差分を機械的かつ正確に確認できるようにする。
+- この生成直後完全Copyは上記4文書だけの追加Rulesであり、他のPublic、Current、SharedまたはPhase文書へ自動拡張しない。
+
+History File名は、少なくとも対象Stable、作成担当、Phaseまたは作業時点、LanguageおよびTimestampを識別できる形にする。
+
+```text
+<stable_stem>_<creator>_generated_<phase>_ja_<timestamp>.md
+```
+
+### 15.10 完成前の累積確認
+
+上記4文書を完成候補とする前に、少なくとも次を確認する。
+
+1. 本Fileを作業開始前に全文読んだか。
+2. 2つのPortfolio Edition Current版を表現上のBaseとして確認したか。
+3. そのBaseよりも初見に分かりやすい文章へ改善したか。
+4. 作成者を不必要に`User`と呼んでいないか。
+5. 同じ概念の日本語／英語表記が文書内で統一されているか。
+6. 前提知識なしで、Projectの目的、特徴、成果および現在地を理解できるか。
+7. 嘘や誇大表現を避けつつ、不必要に不利な書き方をしていないか。
+8. 内部Failure、個別Test題材および閲覧不能な参照先を持ち込んでいないか。
+9. 対象文書の通常更新／保護対象Rulesを守ったか。
+10. 更新前History Snapshotを保存したか。
+11. 生成直後Stableと同一内容のHistory Copyを、直接編集前に新規作成したか。
+12. Stableと生成直後History CopyのSHA-512が一致しているか。

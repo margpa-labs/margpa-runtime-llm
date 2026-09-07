@@ -1,6 +1,8 @@
 """One-shot and streaming generation contracts."""
 
-from collections.abc import Iterator
+import hashlib
+import json
+from collections.abc import Iterator, Mapping
 from enum import StrEnum
 from types import TracebackType
 from typing import Protocol
@@ -18,6 +20,98 @@ class ThinkingMode(StrEnum):
     MODEL_DEFAULT = "model_default"
 
 
+_STRUCTURED_OUTPUT_SCHEMA_MAX_BYTES = 65536
+"""Gemma Judge-only Constrained Decoding Rework (WU-01): a Typed-Reject cap
+on the canonical (sorted-key) serialized `json_schema`, so a pathological or
+mistakenly-huge Schema fails Contract construction immediately rather than
+reaching the Backend's own Grammar compiler."""
+
+
+class StructuredOutputConstraint(ImmutableContract):
+    """Backend-neutral, Role-agnostic Optional generation constraint (WU-01):
+    a JSON Schema a Backend that supports it MAY compile into a generation
+    Grammar. `None` on `GenerationParameters.structured_output` (the
+    default, unchanged for every existing caller) means exactly what it did
+    before this field existed -- no constraint, ordinary free-form
+    generation. Only a Composition that explicitly constructs one and
+    attaches it to a specific Request's own `GenerationParameters` ever
+    causes a Backend to see a Grammar; this Contract itself has no opinion
+    about which Role may do so.
+
+    Immutable once constructed (frozen Contract, like every sibling
+    `GenerationParameters` field) -- a Request that freezes with this
+    constraint attached can never have it silently swapped afterward.
+    `schema_digest_sha512` is the canonical (sorted-key, compact) SHA-512 of
+    `json_schema`'s own JSON serialization; Evidence recording can persist
+    this Digest alone, never the full Schema text, exactly like every other
+    Digest-not-payload Evidence field this project already uses elsewhere
+    (`prompt_digest_sha512`, `config_digest_sha512`, ...). Use `from_schema()`
+    to construct one from a plain dict -- it computes the matching Digest for
+    you; direct construction is fail-closed if the two do not agree.
+
+    Gemma Constrained Decoding Final Contract Micro Rework (IR-FC-02):
+    `frozen=True` (via `ImmutableContract`) blocks reassigning the
+    `json_schema` field itself, but `dict` is still a mutable object --
+    Controller Review confirmed `constraint.json_schema["type"] = "..."`
+    still succeeds after construction, leaving `schema_digest_sha512`
+    stale. This Contract does not attempt to make the nested `dict` itself
+    immutable (no deep-freeze, no large API redesign); instead, the one
+    real consumer that turns `json_schema` into an executable Grammar
+    (`LlamaCppChatTemplate._build_grammar()`) re-serializes and re-hashes
+    it immediately before compiling, and Fails Closed if the recomputed
+    Digest no longer matches this Contract's own `schema_digest_sha512` --
+    so a Schema mutated after construction can never silently reach the
+    Backend under a Digest that no longer describes it.
+    """
+
+    json_schema: dict[str, object]
+    schema_digest_sha512: str = Field(pattern=r"^[0-9a-f]{128}$")
+
+    @model_validator(mode="after")
+    def _validate_schema(self) -> "StructuredOutputConstraint":
+        if not self.json_schema:
+            raise ValueError("json_schema must not be empty")
+        try:
+            serialized = json.dumps(
+                self.json_schema, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+            )
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"json_schema is not JSON-serializable: {exc}") from exc
+        encoded = serialized.encode("utf-8")
+        if len(encoded) > _STRUCTURED_OUTPUT_SCHEMA_MAX_BYTES:
+            raise ValueError("json_schema exceeds the maximum allowed serialized size")
+        expected_digest = hashlib.sha512(encoded).hexdigest()
+        if expected_digest != self.schema_digest_sha512:
+            raise ValueError(
+                "schema_digest_sha512 does not match the canonical json_schema serialization"
+            )
+        return self
+
+    @classmethod
+    def from_schema(cls, json_schema: Mapping[str, object]) -> "StructuredOutputConstraint":
+        schema = dict(json_schema)
+        try:
+            serialized = json.dumps(
+                schema, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+            )
+        except (TypeError, ValueError):
+            # Gemma Constrained Decoding Final Contract Micro Rework
+            # (IR-FC-02): before this fix, a non-JSON-serializable
+            # `json_schema` raised a raw `TypeError`/`ValueError` straight
+            # out of this classmethod, bypassing the Contract's own Typed
+            # Validation Failure entirely. Constructing with an arbitrary
+            # placeholder Digest here is safe -- the identical
+            # serialization attempt inside `_validate_schema()` fails
+            # first (before any Digest comparison is even reached),
+            # raising the same canonical `ValueError` (surfaced by Pydantic
+            # as a `ValidationError`) every other invalid `json_schema`
+            # already produces, rather than a distinct raw exception type
+            # escaping this one construction path.
+            return cls(json_schema=schema, schema_digest_sha512="0" * 128)
+        digest = hashlib.sha512(serialized.encode("utf-8")).hexdigest()
+        return cls(json_schema=schema, schema_digest_sha512=digest)
+
+
 class GenerationParameters(ImmutableContract):
     max_new_tokens: int = Field(default=512, gt=0)
     temperature: float = Field(default=0.7, ge=0.0, le=2.0)
@@ -30,6 +124,15 @@ class GenerationParameters(ImmutableContract):
     seed: int | None = None
     stop_sequences: tuple[str, ...] = ()
     thinking_mode: ThinkingMode = ThinkingMode.DISABLED
+    structured_output: StructuredOutputConstraint | None = None
+    """Gemma Judge-only Constrained Decoding Rework (WU-01): `None` for
+    every Request this project constructs today except the ones a Judge
+    Composition explicitly builds one for (see `SeleneSemanticEvaluator`'s
+    own `structured_output_schema_factory` and `attempt_live_repair()`'s
+    `rejudge_structured_output_schema_factory` -- both `None` by default).
+    Main's ordinary generation, the Repair Candidate generation, and every
+    Guard/RAG/Web/Dev-Agent Request never sets this field at all, so this
+    addition changes zero existing Request construction call sites."""
 
     @field_validator("stop_sequences")
     @classmethod

@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from typing import Any, cast
 
 from llama_cpp import Llama, StoppingCriteriaList
 from llama_cpp.llama_chat_format import Jinja2ChatFormatter
+from llama_cpp.llama_grammar import LlamaGrammar
 
 from margpa_runtime_llm.modules.inference.contracts.generation import (
     GenerationParameters,
@@ -200,6 +202,7 @@ class LlamaCppChatTemplate:
             if cancellation is not None
             else None
         )
+        grammar = self._build_grammar(parameters)
         raw = self._model.create_completion(
             prompt=tokens,
             temperature=parameters.temperature,
@@ -214,6 +217,7 @@ class LlamaCppChatTemplate:
             frequency_penalty=parameters.frequency_penalty,
             repeat_penalty=parameters.repeat_penalty,
             stopping_criteria=stopping_criteria,
+            grammar=grammar,
         )
         if stream:
             return self._stream_completion_as_chat_deltas(cast(Iterator[dict[str, Any]], raw))
@@ -228,6 +232,63 @@ class LlamaCppChatTemplate:
             ],
             "usage": completion.get("usage"),
         }
+
+    @staticmethod
+    def _build_grammar(parameters: GenerationParameters) -> LlamaGrammar | None:
+        """Gemma Judge-only Constrained Decoding Rework (WU-02): a Request
+        with no `structured_output` attached (every Main/Repair/Guard/RAG/
+        Web/Dev-Agent Request, and every Judge Request a Composition did
+        not explicitly opt into) builds `grammar=None`, so `create_
+        completion()` runs exactly as it did before this Rework -- no
+        observable behavior change whatsoever for any of those callers.
+
+        A Request that DOES carry a constraint fails closed on a genuine
+        compile failure (an unusual but real possibility for a
+        malformed-at-the-JSON-Schema-semantics level Schema the Contract's
+        own lightweight validation could not catch -- see `StructuredOutput
+        Constraint`'s own docstring) -- never silently falls back to
+        unconstrained generation, which would defeat the entire point of
+        requesting a structural guarantee.
+
+        Gemma Constrained Decoding Final Contract Micro Rework (IR-FC-02):
+        `StructuredOutputConstraint.json_schema` is a mutable `dict` inside
+        an otherwise-frozen Contract -- Controller Review confirmed it can
+        be mutated in place after construction, leaving the Contract's own
+        `schema_digest_sha512` stale. The canonical serialization and its
+        SHA-512 are recomputed here, immediately before compiling, and
+        compared against the Digest this Contract still claims; a mismatch
+        Fails Closed with a Typed error rather than ever compiling (and
+        thus generating under) a Schema that no longer matches the Digest
+        any Evidence recorded for this Request."""
+        constraint = parameters.structured_output
+        if constraint is None:
+            return None
+        serialized = json.dumps(
+            constraint.json_schema, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        )
+        recomputed_digest = hashlib.sha512(serialized.encode("utf-8")).hexdigest()
+        if recomputed_digest != constraint.schema_digest_sha512:
+            raise InferenceError(
+                code=InferenceErrorCode.INVALID_CONFIGURATION,
+                safe_message=(
+                    "The structured output schema no longer matches its recorded digest."
+                ),
+                details={
+                    "recorded_schema_digest_sha512": constraint.schema_digest_sha512,
+                    "recomputed_schema_digest_sha512": recomputed_digest,
+                },
+            )
+        try:
+            return LlamaGrammar.from_json_schema(serialized, verbose=False)
+        except Exception as exc:
+            raise InferenceError(
+                code=InferenceErrorCode.INVALID_CONFIGURATION,
+                safe_message="The structured output schema could not be compiled into a grammar.",
+                details={
+                    "exception_type": type(exc).__name__,
+                    "schema_digest_sha512": constraint.schema_digest_sha512,
+                },
+            ) from exc
 
     @staticmethod
     def _stream_completion_as_chat_deltas(

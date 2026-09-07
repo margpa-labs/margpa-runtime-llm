@@ -7,7 +7,7 @@ document_state: current_stable
 normative: false
 language: ja
 created_at: 2026-09-01T13:15:00+09:00
-updated_at: 2026-09-01T13:24:00+09:00
+updated_at: 2026-09-02T12:17:40+09:00
 owner_role: プロジェクト責任者兼設計統括者役
 decision_authority: user
 provider: GitHub_Copilot_app
@@ -16,11 +16,12 @@ model_profiles:
   - GPT-5.6_Terra_High_400k
   - GPT-5.3_Codex_Medium
   - GPT-5.6_Terra_Max_400k
+  - Sonnet_5_pending_matched_retest
 service_plan_observed: Copilot_Pro_10_USD_user_report
 nominal_monthly_ai_credits: 1500_user_report
 provider_generalization: prohibited_beyond_recorded_environment
 model_ranking_state: insufficient_controlled_samples
-subscription_decision_state: cancellation_under_consideration_not_final
+subscription_decision_state: continue_through_2026_10_01_retest_then_reassess
 ```
 
 ## 0. 本書の位置づけ
@@ -833,3 +834,13 @@ Copilotの費用対効果は低いと評価せざるを得ない。
 その上で、Copilotを再度使う必要があり、三ProfileのQuota効率に大差がない状態が続くなら、現時点では`GPT-5.6 Terra Max`を選ぶ方が相対的に妥当である可能性が高い。これはMaxの一発完了を保証する評価ではなく、「節約にならない低設定を選んでRework Riskだけを増やさない」という条件付きの運用判断である。
 
 ただしSubscription解約はUserの未確定Decisionである。本書は解約を自動決定せず、今後のMatched ExperimentまたはPlan変更があればEvidenceに基づいて更新する。
+
+## 21. 2026-10-01 Matched Retest Reservation
+
+UserはGitHub Copilotを少なくとも次の月間Quota Cycleまで継続し、2026-10-01以降に小Work Unitを用いたMatched Retestを行うと決定した。
+
+対象は`GPT-5.6 Terra Max / 400K`、`GPT-5.6 Terra High / 400K`、`GPT-5.3-Codex Medium`および`Sonnet 5`である。QuotaだけでなくAccepted WU、Rework、Unauthorized Action、Human Attention、Compaction RecoveryおよびPlatform Evidence Costを同時に測る。
+
+詳細はAppend-only Reservationへ固定する。
+
+- `docs/project/shared/history/planned_work/copilot_2026_10_01_small_work_unit_cross_model_quota_execution_efficiency_retest_reservation_ja_20260902121740.md`

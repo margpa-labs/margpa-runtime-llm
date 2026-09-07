@@ -36,7 +36,7 @@ Target 5: directly related truthful UI
 以下5件だけを全文読む。過去Handoff全走査を行わない。
 
 1. `docs/project/shared/task_roles/poc_mvp_portfolio_resource_constrained_delivery_and_closure_operating_policy_ja.md`
-2. `docs/project/shared/未解決/current_unresolved_findings_registry_ja.md`
+2. `docs/project/shared/unresolved_work/current_unresolved_findings_registry_ja.md`
 3. `docs/project/phases/phase_6/history/operations/phase_6_gov026_user_mac_final_core_manual_acceptance_failure_and_controller_claim_correction_ja_20260829164049.md`
 4. `docs/project/phases/phase_6/handoffs/phase_6_claude_current_task_r25_to_r28_exact_return_handoff_ja_20260829110154.md`
 5. `docs/project/phases/phase_6/history/operations/phase_6_gov025_claude_r25_to_r28_bounded_controller_independent_review_ja_20260829110953.md`

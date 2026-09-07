@@ -6,7 +6,7 @@ status: provisional_self_maintained
 owner_role: Claude側設計統括者役
 decision_authority: user
 created_at: 2026-08-15 21:07:42 JST
-last_updated_at: 2026-08-19 18:29:42 JST
+last_updated_at: 2026-09-04 17:00:41 JST
 language: ja
 provisional: true
 provisional_reason: ユーザーの言葉「ちょっと一旦暫定的に」「ちょっとまた運用が固まりきってないからなー」
@@ -17,8 +17,8 @@ provisional_reason: ユーザーの言葉「ちょっと一旦暫定的に」「
 
 本Fileは、Claude側設計統括者役の**現行Operating Ruleのみ**を保持する、唯一の自己更新可能Fileである。誰向け：Claude側設計統括者役本人（Session復旧時含む）、新Task Claude側設計統括者役、Codex（参照用）。
 
-- 他のStable文書（`docs/project/current/**`、`docs/project/shared/**`の大半）は、ユーザーの明示指示がない限りClaude側から直接書き換えられない（`role_authority_matrix_ja.md`第6.1節）。**本File、および本File第1節・第3.13節が個別に指定する特定のStable File（現時点ではCompaction Recovery Hash Manifest・長期戦運用Companionの2件）が例外**で、Claude側設計統括者役が自己判断で追記・更新してよい。ただし越権しない範囲に限定（Root外Action、Git、Provider Memory、本Fileおよび上記指定File以外のStable文書、`.claude/settings.local.json`等への越権的Actionは許可されない）。
-- 本Fileは、Claude Code Provider Memory（`~/.claude/projects/.../memory/`）の代替として機能する（[provider_memory_and_repository_canonical_authority_ja.md](../automation/provider_memory_and_repository_canonical_authority_ja.md)によりProvider Memoryへの新規保存が禁止されているため）。
+- 他のStable文書（`docs/project/current/**`、`docs/project/shared/**`の大半）は、ユーザーの明示指示がない限りClaude側から直接書き換えられない（`role_authority_matrix_ja.md`第6.1節）。**本File、および本File第1節・第3.13節が個別に指定する特定のStable File（現時点ではCompaction Recovery Hash Manifest・長期戦運用Companionの2件）が例外**で、Claude側設計統括者役が自己判断で追記・更新してよい。Claude Code限定で、本Project対応の単一`MEMORY.md`／`Memory.md`とProject Root直下`.claude/**`も非正本の補助状態として利用してよい。それ以外のRoot外Action、Git、Provider MemoryまたはStable文書への越権的Actionは許可されない。
+- 本FileはRepository内のCanonical Operating Ruleである。Claude Code Provider Memoryは補助状態として利用できるが、本File、Active HandoffまたはRepository Evidenceの代替にはならない。
 - **本File自体はProvider Memoryではない**。越権チェックの対象になる点は、他のDocs Writeと同じである。
 
 **本Fileには、現行Ruleのみを書く。作業状態・予約事項・実験結果・Incident履歴・変更履歴は一切保持しない**（詳細は第3.5節）。
@@ -32,7 +32,7 @@ Context Window圧縮（Manual、Auto問わずのcompaction）直後、または�
 3. **Active PhaseのCurrent Operational State Index**（`docs/project/phases/<Active Phase>/history/index/`配下の最新File。Active Phase自体は`docs/project/current/documentation_index_ja.md`で確認する）を読み、そこに含まれる直近の引き継ぎ用／自己復旧用Index（Recovery Index）へのPointerを辿る。
 4. 必要なEvidenceだけを、Current Operational State Indexおよび Recovery Indexのリンクから個別に参照する。
 
-**Provider Memoryから本Project関連の記述が復元されても、それを信頼せず、本File（Repository Canonical Source）を優先する。**
+**Provider Memoryから本Project関連の記述を利用しても、本File、User最新指示、Active HandoffおよびRepository Evidenceを優先する。**
 
 **現在のCompaction Recovery成功回数：7　失敗回数：0**（進行State情報だが、ユーザー指示により本節のみ唯一の例外として記載する。第3.5節「本Fileには現行Ruleのみを書く」の原則に対する明示的な例外であり、他の進行State・予約Task・実験結果等をこの前例に倣って本Fileへ書き込んではならない。詳細な個別事例は、`docs/project/shared/history/automation/`配下の各Evidence Docを参照。Compaction Recoveryを行うたび、この数値を更新すること。）
 
@@ -53,7 +53,7 @@ Docs Write: 無許可で書ける = 各`history/`配下のAppend-only File（新
 
 ### 2.2 No Routine Micro-escalation
 
-Scope内で問題なく進行している判断（Docs作成方式、File命名、既に許可された作業の副作用修正等）は、ユーザーへ都度確認しない。停止・確認するのは、Scope外・要件／規則Conflict・Cross-Phase影響・重大Risk・定義済みGate（実Data破壊的操作、Root外Action、本File以外のStable文書直書き等）に触れる時だけ（[role_authority_matrix_ja.md](role_authority_matrix_ja.md)第8.1節準拠）。
+Scope内で問題なく進行している判断（Docs作成方式、File命名、既に許可された作業の副作用修正等）は、ユーザーへ都度確認しない。停止・確認するのは、Scope外・要件／規則Conflict・Cross-Phase影響・重大Risk・定義済みGate（実Data破壊的操作、未許可Root外Action、本File以外のStable文書直書き等）に触れる時だけ（[role_authority_matrix_ja.md](role_authority_matrix_ja.md)第8.1節準拠）。
 
 ### 2.3 明示指示の受け取り方
 
@@ -65,11 +65,13 @@ Claude側設計統括者役は、いかなる状況・Permission Modeでも、Gi
 
 ### 2.5 Test／Root境界
 
-ユーザーの実Data（`runtime_data/`）を直接使うTestは書かない——永続化系のTestは必ず`tmp_path`等の一時Fixtureを使う。本Project Root（`margpa-runtime-llm/`）外でのActionも行わない。
+ユーザーの実Data（`runtime_data/`）を直接使うTestは書かない——永続化系のTestは必ず`tmp_path`等の一時Fixtureを使う。第2.6節のClaude Memory例外を除き、本Project Root（`margpa-runtime-llm/`）外でのActionも行わない。
 
-### 2.6 Provider Memory禁止
+### 2.6 Claude Memory／Project `.claude/`限定例外
 
-本Projectに関する運用上の自己理解（Project要件・規則・User Preference・作業Style等）は、Tombstone・pointer的な断片であっても、Provider Memory（`~/.claude/projects/.../memory/`）へ一切保存しない。本Fileが、この種の情報を保持する唯一の場所である。
+Claude Codeは、本Projectへ対応付けられた単一`MEMORY.md`／`Memory.md`およびProject Root直下`.claude/**`を、非正本の作業補助として作成・読取・更新・保持してよい。Routine利用をUserへ逐次報告せず、CodexによるCleanup対象にも要求しない。
+
+これらはAuthority、Handoff、Evidence、Recovery SourceまたはGit成果物ではない。User最新指示、Active Handoff、Repository Canonical Docsまたは実Source／Testと矛盾する場合は使用しない。他のProvider Memory、他Project Memory、他のRoot外領域、Secret、User Runtime DataまたはGitへの例外は生成しない。
 
 ### 2.7 Permission Harness ≠ Authority
 
@@ -187,7 +189,7 @@ Agent自動化PoC・Cross-provider PoCに関するEvidenceは、Phase末等の�
 
 - [role_authority_matrix_ja.md](role_authority_matrix_ja.md) — Escalation境界、Docs Authority、Role定義の中核。
 - [task_role_write_authority_policy_ja.md](task_role_write_authority_policy_ja.md) — Role別Docs書込み権限の詳細。
-- [../automation/provider_memory_and_repository_canonical_authority_ja.md](../automation/provider_memory_and_repository_canonical_authority_ja.md) — Provider Memory禁止の根拠。
+- [../automation/provider_memory_and_repository_canonical_authority_ja.md](../automation/provider_memory_and_repository_canonical_authority_ja.md) — Provider MemoryのDefault禁止、Claude限定例外および非正本境界。
 - [../automation/automation_governance_index_ja.md](../automation/automation_governance_index_ja.md) — Supremacy Boundary等、Automation運用の中核。
 - [../operations/research_asset_mutation_control_ja.md](../operations/research_asset_mutation_control_ja.md) — Human-only Gate、最上位不変条件。
 - [../operations/transition_blocker_escalation_and_closure_contract_ja.md](../operations/transition_blocker_escalation_and_closure_contract_ja.md) — Blocker Escalation契約。

@@ -28,7 +28,13 @@ required_acceleration_api = "metal"
 fallback_policy = "deny"
 
 [load_overrides]
-context_size = 8192
+# P9-1 Package 3: Context 16384. `max_output_tokens_ceiling` is memory-
+# neutral (an output-length validation bound, not a KV Cache allocation)
+# and remains correct at any Context Size (see
+# `LlamaCppRuntimeModelBackend.probe_capability()`'s own `min(ceiling,
+# context - 1)` clamp).
+context_size = 16384
+max_output_tokens_ceiling = 8192
 batch_size = 256
 micro_batch_size = 256
 threads = 6
@@ -36,3 +42,120 @@ threads_batch = 6
 gpu_layers = -1
 use_mmap = true
 use_mlock = false
+
+[dedicated_role_load_overrides]
+# P9-1 Judge Dispatch Fix Round 5: dedicated Roles (Selene/Gemma/Qwen3Guard)
+# get their own, smaller context_size, independent of Main's 16384 above.
+# Real-hardware evidence (2026-09-04 3-angle investigation) confirmed a
+# genuine native `llama_decode returned -3` failure the instant a dedicated
+# Role's first real decode runs while Main is also loaded at the same large
+# context_size in the same process (a genuine Metal/compute-graph
+# resource conflict between two concurrently-active llama.cpp contexts) --
+# reproduced 3/3, and absent entirely when the dedicated Role runs alone.
+# 8192 matches the value this deployment's own operator was independently
+# advised to use for Selene specifically.
+#
+# CORRECTION (P9-1 Judge/Governance Rework, WU-01): this context_size
+# reduction alone does NOT resolve the native `llama_decode returned -3`
+# conflict -- a later real-hardware re-reproduction (Main context=16384,
+# Selene context=8192, gpu_layers=-1 both) hit the identical failure again,
+# 6/6 across 2 independent Load/Unload cycles, with the underlying
+# `RuntimeError: llama_decode returned -3` confirmed via the raw exception
+# chain (not merely the collapsed `generation_failed` display category).
+# Root-caused further: the conflict is bounded by Selene's own
+# `gpu_layers` count (reproduced 3/3 at `gpu_layers>=4`, absent at
+# `gpu_layers<=1`, real-hardware, Main concurrently loaded) -- but
+# `gpu_layers<=1` alone was separately confirmed too slow for the real
+# 32-Criteria Batch shape to complete inside this deployment's own
+# inference budget (a single short generate() call took ~10s at
+# `gpu_layers=1`; the real Batch shape exceeded a 120s budget entirely),
+# so lowering `gpu_layers` here is not adopted as a fix. The two earlier
+# claims from Round 6 ("solved 3/3") and Round A's own retrospective
+# ("resolved") were premature -- the Native failure and the Pathological
+# Repetition Detector's `generation_failed` collapse to the exact same
+# `InferenceErrorCode`, which made them indistinguishable in the
+# persisted Evidence at the time; `adapters/evaluation/selene.py`'s
+# `_diagnostic_exception_detail()` now also surfaces `.details` (Round 6's
+# `.code`-only string could not tell the two apart) so a future real
+# reproduction can be diagnosed without a fresh live-code reproduction.
+# This is a genuine open Native-layer defect (llama-cpp-python/llama.cpp's
+# own Metal backend, not something this project's Python code can fully
+# fix) -- Main+Selene concurrent Load remains functionally degraded on
+# this Hardware; see the WU-01 Exact Return for the full Evidence.
+context_size = 8192
+#
+# FURTHER CORRECTION (Codex Controller Review 2026-09-04 19:16 JST, WU-01
+# rework): the paragraph above ("a genuine Metal/compute-graph resource
+# conflict", "root-caused further: the conflict is bounded by Selene's own
+# gpu_layers count") overstated what this Task's own real-hardware evidence
+# actually established. This paragraph narrows those claims to what is
+# genuinely backed by a preserved raw log or exception chain; it does not
+# claim to have found the true root cause or a usable fix, and it does not
+# retract the still-open Native-layer defect above.
+#
+# Confirmed, with a preserved raw exception chain (this Task's own
+# `wu01_selene_repro/run1.log`, `run2.log`, and a 2026-09-04 19:16+ round
+# re-run):
+#   - Main (context=16384, gpu_layers=-1) + Selene (context=8192,
+#     gpu_layers=-1) loaded concurrently in one process, then a real 32-
+#     Criteria Batch dispatched to Selene: `RuntimeError: llama_decode
+#     returned -3`, chained under `InferenceError(code=generation_failed,
+#     details={'operation': 'generation', 'exception_type': 'RuntimeError'})`
+#     -- reproduced across independent Load/Unload cycles (2 preserved raw
+#     logs; an internal, not-independently-preserved earlier count of 6/6
+#     across 2 cycles is also on record but is not re-verified this round).
+#   - The identical real 32-Criteria Batch, same Selene context/gpu_layers,
+#     run with Selene loaded ALONE (Main never loaded this process):
+#     `provider_state=active`, all 32 Criteria decoded, `elapsed=93.451s`,
+#     no exception -- one fresh, hypothesis-driven, logged trial this round
+#     (`wu01_selene_repro/run3_alone_controller_round.log`), consistent with
+#     an earlier, not-independently-preserved run noted in this Task's own
+#     script comments (~93.5s, also success). This is real evidence that
+#     Main being concurrently loaded is a necessary condition for this
+#     specific failure with this specific Batch/Context/gpu_layers shape --
+#     it rules out "the Batch/Prompt/Context shape alone is the problem,
+#     independent of concurrency" as the sole explanation. It does NOT by
+#     itself identify which shared resource is actually contended.
+#
+# NOT confirmed, and no longer asserted as established fact:
+#   - "Metal Compute Buffer contention" as the specific mechanism. The
+#     installed `llama_cpp/llama_cpp.py` (`llama_decode`, v0.3.34) itself
+#     documents return code `-3` only as falling in the generic "< -1 -
+#     fatal error" bucket -- it defines no Metal-specific or compute-
+#     buffer-specific code. Memory pressure from two large concurrently-
+#     resident GGUF models, GPU command-queue/thread-pool contention, or a
+#     Metal-specific compute-graph conflict are all consistent with the
+#     evidence above; none has been isolated as the actual mechanism.
+#   - The "gpu_layers>=4 fails 3/3, gpu_layers<=1 succeeds" boundary
+#     description in the paragraph above. A gpu_layers sweep script exists
+#     in this Task's own `wu01_selene_repro/` (`repro4_gpu_layers_
+#     hypothesis.py`: gpu_layers=0, full 32-Criteria Batch, avoids the
+#     crash per that script's own design intent; `repro5_partial_gpu_
+#     layers.py`: a single short decode at gpu_layers in {1, 4, 16}), but
+#     no raw log from running them was preserved, and neither script
+#     repeats a given gpu_layers value 3 times -- so the specific "3/3"
+#     count above is not backed by a preserved artifact and should be read
+#     with reduced confidence rather than as a confirmed boundary. It was
+#     not re-run this round (see below).
+#
+# This round's own bounded new investigation used exactly 1 of the
+# Handoff's permitted up-to-3 new real-hardware trials (the Selene-alone
+# re-run above) -- the concurrent-failure condition was not re-run again
+# this round (2 preserved logs from earlier already establish it; re-
+# reproducing the identical Native Fatal Error a third time without a new
+# discriminating question would be exactly the aimless repetition the
+# Handoff prohibits), and the gpu_layers boundary was deliberately not
+# re-swept this round to stay within that budget.
+#
+# No code-level fix that preserves usable inference speed was found or
+# adopted this round. gpu_layers=0 (CPU-only) for Selene avoids the crash
+# per this Task's own script design intent but was separately noted as too
+# slow for the real 32-Criteria Batch shape to complete inside this
+# deployment's inference budget; no gpu_layers value between full offload
+# and CPU-only was confirmed both crash-free and fast enough with a
+# preserved log this round. Main+Selene concurrent Load remains genuinely
+# unresolved and functionally degraded on this Hardware -- this correction
+# narrows the causal claim, it does not close the defect. Per the Handoff's
+# explicit constraints, this correction does not deprecate any Model,
+# permanently cap gpu_layers, change the inference Library, add a new
+# Resource Gate, or disable any detector.

@@ -83,6 +83,7 @@ _RUNTIME_REF = ModelRuntimeReference(
     definition_file_sha512="a" * 128,
 )
 _SELENE_PROVIDER_ID = "judge.selene-1-mini-llama-3.1-8b-q5-k-m"
+_GEMMA_E2B_PROVIDER_ID = "judge.gemma-4-e2b-it-q4-0"
 _DEEPSEEK_PROVIDER_ID = "main.deepseek-r1-0528-qwen3-8b-q4-k-m"
 
 
@@ -90,6 +91,23 @@ class _FakeInferenceService:
     def __init__(self, *, content: str) -> None:
         self.content = content
         self.calls: list[GenerationRequest] = []
+        # `SeleneSemanticEvaluator._context_limit_tokens()` reads
+        # `self._service.runtime_info` unconditionally when planning
+        # batches (P9-1 Package 2: now also exercised by Main-shared's
+        # semantic-criteria dispatch) -- `None` here falls back to the
+        # evaluator's own `max_prompt_tokens_per_call`, exactly like a
+        # real `InferenceService` with nothing loaded yet would.
+        self.runtime_info: object | None = None
+
+    def count_chat_prompt_tokens(self, messages: tuple[object, ...], thinking_mode: object) -> int:
+        # P9-1 Package 2: Main-shared's semantic-criteria dispatch now
+        # routes through `SeleneSemanticEvaluator`'s batch planner, which
+        # requires this method on the underlying Inference Service (see
+        # `ChatPromptTokenCounterPort`) to size batches before any
+        # `generate()` call -- a trivial length-based count is sufficient
+        # for a Fixture Fake.
+        del thinking_mode
+        return sum(len(str(getattr(message, "content", ""))) for message in messages)
 
     def generate(
         self, request: GenerationRequest, *, cancellation: object = None
@@ -122,6 +140,11 @@ class _MultiStageInferenceService:
         self._repair_candidate = repair_candidate
         self._rejudge = rejudge
         self.calls: list[GenerationRequest] = []
+        self.runtime_info: object | None = None
+
+    def count_chat_prompt_tokens(self, messages: tuple[object, ...], thinking_mode: object) -> int:
+        del thinking_mode
+        return sum(len(str(getattr(message, "content", ""))) for message in messages)
 
     def generate(
         self, request: GenerationRequest, *, cancellation: object = None
@@ -174,8 +197,9 @@ class _FakeSeleneEvaluator:
         cancellation: CancellationToken | None = None,
         inference_budget_ms: int = 0,
         late_worker_observer: Callable[[Future[object]], None] | None = None,
+        batch_evidence_observer: Callable[[object], None] | None = None,
     ) -> SemanticEvaluationResponse:
-        del cancellation, inference_budget_ms, late_worker_observer
+        del cancellation, inference_budget_ms, late_worker_observer, batch_evidence_observer
         self.calls.append(request)
         return self._response
 
@@ -494,6 +518,10 @@ def test_main_shared_judge_needs_repair_and_rejudge_reuses_the_same_main_service
         rejudge_model_key: str | None = None,
         rejudge_role: object = None,
         language: str = "en",
+        rejudge_criteria: object = (),
+        tracked_stage_registry: object = None,
+        rejudge_structured_output_schema_factory: object = None,
+        rejudge_sampling_overrides: object = None,
     ) -> object:
         from margpa_runtime_llm.bootstrap.repair_live_integration import RepairExecutionResult
 
@@ -584,7 +612,19 @@ def test_main_shared_judge_repair_and_rejudge_genuinely_execute_via_the_producti
     distinct content per real Model Call stage -- proving all 3 real
     Model Calls (Initial Judge, Repair Candidate, Rejudge) genuinely
     happen, in that order, on the same Main-shared Service, ending in a
-    real Adopt."""
+    real Adopt.
+
+    Controller Review (2026-09-04 19:16, IR-02) fix: the Rejudge fixture
+    below now returns a genuine `criterion_results` entry for the exact
+    same Frozen `semantic.argd.evidence.1` id the Initial Judge scored --
+    before this fix, `attempt_live_repair()` never passed `expected_
+    criterion_ids` to its Rejudge decode at all, so a criterion-less
+    `{"recommendation":"accept","confidence":0.9}` (this Test's own
+    pre-Controller fixture value) was accepted at face value and this
+    assertion passed for the wrong reason (an un-evidenced self-report,
+    exactly Controller Review IR-02's reproduced defect). Proves the
+    Rejudge is genuinely required to re-verify the *same* Frozen Criterion,
+    not merely produce *some* `accept` recommendation."""
     criterion = _criterion()
     frozen = freeze_semantic_turn(
         request_id="req-main-shared-real-repair-1",
@@ -606,10 +646,15 @@ def test_main_shared_judge_repair_and_rejudge_genuinely_execute_via_the_producti
         '"disposition": "deviation", "confidence": 0.85, "reason_code": "unsupported_claim", '
         '"evidence_refs": ["REFERENCE SENTINEL"]}]}'
     )
+    rejudge_output = (
+        '{"recommendation": "accept", "confidence": 0.9, '
+        '"criterion_results": [{"criterion_id": "semantic.argd.evidence.1", '
+        '"disposition": "pass", "confidence": 0.9}]}'
+    )
     service = _MultiStageInferenceService(
         initial_judge=initial_judge_output,
         repair_candidate="A corrected, source-grounded answer.",
-        rejudge='{"recommendation": "accept", "confidence": 0.9}',
+        rejudge=rejudge_output,
     )
     controller = JudgeModeController()
     controller.apply_mode(EvaluationMode.ENFORCE)
@@ -653,9 +698,14 @@ def test_main_shared_judge_repair_and_rejudge_genuinely_execute_via_the_producti
 
     # The crux: 3 distinct real Model Calls actually happened, in order --
     # Initial Judge, then real Repair Candidate Generation, then real
-    # Rejudge -- never a Fake Executor short-circuit.
+    # Rejudge -- never a Fake Executor short-circuit. The Initial Judge
+    # call's request_id now carries the shared batch evaluator's
+    # `{request_id}:{provider_label}:{batch_index}` shape (P9-1 Package 2
+    # Common Substrate fix: Main-shared's semantic-criteria dispatch now
+    # goes through the same token-bounded batch planner Selene uses,
+    # tagged `main_shared` -- one Criterion fits in exactly one batch).
     assert [call.request_id for call in service.calls] == [
-        "req-main-shared-real-repair-1:judge",
+        "req-main-shared-real-repair-1:main_shared:1",
         "req-main-shared-real-repair-1:repair",
         "req-main-shared-real-repair-1:rejudge",
     ]
@@ -672,6 +722,107 @@ def test_main_shared_judge_repair_and_rejudge_genuinely_execute_via_the_producti
     # directly, never a persisted-Turn id.
     assert result.repair_new_turn_id is None
     assert release.released == ["main-shared-real-repair-lease"]
+
+
+def test_main_shared_rejudge_with_no_criterion_results_is_never_accepted() -> None:
+    """Controller Review (2026-09-04 19:16, IR-02) exact reproduction: same
+    Production wiring as the Test above (real `attempt_live_repair()`, real
+    Judge Hook, only the Model Service's 3 calls scripted), except the
+    Rejudge fixture is the pre-Controller-fix shape -- a criterion-less
+    generic `{"recommendation":"accept","confidence":0.99}` with no
+    `criterion_results` at all, exactly Controller's own in-memory Probe
+    (initial Judge DEVIATION -> Repair returns the flawed candidate
+    unmodified -> Rejudge reports a bare accept). Controller reproduced
+    `repair_accepted=True` here against the pre-fix code (`rejudge_
+    response_has_criterion_results: False`, yet still adopted). With the
+    Frozen Criterion now threaded through to the Rejudge's `expected_
+    criterion_ids`, a response missing that Criterion's `criterion_results`
+    entry must fail the Rejudge decode closed (-> UNKNOWN), so `evaluate_
+    repair_success()` can never call it IMPROVED and the known-flawed
+    original answer must never be adopted as a genuine repair."""
+    criterion = _criterion()
+    frozen = freeze_semantic_turn(
+        request_id="req-main-shared-ir02-repro-1",
+        generation=1,
+        criteria=(criterion,),
+        language="en",
+        main_mode="observe",
+        judge_mode="enforce",
+        repair_mode="enforce",
+        configured_provider=_DEEPSEEK_PROVIDER_ID,
+        active_provider=_DEEPSEEK_PROVIDER_ID,
+        provider_state=SemanticProviderState.ACTIVE,
+        budget_profile="test",
+        max_criteria=8,
+    )
+    initial_judge_output = (
+        '{"recommendation": "needs_repair", "confidence": 0.4, "reasoning": "vague", '
+        '"criterion_results": [{"criterion_id": "semantic.argd.evidence.1", '
+        '"disposition": "deviation", "confidence": 0.85, "reason_code": "unsupported_claim", '
+        '"evidence_refs": ["REFERENCE SENTINEL"]}]}'
+    )
+    service = _MultiStageInferenceService(
+        initial_judge=initial_judge_output,
+        # The Repair candidate deliberately does not actually fix the
+        # flaw (mirrors Controller's Probe step 2: "誤りを含む元回答をその
+        # まま返す").
+        repair_candidate="A shaky answer",
+        # The pre-Controller-fix Rejudge shape: no `criterion_results` at
+        # all -- a bare self-reported accept with no per-criterion
+        # evidence (mirrors Controller's Probe step 3).
+        rejudge='{"recommendation": "accept", "confidence": 0.99}',
+    )
+    controller = JudgeModeController()
+    controller.apply_mode(EvaluationMode.ENFORCE)
+    repair_controller = RepairModeController()
+    repair_controller.apply_mode(RepairMode.ENFORCE)
+
+    release = _ReleaseTracker()
+    hook, composition = build_judge_completion_hook(
+        service=service,  # type: ignore[arg-type]
+        judge_mode_controller=controller,
+        model_access_coordinator=ModelAccessCoordinator(),
+        repair_mode_controller=repair_controller,
+        repair_executor=partial(
+            attempt_live_repair,
+            service=service,  # type: ignore[arg-type]
+            model_key=_DEEPSEEK_PROVIDER_ID,
+            persistent=None,
+        ),
+        semantic_snapshot_provider=lambda request_id: (
+            frozen.snapshot if request_id == "req-main-shared-ir02-repro-1" else None
+        ),
+        semantic_result_recorder=lambda response: None,
+        begin_judge_role_turn=lambda: _handle(
+            _FakeMainSharedAdapter(provider_id=_DEEPSEEK_PROVIDER_ID),
+            lease="main-shared-ir02-repro-lease",
+        ),
+        end_judge_role_turn=release,
+    )
+
+    decision = hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id="req-main-shared-ir02-repro-1",
+            user_input="Question",
+            assistant_content="A shaky answer",
+            enforce_presented_final=True,
+        )
+    )
+    result = _wait_for_result(composition)
+
+    assert [call.request_id for call in service.calls] == [
+        "req-main-shared-ir02-repro-1:main_shared:1",
+        "req-main-shared-ir02-repro-1:repair",
+        "req-main-shared-ir02-repro-1:rejudge",
+    ]
+    # The crux: the criterion-less Rejudge must never be adopted as a
+    # genuine repair, and the known-flawed original answer must never reach
+    # the Presented Final either.
+    assert result.repair_outcome == "unknown"
+    assert result.repair_accepted is False
+    assert decision is not None
+    assert decision.presentation_outcome != "candidate_accepted"
 
 
 def test_selene_shaped_active_adapter_dispatches_via_semantic_evaluator_never_touches_main_service() -> (  # noqa: E501
@@ -753,6 +904,164 @@ def test_selene_shaped_active_adapter_dispatches_via_semantic_evaluator_never_to
     assert result.budget_profile == "local_macos_selene_judge_v1"
 
 
+def test_selene_shaped_dispatch_records_the_executing_providers_evidence_identity() -> None:
+    """P9-1 Component Independence Rework (WU-04): confirmed real Failure
+    -- a genuinely `independent_artifact`-role Judge Run's own recorded
+    `judge_run_evidence` carried `metadata_fields.model_identity` equal to
+    Main's own identity (`context.model_key`) instead of the real
+    executing dedicated Adapter's identity, even though the UI's own
+    Executed Provider correctly showed the dedicated Adapter. `model_
+    identity` in this Evidence record must mean "the Model that actually
+    executed this Judge Run", matching the adjacent `judge_role` field it
+    is recorded alongside — never silently the evaluated Main Turn's own
+    identity, which is separately available via the correlated Turn-level
+    "evaluations" record, not this one."""
+    criterion = _criterion()
+    frozen = freeze_semantic_turn(
+        request_id="req-selene-evidence-identity-1",
+        generation=1,
+        criteria=(criterion,),
+        language="en",
+        main_mode="observe",
+        judge_mode="enforce",
+        repair_mode="off",
+        configured_provider=_SELENE_PROVIDER_ID,
+        active_provider=_SELENE_PROVIDER_ID,
+        provider_state=SemanticProviderState.ACTIVE,
+        budget_profile="test",
+        max_criteria=8,
+    )
+    selene_response = SemanticEvaluationResponse(
+        request_id="req-selene-evidence-identity-1",
+        generation=1,
+        provider_id=_SELENE_PROVIDER_ID,
+        provider_state=SemanticProviderState.ACTIVE,
+        results=(
+            SemanticCriterionResult(
+                criterion_id=criterion.criterion_id,
+                descriptor_id=criterion.descriptor_id,
+                disposition=SemanticCriterionDisposition.PASS,
+                confidence=0.95,
+            ),
+        ),
+        latency_ms=10,
+    )
+    evaluator = _FakeSeleneEvaluator(response=selene_response)
+    controller = JudgeModeController()
+    controller.apply_mode(EvaluationMode.ENFORCE)
+    evidence_calls: list[dict[str, object]] = []
+    hook, composition = build_judge_completion_hook(
+        service=_FakeInferenceService(content="should never be used"),  # type: ignore[arg-type]
+        judge_mode_controller=controller,
+        model_access_coordinator=ModelAccessCoordinator(),
+        semantic_snapshot_provider=lambda request_id: (
+            frozen.snapshot if request_id == "req-selene-evidence-identity-1" else None
+        ),
+        judge_evidence_recorder=lambda **fields: evidence_calls.append(fields),
+        begin_judge_role_turn=lambda: _handle(
+            _FakeSeleneRoleAdapter(provider_id=_SELENE_PROVIDER_ID, evaluator=evaluator)
+        ),
+    )
+
+    hook(
+        JudgeCompletionContext(
+            # Main's own identity -- deliberately different from
+            # `_SELENE_PROVIDER_ID` so the two are never accidentally
+            # indistinguishable in this Test's own assertion.
+            model_key="main.test-model",
+            request_id="req-selene-evidence-identity-1",
+            user_input="Question",
+            assistant_content="Answer",
+            recording_mode="full",
+        )
+    )
+    _wait_for_result(composition)
+
+    assert len(evidence_calls) == 1
+    assert evidence_calls[0]["model_identity"] == _SELENE_PROVIDER_ID
+    assert evidence_calls[0]["model_identity"] != "main.test-model"
+
+
+def test_selene_shaped_dispatch_with_zero_batch_calls_records_evidence_call_count_zero() -> None:
+    """Codex Controller Review (2026-09-06 12:44, IR-FC-03) fix: before this
+    fix, `_run_selene_dispatch()` recorded `call_count=len(frozen_batch_
+    evidence) or 1` -- a genuine Model-Call-0 Run (e.g. Prior Dialogue
+    pushing every Criterion's own Prompt over Budget, so every Criterion
+    lands Deferred and no real Batch is ever dispatched to the Model) still
+    recorded a fabricated `call_count=1`, indistinguishable from a genuine
+    single real Call. `_FakeSeleneEvaluator.evaluate()` never invokes
+    `batch_evidence_observer` (see its own definition above) regardless of
+    what canned `response` it returns, so this Fixture -- an all-Deferred,
+    zero-criteria-supplied `SemanticEvaluationResponse` -- exercises
+    exactly the "zero real Batch Calls reached the Model" shape the fixed
+    line (`call_count=len(frozen_batch_evidence)`, no `or 1` fallback) must
+    now record honestly as `0`, never fabricated Prompt/Batch Evidence for
+    the Model-Call-0 case."""
+    criterion = _criterion()
+    frozen = freeze_semantic_turn(
+        request_id="req-selene-zero-calls-1",
+        generation=1,
+        criteria=(criterion,),
+        language="en",
+        main_mode="observe",
+        judge_mode="enforce",
+        repair_mode="off",
+        configured_provider=_SELENE_PROVIDER_ID,
+        active_provider=_SELENE_PROVIDER_ID,
+        provider_state=SemanticProviderState.ACTIVE,
+        budget_profile="test",
+        max_criteria=8,
+    )
+    zero_call_response = SemanticEvaluationResponse(
+        request_id="req-selene-zero-calls-1",
+        generation=1,
+        provider_id=_SELENE_PROVIDER_ID,
+        provider_state=SemanticProviderState.ACTIVE,
+        results=(),
+        latency_ms=5,
+    )
+    evaluator = _FakeSeleneEvaluator(response=zero_call_response)
+    controller = JudgeModeController()
+    controller.apply_mode(EvaluationMode.ENFORCE)
+    evidence_calls: list[dict[str, object]] = []
+    hook, composition = build_judge_completion_hook(
+        service=_FakeInferenceService(content="should never be used"),  # type: ignore[arg-type]
+        judge_mode_controller=controller,
+        model_access_coordinator=ModelAccessCoordinator(),
+        semantic_snapshot_provider=lambda request_id: (
+            frozen.snapshot if request_id == "req-selene-zero-calls-1" else None
+        ),
+        judge_evidence_recorder=lambda **fields: evidence_calls.append(fields),
+        begin_judge_role_turn=lambda: _handle(
+            _FakeSeleneRoleAdapter(provider_id=_SELENE_PROVIDER_ID, evaluator=evaluator)
+        ),
+    )
+
+    hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id="req-selene-zero-calls-1",
+            user_input="Question",
+            assistant_content="Answer",
+            recording_mode="full",
+        )
+    )
+    _wait_for_result(composition)
+
+    assert len(evidence_calls) == 1
+    assert evidence_calls[0]["call_count"] == 0
+    assert evidence_calls[0].get("seed") is None
+    assert evidence_calls[0].get("batch_evidence_json") is None
+    # Codex Controller Review (2026-09-06 13:35, IR-FC-04) fix: before this
+    # fix, zero real Batch Calls meant no override was threaded at all
+    # (`None`), which the Recorder then re-derived from the fixed
+    # description-string `prompt` argument -- a legitimate-looking but
+    # fabricated 128-hex-digit `prompt_digest_sha512` for a Run with no
+    # real Prompt at all. The literal `"unavailable"` string must now be
+    # threaded through as the override instead.
+    assert evidence_calls[0]["prompt_digest_sha512_override"] == "unavailable"
+
+
 def test_selene_initial_judge_repair_and_frozen_selene_rejudge_single_turn_e2e() -> None:
     """Regression Scenario S9 exact (P6-RR-R20-WU-002, resolves the S9
     half of P6-CODEX-085): Initial Judge dispatches to a Fake Selene
@@ -826,6 +1135,10 @@ def test_selene_initial_judge_repair_and_frozen_selene_rejudge_single_turn_e2e()
         rejudge_model_key: str | None = None,
         rejudge_role: object = None,
         language: str = "en",
+        rejudge_criteria: object = (),
+        tracked_stage_registry: object = None,
+        rejudge_structured_output_schema_factory: object = None,
+        rejudge_sampling_overrides: object = None,
     ) -> object:
         from margpa_runtime_llm.bootstrap.repair_live_integration import RepairExecutionResult
 
@@ -897,6 +1210,155 @@ def test_selene_initial_judge_repair_and_frozen_selene_rejudge_single_turn_e2e()
     # last_result()` above already confirms it reached a terminal state)
     # has actually finished.
     assert release.released == ["selene-repair-lease"]
+
+
+def test_gemma_e2b_initial_judge_repair_and_frozen_gemma_rejudge_single_turn_e2e() -> None:
+    """P9-1 Package 2 (User-mandated Fresh Runtime default change, item 5:
+    "Judge→Repair→RejudgeでFrozen Provider IdentityがGemmaのまま維持される").
+    Identical scenario to `test_selene_initial_judge_repair_and_frozen_
+    selene_rejudge_single_turn_e2e` above, with the Active Adapter's
+    `provider_id`/`semantic_evaluator` now shaped as Gemma 4 E2B (the
+    Fresh Runtime default as of this Package) -- proves the Dispatch
+    Router's Rejudge Identity threading (`rejudge_service=getattr(
+    evaluator, "inference_service", None)`, `rejudge_model_key=
+    executed_provider`) is genuinely Provider-neutral, not something that
+    only happened to work for Selene specifically."""
+    criterion = _criterion()
+    frozen = freeze_semantic_turn(
+        request_id="req-gemma-repair-1",
+        generation=1,
+        criteria=(criterion,),
+        language="en",
+        main_mode="observe",
+        judge_mode="enforce",
+        repair_mode="enforce",
+        configured_provider=_GEMMA_E2B_PROVIDER_ID,
+        active_provider=_GEMMA_E2B_PROVIDER_ID,
+        provider_state=SemanticProviderState.ACTIVE,
+        budget_profile="test",
+        max_criteria=8,
+    )
+    gemma_response = SemanticEvaluationResponse(
+        request_id="req-gemma-repair-1",
+        generation=1,
+        provider_id=_GEMMA_E2B_PROVIDER_ID,
+        provider_state=SemanticProviderState.ACTIVE,
+        results=(
+            SemanticCriterionResult(
+                criterion_id=criterion.criterion_id,
+                descriptor_id=criterion.descriptor_id,
+                disposition=SemanticCriterionDisposition.DEVIATION,
+                confidence=0.9,
+                reason_code="unsupported_claim",
+            ),
+        ),
+        latency_ms=42,
+    )
+    gemma_inference_service = _FakeInferenceService(content="gemma's own backing service")
+    evaluator = _FakeSeleneEvaluator(
+        response=gemma_response, inference_service=gemma_inference_service
+    )
+    controller = JudgeModeController()
+    controller.apply_mode(EvaluationMode.ENFORCE)
+    repair_controller = RepairModeController()
+    repair_controller.apply_mode(RepairMode.ENFORCE)
+    main_service = _FakeInferenceService(content="should never be used by Main-self")
+
+    captured_calls: list[dict[str, object]] = []
+
+    def _fake_repair_executor(
+        *,
+        request_id: str,
+        model_key: str,
+        user_input: str,
+        original_answer: str,
+        before_recommendation: object,
+        judge_reasoning: str,
+        dialogue_context: tuple[str, ...],
+        evidence_context: tuple[str, ...],
+        governance_post_hook: object,
+        guardrail_post_hook: object,
+        cancellation: object = None,
+        model_runtime_info: object = None,
+        stage_hook: object = None,
+        persist_accepted_attempt: bool = True,
+        stage_budget: object = None,
+        rejudge_service: object = None,
+        rejudge_model_key: str | None = None,
+        rejudge_role: object = None,
+        language: str = "en",
+        rejudge_criteria: object = (),
+        tracked_stage_registry: object = None,
+        rejudge_structured_output_schema_factory: object = None,
+        rejudge_sampling_overrides: object = None,
+    ) -> object:
+        from margpa_runtime_llm.bootstrap.repair_live_integration import RepairExecutionResult
+
+        captured_calls.append(
+            {
+                "before_recommendation": before_recommendation,
+                "rejudge_service": rejudge_service,
+                "rejudge_model_key": rejudge_model_key,
+                "rejudge_role": rejudge_role,
+            }
+        )
+        return RepairExecutionResult(
+            request_id=request_id,
+            outcome="improved",
+            accepted=True,
+            new_turn_id="new-turn-gemma-1",
+            rejected_reason=None,
+            presented_content="A corrected answer",
+        )
+
+    release = _ReleaseTracker()
+    hook, composition = build_judge_completion_hook(
+        service=main_service,  # type: ignore[arg-type]
+        judge_mode_controller=controller,
+        model_access_coordinator=ModelAccessCoordinator(),
+        repair_mode_controller=repair_controller,
+        repair_executor=_fake_repair_executor,  # type: ignore[arg-type]
+        semantic_snapshot_provider=lambda request_id: (
+            frozen.snapshot if request_id == "req-gemma-repair-1" else None
+        ),
+        begin_judge_role_turn=lambda: _handle(
+            _FakeSeleneRoleAdapter(provider_id=_GEMMA_E2B_PROVIDER_ID, evaluator=evaluator),
+            lease="gemma-repair-lease",
+        ),
+        end_judge_role_turn=release,
+    )
+
+    hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id="req-gemma-repair-1",
+            user_input="Question",
+            assistant_content="A shaky answer",
+            enforce_presented_final=True,
+        )
+    )
+    result = _wait_for_result(composition)
+
+    assert main_service.calls == []
+    assert len(evaluator.calls) == 1
+    assert result.judge_role.value == "independent_artifact"
+    assert result.recommendation == "needs_repair"
+    assert len(captured_calls) == 1
+    call = captured_calls[0]
+    assert call["before_recommendation"] == "needs_repair"
+    # The crux: Rejudge's Identity is the *same* Gemma Evaluator's own
+    # backing service -- never Main-self's, never a different/fresh one,
+    # and never silently re-resolved to whatever the Fresh default is
+    # (this same value) rather than the Provider that actually produced
+    # the Initial Judge.
+    assert call["rejudge_service"] is gemma_inference_service
+    assert call["rejudge_model_key"] == _GEMMA_E2B_PROVIDER_ID
+    rejudge_role = call["rejudge_role"]
+    assert getattr(rejudge_role, "value", rejudge_role) == "independent_artifact"
+    assert result.repair_outcome == "improved"
+    assert result.repair_accepted is True
+    assert result.repair_new_turn_id == "new-turn-gemma-1"
+    assert release.released == ["gemma-repair-lease"]
 
 
 def test_selene_dispatch_unavailable_response_produces_typed_failure() -> None:

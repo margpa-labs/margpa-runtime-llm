@@ -186,6 +186,108 @@ def test_judge_evidence_is_written_to_a_distinct_file_with_real_provenance(
     assert payload["canonical_input"] is None
     assert state.last_outcome() is not None
     assert state.last_outcome().ok is True  # type: ignore[union-attr]
+    assert fields["call_count"] == 1
+
+
+def test_judge_evidence_records_real_batch_call_count_seed_and_config_digest(
+    tmp_path: Path,
+) -> None:
+    """Gemma Judge-only Constrained Decoding Rework (WU-05): the pre-Rework
+    Evidence always recorded `call_count=1` (hardcoded), `seed=unpinned`
+    (never threaded through by any caller), and a caller-supplied `config_
+    digest_sha512` default -- this pins that a caller which DOES supply
+    real values (the Dedicated batched dispatch, after this Rework) has
+    them recorded honestly, and that the new `batch_evidence_json` field is
+    present only when supplied."""
+    controller = RecordingModeController()
+    controller.apply_mode(RecordingMode.FULL)
+    writer = LocalFilesystemRecordingWriter(base_dir=tmp_path, max_total_bytes=10_000)
+    record_judge_evidence, _ = build_judge_evidence_recorder(writer=writer)
+
+    record_judge_evidence(
+        request_id="req-judge-batch-1",
+        recording_mode=RecordingMode.FULL,
+        model_identity="judge.gemma-4-e2b-it-q4-0",
+        judge_role="independent_artifact",
+        rubric_id="live_conversation_general_quality_v1",
+        prompt="placeholder, overridden below",
+        recommendation="accept",
+        confidence=0.9,
+        token_usage=42,
+        latency_ms=123,
+        execution_state="completed",
+        call_count=4,
+        seed=0,
+        config_digest_sha512="real-batch-config-digest",
+        prompt_digest_sha512_override="real-batch-prompt-digest",
+        batch_evidence_json='[{"batch_index":1}]',
+    )
+
+    files = list(tmp_path.glob("*.json"))
+    assert len(files) == 1
+    payload = json.loads(files[0].read_text())
+    fields = payload["metadata_fields"]
+    assert fields["call_count"] == 4
+    assert fields["seed_pinned"] is True
+    assert fields["seed"] == 0
+    assert fields["config_digest_sha512"] == "real-batch-config-digest"
+    assert fields["prompt_digest_sha512"] == "real-batch-prompt-digest"
+    assert fields["batch_evidence_json"] == '[{"batch_index":1}]'
+    # The override wins -- the caller-supplied placeholder `prompt` text is
+    # never hashed into the recorded digest.
+    assert "placeholder, overridden below" not in json.dumps(payload)
+
+
+def test_judge_evidence_records_prompt_digest_unavailable_on_model_call_zero(
+    tmp_path: Path,
+) -> None:
+    """Gemma Final Contract Micro Rework (IR-FC-04) fix: before this fix,
+    the Dedicated batched dispatch's Model-Call-0 case (every Criterion
+    Budget-Deferred, zero real Batches reaching the Model) passed no
+    `prompt_digest_sha512_override` (the pre-fix `_batch_dispatch_prompt_
+    digest_sha512(())` returned `None`), which this function's own
+    fallback then re-derived from the caller's `prompt` argument -- for
+    this route, a fixed description string
+    ('(dedicated Selene evaluator: prompt built internally by
+    SelenePromptAdapter)'), never real Model Prompt content. That produced
+    a legitimate-looking 128-hex-digit `prompt_digest_sha512` for a Run
+    that made no real Prompt at all. This pins the fixed behavior: the
+    caller now passes the literal `"unavailable"` override for the
+    Model-Call-0 shape, and it is recorded verbatim, matching the
+    `call_count=0`/`seed=unpinned`/no-`batch_evidence_json` shape already
+    fixed for the same case."""
+    controller = RecordingModeController()
+    controller.apply_mode(RecordingMode.FULL)
+    writer = LocalFilesystemRecordingWriter(base_dir=tmp_path, max_total_bytes=10_000)
+    record_judge_evidence, _ = build_judge_evidence_recorder(writer=writer)
+
+    record_judge_evidence(
+        request_id="req-judge-zero-call-1",
+        recording_mode=RecordingMode.FULL,
+        model_identity="judge.gemma-4-e2b-it-q4-0",
+        judge_role="independent_artifact",
+        rubric_id="live_conversation_general_quality_v1",
+        prompt="(dedicated Selene evaluator: prompt built internally by SelenePromptAdapter)",
+        recommendation="unknown",
+        confidence=0.0,
+        token_usage=0,
+        latency_ms=5,
+        execution_state="completed",
+        call_count=0,
+        seed=None,
+        prompt_digest_sha512_override="unavailable",
+        batch_evidence_json=None,
+    )
+
+    files = list(tmp_path.glob("*.json"))
+    assert len(files) == 1
+    payload = json.loads(files[0].read_text())
+    fields = payload["metadata_fields"]
+    assert fields["call_count"] == 0
+    assert fields["seed_pinned"] is False
+    assert fields["seed"] == "unpinned"
+    assert fields["prompt_digest_sha512"] == "unavailable"
+    assert "batch_evidence_json" not in fields
 
 
 def test_judge_evidence_never_collides_with_the_turn_level_recording_file(

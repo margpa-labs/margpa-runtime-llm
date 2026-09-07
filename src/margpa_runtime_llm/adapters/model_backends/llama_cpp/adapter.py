@@ -13,6 +13,7 @@ from typing import Any, cast
 from uuid import uuid4
 
 from llama_cpp import Llama, llama_cpp
+from llama_cpp.llama_grammar import LlamaGrammar
 
 from margpa_runtime_llm.modules.inference.contracts.generation import (
     FinishReason,
@@ -322,45 +323,51 @@ class LlamaCppModelAdapter:
                 model_key=request.model_key,
             )
 
+    _TOKEN_COUNT_ELIGIBLE_STATES = (ModelLifecycleState.LOADED, ModelLifecycleState.GENERATING)
+
     def count_text_tokens(self, text: str) -> int:
+        """P9-1 Judge Dispatch "unavailable" Root Cause Fix: never gated by
+        `_generation_lock`. Tokenization only reads `self._chat_template`'s
+        embedded model vocab (`Llama.tokenize()`), never the mutable
+        generation/KV-cache state `_generation_lock` actually protects
+        (`generate()`/`stream()` are the only real writers of that state) —
+        so it is safe to run concurrently with an in-flight `generate()` on
+        this same instance. `_state_lock` is still held for the whole call
+        (unchanged from before): that is what actually prevents a concurrent
+        `unload()` from freeing the model out from under this call, and its
+        critical sections elsewhere (`_begin_generation`/`_end_generation`)
+        are brief, so this never blocks on a real generation's own duration.
+        `_state is GENERATING` is accepted as loaded-enough for counting,
+        alongside the steady-state `LOADED`; every other State (`UNLOADED`/
+        `LOADING`/`UNLOADING`/`FAILED`) still means genuinely not usable."""
         with self._state_lock:
-            if not self._generation_lock.acquire(blocking=False):
+            if (
+                self._state not in self._TOKEN_COUNT_ELIGIBLE_STATES
+                or self._chat_template is None
+            ):
                 raise InferenceError(
-                    code=InferenceErrorCode.MODEL_BUSY,
-                    safe_message="The model is already processing another request.",
-                    retryable=True,
+                    code=InferenceErrorCode.MODEL_NOT_LOADED,
+                    safe_message="The model is not loaded.",
                 )
-            try:
-                if self._state is not ModelLifecycleState.LOADED or self._chat_template is None:
-                    raise InferenceError(
-                        code=InferenceErrorCode.MODEL_NOT_LOADED,
-                        safe_message="The model is not loaded.",
-                    )
-                return self._chat_template.count_text_tokens(text)
-            finally:
-                self._generation_lock.release()
+            return self._chat_template.count_text_tokens(text)
 
     def count_chat_prompt_tokens(
         self,
         messages: tuple[ChatMessage, ...],
         thinking_mode: ThinkingMode,
     ) -> int:
+        """See `count_text_tokens`'s docstring — identical rationale and
+        `_state_lock`-only guarding applies here."""
         with self._state_lock:
-            if not self._generation_lock.acquire(blocking=False):
+            if (
+                self._state not in self._TOKEN_COUNT_ELIGIBLE_STATES
+                or self._chat_template is None
+            ):
                 raise InferenceError(
-                    code=InferenceErrorCode.MODEL_BUSY,
-                    safe_message="The model is already processing another request.",
-                    retryable=True,
+                    code=InferenceErrorCode.MODEL_NOT_LOADED,
+                    safe_message="The model is not loaded.",
                 )
-            try:
-                if self._state is not ModelLifecycleState.LOADED or self._chat_template is None:
-                    raise InferenceError(
-                        code=InferenceErrorCode.MODEL_NOT_LOADED,
-                        safe_message="The model is not loaded.",
-                    )
-                return self._chat_template.format_prompt(messages, thinking_mode).token_count
-            finally:
-                self._generation_lock.release()
+            return self._chat_template.format_prompt(messages, thinking_mode).token_count
 
     def __enter__(self) -> LlamaCppModelAdapter:
         return self
@@ -559,6 +566,21 @@ class LlamaCppModelAdapter:
         features = MODEL_REQUIRED_CAPABILITIES
         if device_observation.gpu_offload:
             features = features | {CapabilityFeature.GPU_OFFLOAD}
+        # Gemma Judge-only Constrained Decoding Rework (WU-02): a genuine
+        # runtime probe of the installed `llama_cpp` package itself --
+        # never inferred from `definition.model.optional_features`'s own
+        # static TOML declaration (e.g. Gemma's `optional_features =
+        # ["gpu_offload", "json_schema"]`), which is documentary only and
+        # was never wired to any real behavior before this fix. Reporting
+        # this Capability from the TOML declaration alone would be exactly
+        # the "虚偽のEffective Capability" the Handoff prohibits -- the
+        # Capability must reflect what this actual Backend Version can do,
+        # identically for every Role loaded through it (Main, Guard, Judge
+        # alike); only a Judge Composition's own choice to attach a
+        # `structured_output` constraint to a specific Request ever turns
+        # this Capability into a real Grammar for that Request.
+        if hasattr(LlamaGrammar, "from_json_schema"):
+            features = features | {CapabilityFeature.JSON_SCHEMA, CapabilityFeature.GRAMMAR}
         capabilities = ModelCapabilities(
             features=features,
             native_context_limit=definition.model.native_context_limit,

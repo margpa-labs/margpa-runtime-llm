@@ -16,7 +16,9 @@ from __future__ import annotations
 import json
 import threading
 import time
+from collections.abc import Callable
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -29,6 +31,11 @@ from margpa_runtime_llm.bootstrap.judge_live_integration import (
     build_judge_completion_hook,
 )
 from margpa_runtime_llm.bootstrap.recording_live_integration import build_judge_evidence_recorder
+from margpa_runtime_llm.bootstrap.repair_live_integration import RepairExecutionResult
+from margpa_runtime_llm.bootstrap.runtime_governance import (
+    RuntimeGovernanceComposition,
+    SemanticRuntimeBindingContext,
+)
 from margpa_runtime_llm.modules.conversation.application.conversation_generation import (
     JudgeCompletionContext,
 )
@@ -45,14 +52,28 @@ from margpa_runtime_llm.modules.inference.contracts.generation import (
     GenerationRequest,
     GenerationResult,
     GenerationTiming,
+    ThinkingMode,
     TokenUsage,
 )
+from margpa_runtime_llm.modules.inference.contracts.messages import ChatMessage
 from margpa_runtime_llm.modules.inference.contracts.runtime import ModelRuntimeReference
 from margpa_runtime_llm.modules.inference.domain.cancellation import CancellationToken
 from margpa_runtime_llm.modules.repair.application.repair_mode_controller import (
     RepairModeController,
 )
 from margpa_runtime_llm.modules.repair.domain.identifiers import RepairMode
+from margpa_runtime_llm.modules.runtime_governance.application import (
+    SemanticRuntimeCoordinator,
+    freeze_semantic_turn,
+)
+from margpa_runtime_llm.modules.runtime_governance.domain import (
+    RuntimeCapabilitySnapshot,
+    SemanticCriterion,
+    SemanticEvaluationMethod,
+    SemanticEvaluationResponse,
+    SemanticEvaluationStage,
+    SemanticProviderState,
+)
 from margpa_runtime_llm.modules.runtime_observability.application.recording_mode_controller import (
     RecordingModeController,
 )
@@ -71,6 +92,12 @@ class _FakeInferenceService:
     def __init__(self, *, content: str) -> None:
         self.content = content
         self.calls: list[GenerationRequest] = []
+        # `SeleneSemanticEvaluator._context_limit_tokens()` (reused,
+        # provider-neutral, for the Main-shared batched Semantic-Criteria
+        # dispatch path -- see `_run_judge_and_repair()`'s `semantic_
+        # snapshot.criteria` branch) reads `.runtime_info` unconditionally;
+        # `None` here matches this Fake never having a real Load.
+        self.runtime_info: object | None = None
 
     def generate(
         self, request: GenerationRequest, *, cancellation: object = None
@@ -85,6 +112,16 @@ class _FakeInferenceService:
             timing=GenerationTiming(total_generation_seconds=0.01),
             runtime_info=_RUNTIME_REF,
         )
+
+    def count_chat_prompt_tokens(
+        self, messages: tuple[ChatMessage, ...], thinking_mode: ThinkingMode
+    ) -> int:
+        # Only exercised by the real-Semantic-Criteria dispatch path
+        # (`SeleneSemanticEvaluator._plan_batches()`, reused for Main-shared
+        # batched Judge dispatch too) -- a plain length-based estimate is
+        # enough here, matching `test_selene_adapter.py`'s own Fake.
+        del thinking_mode
+        return sum(len(str(getattr(message, "content", ""))) for message in messages)
 
 
 def _wait_for_result(
@@ -258,7 +295,6 @@ def test_built_in_judge_reports_every_semantic_criterion_as_not_applicable() -> 
         SemanticCriterion,
         SemanticCriterionDisposition,
         SemanticEvaluationMethod,
-        SemanticEvaluationResponse,
         SemanticEvaluationStage,
         SemanticProviderState,
     )
@@ -655,6 +691,78 @@ def test_live_turn_unavailable_failure_presentation_is_english_when_frozen_en() 
     result = composition.last_result()
     assert result is not None
     assert result.failure_reason == "judge_provider_unavailable"
+
+
+def test_dedicated_adapter_at_completion_must_match_turn_start_active_provider() -> None:
+    """R3-WU-01 (Controller Review IR-R2-01 residual): the Dedicated
+    Adapter this Hook resolves at Judge Completion time (`begin_judge_
+    role_turn`, reading Provider Selection's own CURRENT state) must match
+    this Turn's own Active Provider already frozen at Turn start (the
+    Semantic Turn Snapshot's `active_provider`) -- a live Provider switch
+    landing between the two moments must never let a real Model Call
+    dispatch to a DIFFERENT Provider than the one this Turn's own Snapshot/
+    Evidence already claims. Model Call 0; Typed Failure."""
+    from margpa_runtime_llm.modules.runtime_governance.application import freeze_semantic_turn
+
+    frozen = freeze_semantic_turn(
+        request_id="req-provider-mismatch-1",
+        generation=1,
+        criteria=(),
+        language="en",
+        main_mode="observe",
+        judge_mode="enforce",
+        repair_mode="off",
+        configured_provider="dedicated.gemma",
+        # Turn-start Active Provider -- what this Turn's own Snapshot/
+        # Evidence already claims is executing.
+        active_provider="dedicated.gemma",
+        provider_state=SemanticProviderState.ACTIVE,
+        budget_profile="test",
+        max_criteria=8,
+    )
+    controller = JudgeModeController()
+    controller.apply_mode(EvaluationMode.ENFORCE)
+    service = _FakeInferenceService(content='{"recommendation": "accept", "confidence": 0.9}')
+
+    class _MismatchedHandle:
+        # A live Provider switch resolved a DIFFERENT Adapter at
+        # Completion time than the one this Turn's own Snapshot froze at
+        # Turn start.
+        adapter = SimpleNamespace(provider_id="dedicated.some-other-provider")
+        lease = "role-lease-mismatch-1"
+
+    released: list[object] = []
+    hook, composition = build_judge_completion_hook(
+        service=service,  # type: ignore[arg-type]
+        judge_mode_controller=controller,
+        model_access_coordinator=ModelAccessCoordinator(),
+        semantic_snapshot_provider=lambda request_id: (
+            frozen.snapshot if request_id == "req-provider-mismatch-1" else None
+        ),
+        begin_judge_role_turn=lambda: _MismatchedHandle(),
+        end_judge_role_turn=released.append,
+    )
+
+    decision = hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id="req-provider-mismatch-1",
+            user_input="Question",
+            assistant_content="Answer",
+            enforce_presented_final=True,
+        )
+    )
+
+    assert service.calls == []
+    assert decision is not None
+    result = composition.last_result()
+    assert result is not None
+    assert result.execution_state == "failed"
+    assert result.failure_reason == "judge_provider_identity_mismatch"
+    assert result.judge_role == "unavailable"
+    # The Lease this Hook resolved for the mismatched Adapter must still be
+    # Released exactly once -- Model Call 0 must never leak a held Lease.
+    assert released == ["role-lease-mismatch-1"]
 
 
 def test_live_turn_timeout_with_auto_and_japanese_input_presents_japanese() -> None:
@@ -1638,6 +1746,10 @@ def test_repair_executor_is_invoked_when_eligible_and_result_is_recorded() -> No
         rejudge_model_key: str | None = None,
         rejudge_role: object = None,
         language: str = "en",
+        rejudge_criteria: object = (),
+        tracked_stage_registry: object = None,
+        rejudge_structured_output_schema_factory: object = None,
+        rejudge_sampling_overrides: object = None,
     ) -> object:
         from margpa_runtime_llm.bootstrap.repair_live_integration import RepairExecutionResult
 
@@ -2176,6 +2288,388 @@ def test_judge_evidence_carries_real_artifact_digest_and_backend_when_runtime_in
     assert fields["backend_version"] == "b1234"
 
 
+def test_built_in_judge_evidence_never_reuses_mains_own_artifact_identity(
+    tmp_path: Path,
+) -> None:
+    """R3-WU-02 (Controller Review IR-R2-02), extended by R4-WU-02
+    (Controller Review IR-R3-02): the confirmed real bug -- the Built-in
+    Provider's own Evidence re-mixed Main's own `model_identity`/
+    `artifact_digest_sha512`/`backend_key`/`backend_version` even though
+    `built_in.deterministic` genuinely makes zero Model Calls (Model Call
+    0). `model_identity` must be the EXECUTED Provider (`built_in.
+    deterministic`), `evaluated_model_identity` must be the separate Main
+    identity actually evaluated, and Artifact/Backend/Version -- honestly
+    absent for a Provider Type backed by no Model Artifact at all -- must
+    be the existing `unavailable` sentinel, never Main's real values.
+
+    R4-WU-02: the prior Round's own Built-in Test never supplied a real
+    Semantic Snapshot Fixture at all (`semantic_snapshot_provider` unwired),
+    so `configured_judge_provider`/`active_judge_provider` came out `None`
+    by construction and were never actually Asserted here -- part of the
+    three-route Identity Matrix Controller Review confirmed was not yet
+    complete. This Test now wires a real frozen Snapshot with Built-in as
+    both the Configured and Active Provider and Asserts the full field set
+    the Handoff requires for every one of the three routes."""
+    from margpa_runtime_llm.modules.inference.contracts.messages import MessageRole
+    from margpa_runtime_llm.modules.inference.contracts.runtime import (
+        GpuOffloadEvidence,
+        ModelCapabilities,
+        ModelDigest,
+        ModelRuntimeInfo,
+    )
+    from margpa_runtime_llm.modules.inference.domain.capabilities import CapabilityFeature
+
+    frozen = freeze_semantic_turn(
+        request_id="req-built-in-identity-1",
+        generation=1,
+        criteria=(),
+        language="en",
+        main_mode="observe",
+        judge_mode="observe",
+        repair_mode="off",
+        configured_provider="built_in.deterministic",
+        active_provider="built_in.deterministic",
+        provider_state=SemanticProviderState.ACTIVE,
+        budget_profile="test",
+        max_criteria=8,
+    )
+    main_runtime_info = ModelRuntimeInfo(
+        load_instance_id="load-main-1",
+        model_key="main.qwen3-4b",
+        backend_key="llama_cpp",
+        backend_version="b1234",
+        model_architecture="qwen3",
+        format="gguf",
+        quantization="q4_k_m",
+        artifact_size_bytes=1024,
+        artifact_digest=ModelDigest(value="c" * 128),
+        definition_file_sha512="e" * 128,
+        loaded_context_size=8192,
+        effective_capabilities=ModelCapabilities(
+            features=frozenset({CapabilityFeature.CHAT}),
+            native_context_limit=8192,
+            loaded_context_size=8192,
+            supported_message_roles=frozenset({MessageRole.USER, MessageRole.ASSISTANT}),
+        ),
+        chat_template_source="embedded",
+        chat_template_digest=ModelDigest(value="f" * 128),
+        device="cpu",
+        device_kind="cpu",
+        acceleration_api="none",
+        gpu_offload=False,
+        gpu_offload_evidence=GpuOffloadEvidence(
+            supported=False, requested=False, observed=False, observation_source="not_requested"
+        ),
+    )
+    recording_controller = RecordingModeController()
+    recording_controller.apply_mode(RecordingMode.FULL)
+    writer = LocalFilesystemRecordingWriter(base_dir=tmp_path, max_total_bytes=100_000)
+    judge_evidence_recorder, _ = build_judge_evidence_recorder(writer=writer)
+    controller = JudgeModeController()
+    controller.apply_mode(EvaluationMode.OBSERVE)
+    service = _FakeInferenceService(content="unused: built_in makes zero Model Calls")
+    hook, composition = build_judge_completion_hook(
+        service=service,  # type: ignore[arg-type]
+        judge_mode_controller=controller,
+        model_access_coordinator=ModelAccessCoordinator(),
+        recording_mode_controller=recording_controller,
+        judge_evidence_recorder=judge_evidence_recorder,
+        judge_provider_is_built_in=lambda: True,
+        semantic_snapshot_provider=lambda request_id: (
+            frozen.snapshot if request_id == "req-built-in-identity-1" else None
+        ),
+    )
+
+    hook(
+        JudgeCompletionContext(
+            model_key="main.qwen3-4b",
+            model_runtime_info=main_runtime_info,
+            request_id="req-built-in-identity-1",
+            user_input="Question",
+            assistant_content="Answer",
+        )
+    )
+    _wait_for_result(composition)
+
+    deadline = time.monotonic() + 2.0
+    files: list[Path] = []
+    while time.monotonic() < deadline:
+        files = list(tmp_path.glob("*.json"))
+        if files:
+            break
+        time.sleep(0.005)
+
+    assert len(files) == 1
+    fields = json.loads(files[0].read_text())["metadata_fields"]
+    assert fields["model_identity"] == "built_in.deterministic"
+    assert fields["evaluated_model_identity"] == "main.qwen3-4b"
+    # R4-WU-02 (Controller Review IR-R3-02): Configured/Active must both be
+    # Built-in for this route -- never inferred, directly Asserted against
+    # the real frozen Snapshot this Test now wires.
+    assert fields["configured_judge_provider"] == "built_in.deterministic"
+    assert fields["active_judge_provider"] == "built_in.deterministic"
+    assert fields["artifact_digest_sha512"] == "unavailable"
+    assert fields["backend_key"] == "unavailable"
+    assert fields["backend_version"] == "unavailable"
+    assert service.calls == []
+
+
+def test_main_shared_judge_evidence_records_the_full_identity_matrix(tmp_path: Path) -> None:
+    """R4-WU-02 (Controller Review IR-R3-02): the Main-shared dispatch
+    route of the three-route Identity Matrix the Handoff requires --
+    `evaluated_model_identity`, `configured_judge_provider`, `active_judge_
+    provider`, `model_identity` (Executed), and `artifact_digest_sha512`/
+    `backend_key`/`backend_version` -- all directly Asserted against a
+    real, wired Semantic Turn Snapshot Fixture and a genuinely Active
+    Main-shared Adapter (never inferred from other Tests' combination, and
+    never a Provider-Selection-absent fallback to `context.model_key`)."""
+    from margpa_runtime_llm.modules.inference.contracts.messages import MessageRole
+    from margpa_runtime_llm.modules.inference.contracts.runtime import (
+        GpuOffloadEvidence,
+        ModelCapabilities,
+        ModelDigest,
+        ModelRuntimeInfo,
+    )
+    from margpa_runtime_llm.modules.inference.domain.capabilities import CapabilityFeature
+
+    main_runtime_info = ModelRuntimeInfo(
+        load_instance_id="load-main-shared-1",
+        model_key="main.qwen3-4b",
+        backend_key="llama_cpp",
+        backend_version="b1234",
+        model_architecture="qwen3",
+        format="gguf",
+        quantization="q4_k_m",
+        artifact_size_bytes=1024,
+        artifact_digest=ModelDigest(value="1" * 128),
+        definition_file_sha512="e" * 128,
+        loaded_context_size=8192,
+        effective_capabilities=ModelCapabilities(
+            features=frozenset({CapabilityFeature.CHAT}),
+            native_context_limit=8192,
+            loaded_context_size=8192,
+            supported_message_roles=frozenset({MessageRole.USER, MessageRole.ASSISTANT}),
+        ),
+        chat_template_source="embedded",
+        chat_template_digest=ModelDigest(value="f" * 128),
+        device="cpu",
+        device_kind="cpu",
+        acceleration_api="none",
+        gpu_offload=False,
+        gpu_offload_evidence=GpuOffloadEvidence(
+            supported=False, requested=False, observed=False, observation_source="not_requested"
+        ),
+    )
+    frozen = freeze_semantic_turn(
+        request_id="req-identity-main-shared-1",
+        generation=1,
+        criteria=(),
+        language="en",
+        main_mode="observe",
+        judge_mode="observe",
+        repair_mode="off",
+        configured_provider="main-shared.qwen3-4b",
+        active_provider="main-shared.qwen3-4b",
+        provider_state=SemanticProviderState.ACTIVE,
+        budget_profile="test",
+        max_criteria=8,
+    )
+    tmp_path_for_evidence = tmp_path
+    recording_controller = RecordingModeController()
+    recording_controller.apply_mode(RecordingMode.FULL)
+    writer = LocalFilesystemRecordingWriter(base_dir=tmp_path_for_evidence, max_total_bytes=100_000)
+    judge_evidence_recorder, _ = build_judge_evidence_recorder(writer=writer)
+    controller = JudgeModeController()
+    controller.apply_mode(EvaluationMode.OBSERVE)
+    service = _FakeInferenceService(content='{"recommendation": "accept", "confidence": 0.9}')
+    released: list[object] = []
+    hook, composition = build_judge_completion_hook(
+        service=service,  # type: ignore[arg-type]
+        judge_mode_controller=controller,
+        model_access_coordinator=ModelAccessCoordinator(),
+        recording_mode_controller=recording_controller,
+        judge_evidence_recorder=judge_evidence_recorder,
+        semantic_snapshot_provider=lambda request_id: (
+            frozen.snapshot if request_id == "req-identity-main-shared-1" else None
+        ),
+        begin_judge_role_turn=lambda: SimpleNamespace(
+            adapter=SimpleNamespace(provider_id="main-shared.qwen3-4b"),
+            lease="role-lease-main-shared-1",
+        ),
+        end_judge_role_turn=released.append,
+    )
+
+    hook(
+        JudgeCompletionContext(
+            model_key="main.qwen3-4b",
+            model_runtime_info=main_runtime_info,
+            request_id="req-identity-main-shared-1",
+            user_input="Question",
+            assistant_content="Answer",
+        )
+    )
+    _wait_for_result(composition)
+
+    deadline = time.monotonic() + 2.0
+    files: list[Path] = []
+    while time.monotonic() < deadline:
+        files = list(tmp_path_for_evidence.glob("*.json"))
+        if files:
+            break
+        time.sleep(0.005)
+
+    assert len(files) == 1
+    fields = json.loads(files[0].read_text())["metadata_fields"]
+    assert fields["model_identity"] == "main-shared.qwen3-4b"
+    assert fields["evaluated_model_identity"] == "main.qwen3-4b"
+    assert fields["configured_judge_provider"] == "main-shared.qwen3-4b"
+    assert fields["active_judge_provider"] == "main-shared.qwen3-4b"
+    assert fields["artifact_digest_sha512"] == "1" * 128
+    assert fields["backend_key"] == "llama_cpp"
+    assert fields["backend_version"] == "b1234"
+    assert released == ["role-lease-main-shared-1"]
+
+
+def test_dedicated_gemma_judge_evidence_records_the_full_identity_matrix(
+    tmp_path: Path,
+) -> None:
+    """R4-WU-02 (Controller Review IR-R3-02): the Dedicated Gemma/Selene
+    dispatch route of the three-route Identity Matrix -- the Executed
+    identity/Artifact/Backend/Version must be the Dedicated Role's own real
+    Load Receipt, never Main's, while `evaluated_model_identity` stays the
+    separate Main identity actually evaluated."""
+    from margpa_runtime_llm.modules.inference.contracts.messages import MessageRole
+    from margpa_runtime_llm.modules.inference.contracts.runtime import (
+        GpuOffloadEvidence,
+        ModelCapabilities,
+        ModelDigest,
+        ModelRuntimeInfo,
+    )
+    from margpa_runtime_llm.modules.inference.domain.capabilities import CapabilityFeature
+
+    gemma_runtime_info = ModelRuntimeInfo(
+        load_instance_id="load-gemma-1",
+        model_key="dedicated.gemma",
+        backend_key="llama_cpp",
+        backend_version="b5678",
+        model_architecture="gemma3",
+        format="gguf",
+        quantization="q4_0",
+        artifact_size_bytes=2048,
+        artifact_digest=ModelDigest(value="2" * 128),
+        definition_file_sha512="e" * 128,
+        loaded_context_size=8192,
+        effective_capabilities=ModelCapabilities(
+            features=frozenset({CapabilityFeature.CHAT}),
+            native_context_limit=8192,
+            loaded_context_size=8192,
+            supported_message_roles=frozenset({MessageRole.USER, MessageRole.ASSISTANT}),
+        ),
+        chat_template_source="embedded",
+        chat_template_digest=ModelDigest(value="f" * 128),
+        device="cpu",
+        device_kind="cpu",
+        acceleration_api="none",
+        gpu_offload=False,
+        gpu_offload_evidence=GpuOffloadEvidence(
+            supported=False, requested=False, observed=False, observation_source="not_requested"
+        ),
+    )
+    frozen = freeze_semantic_turn(
+        request_id="req-identity-gemma-1",
+        generation=1,
+        criteria=(),
+        language="en",
+        main_mode="observe",
+        judge_mode="observe",
+        repair_mode="off",
+        configured_provider="dedicated.gemma",
+        active_provider="dedicated.gemma",
+        provider_state=SemanticProviderState.ACTIVE,
+        budget_profile="test",
+        max_criteria=8,
+    )
+
+    class _FakeSeleneEvaluator:
+        def __init__(self) -> None:
+            self.inference_service = SimpleNamespace(runtime_info=gemma_runtime_info)
+
+        def evaluate(
+            self,
+            *,
+            request: object,
+            cancellation: CancellationToken,
+            inference_budget_ms: int,
+            late_worker_observer: object = None,
+            batch_evidence_observer: object = None,
+        ) -> SemanticEvaluationResponse:
+            return SemanticEvaluationResponse(
+                request_id="req-identity-gemma-1",
+                generation=frozen.snapshot.generation,
+                provider_id="dedicated.gemma",
+                provider_state=SemanticProviderState.ACTIVE,
+                results=(),
+                latency_ms=1,
+            )
+
+    recording_controller = RecordingModeController()
+    recording_controller.apply_mode(RecordingMode.FULL)
+    writer = LocalFilesystemRecordingWriter(base_dir=tmp_path, max_total_bytes=100_000)
+    judge_evidence_recorder, _ = build_judge_evidence_recorder(writer=writer)
+    controller = JudgeModeController()
+    controller.apply_mode(EvaluationMode.OBSERVE)
+    service = _FakeInferenceService(content="unused: dedicated Gemma dispatch bypasses this")
+    released: list[object] = []
+    hook, composition = build_judge_completion_hook(
+        service=service,  # type: ignore[arg-type]
+        judge_mode_controller=controller,
+        model_access_coordinator=ModelAccessCoordinator(),
+        recording_mode_controller=recording_controller,
+        judge_evidence_recorder=judge_evidence_recorder,
+        semantic_snapshot_provider=lambda request_id: (
+            frozen.snapshot if request_id == "req-identity-gemma-1" else None
+        ),
+        begin_judge_role_turn=lambda: SimpleNamespace(
+            adapter=SimpleNamespace(
+                provider_id="dedicated.gemma", semantic_evaluator=_FakeSeleneEvaluator()
+            ),
+            lease="role-lease-gemma-1",
+        ),
+        end_judge_role_turn=released.append,
+    )
+
+    hook(
+        JudgeCompletionContext(
+            model_key="main.qwen3-4b",
+            model_runtime_info=None,
+            request_id="req-identity-gemma-1",
+            user_input="Question",
+            assistant_content="Answer",
+        )
+    )
+    _wait_for_result(composition)
+
+    deadline = time.monotonic() + 2.0
+    files: list[Path] = []
+    while time.monotonic() < deadline:
+        files = list(tmp_path.glob("*.json"))
+        if files:
+            break
+        time.sleep(0.005)
+
+    assert len(files) == 1
+    fields = json.loads(files[0].read_text())["metadata_fields"]
+    assert fields["model_identity"] == "dedicated.gemma"
+    assert fields["evaluated_model_identity"] == "main.qwen3-4b"
+    assert fields["configured_judge_provider"] == "dedicated.gemma"
+    assert fields["active_judge_provider"] == "dedicated.gemma"
+    assert fields["artifact_digest_sha512"] == "2" * 128
+    assert fields["backend_key"] == "llama_cpp"
+    assert fields["backend_version"] == "b5678"
+    assert service.calls == []
+    assert released == ["role-lease-gemma-1"]
+
+
 def test_repair_mode_is_frozen_at_hook_entry_not_reread_mid_run() -> None:
     """P6-CODEX-020: a Repair Mode change that happens *after* the Hook has
     already been invoked (i.e. during the Background Run) must not affect
@@ -2359,9 +2853,27 @@ def test_repair_degraded_outcome_is_surfaced_on_the_judge_run_too() -> None:
 def test_main_preemption_reaching_judge_produces_cancelled_terminal_state() -> None:
     """P6-CODEX-019/020: a Main Turn preempting the shared Model mid-Judge
     Run must reach a distinct `cancelled` terminal state, never be decoded
-    as if a possibly-truncated response were a genuine Judge answer."""
+    as if a possibly-truncated response were a genuine Judge answer.
 
-    class _SelfCancellingService:
+    P9-1 Component Independence Rework (WU-04): drives the REAL
+    `ModelAccessCoordinator.acquire_main()` preemption path from a second
+    Thread, rather than the Judge's own `generate()` simulating the
+    symptom by calling `cancellation.cancel()` on itself — the prior
+    Fixture shape produced the same visible Cancellation but never
+    actually exercised `acquire_main()`'s own real bookkeeping, so it
+    could not distinguish genuine Main-priority preemption from a plain
+    external Stop (`was_preempted()`'s own real check, both here and in
+    Production, correctly reports `False` for a token cancelled by any
+    other means). This Test now genuinely reproduces the real preemption
+    path end to end, confirming `result.failure_reason` is the distinct
+    `cancelled_by_main_priority_preemption` (unified by R2-WU-03 with the
+    ENFORCE Wait Loop's own identical string below), never the generic
+    `cancelled_by_request` a genuine external Stop/disconnect would report
+    instead."""
+    coordinator = ModelAccessCoordinator()
+    generate_started = threading.Event()
+
+    class _WaitsForRealPreemptionService:
         def __init__(self) -> None:
             self.calls: list[GenerationRequest] = []
 
@@ -2372,8 +2884,14 @@ def test_main_preemption_reaching_judge_produces_cancelled_terminal_state() -> N
             cancellation: CancellationToken | None = None,
         ) -> GenerationResult:
             self.calls.append(request)
-            if cancellation is not None:
-                cancellation.cancel()
+            generate_started.set()
+            assert cancellation is not None
+            # A real backend honoring `stopping_criteria`-based
+            # cancellation stops at the next emitted token once Main-
+            # priority preemption signals this Task's own Cancellation
+            # Token (via the concurrent `acquire_main()` call below) —
+            # waited for here, never self-triggered.
+            cancellation.wait(timeout=5.0)
             return GenerationResult(
                 request_id=request.request_id,
                 model_key=request.model_key,
@@ -2386,13 +2904,20 @@ def test_main_preemption_reaching_judge_produces_cancelled_terminal_state() -> N
 
     controller = JudgeModeController()
     controller.apply_mode(EvaluationMode.ENFORCE)
-    service = _SelfCancellingService()
+    service = _WaitsForRealPreemptionService()
     hook, composition = build_judge_completion_hook(
         service=service,  # type: ignore[arg-type]
         judge_mode_controller=controller,
-        model_access_coordinator=ModelAccessCoordinator(),
+        model_access_coordinator=coordinator,
     )
 
+    def _preempt_from_main() -> None:
+        assert generate_started.wait(timeout=5.0)
+        coordinator.acquire_main(task_id="main-turn-preempting")
+        coordinator.release_main(task_id="main-turn-preempting")
+
+    preemptor = threading.Thread(target=_preempt_from_main)
+    preemptor.start()
     hook(
         JudgeCompletionContext(
             model_key="main.test-model",
@@ -2401,8 +2926,824 @@ def test_main_preemption_reaching_judge_produces_cancelled_terminal_state() -> N
             assistant_content="Answer",
         )
     )
+    preemptor.join(timeout=5.0)
     result = _wait_for_result(composition)
 
     assert result.execution_state == "cancelled"
-    assert result.failure_reason == "preempted_by_main_priority"
+    assert result.failure_reason == "cancelled_by_main_priority_preemption"
     assert composition.current_state() == "cancelled"
+
+
+def test_main_priority_preemption_is_reported_by_the_enforce_wait_loop_itself() -> None:
+    """P9-1 Component Independence Rework (WU-04): the ENFORCE polling
+    loop's own cancellation-classification branch is distinct code from
+    `_run_judge_and_repair`'s own post-`generate()` check (already
+    exercised by `test_main_preemption_reaching_judge_produces_cancelled_
+    terminal_state` above) — this Test forces a Service whose `generate()`
+    never returns at all (a pathological backend that ignores its
+    Cancellation Token entirely, unlike the well-behaved one above), so
+    `_run_judge_and_repair` never reaches its own post-call check and the
+    ENFORCE Wait Loop's own polling branch is what actually classifies and
+    terminates this Run. Confirms that branch, before this Rework
+    unconditionally `cancelled_by_request`, now also distinguishes genuine
+    Main-priority preemption via the same real `was_preempted()` check."""
+    coordinator = ModelAccessCoordinator()
+    generate_started = threading.Event()
+    never_returns = threading.Event()
+
+    class _NeverReturningService:
+        def generate(
+            self,
+            request: GenerationRequest,
+            *,
+            cancellation: CancellationToken | None = None,
+        ) -> GenerationResult:
+            generate_started.set()
+            never_returns.wait(timeout=2.0)
+            return GenerationResult(
+                request_id=request.request_id,
+                model_key=request.model_key,
+                content="",
+                finish_reason=FinishReason.CANCELLED,
+                usage=TokenUsage(prompt_tokens=10, completion_tokens=0, total_tokens=10),
+                timing=GenerationTiming(total_generation_seconds=0.01),
+                runtime_info=_RUNTIME_REF,
+            )
+
+    controller = JudgeModeController()
+    controller.apply_mode(EvaluationMode.ENFORCE)
+    hook, composition = build_judge_completion_hook(
+        service=_NeverReturningService(),  # type: ignore[arg-type]
+        judge_mode_controller=controller,
+        model_access_coordinator=coordinator,
+        enforce_wait_timeout_seconds=5.0,
+        enforce_cancel_grace_seconds=0.0,
+    )
+
+    def _preempt_from_main() -> None:
+        assert generate_started.wait(timeout=5.0)
+        coordinator.acquire_main(task_id="main-turn-preempting")
+        coordinator.release_main(task_id="main-turn-preempting")
+
+    preemptor = threading.Thread(target=_preempt_from_main)
+    preemptor.start()
+    hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id="req-cancel-enforce-loop-1",
+            user_input="Question",
+            assistant_content="Answer",
+            # The synchronous ENFORCE Wait Loop branch this Test targets
+            # is only reached when the caller also requests Presented
+            # Final gating -- otherwise `hook()` dispatches through the
+            # same async path OBSERVE uses (returns immediately, `None`),
+            # never entering the `while True:` polling loop at all.
+            enforce_presented_final=True,
+        )
+    )
+    preemptor.join(timeout=5.0)
+    result = _wait_for_result(composition)
+
+    assert result.execution_state == "cancelled"
+    assert result.failure_reason == "cancelled_by_main_priority_preemption"
+
+
+class _PollLoopDelayedCancellationToken(CancellationToken):
+    """R3-WU-03 (Controller Review IR-R2-03) test double: lets the Worker
+    thread's own post-`generate()` cancellation check proceed immediately
+    (so this Run's genuine Terminal completion -- including `ModelAccess
+    Coordinator.start_background()`'s own `_preempted_task_ids` cleanup --
+    finishes first, on the Worker's own thread), while holding the ENFORCE
+    Wait Loop's own check (on the `hook()`-calling/poll thread, identified
+    by `threading.get_ident()` at construction) blocked until the test
+    explicitly confirms that Terminal cleanup has already happened --
+    reproducing the exact Controller Probe schedule IR-R2-03 reported
+    ("Worker先行終了→cleanup→Terminal Owner読取")."""
+
+    def __init__(self, *, poll_thread_id: int) -> None:
+        super().__init__()
+        self._poll_thread_id = poll_thread_id
+        self._release_poll_view = threading.Event()
+
+    def release_poll_view(self) -> None:
+        self._release_poll_view.set()
+
+    def is_cancelled(self) -> bool:
+        real = super().is_cancelled()
+        if real and threading.get_ident() == self._poll_thread_id:
+            self._release_poll_view.wait(timeout=5.0)
+        return real
+
+
+def test_enforce_wait_loop_never_overwrites_workers_own_correct_cancellation_reason() -> None:
+    """R3-WU-03 (Controller Review IR-R2-03): the residual Race the prior
+    Round's `was_preempted()` non-destructive peek alone did not close --
+    when the Worker's own in-flight classification ALREADY produced the
+    correct `cancelled_by_main_priority_preemption` terminal Result and
+    then genuinely finished (including `ModelAccessCoordinator.
+    start_background()`'s own Terminal `_preempted_task_ids.discard()`)
+    BEFORE the ENFORCE Wait Loop's own `cancellation.is_cancelled()` check
+    (on a different thread) gets a chance to run, a fresh `was_preempted()`
+    re-classification at that point sees `False` (already cleaned up) and
+    would silently overwrite the Worker's own already-correct reason with
+    the generic `cancelled_by_request` -- exactly the Controller Probe
+    schedule IR-R2-03 reproduced. This Test forces that exact schedule via
+    `_PollLoopDelayedCancellationToken` and confirms the Worker's own
+    stored classification survives instead."""
+    coordinator = ModelAccessCoordinator()
+    generate_started = threading.Event()
+    # The genuine danger window this Test must land in --
+    # `_preempted_task_ids.add()` through its own `discard()` -- is only a
+    # handful of Python bytecode steps wide in this Fake Service's own
+    # `generate()`; a separate polling Thread's own scheduling latency
+    # alone can exceed it entirely (confirmed empirically: an early Draft
+    # of this Test using an unconditional `generate()` return missed the
+    # window every single time, silently falling through to the 5s
+    # `is_cancelled()` block timeout instead of a genuine same-schedule
+    # repro). `proceed_after_preemption_observed` makes the window
+    # artificially wide and DETERMINISTIC: `generate()` does not return
+    # (and therefore the Worker's own classification + `start_background()`
+    # `_run()`'s own Terminal cleanup do not run) until the Watcher Thread
+    # below has already confirmed a real `was_preempted()` `True` read.
+    proceed_after_preemption_observed = threading.Event()
+
+    class _WaitsForRealPreemptionService:
+        def generate(
+            self,
+            request: GenerationRequest,
+            *,
+            cancellation: CancellationToken | None = None,
+        ) -> GenerationResult:
+            generate_started.set()
+            assert cancellation is not None
+            cancellation.wait(timeout=5.0)
+            assert proceed_after_preemption_observed.wait(timeout=5.0)
+            return GenerationResult(
+                request_id=request.request_id,
+                model_key=request.model_key,
+                content="",
+                finish_reason=FinishReason.CANCELLED,
+                usage=TokenUsage(prompt_tokens=10, completion_tokens=0, total_tokens=10),
+                timing=GenerationTiming(total_generation_seconds=0.01),
+                runtime_info=_RUNTIME_REF,
+            )
+
+    controller = JudgeModeController()
+    controller.apply_mode(EvaluationMode.ENFORCE)
+    request_id = "req-terminal-race-1"
+    token = _PollLoopDelayedCancellationToken(poll_thread_id=threading.get_ident())
+    hook, composition = build_judge_completion_hook(
+        service=_WaitsForRealPreemptionService(),  # type: ignore[arg-type]
+        judge_mode_controller=controller,
+        model_access_coordinator=coordinator,
+        enforce_wait_timeout_seconds=5.0,
+        enforce_cancel_grace_seconds=0.0,
+    )
+
+    def _preempt_from_main() -> None:
+        assert generate_started.wait(timeout=5.0)
+        coordinator.acquire_main(task_id="main-turn-preempting")
+        coordinator.release_main(task_id="main-turn-preempting")
+
+    def _release_poll_view_after_worker_terminal_cleanup() -> None:
+        deadline = time.monotonic() + 5.0
+        while not coordinator.was_preempted(task_id=request_id) and time.monotonic() < deadline:
+            time.sleep(0.001)
+        # A genuine `True` read is now confirmed -- safe to let the held
+        # `generate()` call proceed to its own return, the Worker's own
+        # classification, and `start_background()`'s own Terminal cleanup.
+        proceed_after_preemption_observed.set()
+        # The Worker's own genuine Terminal boundary (`start_background()`'s
+        # own `_run()` `finally`) discards this exact `task_id` -- waiting
+        # for that flip back to `False` is waiting for the Worker's own
+        # Run to have fully completed, including its own already-correct
+        # in-flight classification.
+        while coordinator.was_preempted(task_id=request_id) and time.monotonic() < deadline:
+            time.sleep(0.001)
+        token.release_poll_view()
+
+    preemptor = threading.Thread(target=_preempt_from_main)
+    watcher = threading.Thread(target=_release_poll_view_after_worker_terminal_cleanup)
+    preemptor.start()
+    watcher.start()
+    hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id=request_id,
+            user_input="Question",
+            assistant_content="Answer",
+            enforce_presented_final=True,
+            cancellation=token,
+        )
+    )
+    preemptor.join(timeout=5.0)
+    watcher.join(timeout=5.0)
+    result = _wait_for_result(composition)
+
+    assert result.execution_state == "cancelled"
+    assert result.failure_reason == "cancelled_by_main_priority_preemption"
+
+
+class _PollLoopHeldUntilReleasedToken(CancellationToken):
+    """R4-WU-03 (Controller Review IR-R3-03) test double: unconditionally
+    blocks the ENFORCE Wait Loop's own FIRST `cancellation.is_cancelled()`
+    check (on the `hook()`-calling/poll thread, identified by `threading.
+    get_ident()` at construction) until the Test explicitly releases it --
+    unlike `_PollLoopDelayedCancellationToken` above (which only blocks a
+    check that is ALREADY `True`), this guarantees the Loop's own `result_
+    ready.is_set()` branch is never reached before the Test's own
+    controlled schedule has fully played out, regardless of how quickly the
+    Worker itself finishes (a genuinely fast, unrelated `failed` outcome
+    would otherwise win the race against a deliberately-delayed Cancellation
+    signal every time). The Worker's own thread is unaffected."""
+
+    def __init__(self, *, poll_thread_id: int) -> None:
+        super().__init__()
+        self._poll_thread_id = poll_thread_id
+        self._release_poll_view = threading.Event()
+
+    def release_poll_view(self) -> None:
+        self._release_poll_view.set()
+
+    def is_cancelled(self) -> bool:
+        if threading.get_ident() == self._poll_thread_id:
+            self._release_poll_view.wait(timeout=5.0)
+        return super().is_cancelled()
+
+
+def test_enforce_wait_loop_never_lets_an_ordinary_worker_failure_override_a_genuine_user_stop() -> (
+    None
+):
+    """R4-WU-03 (Controller Review IR-R3-03): the prior Round's fix
+    correctly preserved a Worker's own genuinely `cancelled` terminal, but
+    also reused a Worker's own ordinary `failed` terminal the identical way
+    -- so a real Model/Decode failure that happened to become Ready at the
+    exact instant a genuine User Stop was detected could silently override
+    that Cancellation with the unrelated Failure. Schedule: the Worker's own
+    `failed` outcome (an ordinary `model_call_error`, wholly unrelated to
+    Cancellation -- the Fake Service raises immediately, never touching
+    `cancellation` at all) becomes Ready FIRST; only THEN is a genuine User
+    Stop signalled directly (`cancellation.cancel()`, exactly like
+    `ConversationGenerationSession.force_cancel()` -- never routed through
+    `ModelAccessCoordinator`, so `was_preempted()` stays `False` throughout).
+    The final Terminal must be the genuine Stop (`cancelled_by_request`),
+    never the Worker's own unrelated `failed` outcome."""
+    coordinator = ModelAccessCoordinator()
+    worker_failed = threading.Event()
+
+    class _ImmediatelyFailingService:
+        def generate(
+            self,
+            request: GenerationRequest,
+            *,
+            cancellation: CancellationToken | None = None,
+        ) -> GenerationResult:
+            worker_failed.set()
+            raise RuntimeError("boom: unrelated model failure")
+
+    controller = JudgeModeController()
+    controller.apply_mode(EvaluationMode.ENFORCE)
+    request_id = "req-failure-vs-user-stop-1"
+    token = _PollLoopHeldUntilReleasedToken(poll_thread_id=threading.get_ident())
+    hook, composition = build_judge_completion_hook(
+        service=_ImmediatelyFailingService(),  # type: ignore[arg-type]
+        judge_mode_controller=controller,
+        model_access_coordinator=coordinator,
+        enforce_wait_timeout_seconds=5.0,
+        enforce_cancel_grace_seconds=0.0,
+    )
+
+    def _stop_after_worker_failure_is_ready() -> None:
+        assert worker_failed.wait(timeout=5.0)
+        # A brief, generous margin for `_run_enforcement` to actually
+        # append the outcome and set `result_ready` (both happen on the
+        # Worker's own thread, immediately after the `raise` above is
+        # caught) before this genuinely separate Stop signal lands. The
+        # poll thread's own `is_cancelled()` is held open (unconditionally
+        # blocked by `_PollLoopHeldUntilReleasedToken`) throughout this
+        # entire wait, so it can never race ahead to the `result_ready.
+        # is_set()` branch before this schedule finishes.
+        time.sleep(0.05)
+        token.cancel()
+        token.release_poll_view()
+
+    stopper = threading.Thread(target=_stop_after_worker_failure_is_ready)
+    stopper.start()
+    hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id=request_id,
+            user_input="Question",
+            assistant_content="Answer",
+            enforce_presented_final=True,
+            cancellation=token,
+        )
+    )
+    stopper.join(timeout=5.0)
+    result = _wait_for_result(composition)
+
+    assert result.execution_state == "cancelled"
+    assert result.failure_reason == "cancelled_by_request"
+
+
+class _FakePreemptingCoordinator:
+    """R4-WU-03 (Controller Review IR-R3-03) test double: a minimal duck-
+    typed stand-in for `ModelAccessCoordinator` giving this Test full,
+    deterministic control over `was_preempted()`. The real Coordinator
+    clears its own `_preempted_task_ids` bookkeeping at the Worker's own
+    Terminal boundary essentially atomically with that same Worker's
+    outcome becoming Ready (both happen back-to-back on the Worker's own
+    thread, with no controllable gap) -- making "Worker Failure Ready,
+    THEN Preemption observed as still-True at classification time" a
+    genuine race against the real Coordinator's own internal cleanup
+    timing, an implementation detail of a different module entirely,
+    unrelated to the ENFORCE Wait Loop logic this Test actually targets.
+    This double sidesteps that unrelated race: `mark_preempted()` sets
+    `was_preempted()` to `True` and it STAYS `True` (nothing here ever
+    clears it), so the Test can control precisely when the Worker's own
+    `failed` outcome becomes Ready relative to when Preemption is marked,
+    without racing any hidden cleanup."""
+
+    def __init__(self) -> None:
+        self._preempted: set[str] = set()
+
+    def start_background(
+        self, *, task_id: str, cancel: Callable[[], None] | None, target: Callable[[], None]
+    ) -> bool:
+        threading.Thread(target=target, daemon=True).start()
+        return True
+
+    def start_auxiliary(self, *, task_id: str, target: Callable[[], None]) -> bool:
+        threading.Thread(target=target, daemon=True).start()
+        return True
+
+    def was_preempted(self, *, task_id: str) -> bool:
+        return task_id in self._preempted
+
+    def mark_preempted(self, *, task_id: str) -> None:
+        self._preempted.add(task_id)
+
+
+def test_enforce_wait_loop_never_lets_an_ordinary_worker_failure_override_a_genuine_preemption() -> (  # noqa: E501
+    None
+):
+    """R4-WU-03 (Controller Review IR-R3-03), Main-priority Preemption
+    variant: the Worker's own `failed` outcome (an ordinary `model_call_
+    error`, via `_FakePreemptingCoordinator`'s immediate-raise Fake Service
+    -- the exception branch never consults `cancellation.is_cancelled()`/
+    `was_preempted()` at all) becomes Ready FIRST; only THEN is Main-
+    priority Preemption marked (`was_preempted()` becomes `True`) and
+    Cancellation genuinely signalled. The final Terminal must still be the
+    genuine Preemption (`cancelled_by_main_priority_preemption`), never the
+    Worker's own unrelated `failed` outcome."""
+    coordinator = _FakePreemptingCoordinator()
+    worker_failed = threading.Event()
+
+    class _ImmediatelyFailingService:
+        def generate(
+            self,
+            request: GenerationRequest,
+            *,
+            cancellation: CancellationToken | None = None,
+        ) -> GenerationResult:
+            worker_failed.set()
+            raise RuntimeError("boom: unrelated model failure")
+
+    controller = JudgeModeController()
+    controller.apply_mode(EvaluationMode.ENFORCE)
+    request_id = "req-failure-vs-preemption-1"
+    token = _PollLoopHeldUntilReleasedToken(poll_thread_id=threading.get_ident())
+    hook, composition = build_judge_completion_hook(
+        service=_ImmediatelyFailingService(),  # type: ignore[arg-type]
+        judge_mode_controller=controller,
+        model_access_coordinator=coordinator,  # type: ignore[arg-type]
+        enforce_wait_timeout_seconds=5.0,
+        enforce_cancel_grace_seconds=0.0,
+    )
+
+    def _preempt_after_worker_failure_is_ready() -> None:
+        assert worker_failed.wait(timeout=5.0)
+        # Same generous margin as the User Stop variant above.
+        time.sleep(0.05)
+        coordinator.mark_preempted(task_id=request_id)
+        token.cancel()
+        token.release_poll_view()
+
+    preemptor = threading.Thread(target=_preempt_after_worker_failure_is_ready)
+    preemptor.start()
+    hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id=request_id,
+            user_input="Question",
+            assistant_content="Answer",
+            enforce_presented_final=True,
+            cancellation=token,
+        )
+    )
+    preemptor.join(timeout=5.0)
+    result = _wait_for_result(composition)
+
+    assert result.execution_state == "cancelled"
+    assert result.failure_reason == "cancelled_by_main_priority_preemption"
+
+
+# P9-1 Judge/Governance Rework (WU-03): Main Governance-origin Repair,
+# through the real Production `RuntimeGovernanceComposition` (Codex
+# Controller Handoff §9: "Production Compositionと通常Conversation完了経路
+# を通すTestで上記Matrix・二重実行なし・Stop/Late結果不採用を示す") -- never
+# a bare `resolve_semantic_action()` unit call, so the exact `semantic_
+# result_recorder` wiring `build_judge_completion_hook()` actually uses in
+# Production is exercised end to end.
+
+
+def _wu03_criterion() -> SemanticCriterion:
+    digest = "a" * 128
+    return SemanticCriterion(
+        criterion_id="semantic.argd.evidence.1",
+        descriptor_id="argd.evidence.1",
+        source_definition_id="argd",
+        source_definition_digest_sha512=digest,
+        source_pointer="/rules/evidence/1",
+        source_text_digest_sha512=digest,
+        instruction="Do not contradict the cited evidence.",
+        governance_point="main_model.semantic",
+        evaluation_stage=SemanticEvaluationStage.POST,
+        evaluation_method=SemanticEvaluationMethod.CLASSIFICATION_WITH_REFERENCE,
+        severity_policy="high",
+        recommended_action_policy="repair_or_safe_fallback",
+        evidence_requirements=("request_identity",),
+    )
+
+
+def _wu03_composition() -> RuntimeGovernanceComposition:
+    composition = RuntimeGovernanceComposition(
+        capability=RuntimeCapabilitySnapshot(
+            model_key="main.test-model",
+            backend_kind="fake",
+            supports_streaming=True,
+            supports_thinking=True,
+            max_context_tokens=4096,
+        ),
+    )
+    # A real, minimal `SemanticRuntimeCoordinator` over exactly the one
+    # test Criterion -- the same object `begin_semantic_turn()`/`record_
+    # semantic_response()` (both used unchanged below) actually delegate
+    # to in Production.
+    composition.semantic_runtime = SemanticRuntimeCoordinator(criteria=(_wu03_criterion(),))
+    return composition
+
+
+def _wu03_deviation_response(*, recommendation: str = "needs_repair") -> str:
+    return json.dumps(
+        {
+            "recommendation": recommendation,
+            "confidence": 0.4,
+            "criterion_results": [
+                {
+                    "criterion_id": "semantic.argd.evidence.1",
+                    "disposition": "deviation",
+                    "confidence": 0.8,
+                    "reason_code": "contradicts_evidence",
+                }
+            ],
+        }
+    )
+
+
+def _wu03_repair_executor_factory() -> tuple[
+    object, list[dict[str, object]]
+]:
+    calls: list[dict[str, object]] = []
+
+    def executor(**kwargs: object) -> RepairExecutionResult:
+        calls.append(kwargs)
+        return RepairExecutionResult(
+            request_id=str(kwargs["request_id"]),
+            outcome="improved",
+            accepted=True,
+            new_turn_id=None,
+            rejected_reason=None,
+            presented_content="Corrected answer.",
+        )
+
+    return executor, calls
+
+
+def test_wu03_main_observe_never_authorizes_a_main_origin_repair() -> None:
+    """Codex Controller Handoff WU-03 Matrix row: Main=OFF/OBSERVE,
+    Judge=ENFORCE, existing Repair=OFF/OBSERVE -> "自動Repairを増やさない".
+    A real Deviation is genuinely evaluated (Main Governance's own
+    Observe-branch recommendation is honest, per `resolve_semantic_
+    action()`'s own contract), but `main_mode` never reaching `"enforce"`
+    means Main Governance itself never authorizes a Repair -- and with the
+    existing Repair Mode also off, the Judge-origin path does not either.
+    """
+    composition = _wu03_composition()
+    composition.set_semantic_context_provider(
+        lambda: SemanticRuntimeBindingContext(
+            language="en",
+            judge_mode="enforce",
+            repair_mode="off",
+            configured_provider="main.test-model",
+            active_provider="main.test-model",
+            provider_state=SemanticProviderState.ACTIVE,
+            budget_profile="test",
+            max_criteria=8,
+        )
+    )
+    request_id = "req-wu03-main-observe"
+    composition.begin_semantic_turn(request_id=request_id, main_mode="observe")
+
+    judge_controller = JudgeModeController()
+    judge_controller.apply_mode(EvaluationMode.ENFORCE)
+    repair_controller = RepairModeController()  # default OFF
+    executor, calls = _wu03_repair_executor_factory()
+    service = _FakeInferenceService(content=_wu03_deviation_response())
+    hook, hook_composition = build_judge_completion_hook(
+        service=service,  # type: ignore[arg-type]
+        judge_mode_controller=judge_controller,
+        model_access_coordinator=ModelAccessCoordinator(),
+        repair_mode_controller=repair_controller,
+        repair_executor=executor,  # type: ignore[arg-type]
+        semantic_snapshot_provider=lambda rid: composition.semantic_runtime.snapshot_for(
+            request_id=rid
+        ),
+        semantic_result_recorder=lambda response: composition.record_semantic_response(
+            response=response
+        ),
+    )
+
+    hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id=request_id,
+            user_input="Question",
+            assistant_content="A shaky answer",
+        )
+    )
+    result = _wait_for_result(hook_composition)
+
+    # Verifies the Deviation was genuinely evaluated (not merely that
+    # nothing ran for an unrelated reason like a Decode failure) -- a
+    # confirmed real DEVIATION with zero Repair Executor calls is what
+    # this Test's own Docstring actually claims.
+    assert result.execution_state == "completed"
+    assert result.criteria_evaluated == 1
+    assert result.criteria_deviated == 1
+    assert calls == []
+    assert result.repair_requested_by is None
+
+
+def test_wu03_main_enforce_authorizes_a_main_origin_repair_even_with_existing_repair_off() -> None:
+    """Codex Controller Handoff WU-03 Matrix row (the core new behavior):
+    Main=ENFORCE, Judge=ENFORCE&Active, existing Repair=OFF/OBSERVE -> "GD
+    意味違反があればMain起点でRepairする". The existing (Judge-side) Repair
+    Mode toggle staying OFF must not make Main Governance's own ENFORCE
+    decision powerless -- the Repair Executor is invoked exactly once,
+    authorized by Main Governance alone, and the Result records which side
+    requested it."""
+    composition = _wu03_composition()
+    composition.set_semantic_context_provider(
+        lambda: SemanticRuntimeBindingContext(
+            language="en",
+            judge_mode="enforce",
+            repair_mode="off",
+            configured_provider="main.test-model",
+            active_provider="main.test-model",
+            provider_state=SemanticProviderState.ACTIVE,
+            budget_profile="test",
+            max_criteria=8,
+        )
+    )
+    request_id = "req-wu03-main-enforce-repair-off"
+    composition.begin_semantic_turn(request_id=request_id, main_mode="enforce")
+
+    judge_controller = JudgeModeController()
+    judge_controller.apply_mode(EvaluationMode.ENFORCE)
+    repair_controller = RepairModeController()  # default OFF -- the point of this Test
+    executor, calls = _wu03_repair_executor_factory()
+    service = _FakeInferenceService(content=_wu03_deviation_response())
+    hook, hook_composition = build_judge_completion_hook(
+        service=service,  # type: ignore[arg-type]
+        judge_mode_controller=judge_controller,
+        model_access_coordinator=ModelAccessCoordinator(),
+        repair_mode_controller=repair_controller,
+        repair_executor=executor,  # type: ignore[arg-type]
+        semantic_snapshot_provider=lambda rid: composition.semantic_runtime.snapshot_for(
+            request_id=rid
+        ),
+        semantic_result_recorder=lambda response: composition.record_semantic_response(
+            response=response
+        ),
+    )
+
+    hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id=request_id,
+            user_input="Question",
+            assistant_content="A shaky answer",
+        )
+    )
+    result = _wait_for_result(hook_composition)
+
+    assert len(calls) == 1
+    assert result.repair_requested_by == "main_governance"
+    assert result.repair_accepted is True
+    # `repair_eligibility` keeps its pre-existing meaning unchanged by this
+    # Rework (Judge/Repair-Mode-side classification, for Status/
+    # observability -- see `_finalize_judge_dispatch()`'s own comment) --
+    # here it honestly still reads the existing Repair Mode's own
+    # classification (OFF), which is exactly why `repair_requested_by`
+    # exists as its own, minimal, separate field: a reader must be able to
+    # tell "Judge/Repair Mode alone says not eligible" apart from "a
+    # Repair genuinely ran anyway, authorized by Main Governance" without
+    # either field lying about its own, distinct meaning.
+    assert result.repair_eligibility == "not_eligible_mode_off"
+
+
+def test_wu03_main_and_judge_both_enforce_converge_without_double_execution() -> None:
+    """Codex Controller Handoff WU-03 Matrix row: Main=ENFORCE,
+    Judge=ENFORCE&Active, existing Repair=ENFORCE -> "要求元を合流し、同じ
+    Candidateの修復を二重実行しない". Both the pre-existing Judge-origin
+    path and the new Main-origin path independently authorize a Repair for
+    the same Turn/Candidate here -- the Repair Executor must still be
+    invoked exactly once."""
+    composition = _wu03_composition()
+    composition.set_semantic_context_provider(
+        lambda: SemanticRuntimeBindingContext(
+            language="en",
+            judge_mode="enforce",
+            repair_mode="enforce",
+            configured_provider="main.test-model",
+            active_provider="main.test-model",
+            provider_state=SemanticProviderState.ACTIVE,
+            budget_profile="test",
+            max_criteria=8,
+        )
+    )
+    request_id = "req-wu03-both-enforce"
+    composition.begin_semantic_turn(request_id=request_id, main_mode="enforce")
+
+    judge_controller = JudgeModeController()
+    judge_controller.apply_mode(EvaluationMode.ENFORCE)
+    repair_controller = RepairModeController()
+    repair_controller.apply_mode(RepairMode.ENFORCE)
+    executor, calls = _wu03_repair_executor_factory()
+    service = _FakeInferenceService(content=_wu03_deviation_response())
+    hook, hook_composition = build_judge_completion_hook(
+        service=service,  # type: ignore[arg-type]
+        judge_mode_controller=judge_controller,
+        model_access_coordinator=ModelAccessCoordinator(),
+        repair_mode_controller=repair_controller,
+        repair_executor=executor,  # type: ignore[arg-type]
+        semantic_snapshot_provider=lambda rid: composition.semantic_runtime.snapshot_for(
+            request_id=rid
+        ),
+        semantic_result_recorder=lambda response: composition.record_semantic_response(
+            response=response
+        ),
+    )
+
+    hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id=request_id,
+            user_input="Question",
+            assistant_content="A shaky answer",
+        )
+    )
+    result = _wait_for_result(hook_composition)
+
+    # The single most important assertion in this Test: exactly one
+    # Repair Executor invocation, never two, even though both origins
+    # independently authorized one for the same Candidate.
+    assert len(calls) == 1
+    assert result.repair_requested_by == "judge_and_main"
+    assert result.repair_accepted is True
+
+
+def test_wu03_judge_off_keeps_existing_main_enforce_readiness_gate_unchanged() -> None:
+    """Codex Controller Handoff WU-03 Matrix row: 任意, Judge=OFF/利用不能,
+    任意 -> "現行Main ENFORCE準備条件を維持。Judgeなしの構造矯正を今回導入
+    しない". `false_enforce_prevented` (kept unchanged by this Rework) still
+    gates Main Governance's own action on a genuinely Active Judge -- with
+    Judge Mode OFF here, `resolve_semantic_action()` never even reaches the
+    `has_deviation` branch this Rework changed, so no Main-origin Repair is
+    ever requested and the Judge dispatch itself makes zero Model Calls."""
+    composition = _wu03_composition()
+    composition.set_semantic_context_provider(
+        lambda: SemanticRuntimeBindingContext(
+            language="en",
+            judge_mode="off",
+            repair_mode="off",
+            configured_provider="none",
+            active_provider=None,
+            provider_state=SemanticProviderState.NONE,
+            budget_profile="test",
+            max_criteria=8,
+        )
+    )
+    request_id = "req-wu03-judge-off"
+    composition.begin_semantic_turn(request_id=request_id, main_mode="enforce")
+
+    judge_controller = JudgeModeController()  # default OFF
+    executor, calls = _wu03_repair_executor_factory()
+    service = _FakeInferenceService(content=_wu03_deviation_response())
+    hook, hook_composition = build_judge_completion_hook(
+        service=service,  # type: ignore[arg-type]
+        judge_mode_controller=judge_controller,
+        model_access_coordinator=ModelAccessCoordinator(),
+        repair_executor=executor,  # type: ignore[arg-type]
+        semantic_snapshot_provider=lambda rid: composition.semantic_runtime.snapshot_for(
+            request_id=rid
+        ),
+        semantic_result_recorder=lambda response: composition.record_semantic_response(
+            response=response
+        ),
+    )
+
+    hook(
+        JudgeCompletionContext(
+            model_key="main.test-model",
+            request_id=request_id,
+            user_input="Question",
+            assistant_content="A shaky answer",
+        )
+    )
+    time.sleep(0.05)
+
+    assert service.calls == []
+    assert calls == []
+    assert hook_composition.last_result() is None
+
+
+def test_wu03_a_late_stale_semantic_result_after_stop_never_contaminates_the_fresher_turn() -> None:
+    """Codex Controller Handoff §2: "Stop/Late結果不採用", corrected by
+    R4-WU-01 (Controller Review IR-R3-01): `record_semantic_response()`
+    matches a late/stale publish strictly by its own `request_id` -- it was
+    already structurally impossible for a response literally carrying
+    `request_id="req-wu03-stale"` to be attributed to `"req-wu03-fresh"`'s
+    own Evidence bucket, under either the old single-slot Coordinator or
+    the new request-local Ledger. What changed is whether "req-wu03-stale"
+    itself stays reachable at all: before R4-WU-01, a different Turn
+    beginning made it entirely unrecordable (silently dropped, not merely
+    unattributed to the wrong Turn); the corrected, request-local contract
+    now genuinely records it -- scoped exclusively to its own `request_id`
+    -- while `"req-wu03-fresh"` (the newer, still-current Turn) stays
+    completely unaffected. A late/stale publish must never be able to
+    smuggle a Main-origin Repair authorization into a newer Turn -- proven
+    here by asserting the fresher Turn's own Evidence/Action stay entirely
+    untouched by the stale one's own late recording."""
+    composition = _wu03_composition()
+    composition.set_semantic_context_provider(
+        lambda: SemanticRuntimeBindingContext(
+            language="en",
+            judge_mode="enforce",
+            repair_mode="off",
+            configured_provider="main.test-model",
+            active_provider="main.test-model",
+            provider_state=SemanticProviderState.ACTIVE,
+            budget_profile="test",
+            max_criteria=8,
+        )
+    )
+    stale_snapshot = composition.begin_semantic_turn(
+        request_id="req-wu03-stale", main_mode="enforce"
+    )
+    # A newer Turn begins before the stale response is ever recorded --
+    # mirrors a real late-arriving publish racing a fresher Turn.
+    composition.begin_semantic_turn(request_id="req-wu03-fresh", main_mode="enforce")
+
+    from margpa_runtime_llm.modules.runtime_governance.domain import (
+        SemanticCriterionDisposition,
+        SemanticCriterionResult,
+        SemanticEvaluationResponse,
+    )
+
+    stale_response = SemanticEvaluationResponse(
+        request_id=stale_snapshot.request_id,
+        generation=stale_snapshot.generation,
+        provider_id="main.test-model",
+        provider_state=SemanticProviderState.ACTIVE,
+        results=(
+            SemanticCriterionResult(
+                criterion_id="semantic.argd.evidence.1",
+                descriptor_id="argd.evidence.1",
+                disposition=SemanticCriterionDisposition.DEVIATION,
+                confidence=0.8,
+                reason_code="contradicts_evidence",
+            ),
+        ),
+        latency_ms=1,
+    )
+    evidence = composition.record_semantic_response(response=stale_response)
+
+    assert evidence is not None
+    assert evidence.request_id == "req-wu03-stale"
+    assert composition.semantic_runtime.evidence_for(request_id="req-wu03-stale") is not None
+    # The fresher, still-current Turn must never see the stale Turn's own
+    # Evidence/Action -- it never had a Response recorded for it at all.
+    assert composition.semantic_runtime.evidence_for(request_id="req-wu03-fresh") is None
+    assert composition.semantic_runtime.latest_evidence() is None

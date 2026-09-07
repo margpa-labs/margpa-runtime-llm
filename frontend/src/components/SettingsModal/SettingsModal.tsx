@@ -48,6 +48,12 @@ interface SettingsModalProps {
   runtimeGovernanceState: RuntimeGovernanceControlState;
   onRuntimeGovernanceRefresh: () => void;
   onRuntimeGovernanceApply: (requestedMode: MainGovernanceMode) => void;
+  /** P9-1 UF-UI-017: re-fetches Main Runtime Governance status after a
+   * Judge Mode or JUDGE-role Provider Selection change commits, so its
+   * ENFORCE availability (and any other Judge-dependent Descriptor) never
+   * shows a stale readiness after the underlying Judge state actually
+   * changed. */
+  onJudgeReadinessChanged: () => void;
   guardrailGovernanceBootstrapEnabled: boolean;
   guardrailGovernanceState: GuardrailGovernanceControlState;
   onGuardrailGovernanceRefresh: () => void;
@@ -112,6 +118,7 @@ export default function SettingsModal({
   runtimeGovernanceState,
   onRuntimeGovernanceRefresh,
   onRuntimeGovernanceApply,
+  onJudgeReadinessChanged,
   guardrailGovernanceBootstrapEnabled,
   guardrailGovernanceState,
   onGuardrailGovernanceRefresh,
@@ -282,7 +289,11 @@ export default function SettingsModal({
                   Repair/Recording -> Model Status -> Role Provider Selection
                   -> Runtime Control, User-specified Bounded Advanced Mode
                   order. */}
-              <FeatureModesPanel language={language} visible={category === "advanced"} />
+              <FeatureModesPanel
+                language={language}
+                visible={category === "advanced"}
+                onJudgeReadinessChanged={onJudgeReadinessChanged}
+              />
               <ConstitutionPanel language={language} visible={category === "advanced"} />
               <DevAgentPanel language={language} visible={category === "advanced"} />
               {runtimeModelControlBootstrapEnabled ? (
@@ -294,7 +305,11 @@ export default function SettingsModal({
                   onStatusChange={onRuntimeModelStatusChange}
                 />
               ) : null}
-              <ProviderSelectionPanel language={language} visible={category === "advanced"} />
+              <ProviderSelectionPanel
+                language={language}
+                visible={category === "advanced"}
+                onJudgeReadinessChanged={onJudgeReadinessChanged}
+              />
               {localCorpusBootstrapEnabled ? (
                 <LocalCorpusPanel
                   language={language}

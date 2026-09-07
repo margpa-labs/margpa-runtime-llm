@@ -121,6 +121,15 @@ def test_phase1b_production_runtime_load_generate_stream_cancel_and_unload() -> 
         assert runtime.artifact_digest_verified
         assert CapabilityFeature.THINKING_CONTROL in runtime.effective_capabilities.features
         assert CapabilityFeature.GPU_OFFLOAD in runtime.effective_capabilities.features
+        # Gemma Judge-only Constrained Decoding Rework (WU-02): a genuine
+        # real-hardware confirmation that this Capability is reported from
+        # the actual installed `llama_cpp` library's own `LlamaGrammar.
+        # from_json_schema` support (`LlamaCppModelAdapter._build_runtime_
+        # info()`), identically for Main here as for any other Role loaded
+        # through the same Backend -- never inferred from a Model
+        # Definition's own static `optional_features` TOML declaration.
+        assert CapabilityFeature.JSON_SCHEMA in runtime.effective_capabilities.features
+        assert CapabilityFeature.GRAMMAR in runtime.effective_capabilities.features
         assert not runtime.warnings
         assert application.config.application_key == "default"
         assert application.config.application_schema_version == "3"

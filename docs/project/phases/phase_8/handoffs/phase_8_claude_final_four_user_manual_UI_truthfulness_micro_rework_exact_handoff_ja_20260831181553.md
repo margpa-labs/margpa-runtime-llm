@@ -54,7 +54,7 @@ SHA-512:
 ### 2.4 Current Unresolved Registry
 
 ```text
-docs/project/shared/未解決/current_unresolved_findings_registry_ja.md
+docs/project/shared/unresolved_work/current_unresolved_findings_registry_ja.md
 SHA-512:
 30b4f8eb42dfb9835156f02da8a3899e13c440a56390c32d3e8fa23ece799777cf182a1b986faadadc2329121031073f511f03e30bcfc9473bd2f4851fd58f10
 ```

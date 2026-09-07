@@ -110,7 +110,7 @@ SHA-512: 2d63ba8bb01cce3538b438ec1615cb3836b4a3af4524d151f53fca672520a171107a0cf
 11. Current Unresolved Registry。
 
 ```text
-docs/project/shared/未解決/current_unresolved_findings_registry_ja.md
+docs/project/shared/unresolved_work/current_unresolved_findings_registry_ja.md
 SHA-512: 3e345a13f88bcfcc25aef1e871f0fb268848db9d9618eacbc814405c12701c112a5a4085352450f5c7be9af783b99f50708675ee359578c376deec556ad76763
 ```
 

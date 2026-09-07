@@ -147,6 +147,12 @@ class ModelLoadConfig(ImmutableContract):
     use_mlock: bool = False
     verbose_backend: bool = False
     verify_artifact_hash: Literal[True] = True
+    # P9-1 Package 3: an explicit Deployment/Application Profile-declared Output
+    # Ceiling (Architecture 5.2's `max_output_token_limit`), independent of
+    # Context Size. `None` (the Portable Default, unset by any Profile)
+    # preserves the pre-Package-3 behavior of deriving the ceiling from
+    # `context_size - 1` — see `LlamaCppRuntimeModelBackend.probe_capability()`.
+    max_output_tokens_ceiling: int | None = Field(default=None, gt=0)
 
     @model_validator(mode="after")
     def validate_batch_sizes(self) -> "ModelLoadConfig":

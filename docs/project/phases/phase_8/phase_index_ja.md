@@ -69,7 +69,7 @@ P8-F  Internal Review／Canonical Verification／User Manual Candidate
 - General Web Search／Automatic Search、正式Agent Level 1〜3、Generic MCP、外部Side EffectはPhase 11以降。
 - 全Docs統合、Shared Constitution、PADG、Full Runtime Constitutionおよび大規模UI統合はPhase 10。
 
-正本は`docs/project/shared/未解決/current_unresolved_findings_registry_ja.md`および各Planned Workとする。
+正本は`docs/project/shared/unresolved_work/current_unresolved_findings_registry_ja.md`および各Planned Workとする。
 
 ## Closureと次Phase開始の分離
 

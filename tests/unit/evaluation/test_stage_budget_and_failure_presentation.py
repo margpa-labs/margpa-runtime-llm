@@ -51,6 +51,25 @@ def test_built_in_judge_has_a_zero_model_call_stage_budget() -> None:
     assert profile.enforce_pipeline_budget_ms == 0
 
 
+def test_gemma_e2b_judge_resolves_to_its_own_dedicated_profile_not_the_main_self_fallthrough() -> (
+    None
+):
+    """P9-1 Package 2 (WU-04): before this Package, an unmatched Judge
+    `provider_id` silently fell through to `LOCAL_MACOS_MAIN_SELF_JUDGE_
+    BUDGET` inside `resolve_local_macos_judge_budget()` -- an accidental
+    default rather than an intentional choice for a real dedicated-model
+    Load/Inference timing profile (Package 1 Return §8's Exact First Action
+    note). Confirms Gemma now resolves to its own explicit profile, and
+    that profile is genuinely distinct (by `profile_id`) from both Selene's
+    and Main-self's."""
+    profile = resolve_local_macos_judge_budget("judge.gemma-4-e2b-it-q4-0")
+    assert profile.provider_id == "judge.gemma-4-e2b-it-q4-0"
+    assert profile.profile_id == "local_macos_gemma_e2b_judge_v1"
+    selene_profile = resolve_local_macos_judge_budget("judge.selene-1-mini-llama-3.1-8b-q5-k-m")
+    main_self_profile = resolve_local_macos_judge_budget("main.qwen3-4b-q4-k-m")
+    assert profile.profile_id not in (selene_profile.profile_id, main_self_profile.profile_id)
+
+
 def test_five_failure_reasons_have_distinct_ja_and_en_presentations() -> None:
     codes = tuple(EvaluationFailureCode)
     ja = tuple(

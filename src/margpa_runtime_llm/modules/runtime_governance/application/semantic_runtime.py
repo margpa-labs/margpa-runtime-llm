@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+from collections import OrderedDict
 from dataclasses import dataclass
 
 from ..domain import (
@@ -32,6 +33,13 @@ from ..ports import DeterministicEvaluatorPort, SemanticEvaluatorPort
 class FrozenSemanticTurn:
     snapshot: SemanticTurnSnapshot
     initially_deferred: tuple[SemanticCriterionResult, ...]
+    # P9-1 Package 2 OF-P2-001: where the *next* Turn's rotation window
+    # should start (mod the current applicable-criteria count), so a
+    # caller holding rotation state (`SemanticRuntimeCoordinator`) never
+    # needs to re-derive the POST/BOTH-stage applicable set itself just to
+    # advance its own cursor -- this function is the single place that
+    # owns "applicable" and the rotation arithmetic over it.
+    next_rotation_offset: int
 
 
 def freeze_semantic_turn(
@@ -48,8 +56,24 @@ def freeze_semantic_turn(
     provider_state: SemanticProviderState,
     budget_profile: str,
     max_criteria: int,
+    rotation_offset: int = 0,
 ) -> FrozenSemanticTurn:
-    """Capture every mutable semantic input once at the Main pre boundary."""
+    """Capture every mutable semantic input once at the Main pre boundary.
+
+    P9-1 Package 2 OF-P2-001: when the POST/BOTH-stage applicable Criteria
+    outnumber `max_criteria`, a single fixed `applicable[:max_criteria]`
+    slice would select the identical lexicographically-first criteria on
+    every Turn forever, permanently deferring everything after it (Package
+    2's own real-corpus Evidence: 32 selected / 77 permanently deferred of
+    109). `rotation_offset` instead starts this Turn's selection window at
+    an arbitrary point in the sorted `applicable` sequence, wrapping
+    around -- across `ceil(len(applicable) / max_criteria)` Turns advancing
+    `rotation_offset` by `max_criteria` each time (see
+    `next_rotation_offset` above), every applicable Criterion is selected
+    at least once, honoring P2-WU-06's "one Run must not force all 109 in
+    and break Context/Deadline" by spreading coverage across Turns instead
+    of ever forcing a single oversized Run.
+    """
 
     applicable = tuple(
         sorted(
@@ -62,7 +86,12 @@ def freeze_semantic_turn(
             key=lambda item: item.criterion_id,
         )
     )
-    selected = applicable[:max_criteria]
+    total = len(applicable)
+    offset = rotation_offset % total if total > 0 else 0
+    rotated = applicable[offset:] + applicable[:offset]
+    selected = rotated[:max_criteria]
+    deferred_items = rotated[max_criteria:]
+    next_rotation_offset = (offset + max_criteria) % total if total > 0 else 0
     deferred = tuple(
         SemanticCriterionResult(
             criterion_id=item.criterion_id,
@@ -70,7 +99,7 @@ def freeze_semantic_turn(
             disposition=SemanticCriterionDisposition.DEFERRED,
             reason_code=SemanticDeferredReason.BUDGET_EXHAUSTED.value,
         )
-        for item in applicable[max_criteria:]
+        for item in deferred_items
     )
     batch_digest = semantic_contract_digest(
         {
@@ -91,6 +120,7 @@ def freeze_semantic_turn(
         "provider_state": provider_state.value,
         "budget_profile": budget_profile,
         "max_criteria": max_criteria,
+        "rotation_offset": offset,
         "criterion_ids": [item.criterion_id for item in selected],
         "deferred_criteria_count": len(deferred),
         "batch_digest": batch_digest,
@@ -109,10 +139,15 @@ def freeze_semantic_turn(
         max_criteria=max_criteria,
         criteria=selected,
         deferred_criteria_count=len(deferred),
+        rotation_offset=offset,
         batch_digest_sha512=batch_digest,
         frozen_digest_sha512=semantic_contract_digest(payload),
     )
-    return FrozenSemanticTurn(snapshot=snapshot, initially_deferred=deferred)
+    return FrozenSemanticTurn(
+        snapshot=snapshot,
+        initially_deferred=deferred,
+        next_rotation_offset=next_rotation_offset,
+    )
 
 
 def merge_structural_and_semantic_observations(
@@ -203,9 +238,30 @@ def resolve_semantic_action(
     has_deviation = any(
         item.disposition is SemanticCriterionDisposition.DEVIATION for item in results
     )
+    # P9-1 Judge Dispatch Fix Round 6 Self-review correction (Round 3,
+    # Finding 1 from an independent boundary-value audit): NOT_APPLICABLE
+    # must count as uncertain here, same as UNKNOWN/DEFERRED. `_semantic_
+    # observation()` above already classifies NOT_APPLICABLE identically to
+    # DEFERRED (both -> `ObservationOutcome.DEFERRED_TO_SEMANTIC_EVALUATOR`),
+    # and `_run_built_in_semantic_judge()` (bootstrap/judge_live_integration.py)
+    # tags every Criterion NOT_APPLICABLE when the Built-in Deterministic
+    # Judge is Active (it performs no real evaluation by design). Before
+    # this fix, an all-NOT_APPLICABLE `results` batch made both
+    # `has_deviation` and `has_uncertain` False, so this function reported
+    # `CANDIDATE_ACCEPTED`/`all_selected_criteria_passed` -- mislabeling
+    # "zero Criteria were actually evaluated" as "every Criterion passed",
+    # contradicting this same codebase's own established convention
+    # elsewhere that NOT_APPLICABLE is never counted as evaluated (e.g.
+    # `_judge_criterion_counts`/`_semantic_criterion_counts` in
+    # judge_live_integration.py compute `evaluated = passed + deviated`,
+    # excluding both NOT_APPLICABLE and UNKNOWN/DEFERRED).
     has_uncertain = any(
         item.disposition
-        in (SemanticCriterionDisposition.UNKNOWN, SemanticCriterionDisposition.DEFERRED)
+        in (
+            SemanticCriterionDisposition.UNKNOWN,
+            SemanticCriterionDisposition.DEFERRED,
+            SemanticCriterionDisposition.NOT_APPLICABLE,
+        )
         for item in results
     )
     if snapshot.frozen_main_mode != "enforce":
@@ -232,24 +288,60 @@ def resolve_semantic_action(
             repair_eligible=False,
             reason_code="false_enforce_prevented",
         )
+    # P9-1 Judge Dispatch Fix Round 6 (Finding 6): has_deviation is checked
+    # BEFORE has_uncertain here, matching the Observe branch above (its own
+    # ternary already resolves `has_deviation ? REPAIR_REQUESTED :
+    # has_uncertain ? NOT_EVALUATED : CANDIDATE_ACCEPTED`) and the identical
+    # priority `_judge_response_from_semantic_results()`
+    # (bootstrap/judge_live_integration.py) and
+    # `_recommendation_from_criterion_results()`
+    # (modules/evaluation/application/judge_output_decoder.py) both already
+    # use. Before this fix, this Enforce branch alone checked has_uncertain
+    # first -- so a handful of `unknown`/`deferred` Criteria (e.g. 1-2 of
+    # 32) forced the whole Turn to SAFE_FALLBACK even when the remaining
+    # Criteria showed clear, numerous Deviations that should have earned a
+    # Repair attempt, and made `recommended_disposition` diverge from what
+    # the Observe branch would have recommended for the identical evaluation
+    # result.
+    if has_deviation:
+        # P9-1 Judge/Governance Rework (WU-03): Main Governance's own
+        # repair authorization no longer defers to the separate Judge-side
+        # Repair Mode toggle. Reaching this branch already confirms
+        # `frozen_main_mode == "enforce"` (the Observe-branch guard above)
+        # and `frozen_judge_mode == "enforce"` with a genuinely Active
+        # Judge (the false_enforce_prevented guard above, kept unchanged
+        # by this Rework) -- Main Governance's own ENFORCE decision to
+        # request a correction for a confirmed Rule violation is
+        # independent of whatever the Judge-side Repair Mode toggle
+        # separately says (Codex Controller Handoff WU-03's Matrix: with
+        # Main=ENFORCE and Judge=ENFORCE&Active, a GD violation authorizes
+        # a Main-origin repair request regardless of the existing Repair
+        # Mode's own value -- previously this was gated on `frozen_
+        # repair_mode == "enforce"`, which made Main Governance's own
+        # ENFORCE recommendation powerless whenever the unrelated
+        # Judge-side toggle happened to be off/observe).
+        #
+        # `executed_disposition=REPAIR_REQUESTED` here is still only a
+        # recommendation this Coordinator's own caller
+        # (`bootstrap/judge_live_integration.py`'s
+        # `_finalize_judge_dispatch()`) must independently authorize
+        # (Guardrail Deny/Budget checks via the shared `resolve_repair_
+        # eligibility()`) before ever invoking the Repair Executor -- this
+        # module never runs a Repair itself, and never claims one already
+        # ran (Docstring's own "recommendation separately from the
+        # authority-owned action" contract, unchanged).
+        return SemanticActionDecision(
+            recommended_disposition=SemanticFinalDisposition.REPAIR_REQUESTED,
+            executed_disposition=SemanticFinalDisposition.REPAIR_REQUESTED,
+            repair_eligible=True,
+            reason_code="main_governance_repair_authorized",
+        )
     if has_uncertain:
         return SemanticActionDecision(
             recommended_disposition=SemanticFinalDisposition.SAFE_FALLBACK,
             executed_disposition=SemanticFinalDisposition.SAFE_FALLBACK,
             repair_eligible=False,
             reason_code="semantic_result_inconclusive",
-        )
-    if has_deviation:
-        repair_eligible = snapshot.frozen_repair_mode == "enforce"
-        return SemanticActionDecision(
-            recommended_disposition=SemanticFinalDisposition.REPAIR_REQUESTED,
-            executed_disposition=(
-                SemanticFinalDisposition.REPAIR_REQUESTED
-                if repair_eligible
-                else SemanticFinalDisposition.SAFE_FALLBACK
-            ),
-            repair_eligible=repair_eligible,
-            reason_code=("repair_authorized" if repair_eligible else "repair_unavailable"),
         )
     return SemanticActionDecision(
         recommended_disposition=SemanticFinalDisposition.CANDIDATE_ACCEPTED,
@@ -294,16 +386,76 @@ class CompositeSemanticEvaluator:
         )
 
 
+_MAX_TRACKED_TURNS = 128
+"""Bounded per-`request_id` Turn Ledger retention (R4-WU-01, Controller
+Review IR-R3-01): a Turn's own frozen Snapshot/Evidence must survive a
+DIFFERENT `request_id` beginning afterward -- it is never silently
+overwritten or discarded the instant another Turn starts. An unbounded
+per-request Ledger would still grow forever over a long-running process, so
+this is an explicit FIFO cap (oldest-begun Turn evicted first, alongside its
+correlated Evidence/criterion-key bookkeeping) rather than no bound at all.
+A live single-session Judge pipeline processes Turns roughly sequentially
+with Judge lag measured in seconds, so 128 concurrently-tracked Turns is far
+beyond any realistic in-flight count -- only a genuinely abandoned Turn from
+long in the past is ever evicted."""
+
+
 class SemanticRuntimeCoordinator:
-    """Process-local current/history store with generation-safe publication."""
+    """Process-local, request-local Turn Ledger with generation-safe
+    publication (R4-WU-01, Controller Review IR-R3-01): every Turn this
+    Coordinator successfully freezes (`begin()`) is retained under its own
+    `request_id` in a bounded Ledger (see `_MAX_TRACKED_TURNS`) -- a
+    DIFFERENT `request_id` beginning afterward never overwrites or discards
+    it. Before this fix, a single `_current` slot meant Turn B beginning
+    silently made Turn A's own Snapshot unreachable via `snapshot_for()`
+    and made A's own later-arriving genuine Background Judge Response
+    silently rejected by `record_response()` (a real Controller Probe
+    reproduced exactly this: "A成功 → B成功 → AのResponseを記録" recorded
+    neither the response nor Evidence). `snapshot_for()`/`record_response()`
+    /`record_deferred()`/`evidence_for()` now all key off the Ledger by
+    `request_id` directly, independent of whichever `request_id` most
+    recently began.
+
+    A single most-recently-begun `request_id` is still tracked, but purely
+    as a UI "Latest Current" pointer (`current_snapshot()`/
+    `latest_evidence()`) -- explicitly separated from the Ledger itself
+    (Controller Review IR-R3-01: "UI向けLatest Current Pointerと、実Turn
+    Ledgerを分離する"). It updates ONLY when `begin()` genuinely freezes a
+    NEW `request_id` for the first time -- never on a plain read
+    (`snapshot_for()`), a Response/Deferred recording, or an idempotent
+    re-hit of an already-begun `request_id` (R5-WU-01, Controller Review:
+    an A->B->A re-Begin sequence must leave the Latest Current Pointer on
+    B, not silently wind it back to A just because A happened to call
+    `begin()` again).
+
+    `begin()` is idempotent under its own Lock: two threads racing `begin()`
+    for the IDENTICAL `request_id` (a real Controller Probe schedule) can
+    never both freeze a new generation for it -- whichever reaches the
+    check second reads back the exact same generation the first already
+    froze ("Lock下で重複Begin/同一request競合を防ぐ"), and this idempotent
+    re-hit path never touches the Ledger's FIFO order or the Latest Current
+    Pointer -- only a genuinely new `request_id` does either."""
 
     def __init__(self, *, criteria: tuple[SemanticCriterion, ...]) -> None:
         self._lock = threading.Lock()
         self._criteria = criteria
         self._generation = 0
-        self._current: FrozenSemanticTurn | None = None
+        # R4-WU-01: request-local Ledger (an `OrderedDict` for FIFO
+        # eviction order) -- replaces the single `_current` slot a
+        # different Turn's own `begin()` used to silently overwrite.
+        self._turns: OrderedDict[str, FrozenSemanticTurn] = OrderedDict()
+        self._latest_request_id: str | None = None
         self._history: dict[str, SemanticRuntimeEvidence] = {}
         self._recorded_criterion_keys: set[tuple[str, int, str]] = set()
+        # P9-1 Package 2 OF-P2-001: process-local rotation cursor (matches
+        # this whole Coordinator's own already-process-local nature, see
+        # its class docstring) -- advances by `freeze_semantic_turn()`'s
+        # own `next_rotation_offset` every genuinely NEW `begin()` (never
+        # on an idempotent re-hit of an already-begun `request_id`), so
+        # consecutive distinct Turns sweep across the full
+        # applicable-Criteria set instead of `begin()` always starting
+        # back at offset 0.
+        self._rotation_cursor = 0
 
     def begin(
         self,
@@ -320,6 +472,18 @@ class SemanticRuntimeCoordinator:
         max_criteria: int,
     ) -> SemanticTurnSnapshot:
         with self._lock:
+            existing = self._turns.get(request_id)
+            if existing is not None:
+                # R4-WU-01/R5-WU-01: idempotent re-hit under this same
+                # Lock -- a genuinely already-begun `request_id` (whether
+                # read back normally, or reached by a second thread racing
+                # the very first `begin()` for it) never freezes a second
+                # generation, and must NOT touch the Ledger's FIFO order or
+                # the Latest Current Pointer (Controller Review: an
+                # A->B->A re-Begin must leave both on B, not wind Latest
+                # Current back to A). Generation, digest and rotation
+                # cursor are all left exactly as already frozen.
+                return existing.snapshot
             self._generation += 1
             frozen = freeze_semantic_turn(
                 request_id=request_id,
@@ -334,19 +498,36 @@ class SemanticRuntimeCoordinator:
                 provider_state=provider_state,
                 budget_profile=budget_profile,
                 max_criteria=max_criteria,
+                rotation_offset=self._rotation_cursor,
             )
-            self._current = frozen
+            self._turns[request_id] = frozen
+            self._rotation_cursor = frozen.next_rotation_offset
+            self._latest_request_id = request_id
+            self._evict_oldest_locked()
             return frozen.snapshot
+
+    def _evict_oldest_locked(self) -> None:
+        """Caller must hold `self._lock`. FIFO eviction of the oldest
+        tracked Turn (and its correlated Evidence/criterion-key
+        bookkeeping) once `_MAX_TRACKED_TURNS` is exceeded."""
+        while len(self._turns) > _MAX_TRACKED_TURNS:
+            evicted_request_id, _ = self._turns.popitem(last=False)
+            self._history.pop(evicted_request_id, None)
+            self._recorded_criterion_keys = {
+                key for key in self._recorded_criterion_keys if key[0] != evicted_request_id
+            }
 
     def current_snapshot(self) -> SemanticTurnSnapshot | None:
         with self._lock:
-            return self._current.snapshot if self._current is not None else None
+            if self._latest_request_id is None:
+                return None
+            turn = self._turns.get(self._latest_request_id)
+            return turn.snapshot if turn is not None else None
 
     def snapshot_for(self, *, request_id: str) -> SemanticTurnSnapshot | None:
         with self._lock:
-            if self._current is None or self._current.snapshot.request_id != request_id:
-                return None
-            return self._current.snapshot
+            turn = self._turns.get(request_id)
+            return turn.snapshot if turn is not None else None
 
     def record_response(
         self,
@@ -355,19 +536,15 @@ class SemanticRuntimeCoordinator:
         structural: tuple[Observation, ...],
     ) -> SemanticRuntimeEvidence | None:
         with self._lock:
-            current = self._current
-            if (
-                current is None
-                or response.request_id != current.snapshot.request_id
-                or response.generation != current.snapshot.generation
-            ):
+            turn = self._turns.get(response.request_id)
+            if turn is None or response.generation != turn.snapshot.generation:
                 return None
             provider_results = _complete_provider_results(
-                criteria=current.snapshot.criteria,
+                criteria=turn.snapshot.criteria,
                 results=response.results,
                 missing_result_reason=_missing_result_reason(response.provider_state),
             )
-            results = (*provider_results, *current.initially_deferred)
+            results = (*provider_results, *turn.initially_deferred)
             keys = {
                 (response.request_id, response.generation, item.criterion_id) for item in results
             }
@@ -375,12 +552,12 @@ class SemanticRuntimeCoordinator:
                 return None
             merged = merge_structural_and_semantic_observations(
                 structural=structural,
-                criteria=current.snapshot.criteria,
+                criteria=turn.snapshot.criteria,
                 semantic_results=provider_results,
             )
-            action = resolve_semantic_action(snapshot=current.snapshot, results=results)
+            action = resolve_semantic_action(snapshot=turn.snapshot, results=results)
             payload = {
-                "snapshot": current.snapshot.frozen_digest_sha512,
+                "snapshot": turn.snapshot.frozen_digest_sha512,
                 "provider": response.provider_id,
                 "provider_state": response.provider_state.value,
                 "results": [item.model_dump(mode="json") for item in results],
@@ -393,9 +570,9 @@ class SemanticRuntimeCoordinator:
             evidence = SemanticRuntimeEvidence(
                 request_id=response.request_id,
                 generation=response.generation,
-                frozen_snapshot_digest_sha512=current.snapshot.frozen_digest_sha512,
-                configured_provider=current.snapshot.configured_provider,
-                active_provider=current.snapshot.active_provider,
+                frozen_snapshot_digest_sha512=turn.snapshot.frozen_digest_sha512,
+                configured_provider=turn.snapshot.configured_provider,
+                active_provider=turn.snapshot.active_provider,
                 provider_state=response.provider_state,
                 criterion_results=tuple(results),
                 merged_observations=merged,
@@ -442,9 +619,9 @@ class SemanticRuntimeCoordinator:
 
     def latest_evidence(self) -> SemanticRuntimeEvidence | None:
         with self._lock:
-            if self._current is None:
+            if self._latest_request_id is None:
                 return None
-            return self._history.get(self._current.snapshot.request_id)
+            return self._history.get(self._latest_request_id)
 
 
 def _complete_provider_results(

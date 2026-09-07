@@ -30,7 +30,7 @@ Phase 9 Implementation: NOT STARTED
 - `docs/project/phases/phase_8/history/operations/phase_8_closure_phase_9_ready_canonical_verification_receipt_ja_20260831213232.md`
 - `docs/project/phases/phase_9/phase_index_ja.md`
 - `docs/project/phases/phase_9/history/operations/phase_9_ready_receipt_ja_20260831213232.md`
-- `docs/project/shared/未解決/current_unresolved_findings_registry_ja.md`
+- `docs/project/shared/unresolved_work/current_unresolved_findings_registry_ja.md`
 - `docs/public/roadmap_ja.md`
 - `docs/public/roadmap_summary_ja.md`
 

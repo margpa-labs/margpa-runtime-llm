@@ -7,6 +7,11 @@ without storing the raw prompt itself as normal Evidence.
 
 from dataclasses import dataclass
 
+from margpa_runtime_llm.modules.runtime_governance.domain import (
+    SemanticCriterion,
+    SemanticEvaluationRequest,
+)
+
 from ..domain.dataset import EvaluationCase
 
 _RESPONSE_FORMAT_INSTRUCTION = (
@@ -37,8 +42,18 @@ def _semantic_response_instruction(criteria: tuple[JudgePromptCriterion, ...]) -
         '"confidence": <number 0.0..1.0>, "reasoning": "<short string>", '
         '"criterion_results": [{"criterion_id": "<exact id>", '
         '"disposition": "pass" | "deviation" | "unknown", '
-        '"confidence": <number 0.0..1.0>, "reason_code": "<short code>", '
-        '"evidence_refs": ["<short reference>"]}]}. '
+        '"confidence": <number 0.0..1.0>, '
+        # Controller Review (2026-09-05 00:35, IR-R4 §4) bounded local-
+        # repair fix: `evidence_refs` (an Array) is deliberately never the
+        # LAST field in a criterion entry -- mirrors `adapters/evaluation/
+        # selene.py`'s own `SelenePromptAdapter.build()` schema field-order
+        # fix (see that Call site's own comment for the real Gemma trial
+        # Evidence this is based on). Field order only, never a Decoder or
+        # required-field change -- kept consistent across both real Prompt
+        # Builders this Runtime uses for the identical Rejudge/Judge
+        # response schema, even though this specific defect was only
+        # observed against Gemma, not Main-self.
+        '"evidence_refs": ["<short reference>"], "reason_code": "<short code>"}]}. '
         f"Return exactly one criterion_results entry for every exact id: {ids}. "
         'Any material criterion deviation requires recommendation "needs_repair"; '
         'any unknown criterion forbids recommendation "accept".'
@@ -104,3 +119,52 @@ def build_judge_prompt(
         f"Candidate answer: {candidate_answer}\n"
         f"{response_instruction}"
     )
+
+
+class MainSemanticPromptAdapter:
+    """Main-shared counterpart of `adapters.evaluation.selene.
+    SelenePromptAdapter` (P9-1 Package 2 Common Substrate fix).
+
+    Satisfies `adapters.evaluation.selene.SemanticJudgePromptAdapter`'s
+    structural contract by delegating to `build_judge_prompt()`, so the
+    Main-shared Judge's semantic-criteria dispatch can share
+    `SeleneSemanticEvaluator`'s token-bounded batch planner instead of
+    sending every selected Criterion (up to `max_criteria`, 32) in one
+    unbatched call against a small fixed output-token cap — the defect
+    that produced Main-shared's `malformed_output` truncation failures.
+    """
+
+    def __init__(self, *, rubric_id: str) -> None:
+        self._rubric_id = rubric_id
+
+    def build(
+        self,
+        *,
+        request: SemanticEvaluationRequest,
+        criteria: tuple[SemanticCriterion, ...] | None = None,
+    ) -> str:
+        selected = criteria if criteria is not None else request.snapshot.criteria
+        prompt_criteria = tuple(
+            JudgePromptCriterion(
+                criterion_id=item.criterion_id,
+                instruction=item.instruction,
+                evaluation_method=item.evaluation_method.value,
+                source_pointer=item.source_pointer,
+            )
+            for item in selected
+        )
+        case = EvaluationCase(
+            case_id=request.snapshot.request_id,
+            input=request.user_input or "(no input captured)",
+            reference=None,
+            criteria=tuple(item.criterion_id for item in prompt_criteria),
+            language="en",
+        )
+        return build_judge_prompt(
+            case=case,
+            candidate_answer=request.candidate_answer,
+            rubric_id=self._rubric_id,
+            dialogue_context=request.dialogue_context,
+            evidence_context=request.evidence_context,
+            semantic_criteria=prompt_criteria,
+        )

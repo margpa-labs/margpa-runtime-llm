@@ -55,7 +55,7 @@ UserはMac実画面で次を確認した。
 - Dev Agent Restart選択、Consent Restart Policy、English Retention Localization、Settings／Citation／Right Panel整理はPhase 9／10。
 - General Search、Automatic Search、正式Agent Level、Generic MCP、Hostile-site HardeningはPhase 11以降。
 
-正本は`docs/project/shared/未解決/current_unresolved_findings_registry_ja.md`とする。
+正本は`docs/project/shared/unresolved_work/current_unresolved_findings_registry_ja.md`とする。
 
 ## 6. Next State
 

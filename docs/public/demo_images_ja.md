@@ -4,15 +4,22 @@
 document_type: public_demo_images
 document_state: current_development_snapshot
 language: ja
+project_initiated_at: 2026-07-18 17:46:37 JST
 created_at: 2026-08-25 14:51:30 JST
-updated_at: 2026-09-02 11:29:52 JST
+updated_at: 2026-09-07 21:24:10 JST
 public_author: Nazuna Research
 project: MARGPA Runtime LLM
-image_count: 25
+image_count: 28
 lightning_included: false
 ```
 
-画面は開発・修正中のものです。  
+## はじめに
+
+**LLM Platform Concept**:
+- 研究・検証・Evidence管理を統合したLLM runtime UI
+- Trace / Evidence / Governanceを一体化した research preview
+
+画面は開発・修正中のものです。（Phase 9-1時点です。現在は基盤系は一通り完了し、9-2最終調整中です。）  
 モデルの回答品質、RAG品質なども都度調整を行なっています。
 
 UI大幅改造はPhase 10で行う予定であり、**Phase 10完了がMVP地点**となります。
@@ -23,6 +30,16 @@ UI大幅改造はPhase 10で行う予定であり、**Phase 10完了がMVP地点
 > Context Window強化、Multimodal、他個人R&Dシステム統合、その他を段階拡張
 
 等の予定となっています。
+
+## MVP完成イメージ（あくまでイメージです）
+
+![MARGPA Runtime LLM MVP完成イメージ 1](../../assets/images/margpa_runtime_llm_mvp_ui_concept_1.png)
+
+![MARGPA Runtime LLM MVP完成イメージ 2](../../assets/images/margpa_runtime_llm_mvp_ui_concept_2.png)
+
+![MARGPA Runtime LLM MVP完成イメージ 3](../../assets/images/margpa_runtime_llm_mvp_ui_concept_3.png)
+
+## 現在の状態
 
 ![MARGPA Runtime LLM 開発中画面 1](../../assets/images/margpa-runtime-llm_demo_image_1.png)
 

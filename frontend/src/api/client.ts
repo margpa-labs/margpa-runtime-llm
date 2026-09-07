@@ -13,6 +13,13 @@ import type {
   DevAgentPlanStepRequest,
   DevAgentRun,
   DevAgentToolDescriptor,
+  ExperimentComparison,
+  ExperimentExecutionMode,
+  ExperimentPlan,
+  ExperimentPresets,
+  ExperimentRunList,
+  ExperimentVariantRun,
+  ExperimentVariantRunResult,
   GenerationSettings,
   GovernanceStatus,
   GuardrailGovernanceStatus,
@@ -714,4 +721,109 @@ export function newActionId(): string {
   }
   const bytes = crypto.getRandomValues(new Uint8Array(16));
   return Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("");
+}
+
+// Phase 9-2 WU-A A4 / WU-E E4 (R1-WU-03/04/05): the Minimal Experiment
+// screen. `startExperimentRun` returns immediately with `state="running"`
+// — the Actor Call (Fixture or, when requested and available, a real
+// Production Turn) runs on the Backend's own Tracked Worker; callers poll
+// `fetchExperimentRun`/`fetchExperimentRunList` for the eventual outcome.
+export async function fetchExperimentPresets(): Promise<ExperimentPresets> {
+  const response = await fetch("/api/v7/experiment/presets", { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("experiment_presets_unavailable");
+  }
+  return (await response.json()) as ExperimentPresets;
+}
+
+// Phase 9-2 R3-WU-01 (IR-P9-2-R2-07 fix): `execution_mode` is Frozen on
+// the Plan at creation time -- `startExperimentRun` below no longer sends
+// one at all, so the SAME Plan/Variant can never be run as both Fixture
+// and Production.
+export async function createExperimentPlan(
+  experimentId: string,
+  caseId: string,
+  variantIds: string[],
+  executionMode: ExperimentExecutionMode = "fixture",
+): Promise<ExperimentPlan> {
+  const response = await fetch("/api/v7/experiment/plans", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      experiment_id: experimentId,
+      case_id: caseId,
+      variant_ids: variantIds,
+      execution_mode: executionMode,
+    }),
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new ApiMutationError(await safeError(response, "experiment_plan_create_failed"));
+  }
+  return (await response.json()) as ExperimentPlan;
+}
+
+export async function startExperimentRun(
+  experimentId: string,
+  variantId: string,
+  runId: string,
+): Promise<ExperimentVariantRun> {
+  const response = await fetch("/api/v7/experiment/runs", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      experiment_id: experimentId,
+      variant_id: variantId,
+      run_id: runId,
+    }),
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new ApiMutationError(await safeError(response, "experiment_run_start_failed"));
+  }
+  return (await response.json()) as ExperimentVariantRun;
+}
+
+export async function cancelExperimentRun(runId: string): Promise<void> {
+  const response = await fetch(`/api/v7/experiment/runs/${encodeURIComponent(runId)}/cancel`, {
+    method: "POST",
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new ApiMutationError(await safeError(response, "experiment_run_cancel_failed"));
+  }
+}
+
+export async function fetchExperimentRun(runId: string): Promise<ExperimentVariantRunResult> {
+  const response = await fetch(`/api/v7/experiment/runs/${encodeURIComponent(runId)}`, {
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new Error("experiment_run_unavailable");
+  }
+  return (await response.json()) as ExperimentVariantRunResult;
+}
+
+export async function fetchExperimentRunList(experimentId: string): Promise<ExperimentRunList> {
+  const response = await fetch(
+    `/api/v7/experiment/experiments/${encodeURIComponent(experimentId)}/runs`,
+    { cache: "no-store" },
+  );
+  if (!response.ok) {
+    throw new Error("experiment_run_list_unavailable");
+  }
+  return (await response.json()) as ExperimentRunList;
+}
+
+export async function fetchExperimentComparison(
+  experimentId: string,
+): Promise<ExperimentComparison> {
+  const response = await fetch(
+    `/api/v7/experiment/experiments/${encodeURIComponent(experimentId)}/comparison`,
+    { cache: "no-store" },
+  );
+  if (!response.ok) {
+    throw new Error("experiment_comparison_unavailable");
+  }
+  return (await response.json()) as ExperimentComparison;
 }

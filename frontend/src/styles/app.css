@@ -1643,3 +1643,72 @@ button:disabled {
     text-align: right;
   }
 }
+
+/* Phase 9-2 WU-E E4: the Minimal Experiment screen. Reuses the generic
+   .settings-modal-backdrop/.settings-modal shell (defined above) rather
+   than introducing a second modal chrome. */
+.experiment-toggle {
+  margin-left: 8px;
+}
+
+.experiment-panel {
+  width: min(760px, 100%);
+  max-height: min(720px, 100%);
+}
+
+.experiment-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.experiment-panel-note {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+}
+
+.experiment-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9rem;
+}
+
+.experiment-variant-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.experiment-run-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.experiment-error {
+  color: var(--color-danger, #c0392b);
+}
+
+.experiment-fixture-disclaimer {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-style: italic;
+}
+
+.experiment-comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.experiment-comparison-table th,
+.experiment-comparison-table td {
+  border: 1px solid var(--border-surface);
+  padding: 6px 8px;
+  text-align: left;
+}

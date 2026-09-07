@@ -1055,6 +1055,503 @@ describe("App", () => {
     expect(screen.queryByText(/^Error/u)).toBeNull();
   });
 
+  test("UF-UI-017: a genuinely committed Judge Mode change refreshes Main Governance's own ENFORCE availability, selectable directly from OFF with no Observe step", async () => {
+    // Controller Review (2026-09-04 19:16) §6: WU-05's own Component-level
+    // Tests only proved `onJudgeReadinessChanged` was *called* -- never that
+    // the parent App actually re-fetches Main Runtime Governance Status and
+    // that ENFORCE's own button availability genuinely follows the fresh
+    // Server response. This drives the real end-to-end wiring: Judge starts
+    // OFF (Main ENFORCE reports `unavailable`), a real Judge Mode ENFORCE
+    // apply commits, and only then must the ENFORCE radio become selectable
+    // -- Main Governance's own current_mode itself is never touched, so
+    // this is a direct OFF -> ENFORCE *availability* change, never routed
+    // through an intermediate Observe step.
+    setRuntimeGovernanceBootstrapTag(true);
+    const runtimeGovernanceStatus = {
+      enabled: true,
+      revision: 1,
+      current_mode: "off",
+      descriptors: [
+        { mode: "off", availability: "available", unavailable_reason_code: null },
+        { mode: "observe", availability: "available", unavailable_reason_code: null },
+        {
+          mode: "enforce",
+          availability: "unavailable",
+          unavailable_reason_code: "judge_not_ready",
+        },
+      ],
+      points: [],
+      evidence: null,
+    };
+    const fetchMock = installFetchMock({
+      runtimeGovernanceStatus,
+      featureModesStatus: {
+        judge: {
+          enabled: true,
+          revision: 1,
+          current_mode: "off",
+          state: "idle",
+          current_request_id: null,
+          last_result: null,
+        },
+        repair: { enabled: true, revision: 1, current_mode: "off" },
+        recording: {
+          enabled: false,
+          revision: null,
+          current_mode: null,
+          last_outcome: null,
+          judge_evidence_last_outcome: null,
+        },
+      },
+      mutation: (path, body) => {
+        if (path === "/api/v5/feature-modes/judge") {
+          const requestedMode = (body as unknown as { requested_mode?: string }).requested_mode;
+          expect(requestedMode).toBe("enforce");
+          // The real commit: Judge is now genuinely ready, so Main
+          // Governance's own ENFORCE descriptor becomes available -- the
+          // Server-side effect `onJudgeReadinessChanged`'s refetch must
+          // observe.
+          runtimeGovernanceStatus.current_mode = "off";
+          runtimeGovernanceStatus.descriptors = [
+            { mode: "off", availability: "available", unavailable_reason_code: null },
+            { mode: "observe", availability: "available", unavailable_reason_code: null },
+            { mode: "enforce", availability: "available", unavailable_reason_code: null },
+          ];
+          runtimeGovernanceStatus.revision = 2;
+          return jsonResponse({
+            judge: {
+              enabled: true,
+              revision: 2,
+              current_mode: "enforce",
+              state: "idle",
+              current_request_id: null,
+              last_result: null,
+            },
+            repair: { enabled: true, revision: 1, current_mode: "off" },
+            recording: {
+              enabled: false,
+              revision: null,
+              current_mode: null,
+              last_outcome: null,
+              judge_evidence_last_outcome: null,
+            },
+          });
+        }
+        throw new Error(`unexpected mutation: ${path}`);
+      },
+    });
+
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Account" })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Account" }));
+    fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
+    await waitFor(() => {
+      expect(document.querySelector("#runtime-governance-panel")).not.toBeNull();
+      expect(document.querySelector("#feature-modes-judge-enforce")).not.toBeNull();
+    });
+
+    const governancePanel = document.querySelector("#runtime-governance-panel") as HTMLElement;
+    expect(
+      within(governancePanel).getByRole("radio", { name: "Enforce" }),
+    ).toBeDisabled();
+
+    const statusCallsBeforeCommit = fetchMock.mock.calls.filter(
+      (call) => pathOf(call[0] as RequestInfo) === "/api/v3/runtime-governance/status",
+    ).length;
+
+    fireEvent.click(
+      document.querySelector("#feature-modes-judge-enforce") as HTMLElement,
+    );
+
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.some(
+          (call) => pathOf(call[0] as RequestInfo) === "/api/v5/feature-modes/judge",
+        ),
+      ).toBe(true);
+    });
+    // The crux: the readiness notification genuinely triggered a fresh
+    // Main Runtime Governance Status fetch (never merely a re-render off
+    // stale data), and that fresh fetch's ENFORCE descriptor now flips the
+    // real DOM button from disabled to selectable -- with Main's own mode
+    // never having passed through Observe.
+    await waitFor(() => {
+      const statusCallsAfterCommit = fetchMock.mock.calls.filter(
+        (call) => pathOf(call[0] as RequestInfo) === "/api/v3/runtime-governance/status",
+      ).length;
+      expect(statusCallsAfterCommit).toBeGreaterThan(statusCallsBeforeCommit);
+    });
+    await waitFor(() => {
+      expect(
+        within(governancePanel).getByRole("radio", { name: "Enforce" }),
+      ).not.toBeDisabled();
+    });
+  });
+
+  test("UF-UI-017: a failed Judge Mode apply never marks Main Governance ENFORCE available", async () => {
+    // Negative mirror of the Test above: `applyOne()` only calls
+    // `onJudgeReadinessChanged` on genuine success (FeatureModesPanel.tsx's
+    // own comment) -- a failed apply must leave Main Governance's ENFORCE
+    // availability exactly as the Server last reported it, never
+    // optimistically enabled.
+    setRuntimeGovernanceBootstrapTag(true);
+    const fetchMock = installFetchMock({
+      runtimeGovernanceStatus: {
+        enabled: true,
+        revision: 1,
+        current_mode: "off",
+        descriptors: [
+          { mode: "off", availability: "available", unavailable_reason_code: null },
+          { mode: "observe", availability: "available", unavailable_reason_code: null },
+          {
+            mode: "enforce",
+            availability: "unavailable",
+            unavailable_reason_code: "judge_not_ready",
+          },
+        ],
+        points: [],
+        evidence: null,
+      },
+      featureModesStatus: {
+        judge: {
+          enabled: true,
+          revision: 1,
+          current_mode: "off",
+          state: "idle",
+          current_request_id: null,
+          last_result: null,
+        },
+        repair: { enabled: true, revision: 1, current_mode: "off" },
+        recording: {
+          enabled: false,
+          revision: null,
+          current_mode: null,
+          last_outcome: null,
+          judge_evidence_last_outcome: null,
+        },
+      },
+      mutation: (path) => {
+        if (path === "/api/v5/feature-modes/judge") {
+          return jsonResponse({ error: "judge_apply_rejected" }, 409);
+        }
+        throw new Error(`unexpected mutation: ${path}`);
+      },
+    });
+
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Account" })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Account" }));
+    fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
+    await waitFor(() => {
+      expect(document.querySelector("#feature-modes-judge-enforce")).not.toBeNull();
+    });
+
+    const governancePanel = document.querySelector("#runtime-governance-panel") as HTMLElement;
+    const statusCallsBeforeCommit = fetchMock.mock.calls.filter(
+      (call) => pathOf(call[0] as RequestInfo) === "/api/v3/runtime-governance/status",
+    ).length;
+
+    fireEvent.click(
+      document.querySelector("#feature-modes-judge-enforce") as HTMLElement,
+    );
+
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.some(
+          (call) => pathOf(call[0] as RequestInfo) === "/api/v5/feature-modes/judge",
+        ),
+      ).toBe(true);
+    });
+    await waitFor(() => {
+      expect(screen.getByText("Failed to apply.")).toBeInTheDocument();
+    });
+    // No readiness notification, so no extra Main Runtime Governance
+    // Status fetch, and ENFORCE stays exactly as unavailable as the Server
+    // last reported.
+    const statusCallsAfterFailure = fetchMock.mock.calls.filter(
+      (call) => pathOf(call[0] as RequestInfo) === "/api/v3/runtime-governance/status",
+    ).length;
+    expect(statusCallsAfterFailure).toBe(statusCallsBeforeCommit);
+    expect(within(governancePanel).getByRole("radio", { name: "Enforce" })).toBeDisabled();
+  });
+
+  test("UF-UI-017: a Main Governance status fetch that fails at the network level after a genuine Judge readiness change is never treated as success", async () => {
+    // Distinct from the apply-failure Test above (a 4xx application-level
+    // rejection of the Judge Mode apply itself, which never even reaches
+    // `onJudgeReadinessChanged`): here the Judge Mode apply genuinely
+    // *succeeds*, `onJudgeReadinessChanged` genuinely fires, but the
+    // triggered Main Runtime Governance Status re-fetch itself fails at
+    // the network level -- `loadRuntimeGovernanceStatus()`'s own existing
+    // failure handling must mark `capability: "failed"`, never silently
+    // keep showing the stale "ready" data as if the refresh had
+    // succeeded.
+    setRuntimeGovernanceBootstrapTag(true);
+    let statusFetchShouldFail = false;
+    const fetchMock = installFetchMock({
+      runtimeGovernanceStatus: {
+        enabled: true,
+        revision: 1,
+        current_mode: "off",
+        descriptors: [
+          { mode: "off", availability: "available", unavailable_reason_code: null },
+          { mode: "observe", availability: "available", unavailable_reason_code: null },
+          {
+            mode: "enforce",
+            availability: "unavailable",
+            unavailable_reason_code: "judge_not_ready",
+          },
+        ],
+        points: [],
+        evidence: null,
+      },
+      featureModesStatus: {
+        judge: {
+          enabled: true,
+          revision: 1,
+          current_mode: "off",
+          state: "idle",
+          current_request_id: null,
+          last_result: null,
+        },
+        repair: { enabled: true, revision: 1, current_mode: "off" },
+        recording: {
+          enabled: false,
+          revision: null,
+          current_mode: null,
+          last_outcome: null,
+          judge_evidence_last_outcome: null,
+        },
+      },
+      mutation: (path) => {
+        if (path === "/api/v5/feature-modes/judge") {
+          statusFetchShouldFail = true;
+          return jsonResponse({
+            judge: {
+              enabled: true,
+              revision: 2,
+              current_mode: "enforce",
+              state: "idle",
+              current_request_id: null,
+              last_result: null,
+            },
+            repair: { enabled: true, revision: 1, current_mode: "off" },
+            recording: {
+              enabled: false,
+              revision: null,
+              current_mode: null,
+              last_outcome: null,
+              judge_evidence_last_outcome: null,
+            },
+          });
+        }
+        throw new Error(`unexpected mutation: ${path}`);
+      },
+    });
+    const originalFetch = window.fetch.bind(window);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        if (pathOf(input) === "/api/v3/runtime-governance/status" && statusFetchShouldFail) {
+          return Promise.reject(new Error("simulated network failure"));
+        }
+        return originalFetch(input, init);
+      }),
+    );
+    void fetchMock;
+
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Account" })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Account" }));
+    fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
+    await waitFor(() => {
+      expect(document.querySelector("#runtime-governance-panel")).not.toBeNull();
+      expect(document.querySelector("#feature-modes-judge-enforce")).not.toBeNull();
+    });
+
+    fireEvent.click(
+      document.querySelector("#feature-modes-judge-enforce") as HTMLElement,
+    );
+    await waitFor(() => {
+      expect(screen.getByText("Applied.")).toBeInTheDocument();
+    });
+    // The crux: the readiness-triggered re-fetch genuinely failed at the
+    // network level -- the Status line must reflect that failure, never
+    // silently keep displaying the stale "ready" wording as if nothing had
+    // gone wrong, and ENFORCE must not be reported available off failed
+    // data.
+    await waitFor(() => {
+      expect(screen.getByText("Runtime Governance could not be used safely.")).toBeInTheDocument();
+    });
+  });
+
+  test("UF-UI-017: a slow Main Governance status response outrun by a newer one (triggered by a second Judge readiness notification) is never allowed to overwrite it", async () => {
+    // Reuses `loadRuntimeGovernanceStatus()`'s own pre-existing generation
+    // sequence guard (`runtimeGovernanceLoadSequenceRef`) -- this Test
+    // proves the *new* `onJudgeReadinessChanged` trigger path composes
+    // correctly with it: two readiness-triggered refetches race, the
+    // first (older) one resolves last, and the panel must still end on the
+    // second (newer, correct) Status, never regress back to the first.
+    setRuntimeGovernanceBootstrapTag(true);
+    let judgeApplyCount = 0;
+    let statusCallCount = 0;
+    let resolveFirstStatusCallStarted: (() => void) | null = null;
+    const firstStatusCallStarted = new Promise<void>((resolve) => {
+      resolveFirstStatusCallStarted = resolve;
+    });
+    // A manually-released gate, never a real-clock delay: the first
+    // (mount-time) Status fetch is held open until the Test explicitly
+    // releases it, well after the second (readiness-triggered) fetch has
+    // already resolved and the DOM has already updated -- deterministic
+    // regardless of how fast or slow the machine running this Test is.
+    let releaseFirstStatusCall: () => void = () => {
+      throw new Error("firstStatusCallGate resolver not yet assigned");
+    };
+    const firstStatusCallGate = new Promise<void>((resolve) => {
+      releaseFirstStatusCall = resolve;
+    });
+    const fetchMock = installFetchMock({
+      featureModesStatus: {
+        judge: {
+          enabled: true,
+          revision: 1,
+          current_mode: "off",
+          state: "idle",
+          current_request_id: null,
+          last_result: null,
+        },
+        repair: { enabled: true, revision: 1, current_mode: "off" },
+        recording: {
+          enabled: false,
+          revision: null,
+          current_mode: null,
+          last_outcome: null,
+          judge_evidence_last_outcome: null,
+        },
+      },
+      mutation: (path) => {
+        if (path === "/api/v5/feature-modes/judge") {
+          judgeApplyCount += 1;
+          return jsonResponse({
+            judge: {
+              enabled: true,
+              revision: judgeApplyCount + 1,
+              current_mode: "enforce",
+              state: "idle",
+              current_request_id: null,
+              last_result: null,
+            },
+            repair: { enabled: true, revision: 1, current_mode: "off" },
+            recording: {
+              enabled: false,
+              revision: null,
+              current_mode: null,
+              last_outcome: null,
+              judge_evidence_last_outcome: null,
+            },
+          });
+        }
+        throw new Error(`unexpected mutation: ${path}`);
+      },
+    });
+    // Override the runtime-governance/status route directly so the FIRST
+    // call can be held open (simulating a slow response) while a SECOND
+    // one, started later, resolves first.
+    const originalFetch = window.fetch.bind(window);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        if (pathOf(input) === "/api/v3/runtime-governance/status") {
+          statusCallCount += 1;
+          const thisCall = statusCallCount;
+          if (thisCall === 1) {
+            resolveFirstStatusCallStarted?.();
+            // Held open until the Test explicitly releases it below --
+            // simulates the first (older) request being outrun by the
+            // second (newer) one, deterministically.
+            await firstStatusCallGate;
+            return jsonResponse({
+              enabled: true,
+              revision: 1,
+              current_mode: "off",
+              descriptors: [
+                { mode: "off", availability: "available", unavailable_reason_code: null },
+                { mode: "observe", availability: "available", unavailable_reason_code: null },
+                {
+                  mode: "enforce",
+                  availability: "unavailable",
+                  unavailable_reason_code: "judge_not_ready",
+                },
+              ],
+              points: [],
+              evidence: null,
+            });
+          }
+          return jsonResponse({
+            enabled: true,
+            revision: 2,
+            current_mode: "off",
+            descriptors: [
+              { mode: "off", availability: "available", unavailable_reason_code: null },
+              { mode: "observe", availability: "available", unavailable_reason_code: null },
+              { mode: "enforce", availability: "available", unavailable_reason_code: null },
+            ],
+            points: [],
+            evidence: null,
+          });
+        }
+        return originalFetch(input, init);
+      }),
+    );
+    void fetchMock;
+
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Account" })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Account" }));
+    fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
+    await waitFor(() => {
+      expect(document.querySelector("#feature-modes-judge-enforce")).not.toBeNull();
+    });
+    // Wait for the mount-time Status fetch (call 1, the one that will be
+    // held open) to genuinely start before triggering the second.
+    await firstStatusCallStarted;
+
+    fireEvent.click(
+      document.querySelector("#feature-modes-judge-enforce") as HTMLElement,
+    );
+    await waitFor(() => {
+      expect(judgeApplyCount).toBe(1);
+    });
+
+    const governancePanel = document.querySelector("#runtime-governance-panel") as HTMLElement;
+    // The crux: once the second (newer) Status response lands, the panel
+    // reflects it (ENFORCE available) -- while the first (older, slower)
+    // request is still held open, deterministically, never having
+    // resolved yet.
+    await waitFor(() => {
+      expect(
+        within(governancePanel).getByRole("radio", { name: "Enforce" }),
+      ).not.toBeDisabled();
+    });
+    // Only now release the first (older) response -- it must never regress
+    // the panel back to the stale disabled state it carries. No further
+    // artificial delay is being raced against: the gate itself was the
+    // only thing holding call 1 open, so once it is released the already-
+    // pending Promise chain settles within this flush, deterministically.
+    releaseFirstStatusCall();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(statusCallCount).toBe(2);
+    expect(within(governancePanel).getByRole("radio", { name: "Enforce" })).not.toBeDisabled();
+  });
+
   test("no extra runtime governance status GET happens when the bootstrap tag reports disabled", async () => {
     const fetchMock = installFetchMock({
       persistentRuntime: { enabled: false, source_of_truth: "server" },

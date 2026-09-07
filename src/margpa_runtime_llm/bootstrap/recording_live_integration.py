@@ -185,13 +185,41 @@ def build_judge_evidence_recorder(
         artifact_digest_sha512: str | None = None,
         backend_key: str | None = None,
         backend_version: str | None = None,
+        evaluated_model_identity: str | None = None,
+        configured_judge_provider: str | None = None,
+        active_judge_provider: str | None = None,
+        call_count: int = 1,
+        prompt_digest_sha512_override: str | None = None,
+        batch_evidence_json: str | None = None,
     ) -> None:
+        """Gemma Judge-only Constrained Decoding Rework (WU-05): `call_count`
+        (previously hardcoded to `1` below unconditionally), `seed`
+        (previously accepted but never actually threaded through by any
+        caller), and `prompt_digest_sha512_override` (previously the
+        `prompt_digest_sha512` metadata field was always re-derived from
+        the `prompt` param, which the Dedicated batched dispatch passed as
+        a fixed description string, never real Prompt content) now reflect
+        what each caller genuinely observed. `batch_evidence_json` is a
+        new, purely additive field: a
+        compact JSON array of per-Batch `BatchDispatchEvidence` (digests/
+        counts/enums/numbers only, never raw Prompt/Model-output text) --
+        `None` (every pre-Rework caller, and the still-unbatched Main-self
+        general-quality dispatch) omits the field entirely, identical to
+        before this parameter existed."""
         mode = recording_mode
         if mode is RecordingMode.OFF:
             return
         metadata_fields: dict[str, MetadataValue] = {
             "artifact_kind": "judge_run_evidence",
+            # R2-WU-02 (Controller Review IR-CI-02): `model_identity` has
+            # exactly one fixed meaning from here on -- the Executed Judge
+            # Provider (the identity that actually ran this Run), never
+            # the Main Model being evaluated. `evaluated_model_identity`
+            # below is the distinct, separate field for that.
             "model_identity": model_identity,
+            "evaluated_model_identity": evaluated_model_identity or "unavailable",
+            "configured_judge_provider": configured_judge_provider or "unavailable",
+            "active_judge_provider": active_judge_provider or "unavailable",
             # P6-CODEX-022: the previous cut only ever recorded
             # `model_identity` (a bare config key, e.g. "main.qwen3-4b") —
             # P6-LJG-002's "necessary Traces" also names the Artifact and
@@ -199,23 +227,32 @@ def build_judge_evidence_recorder(
             # distinguish across a re-download or a backend upgrade of the
             # same config key. Explicit `unavailable` (never a fabricated
             # value) when the caller has no `ModelRuntimeInfo` to draw from
-            # (e.g. a unit test's Fake Inference Service).
+            # (e.g. a unit test's Fake Inference Service). R2-WU-02: these
+            # must be the EXECUTED Judge's own Artifact/Backend -- never
+            # the Main Candidate's, even when a Dedicated Judge (Gemma/
+            # Selene) evaluated it -- see `judge_live_integration.py`'s
+            # own `executed_model_runtime_info` threading.
             "artifact_digest_sha512": artifact_digest_sha512 or "unavailable",
             "backend_key": backend_key or "unavailable",
             "backend_version": backend_version or "unavailable",
             "judge_role": judge_role,
             "rubric_id": rubric_id,
-            "prompt_digest_sha512": hashlib.sha512(prompt.encode("utf-8")).hexdigest(),
+            "prompt_digest_sha512": (
+                prompt_digest_sha512_override
+                if prompt_digest_sha512_override is not None
+                else hashlib.sha512(prompt.encode("utf-8")).hexdigest()
+            ),
             "recommendation": recommendation,
             "confidence": confidence,
             "token_usage": token_usage,
             "latency_ms": latency_ms,
-            "call_count": 1,
+            "call_count": call_count,
             "execution_state": execution_state,
-            # Explicit, honest absence rather than omission: this Judge call
-            # never pins a seed today (deterministic decoding is not
-            # requested), so `seed_pinned=False` is itself the accurate
-            # Evidence, not a gap to hide by leaving the field out.
+            # Explicit, honest absence rather than omission: `seed_pinned`
+            # reflects whether THIS caller actually threaded a real seed
+            # through (WU-05: Gemma's own batched dispatch now does, via
+            # `SeleneSemanticEvaluator`'s own Sampling Overrides) -- never a
+            # blanket `False` regardless of what the caller passed.
             "seed_pinned": seed is not None,
             "seed": seed if seed is not None else "unpinned",
             "config_digest_sha512": config_digest_sha512 or "unavailable",
@@ -232,6 +269,8 @@ def build_judge_evidence_recorder(
             metadata_fields["repair_accepted"] = repair_accepted
         if repair_new_turn_id is not None:
             metadata_fields["repair_new_turn_id"] = repair_new_turn_id
+        if batch_evidence_json is not None:
+            metadata_fields["batch_evidence_json"] = batch_evidence_json
         service = RecordingService(mode=mode, writer=writer)
         try:
             service.record(

@@ -6,7 +6,7 @@ status: current
 normative: true
 language: ja
 created_at: 2026-08-09 18:11:00 JST
-updated_at: 2026-09-01 13:15:00 JST
+updated_at: 2026-09-04 17:00:41 JST
 owner_role: プロジェクト責任者兼設計統括者役
 decision_authority: user
 provider_neutral: true
@@ -158,7 +158,7 @@ P2-0-WU-004            : accepted／closed／6 of 6 conformance pass
 Batch Capability       : unavailable／deny
 Multi-provider Use     : Phase 2-E bounded experiment executed／no general promotion
 Cross-provider Result  : technical・handoff chain success／supreme-rule compliance failure
-Provider Memory        : noncanonical／future create-update-reliance prohibited
+Provider Memory        : noncanonical／Claude exact two-target use allowed／all other use prohibited
 Permission Hardening   : future candidate／undecided
 Mechanical Enforcement : research reservation only／not claimed
 Git／External Mutation : none
@@ -190,7 +190,16 @@ Git／External Mutation : none
 - [Phase 2-E Claude Rework Cycle](../history/automation/automation_governance_evidence_phase_2_e_claude_rework_cycle_ja_20260815085208.md)
 - [Phase 2-E Claude Final Rework Cycle](../history/automation/automation_governance_evidence_phase_2_e_claude_final_rework_cycle_ja_20260815092832.md)
 - [Phase 2-E Cross-provider Final Assessment](../history/automation/automation_governance_evidence_phase_2_e_cross_provider_final_assessment_ja_20260815095155.md)
+- [Copilot Provider／Platform／Model／Resource Stable Assessment](copilot_provider_platform_model_resource_and_execution_stable_assessment_ja.md)
+- [Copilot 2026-10-01 Small-WU Cross-model Retest Reservation](../history/planned_work/copilot_2026_10_01_small_work_unit_cross_model_quota_execution_efficiency_retest_reservation_ja_20260902121740.md)
+- [Claude／Copilot Forward Executable Work Registry](../operations/claude_copilot_forward_executable_work_registry_ja.md)
+- [Claude／Copilot Forward Work Registry Initial Snapshot](../history/planned_work/claude_copilot_forward_executable_work_registry_initial_snapshot_ja_20260902121740.md)
+- [Claude Code SSS級Incident: Resource GateによるDedicated Model基盤破壊とResource消耗](../history/ai_system_anomalies/claude_code/claude_code_sss_resource_gate_foundation_destruction_and_resource_exhaustion_incident_ja_20260903001814.md)
+- [Claude Code SSSSS級Post-Incident Failure: Harm Minimization・Legal Overreach・Transparency Failure](../history/ai_system_anomalies/claude_code/claude_code_sssss_post_incident_harm_minimization_legal_overreach_and_transparency_failure_ja_20260903002931.md)
+- [Claude Code Project-local Bounded Implementer Role／MARGPA研究教材化Decision](../history/ai_system_anomalies/claude_code/claude_code_project_local_bounded_implementer_role_and_margpa_research_material_decision_ja_20260903013752.md)
+- [Phase 11以降: Layered AI Safety Stack Gap評価／Learned Safety拡張予約](../history/planned_work/phase_11_plus_layered_ai_safety_stack_gap_assessment_and_learned_safety_extension_reservation_ja_20260903070107.md)
+- [Claude Memory／Project `.claude/`限定利用許可](../history/automation/claude_memory_and_project_claude_directory_scoped_operational_exception_ja_20260904024250.md)
 
 現在のControl Stateは`OFF／PHASE 2 COMPLETE／PHASE 3 READY・NOT STARTED`である。P2-0-WU-003のArtifactは保持し、成果物成功とContract遵守を分離したまま、P2-0-WU-004のExact Package、実行、Controller Review、User Final AcceptanceおよびP2-0 Final Acceptanceが完了した。Phase 2-A～2-DではCodex内のRole Chain、Phase 2-EではClaude内Role ChainとCodex独立Reviewを接続したCross-provider Chainを検証した。
 
-Phase 2-EのTechnical／Handoff Chain、Mac Manual AcceptanceおよびCodex Final Reviewは成功したが、Claude Provider MemoryへのAuthorized Root外書込みにより最上位規則適合は失敗した。Provider Memoryは非正本・依存禁止とし、Cross-provider Recovery／Authority／EvidenceをRepository内Docsへ限定する。この結果から正式Automation Mode、上位Automation Levelまたは全Provider一般化を自動承認しない。Phase 2はClosed、Phase 3は`READY／NOT STARTED`であり、開始時の別Human Gateを維持する。
+Phase 2-EのTechnical／Handoff Chain、Mac Manual AcceptanceおよびCodex Final Reviewは成功したが、Claude Provider MemoryへのAuthorized Root外書込みにより、当時の最上位規則適合は失敗した。この履歴判定は変更しない。現在は2026-09-04のUser決定により、Claudeの本Project対応`MEMORY.md`／`Memory.md`とProject直下`.claude/**`だけを非正本の作業補助として許可し、CodexはCleanup・Commit対象にしない。それ以外の制約と、RepositoryをRecovery／Authority／Evidenceの正本とする原則は維持する。この結果から正式Automation Mode、上位Automation Levelまたは全Provider一般化を自動承認しない。Phase 2はClosed、Phase 3は`READY／NOT STARTED`であり、開始時の別Human Gateを維持する。

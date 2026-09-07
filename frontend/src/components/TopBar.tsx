@@ -6,12 +6,27 @@ interface TopBarProps {
   theme: UiTheme;
   onLanguageChange: (language: UiLanguage) => void;
   onThemeChange: (theme: UiTheme) => void;
+  onOpenExperiment: () => void;
 }
 
-export default function TopBar({ language, theme, onLanguageChange, onThemeChange }: TopBarProps) {
+export default function TopBar({
+  language,
+  theme,
+  onLanguageChange,
+  onThemeChange,
+  onOpenExperiment,
+}: TopBarProps) {
   return (
     <header className="topbar">
       <div className="topbar-actions">
+        <button
+          id="experiment-toggle"
+          className="experiment-toggle"
+          type="button"
+          onClick={onOpenExperiment}
+        >
+          {translate(language, "experimentToggleLabel")}
+        </button>
         <div id="ui-theme-switcher" className="theme-switcher" role="group" aria-label={translate(language, "uiThemeLabel")}>
           <button
             id="ui-theme-white"

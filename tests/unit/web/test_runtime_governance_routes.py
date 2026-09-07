@@ -137,11 +137,21 @@ def test_after_semantic_evidence_status_projects_the_real_resolved_outcome() -> 
 
 
 def test_late_result_for_a_superseded_turn_never_overwrites_the_current_turn() -> None:
-    """R3-WU-007: a Dispatch that completes for an older, superseded Turn
-    must not clobber the Status projection for the Turn that is actually
-    Current — `SemanticRuntimeCoordinator.record_response()`'s own
-    request_id/generation guard (Package K, unchanged by this Rework) is
-    what this test pins."""
+    """R3-WU-007, corrected by R4-WU-01 (Controller Review IR-R3-01): a
+    Dispatch that completes for an older, superseded Turn must not clobber
+    the Status projection for the Turn that is actually Current. Before
+    R4-WU-01, `SemanticRuntimeCoordinator`'s single `_current` slot meant a
+    late response for a superseded Turn was outright REJECTED by `record_
+    response()` (silently dropped, not merely unattributed to the wrong
+    Turn) once a newer Turn had begun. The corrected, request-local
+    contract now genuinely records the old Turn's own late response --
+    scoped exclusively to its own `request_id` -- while the Status
+    projection (`_point_status()`'s own `semantic_runtime.latest_
+    evidence()` call, which only ever reads the separate UI "Latest
+    Current" pointer, never a specific `request_id`) stays completely
+    unaffected: the pointer still names the newer, still-unresolved Turn,
+    which has no Evidence recorded for it at all, so the Status projection
+    correctly keeps showing the honest Deferred placeholder."""
     composition = _composition()
     criterion = composition.semantic_compile_result.criteria[0]
 
@@ -189,10 +199,15 @@ def test_late_result_for_a_superseded_turn_never_overwrites_the_current_turn() -
     )
     late_evidence = composition.record_semantic_response(response=late_response)
 
-    assert late_evidence is None  # rejected: no longer the Current Turn
+    # R4-WU-01: the old Turn's own genuinely late response is now recorded
+    # -- scoped exclusively to "req-old" -- never silently dropped.
+    assert late_evidence is not None
+    assert late_evidence.request_id == "req-old"
+    assert composition.semantic_runtime.evidence_for(request_id="req-old") is not None
     # The Status projection for the (now-Current, unresolved) Turn must
-    # still show the honest Deferred placeholder, never the late Turn's
-    # PASS smuggled in.
+    # still show the honest Deferred placeholder, never the old Turn's own
+    # PASS smuggled in -- it reads only the separate "Latest Current"
+    # pointer (still "req-new", which has no Evidence recorded for it).
     status = _point_status(composition, point_id=MAIN_MODEL_POST_POINT_ID)
     assert status.deferred_count == 1
     assert status.pass_count == 0

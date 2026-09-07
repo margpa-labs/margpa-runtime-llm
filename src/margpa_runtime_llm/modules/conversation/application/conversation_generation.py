@@ -2303,6 +2303,9 @@ class ConversationGenerationService:
         runtime_snapshot_provider: RuntimeGenerationSnapshotProvider | None = None,
         request_correlation_begin: RequestCorrelationBeginHook | None = None,
         request_correlation_terminal: RequestCorrelationTerminalHook | None = None,
+        semantic_turn_begin_hook: (
+            Callable[[str, JudgeExecutionModeSnapshot], object] | None
+        ) = None,
     ) -> None:
         self._inference = inference
         self._presentation = presentation
@@ -2335,6 +2338,7 @@ class ConversationGenerationService:
         self._recording_completion_hook = recording_completion_hook
         self._request_correlation_begin = request_correlation_begin
         self._request_correlation_terminal = request_correlation_terminal
+        self._semantic_turn_begin_hook = semantic_turn_begin_hook
         self._model_access_coordinator = model_access_coordinator or ModelAccessCoordinator()
         self._active_lock = threading.Lock()
         self._active: ConversationGenerationSession | None = None
@@ -2410,6 +2414,35 @@ class ConversationGenerationService:
         # Model Control reports "now".
         runtime_snapshot = self._resolve_runtime_snapshot()
         judge_modes = self._resolve_judge_modes()
+        # R2-WU-01 (Controller Review IR-CI-01), tightened by R3-WU-01
+        # (Controller Review IR-R2-01): the Evaluation Turn Context freezes
+        # here, at the identical Attempt boundary as `judge_modes`/
+        # `runtime_snapshot` above -- never lazily, on first touch, from
+        # inside a Judge Hook that only runs after generation completes.
+        # `judge_modes` (already resolved, once, immediately above) is
+        # passed into the SAME call so the frozen Semantic Turn Snapshot's
+        # own `judge_mode`/`repair_mode` are the identical values this
+        # Turn's own `JudgeCompletionContext` will carry -- never a second,
+        # independent live read of the same underlying Mode state that a
+        # live Mode change landing between the two reads could make
+        # disagree (see `JudgeSemanticTurnProvider.__call__`'s own
+        # docstring). Main Runtime Governance's own PRE hook (when Main is
+        # not `off`) and the Judge Completion Hook both only ever read this
+        # identical, already-frozen result back afterward; neither is the
+        # one that begins it in the wired production shape. A caller with
+        # no hook wired at all (most unit tests, or a deployment lacking
+        # the neutral Coordinator) leaves this a no-op, unchanged from
+        # before this Rework. A raised exception here is swallowed (Main
+        # Chat is never blocked by a Semantic Turn Freeze failure) but the
+        # failure itself is durably recorded by the hook's own callee (see
+        # `JudgeSemanticTurnProvider`'s `_begin_failed` tracking) so a later
+        # Judge Completion Hook call for this same `request_id` never
+        # retries with fresh, possibly post-generation Live values.
+        if self._semantic_turn_begin_hook is not None:
+            try:
+                self._semantic_turn_begin_hook(request_id, judge_modes)
+            except Exception:
+                pass
         # P6-CODEX-010 (Second Rework): Main Turns take Priority over any
         # Background (Judge/Repair) Task already using the shared Model
         # Backend — acquire_main() waits briefly (bounded) for a

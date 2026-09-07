@@ -28,6 +28,24 @@ from margpa_runtime_llm.modules.inference.domain.cancellation import Cancellatio
 
 from .qwen3guard_manifest import Qwen3GuardManifestUnavailable, load_qwen3guard_manifest
 
+# R2-WU-04 (Controller Review IR-CI-05, Handoff §5): a Role-specific,
+# explicit, reproducible Generation Sampling Contract localized to this
+# exact Adapter -- Qwen3Guard-Gen is never used for any other Role, so no
+# injectable override is needed; this is this Role's own Contract
+# outright. `top_k=1` forces greedy decoding regardless of how a given
+# backend treats `temperature=0` in isolation. `max_new_tokens` stays the
+# existing per-call `self._max_new_tokens` -- only Sampling is pinned.
+_DETERMINISTIC_SAMPLING: dict[str, object] = {
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "top_k": 1,
+    "min_p": 0.0,
+    "presence_penalty": 0.0,
+    "frequency_penalty": 0.0,
+    "repeat_penalty": 1.0,
+    "seed": 0,
+}
+
 
 class Qwen3GuardGenAdapter:
     """P6-RR-R23 (Post-Codex Independent Review Rework, resolves
@@ -129,7 +147,9 @@ class Qwen3GuardGenAdapter:
                     request_id=f"qwen3guard:{target.value}",
                     model_key=self._model_id,
                     messages=_messages_for(target=target, content=content, query=query),
-                    parameters=GenerationParameters(max_new_tokens=self._max_new_tokens),
+                    parameters=GenerationParameters(
+                        max_new_tokens=self._max_new_tokens
+                    ).model_copy(update=_DETERMINISTIC_SAMPLING),
                 ),
                 cancellation=cancellation,
             )

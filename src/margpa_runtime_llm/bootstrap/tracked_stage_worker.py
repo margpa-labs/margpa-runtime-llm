@@ -74,6 +74,15 @@ from typing import Any
 
 from margpa_runtime_llm.modules.inference.domain.cancellation import CancellationToken
 
+# Controller Review (2026-09-05 07:18, IR-R5-01) fix: exported so a caller
+# that receives a Timeout-shaped `TrackedStageOutcome` can distinguish "the
+# Worker Registry itself already refused this submission" from a genuine
+# Timeout/Cancellation, by comparing `outcome.future.exception()` against
+# this exact constant -- rather than each caller re-hardcoding its own
+# private copy of the same literal string this module alone is the real
+# owner of.
+REGISTRY_SHUTTING_DOWN_MESSAGE = "tracked_stage_worker_registry_shutting_down"
+
 
 @dataclass(frozen=True, slots=True)
 class TrackedStageOutcome[T]:
@@ -233,7 +242,7 @@ def run_tracked_stage[T](
         submitted = registry.submit(work=work)
         if submitted is None:
             rejected: Future[T] = Future()
-            rejected.set_exception(RuntimeError("tracked_stage_worker_registry_shutting_down"))
+            rejected.set_exception(RuntimeError(REGISTRY_SHUTTING_DOWN_MESSAGE))
             return TrackedStageOutcome(result=None, timed_out=True, future=rejected)
         future = submitted
     else:

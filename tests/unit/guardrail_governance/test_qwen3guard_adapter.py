@@ -241,6 +241,33 @@ def _adapter(
     )
 
 
+def test_classify_point_pins_deterministic_role_specific_sampling(tmp_path: Path) -> None:
+    """R2-WU-04 (Controller Review IR-CI-05, Handoff §5): Qwen3Guard's own
+    Role-specific Generation Sampling Contract must reach the real
+    `GenerationRequest.parameters` this Adapter sends -- greedy-equivalent
+    values (`top_k=1` regardless of `temperature`), a fixed `seed`, and
+    `max_new_tokens` left untouched by the Contract."""
+    adapter, service = _adapter("Safety: Safe\nCategories: None", tmp_path=tmp_path)
+    adapter.classify_point(target=Qwen3GuardTarget.INPUT, content="benign input")
+
+    parameters = service.requests[0].parameters
+    assert parameters.temperature == 0.0
+    assert parameters.top_p == 1.0
+    assert parameters.top_k == 1
+    assert parameters.min_p == 0.0
+    assert parameters.presence_penalty == 0.0
+    assert parameters.frequency_penalty == 0.0
+    assert parameters.repeat_penalty == 1.0
+    assert parameters.seed == 0
+    assert parameters.max_new_tokens == 256
+    # Gemma Judge-only Constrained Decoding Rework (WU-06 isolation item 5):
+    # Qwen3Guard's own Request never carries a `structured_output`
+    # constraint -- this Adapter has no knowledge of the concept at all
+    # (it builds `GenerationParameters` directly, never via a Judge-side
+    # Factory), so this can only ever be `None`.
+    assert parameters.structured_output is None
+
+
 def test_output_candidate_binding_uses_user_then_assistant_roles(tmp_path: Path) -> None:
     adapter, service = _adapter("Safety: Safe\nCategories: None\nRefusal: No", tmp_path=tmp_path)
     result = adapter.classify_point(

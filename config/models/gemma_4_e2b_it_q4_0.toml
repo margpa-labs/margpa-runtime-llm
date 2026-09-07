@@ -1,0 +1,46 @@
+schema_version = "2"
+model_key = "judge.gemma-4-e2b-it-q4-0"
+logical_role = "judge"
+enabled = true
+
+[source]
+provider = "Google"
+distribution_repository = "google/gemma-4-E2B-it-qat-q4_0-gguf"
+upstream_model = "google/gemma-4-E2B-it"
+
+[artifact]
+relative_path = "judge/gemma-4-E2B_q4_0-it/gguf/gemma-4-E2B_q4_0-it.gguf"
+file_name = "gemma-4-E2B_q4_0-it.gguf"
+format = "gguf"
+quantization = "Q4_0"
+size_bytes = 3349516256
+sha512 = "54b1e06eea3bcfd2f94d2a0195366830d25d63dc15dd2484fa7cd35f82cfd4b8503702ac3a1a3772775284e3d9a5531a54f1a9b8e3eaa16417d84eae360c76ad"
+
+[backend]
+backend_key = "llama_cpp"
+required_version = "0.3.34"
+
+[model]
+architecture = "gemma4"
+native_context_limit = 131072
+chat_template_source = "gguf_metadata"
+
+[capabilities]
+required_features = [
+  "chat",
+  "streaming",
+  "cooperative_cancel",
+  "stop_sequences",
+  "seed",
+  "token_usage",
+  "model_metadata",
+  "chat_template",
+]
+optional_features = ["gpu_offload", "json_schema"]
+
+[verification]
+state = "phase_9_1_package_1_lightweight_judge_identity_frozen_runtime_load_pending"
+provenance_complete = false
+
+[output_protocol.thinking]
+parser_key = "plain_text_v1"

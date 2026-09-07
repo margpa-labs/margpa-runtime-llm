@@ -170,5 +170,5 @@ Phase 7 READY Sequenceに従い、Closure Commit／Push、Backup、Preflightを�
 - [User Override／Phase 7 Progression](history/operations/phase_6_gov027_user_override_ui_only_and_phase_7_progression_ja_20260829164947.md)
 - [Special Minimal Closure](history/operations/phase_6_special_minimal_closure_with_known_debt_ja_20260829171422.md)
 - [Closure／Phase 7 READY Recovery](history/index/phase_6_special_minimal_closure_and_phase_7_ready_recovery_ja_20260829171422.md)
-- [Current Unresolved Registry](../../shared/未解決/current_unresolved_findings_registry_ja.md)
+- [Current Unresolved Registry](../../shared/unresolved_work/current_unresolved_findings_registry_ja.md)
 - [Phase 7 Index](../phase_7/phase_index_ja.md)

@@ -72,6 +72,11 @@ from .dev_agent_routes import (
     dev_agent_error_response,
 )
 from .error_mapping import http_status_for_inference_error
+from .experiment_routes import (
+    ExperimentWebError,
+    create_experiment_router,
+    experiment_error_response,
+)
 from .feature_modes_routes import create_feature_modes_router
 from .generation_observation import GenerationObservationTracker
 from .governance_routes import (
@@ -164,6 +169,33 @@ DATA_CONTROLS_BOOTSTRAP_ENABLED = (
     '<script id="data-controls-bootstrap" type="application/json">{"enabled":true}</script>'
 )
 SHUTDOWN_FAILURE_MESSAGE = "The web runtime could not shut down cleanly."
+_EXPERIMENT_LEASE_GATED_MUTATIONS: frozenset[tuple[str, str]] = frozenset(
+    {
+        ("POST", "/api/v5/feature-modes/judge"),
+        ("POST", "/api/v5/feature-modes/repair"),
+        ("POST", "/api/v5/feature-modes/recording"),
+        ("POST", "/api/v4/runtime-model/context"),
+        ("POST", "/api/v4/runtime-model/max-new-tokens"),
+        ("POST", "/api/v4/runtime-model/switch"),
+        ("POST", "/api/v2/configuration/apply"),
+    }
+)
+"""Phase 9-2 R3-WU-01 (Handoff R3 SS4.2 Option A): the fixed allowlist of
+ordinary-Chat Settings-mutation routes an in-flight Production Experiment
+Run's Configuration Lease gates. `PUT /api/v6/provider-selection/{role}`
+is matched separately below (prefix match, since `{role}` is a path
+param). Guard/Main-Governance Mode Mutation has exactly one Canonical
+path -- `/api/v2/configuration/apply`'s Preview->Apply CAS -- so gating
+that single route covers both (see `guardrail_governance_routes.py`'s and
+`runtime_governance_routes.py`'s own module docstrings, which document
+this as the one Mutation path for each). This check is purely additive to
+`secure_requests` below and never touches any Controller's own contract."""
+
+
+def _is_experiment_lease_gated_mutation(method: str, path: str) -> bool:
+    if (method, path) in _EXPERIMENT_LEASE_GATED_MUTATIONS:
+        return True
+    return method == "PUT" and path.startswith("/api/v6/provider-selection/")
 RuntimeFactory = Callable[[], WebRuntime]
 CallNext = Callable[[Request], Awaitable[Response]]
 DEFAULT_CONTROL_POLICY: PublicControlPolicyPort = DisabledPublicControlPolicy()
@@ -314,6 +346,30 @@ def create_web_app(
                     headers={"WWW-Authenticate": 'Basic realm="MARGPA Preview", charset="UTF-8"'},
                 )
             )
+        if _is_experiment_lease_gated_mutation(request.method, request.url.path):
+            lease = _runtime(request).experiment_configuration_lease
+            if lease is not None and lease.is_held():
+                # Phase 9-2 R3-WU-01: a Production Experiment Run currently
+                # holds the Configuration Lease around its own real Actor
+                # Call -- this Settings-mutation request is rejected
+                # outright, before it ever reaches its own route handler
+                # or Controller, so an ordinary Chat Settings change can
+                # never land WHILE that Run's own Live-Configuration
+                # comparison is still trustworthy (Handoff R3 SS4.2 Option
+                # A's Lease, and its own "ABA変更も通らない" Hard Assert).
+                return _apply_security_headers(
+                    JSONResponse(
+                        status_code=409,
+                        content={
+                            "code": "experiment_configuration_lease_held",
+                            "message": (
+                                "A Phase 9-2 Experiment Production Run currently holds the "
+                                "Configuration Lease; Settings changes are rejected until it "
+                                "completes."
+                            ),
+                        },
+                    )
+                )
         request_limit = None
         if request.url.path == "/api/v1/chat/stream":
             request_limit = MAX_CHAT_REQUEST_BYTES
@@ -387,6 +443,14 @@ def create_web_app(
     ) -> JSONResponse:
         del request
         return local_corpus_error_response(exc)
+
+    @app.exception_handler(ExperimentWebError)
+    async def experiment_web_error(
+        request: Request,
+        exc: ExperimentWebError,
+    ) -> JSONResponse:
+        del request
+        return experiment_error_response(exc)
 
     @app.exception_handler(WebSearchWebError)
     async def web_search_web_error(
@@ -680,6 +744,7 @@ def create_web_app(
     app.include_router(create_data_controls_router())
     app.include_router(create_constitution_router())
     app.include_router(create_dev_agent_router())
+    app.include_router(create_experiment_router())
 
     app.mount("/assets", StaticFiles(directory=STATIC_ROOT), name="assets")
     return app

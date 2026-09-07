@@ -273,6 +273,6 @@ R25〜R28が既に開始済みであるため、途中で無駄に停止・Rollb
 ## 10. 関連する現行訂正正本
 
 - `docs/project/shared/task_roles/poc_mvp_portfolio_resource_constrained_delivery_and_closure_operating_policy_ja.md`
-- `docs/project/shared/未解決/current_unresolved_findings_registry_ja.md`
-- `docs/project/shared/history/未解決/current_unresolved_findings_registry_snapshot_ja_20260829105139.md`
+- `docs/project/shared/unresolved_work/current_unresolved_findings_registry_ja.md`
+- `docs/project/shared/history/unresolved_work/current_unresolved_findings_registry_snapshot_ja_20260829105139.md`
 - `docs/project/shared/task_roles/codex_controller_and_delegated_agent_proportional_autonomy_append_only_correction_addendum_ja_20260828223445.md`

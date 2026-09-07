@@ -49,6 +49,14 @@ class SemanticTurnSnapshot(ImmutableContract):
     max_criteria: int = Field(ge=0)
     criteria: tuple[SemanticCriterion, ...] = Field(default_factory=tuple, max_length=4096)
     deferred_criteria_count: int = Field(default=0, ge=0)
+    # P9-1 Package 2 OF-P2-001: the starting index (into the POST/BOTH-stage
+    # applicable Criteria, sorted by criterion_id) this Turn's `criteria`
+    # selection rotated from -- see `freeze_semantic_turn()`'s own
+    # docstring. Recorded on the Snapshot (and folded into
+    # `frozen_digest_sha512` below) so which rotation window produced a
+    # given Turn's selection is auditable from the Evidence alone, not
+    # merely from live Coordinator state that Records never captured.
+    rotation_offset: int = Field(default=0, ge=0)
     batch_digest_sha512: str = Field(pattern=_SHA512_PATTERN)
     frozen_digest_sha512: str = Field(pattern=_SHA512_PATTERN)
 

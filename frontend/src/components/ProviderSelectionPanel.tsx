@@ -18,6 +18,12 @@ type LoadCapability = "loading" | "ready" | "failed";
 interface ProviderSelectionPanelProps {
   language: UiLanguage;
   visible: boolean;
+  /** P9-1 UF-UI-017: fires after a JUDGE role Provider Selection apply
+   * genuinely commits (never for main/guard, which never affect Main
+   * Governance's own ENFORCE readiness) -- lets a parent refresh Main
+   * Runtime Governance status without this Panel depending on that other
+   * Panel's state. */
+  onJudgeReadinessChanged?: () => void;
 }
 
 const ROLES: readonly ProviderRole[] = ["main", "guard", "judge"];
@@ -25,6 +31,7 @@ const ROLES: readonly ProviderRole[] = ["main", "guard", "judge"];
 export default function ProviderSelectionPanel({
   language,
   visible,
+  onJudgeReadinessChanged,
 }: ProviderSelectionPanelProps) {
   const [capability, setCapability] = useState<LoadCapability>("loading");
   const [status, setStatus] = useState<ProviderSelectionStatus | null>(null);
@@ -78,6 +85,14 @@ export default function ProviderSelectionPanel({
         );
         commitCanonical(incoming);
         setResultText(translate(language, "providerSelectionApplySuccess"));
+        // P9-1 UF-UI-017: only a JUDGE role change can move Main
+        // Governance's own ENFORCE readiness -- main/guard selections never
+        // affect `semantic_enforce_readiness()`, so this stays scoped to
+        // exactly the role that does, and only on genuine commit (never on
+        // a failed/rolled-back apply below).
+        if (role === "judge") {
+          onJudgeReadinessChanged?.();
+        }
       } catch (error) {
         setResultText(
           error instanceof ApiMutationError

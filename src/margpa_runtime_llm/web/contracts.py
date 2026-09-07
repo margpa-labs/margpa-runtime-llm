@@ -20,6 +20,19 @@ from margpa_runtime_llm.modules.documentation_rag.local_corpus_ports import (
 from margpa_runtime_llm.modules.evaluation.application.judge_mode_controller import (
     JudgeModeController,
 )
+from margpa_runtime_llm.modules.experiment.application.configuration_lease import (
+    ExperimentConfigurationLease,
+)
+from margpa_runtime_llm.modules.experiment.application.experiment_service import (
+    ExperimentService,
+)
+from margpa_runtime_llm.modules.experiment.application.live_configuration_port import (
+    LiveConfigurationPort,
+)
+from margpa_runtime_llm.modules.experiment.application.production_turn_runner import (
+    ProductionTurnPort,
+)
+from margpa_runtime_llm.modules.experiment.application.run_worker import ExperimentRunWorker
 from margpa_runtime_llm.modules.inference.contracts.base import ImmutableContract
 from margpa_runtime_llm.modules.inference.contracts.generation import ThinkingMode
 from margpa_runtime_llm.modules.inference.contracts.response import ResponseLanguage
@@ -61,7 +74,12 @@ from .access_profiles import DocumentationRagEffectiveState
 
 class RuntimeDefaults(ImmutableContract):
     response_language: ResponseLanguage
-    max_new_tokens: int = Field(gt=0, le=2048)
+    # P9-1 Package 3: raised from 2048 to 8192, matching the new
+    # Deployment/Application Profile Output Ceiling
+    # (`ModelLoadConfig.max_output_tokens_ceiling`) — a defensive type-level
+    # bound on the reported value, not the source of truth (that flows from
+    # Config -> Resolver -> Capability -> this Snapshot field).
+    max_new_tokens: int = Field(gt=0, le=8192)
     thinking_mode: ThinkingMode
     thinking_visibility: ThinkingVisibility
     thinking_display_label: str
@@ -128,6 +146,49 @@ class WebRuntime:
     constitution_provider: ConstitutionProviderPort | None = None
     constitution_mode: ConstitutionMode = ConstitutionMode.OFF
     dev_agent_run_service: DevAgentRunService | None = None
+    experiment_service: ExperimentService | None = None
+    """Phase 9-2 WU-A/E: `None` unless Bootstrap wires a Filesystem-backed
+    `ExperimentService` for the Minimal Experiment screen -- absent, this
+    routes to `experiment_routes.py`'s own disabled-response shape,
+    exactly like every other Optional `WebRuntime` field, and never
+    forces itself into the ordinary Chat/Judge/Guard request path."""
+    production_turn_adapter: ProductionTurnPort | None = None
+    """Phase 9-2 R1-WU-03: `None` unless Bootstrap wires a
+    `LiveProductionTurnAdapter` over this same `WebRuntime`'s own
+    `conversation`/`judge_governance_composition`/
+    `guardrail_governance_composition` -- absent, `execution_mode=
+    "production"` Experiment Runs are rejected as
+    `production_adapter_unavailable` rather than silently falling back to
+    a Fixture (a Fixture Result is never substituted for a requested real
+    one)."""
+    experiment_run_worker: ExperimentRunWorker | None = None
+    """Phase 9-2 R1-WU-05: the single-threaded Tracked Worker every
+    `/api/v7/experiment/runs` start hands its Actor Call to -- `None`
+    exactly when `experiment_service` is also `None` (constructed
+    together in Bootstrap). Shut down in `close()` below, before the
+    ordinary Chat/Judge/Guard drain, so an in-flight Experiment Run never
+    outlives the real Model backends its own Production Adapter reads."""
+    live_configuration_reader: LiveConfigurationPort | None = None
+    """Phase 9-2 R2-WU-01: `None` unless Bootstrap wires a
+    `BootstrapLiveConfigurationReader` reading this SAME `WebRuntime`'s
+    own Judge/Guard/Main-Governance/Repair/Recording/Main Controllers --
+    absent, a Production Run's Frozen-vs-Live Config comparison can never
+    be attempted, and `execution_mode="production"` Runs are rejected as
+    `live_config_unavailable` rather than silently skipping the check."""
+    experiment_configuration_lease: ExperimentConfigurationLease | None = None
+    """Phase 9-2 R3-WU-01 (Handoff R3 SS4.2 Option A): `None` unless
+    Bootstrap wires one alongside `live_configuration_reader` -- absent,
+    an in-flight Production Run's real Actor Call gets no protection at
+    all against a concurrent ordinary-Chat Settings change (the pre-R3
+    behavior). When present, `web/app.py`'s `secure_requests` middleware
+    checks `is_held()` before letting a fixed allowlist of Settings-
+    mutation routes (Judge/Repair/Recording Mode, Provider Selection,
+    Runtime Model context/max-new-tokens/switch, the Guard/Main-
+    Governance Configuration Preview->Apply CAS path) proceed, and
+    `application.run_worker.ExperimentRunWorker` is the only caller of
+    `acquire()`/`release()`, held only for the duration of one real
+    Production Turn's own `invoke()` call. Never touches any Controller's
+    own contract."""
     _close_lock: threading.Lock = field(default_factory=threading.Lock, init=False, repr=False)
     _closed: bool = field(default=False, init=False, repr=False)
 
@@ -135,6 +196,12 @@ class WebRuntime:
         with self._close_lock:
             if self._closed:
                 return
+            if self.experiment_run_worker is not None and not self.experiment_run_worker.shutdown(
+                timeout=timeout
+            ):
+                raise RuntimeError(
+                    "An in-flight Experiment Run did not stop during shutdown."
+                )
             if not self.conversation.shutdown(timeout):
                 raise RuntimeError("The active generation did not stop during shutdown.")
             # P6-RR-R22 (Post-Codex Independent Review Rework, resolves the

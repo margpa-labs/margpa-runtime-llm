@@ -6,6 +6,8 @@ from dataclasses import dataclass
 import pytest
 
 from margpa_runtime_llm.modules.runtime_model_control.application import (
+    DEEPSEEK_MAIN,
+    GEMMA_E2B_JUDGE,
     NONE_PROVIDER,
     QWEN3_GUARD,
     QWEN_MAIN,
@@ -76,6 +78,7 @@ def _select_judge(controller: ProviderSelectionController, provider_id: str) -> 
 
 def test_activation_loads_only_the_explicit_configured_role() -> None:
     selections = ProviderSelectionController()
+    _select_judge(selections, SELENE_JUDGE)
     selene = _FakeAdapter(SELENE_JUDGE)
     manager = RoleProviderLifecycleManager(
         selections=selections, factory=_Factory({SELENE_JUDGE: selene})
@@ -87,6 +90,148 @@ def test_activation_loads_only_the_explicit_configured_role() -> None:
     assert judge.state is ProviderRuntimeState.ACTIVE
     assert judge.active_provider == SELENE_JUDGE
     assert guard.active_provider is None
+
+
+@dataclass
+class _DenyingResourceGate:
+    """P9-1 Package 2 OF-P2-003 wiring proof: a `RoleResourceGatePort`
+    that always refuses — stands in for `SystemMemoryRoleResourceGate`
+    genuinely denying under tight real memory, without depending on this
+    process's actual `psutil` reading. Proves the existing `_activate_
+    locked`/`_transition_to_locked` refusal hook (present since before
+    this Package, but never previously exercised by a real gate) is
+    correctly wired end to end."""
+
+    reason: str = "resource_gate_denied:test"
+
+    def allow_activation(
+        self, *, role: ModelRole, option: ProviderOption
+    ) -> tuple[bool, str | None]:
+        del role, option
+        return False, self.reason
+
+
+def test_resource_gate_denial_blocks_activation_before_any_real_load_is_attempted() -> None:
+    selections = ProviderSelectionController()
+    _select_judge(selections, SELENE_JUDGE)
+    selene = _FakeAdapter(SELENE_JUDGE)
+    manager = RoleProviderLifecycleManager(
+        selections=selections,
+        factory=_Factory({SELENE_JUDGE: selene}),
+        resource_gate=_DenyingResourceGate(),
+    )
+    snapshot = manager.activate(role=ModelRole.JUDGE)
+    judge = next(item for item in snapshot.selections if item.role is ModelRole.JUDGE)
+    assert judge.state is ProviderRuntimeState.UNAVAILABLE
+    assert judge.failure_reason == "resource_gate_denied:test"
+    assert judge.active_provider is None
+    assert selene.load_calls == 0
+    assert manager.active_adapter(role=ModelRole.JUDGE) is None
+
+
+@dataclass
+class _DenyingForProviderResourceGate:
+    """Denies only one specific `provider_id` — lets an initial Selene
+    activation genuinely succeed, so the transition test below proves the
+    previous (real, loaded) Adapter is actually left untouched by a
+    denied transition, not merely that a never-activated Manager refuses
+    to start one."""
+
+    denied_provider_id: str
+    reason: str = "resource_gate_denied:test"
+
+    def allow_activation(
+        self, *, role: ModelRole, option: ProviderOption
+    ) -> tuple[bool, str | None]:
+        del role
+        if option.provider_id == self.denied_provider_id:
+            return False, self.reason
+        return True, None
+
+
+def test_resource_gate_denial_blocks_transition_and_preserves_the_previous_adapter() -> None:
+    selections = ProviderSelectionController()
+    _select_judge(selections, SELENE_JUDGE)
+    selene = _FakeAdapter(SELENE_JUDGE)
+    gemma = _FakeAdapter(GEMMA_E2B_JUDGE)
+    manager = RoleProviderLifecycleManager(
+        selections=selections,
+        factory=_Factory({SELENE_JUDGE: selene, GEMMA_E2B_JUDGE: gemma}),
+        resource_gate=_DenyingForProviderResourceGate(denied_provider_id=GEMMA_E2B_JUDGE),
+    )
+    manager.activate(role=ModelRole.JUDGE)
+    assert selene.load_calls == 1
+    assert manager.active_adapter(role=ModelRole.JUDGE) is selene
+
+    snapshot = selections.snapshot()
+    with pytest.raises(ProviderSelectionError):
+        manager.transition_to(
+            role=ModelRole.JUDGE,
+            provider_id=GEMMA_E2B_JUDGE,
+            expected_revision=snapshot.revision,
+            expected_digest=snapshot.digest_sha512,
+        )
+    assert gemma.load_calls == 0
+    assert selene.unload_calls == 0
+    assert manager.active_adapter(role=ModelRole.JUDGE) is selene
+
+
+def test_transition_succeeds_with_a_stale_revision_caused_only_by_an_unrelated_main_switch() -> (
+    None
+):
+    """P9-1 Judge Dispatch Fix Round 6 (Finding 4, Self-review correction
+    from an independent real-hardware/integration audit):
+    `_transition_to_locked()` -- reached via `apply_provider_selection()`'s
+    Mode-ON branch, the production entry point for a Judge/Guard
+    re-selection while that Role's own Mode is already ON -- used to
+    implement its own direct revision/digest equality CAS check, entirely
+    bypassing `ProviderSelectionController`'s own Round 6 `_role_revision`
+    Fallback. So this exact scenario (Judge already Active, then an
+    *unrelated* Main switch alone bumps the shared revision, then the
+    caller tries to reselect Judge using its now-stale-by-Main's-own-
+    mutation snapshot) still hit `REVISION_CONFLICT` even after Finding 4's
+    fix landed for `select()`/`select_active()` -- the exact real-hardware
+    reproduced bug (Main=DeepSeek + Judge=DeepSeek(self) Mode-apply
+    failure) persisting through this one remaining entry point.
+    Delegating to the Controller's public `cas_satisfied()` here closes
+    it."""
+    selections = ProviderSelectionController()
+    _select_judge(selections, SELENE_JUDGE)
+    selene = _FakeAdapter(SELENE_JUDGE)
+    gemma = _FakeAdapter(GEMMA_E2B_JUDGE)
+    manager = RoleProviderLifecycleManager(
+        selections=selections, factory=_Factory({SELENE_JUDGE: selene, GEMMA_E2B_JUDGE: gemma})
+    )
+    manager.activate(role=ModelRole.JUDGE)
+    stale = selections.snapshot()
+
+    # An unrelated MAIN switch alone bumps the shared revision counter
+    # twice (`select()` + `replace_runtime_state()`), never touching
+    # JUDGE's own selection.
+    selections.select(
+        role=ModelRole.MAIN,
+        provider_id=DEEPSEEK_MAIN,
+        expected_revision=stale.revision,
+        expected_digest=stale.digest_sha512,
+    )
+    selections.replace_runtime_state(
+        role=ModelRole.MAIN,
+        configured_provider=DEEPSEEK_MAIN,
+        active_provider=DEEPSEEK_MAIN,
+        state=ProviderRuntimeState.ACTIVE,
+    )
+
+    snapshot = manager.transition_to(
+        role=ModelRole.JUDGE,
+        provider_id=GEMMA_E2B_JUDGE,
+        expected_revision=stale.revision,
+        expected_digest=stale.digest_sha512,
+    )
+    judge = next(item for item in snapshot.selections if item.role is ModelRole.JUDGE)
+    assert judge.configured_provider == GEMMA_E2B_JUDGE
+    assert judge.active_provider == GEMMA_E2B_JUDGE
+    assert gemma.load_calls == 1
+    assert selene.unload_calls == 1
 
 
 def test_none_configured_provider_never_loads_infers_or_falls_back() -> None:
@@ -133,6 +278,7 @@ def test_none_configured_provider_drains_a_stale_active_adapter() -> None:
     reusing the exact same `_FakeAdapter` load/unload-counting fixture
     the rest of this module already relies on."""
     selections = ProviderSelectionController()
+    _select_judge(selections, SELENE_JUDGE)
     selene = _FakeAdapter(SELENE_JUDGE)
     manager = RoleProviderLifecycleManager(
         selections=selections, factory=_Factory({SELENE_JUDGE: selene})
@@ -159,6 +305,7 @@ def test_none_configured_provider_drains_a_stale_active_adapter() -> None:
 
 def test_preflight_failure_is_typed_unavailable_without_load_or_fallback() -> None:
     selections = ProviderSelectionController()
+    _select_judge(selections, SELENE_JUDGE)
     selene = _FakeAdapter(SELENE_JUDGE, preflight_ok=False)
     manager = RoleProviderLifecycleManager(
         selections=selections, factory=_Factory({SELENE_JUDGE: selene})
@@ -173,6 +320,7 @@ def test_preflight_failure_is_typed_unavailable_without_load_or_fallback() -> No
 
 def test_candidate_load_failure_restores_previous_active_adapter() -> None:
     selections = ProviderSelectionController()
+    _select_judge(selections, SELENE_JUDGE)
     selene = _FakeAdapter(SELENE_JUDGE)
     qwen = _FakeAdapter(QWEN_MAIN, fail_load=True)
     manager = RoleProviderLifecycleManager(
@@ -215,6 +363,7 @@ class _PartiallyLoadedAdapter:
 
 def test_candidate_partial_load_failure_cleans_up_and_marks_degraded_if_cleanup_fails() -> None:
     selections = ProviderSelectionController()
+    _select_judge(selections, SELENE_JUDGE)
     selene = _FakeAdapter(SELENE_JUDGE)
     candidate = _PartiallyLoadedAdapter(QWEN_MAIN, fail_unload=True)
     manager = RoleProviderLifecycleManager(
@@ -262,6 +411,7 @@ class _RequiresRepreflightAdapter:
 
 def test_candidate_load_failure_rolls_back_previous_with_repreflight() -> None:
     selections = ProviderSelectionController()
+    _select_judge(selections, SELENE_JUDGE)
     previous = _RequiresRepreflightAdapter(SELENE_JUDGE)
     candidate = _PartiallyLoadedAdapter(QWEN_MAIN, fail_unload=False)
     manager = RoleProviderLifecycleManager(
@@ -287,6 +437,7 @@ def test_candidate_load_failure_rolls_back_previous_with_repreflight() -> None:
 
 def test_none_activation_reports_degraded_when_previous_unload_fails() -> None:
     selections = ProviderSelectionController()
+    _select_judge(selections, SELENE_JUDGE)
     selene = _FakeAdapter(SELENE_JUDGE, fail_unload=True)
     manager = RoleProviderLifecycleManager(
         selections=selections,
@@ -310,6 +461,7 @@ def test_none_activation_reports_degraded_when_previous_unload_fails() -> None:
 
 def test_built_in_activation_reports_degraded_when_previous_unload_fails() -> None:
     selections = ProviderSelectionController()
+    _select_judge(selections, SELENE_JUDGE)
     selene = _FakeAdapter(SELENE_JUDGE, fail_unload=True)
     manager = RoleProviderLifecycleManager(
         selections=selections,
@@ -333,6 +485,7 @@ def test_built_in_activation_reports_degraded_when_previous_unload_fails() -> No
 
 def test_off_deactivation_waits_for_active_turn_then_unloads() -> None:
     selections = ProviderSelectionController()
+    _select_judge(selections, SELENE_JUDGE)
     selene = _FakeAdapter(SELENE_JUDGE)
     manager = RoleProviderLifecycleManager(
         selections=selections, factory=_Factory({SELENE_JUDGE: selene})
@@ -361,6 +514,7 @@ def test_transition_with_previous_unload_failure_is_degraded_not_a_preserved_act
     with an exact Failure Reason, and no later Turn-time reader may still
     reach the untrusted Adapter via `active_adapter()`."""
     selections = ProviderSelectionController()
+    _select_judge(selections, SELENE_JUDGE)
     selene = _FakeAdapter(SELENE_JUDGE, fail_unload=True)
     qwen = _FakeAdapter(QWEN_MAIN)
     manager = RoleProviderLifecycleManager(
@@ -393,6 +547,7 @@ def test_transition_with_previous_unload_failure_is_degraded_not_a_preserved_act
 
 def test_switch_is_rejected_while_role_turn_is_active() -> None:
     selections = ProviderSelectionController()
+    _select_judge(selections, SELENE_JUDGE)
     selene = _FakeAdapter(SELENE_JUDGE)
     manager = RoleProviderLifecycleManager(
         selections=selections, factory=_Factory({SELENE_JUDGE: selene})
@@ -716,6 +871,7 @@ def test_begin_role_turn_pairs_adapter_and_lease_from_one_lock_acquisition() -> 
     and a genuine Lease from a single call — never the pre-R21 two-call
     shape (`active_adapter()` then a separate `begin_turn()`)."""
     selections = ProviderSelectionController()
+    _select_judge(selections, SELENE_JUDGE)
     selene = _FakeAdapter(SELENE_JUDGE)
     manager = RoleProviderLifecycleManager(
         selections=selections, factory=_Factory({SELENE_JUDGE: selene})
@@ -771,6 +927,7 @@ def test_begin_role_turn_blocks_shutdown_from_unloading_until_release() -> None:
     exact ordering a TOCTOU gap between a bare `active_adapter()` read and
     a later, separately-locked `begin_turn()` call could never guarantee."""
     selections = ProviderSelectionController()
+    _select_judge(selections, SELENE_JUDGE)
     selene = _FakeAdapter(SELENE_JUDGE)
     manager = RoleProviderLifecycleManager(
         selections=selections, factory=_Factory({SELENE_JUDGE: selene})
@@ -827,6 +984,7 @@ def test_lease_released_via_finally_after_a_real_call_exception_leaves_zero_leak
     actually Unloaded) immediately afterward; a leaked Lease would leave
     `_active_turns` permanently non-zero and Shutdown permanently `False`."""
     selections = ProviderSelectionController()
+    _select_judge(selections, SELENE_JUDGE)
     selene = _FakeAdapter(SELENE_JUDGE)
     manager = RoleProviderLifecycleManager(
         selections=selections, factory=_Factory({SELENE_JUDGE: selene})
@@ -852,6 +1010,7 @@ def test_multiple_concurrent_role_turns_each_track_their_own_lease_generation() 
     and Shutdown/Unload converge only once every single one has Released,
     never after just the first."""
     selections = ProviderSelectionController()
+    _select_judge(selections, SELENE_JUDGE)
     selene = _FakeAdapter(SELENE_JUDGE)
     manager = RoleProviderLifecycleManager(
         selections=selections, factory=_Factory({SELENE_JUDGE: selene})
@@ -881,6 +1040,7 @@ def test_multiple_concurrent_role_turns_each_track_their_own_lease_generation() 
 
 def test_duplicate_release_never_consumes_another_active_lease() -> None:
     selections = ProviderSelectionController()
+    _select_judge(selections, SELENE_JUDGE)
     selene = _FakeAdapter(SELENE_JUDGE)
     manager = RoleProviderLifecycleManager(
         selections=selections, factory=_Factory({SELENE_JUDGE: selene})
@@ -901,6 +1061,7 @@ def test_duplicate_release_never_consumes_another_active_lease() -> None:
 
 def test_forged_or_provider_mismatched_lease_is_ignored() -> None:
     selections = ProviderSelectionController()
+    _select_judge(selections, SELENE_JUDGE)
     selene = _FakeAdapter(SELENE_JUDGE)
     manager = RoleProviderLifecycleManager(
         selections=selections, factory=_Factory({SELENE_JUDGE: selene})
@@ -944,6 +1105,7 @@ def test_off_inserted_between_frozen_belief_and_lease_acquisition_is_refused() -
     distinguish "correctly refused" from "OFF simply never attempted
     concurrently")."""
     selections = ProviderSelectionController()
+    _select_judge(selections, SELENE_JUDGE)
     selene = _FakeAdapter(SELENE_JUDGE)
     manager = RoleProviderLifecycleManager(
         selections=selections, factory=_Factory({SELENE_JUDGE: selene})
@@ -995,6 +1157,7 @@ def test_begin_role_turn_refuses_a_second_lease_once_drain_has_begun() -> None:
     short-circuit (the Adapter reference is still genuinely present in
     `_active_adapters` throughout Drain)."""
     selections = ProviderSelectionController()
+    _select_judge(selections, SELENE_JUDGE)
     selene = _FakeAdapter(SELENE_JUDGE)
     manager = RoleProviderLifecycleManager(
         selections=selections, factory=_Factory({SELENE_JUDGE: selene})
@@ -1023,6 +1186,7 @@ def test_begin_role_turn_refuses_after_an_immediate_unload_exception() -> None:
     now-untrusted Adapter, converging to `DEGRADED`/`provider_unload_
     failed`."""
     selections = ProviderSelectionController()
+    _select_judge(selections, SELENE_JUDGE)
     selene = _FakeAdapter(SELENE_JUDGE, fail_unload=True)
     manager = RoleProviderLifecycleManager(
         selections=selections, factory=_Factory({SELENE_JUDGE: selene})
@@ -1047,6 +1211,7 @@ def test_end_turn_drain_completion_with_unload_failure_settles_degraded_not_conf
     and a subsequent `begin_role_turn()` on that now-permanently-failed
     Role must refuse."""
     selections = ProviderSelectionController()
+    _select_judge(selections, SELENE_JUDGE)
     selene = _FakeAdapter(SELENE_JUDGE, fail_unload=True)
     manager = RoleProviderLifecycleManager(
         selections=selections, factory=_Factory({SELENE_JUDGE: selene})

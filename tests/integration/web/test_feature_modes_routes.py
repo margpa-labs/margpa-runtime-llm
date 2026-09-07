@@ -279,6 +279,11 @@ async def test_unavailable_selected_judge_rejects_mode_activation_without_fallba
 
 @pytest.mark.asyncio
 async def test_provider_selection_get_exposes_three_roles_options_state_and_budget() -> None:
+    """P9-1 Package 2 (User-mandated Fresh Runtime default change, item 7:
+    "Provider Selection UI/StatusがConfigured/Activeを正確に表示する"): the
+    Fresh Runtime JUDGE `configured_provider` is now Gemma 4 E2B, not
+    Selene -- Selene remains a listed, selectable Option (still asserted
+    below), never removed from the Catalog."""
     app = create_web_app(
         runtime_factory=lambda: lifecycle_runtime(built_in_judge=False),
         access_policy=_LOCAL_POLICY,
@@ -297,9 +302,10 @@ async def test_provider_selection_get_exposes_three_roles_options_state_and_budg
         ("judge", "none"),
         ("judge", "built_in.deterministic"),
         ("judge", "judge.selene-1-mini-llama-3.1-8b-q5-k-m"),
+        ("judge", "judge.gemma-4-e2b-it-q4-0"),
     }
     judge = next(item for item in body["selections"] if item["role"] == "judge")
-    assert judge["configured_provider"] == "judge.selene-1-mini-llama-3.1-8b-q5-k-m"
+    assert judge["configured_provider"] == "judge.gemma-4-e2b-it-q4-0"
     assert judge["active_provider"] is None
     assert judge["state"] == "configured"
     assert judge["independence"] == "independent_other_model"
@@ -407,6 +413,7 @@ async def test_status_projects_a_real_judge_result_including_repair_fields() -> 
             repair_new_turn_id="turn-repaired-1",
             presentation_outcome="repair_accepted",
             candidate_withheld=True,
+            repair_requested_by="main_governance",
         )
     )
 
@@ -432,6 +439,13 @@ async def test_status_projects_a_real_judge_result_including_repair_fields() -> 
     assert result["repair_accepted"] is True
     assert result["repair_new_turn_id"] == "turn-repaired-1"
     assert result["presentation_outcome"] == "repair_accepted"
+    # P9-1 Judge/Governance Rework (WU-03), Round 1 Self-review finding:
+    # `repair_requested_by` must actually reach the Web API contract, not
+    # only the internal `LiveJudgeResult` -- a prior version of this
+    # Rework computed the field but never mapped it into `JudgeLastResult
+    # Response`/`_last_result_response()`, leaving no way for a Status
+    # reader to ever see it.
+    assert result["repair_requested_by"] == "main_governance"
     assert result["candidate_withheld"] is True
 
 

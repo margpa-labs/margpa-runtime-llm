@@ -248,4 +248,107 @@ describe("ProviderSelectionPanel", () => {
       "built_in.deterministic",
     );
   });
+
+  // P9-1 UF-UI-017 (WU-05), Round 1 Self-review finding: `ProviderSelectionPanel`
+  // implements `onJudgeReadinessChanged` (fires only for a genuinely committed
+  // JUDGE-role change) but had zero Test coverage of its own for that behavior
+  // -- unlike `FeatureModesPanel`'s three equivalent Tests. Mirrors that same
+  // three-case shape here: notifies on a real JUDGE commit, never for
+  // main/guard, never on a failed apply.
+
+  test("P9-1 UF-UI-017: a committed JUDGE role change notifies Judge readiness changed", async () => {
+    const statusV2 = withSelection(statusV1, "judge", "built_in.deterministic", 2);
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(statusV1) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(statusV2) });
+    vi.stubGlobal("fetch", fetchMock);
+    const onJudgeReadinessChanged = vi.fn();
+    render(
+      <ProviderSelectionPanel
+        language="en"
+        visible={true}
+        onJudgeReadinessChanged={onJudgeReadinessChanged}
+      />,
+    );
+    await waitFor(() => {
+      expect(document.querySelector("#provider-selection-judge-select")).not.toBeNull();
+    });
+
+    fireEvent.change(document.querySelector("#provider-selection-judge-select") as Element, {
+      target: { value: "built_in.deterministic" },
+    });
+
+    await waitFor(() => {
+      expect(document.querySelector("#provider-selection-revision")?.textContent).toContain("2");
+    });
+    expect(onJudgeReadinessChanged).toHaveBeenCalledTimes(1);
+  });
+
+  test("P9-1 UF-UI-017: a committed MAIN or GUARD role change never notifies Judge readiness changed", async () => {
+    const statusV2 = withSelection(statusV1, "guard", "built_in.rule_pattern", 2);
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(statusV1) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(statusV2) });
+    vi.stubGlobal("fetch", fetchMock);
+    const onJudgeReadinessChanged = vi.fn();
+    render(
+      <ProviderSelectionPanel
+        language="en"
+        visible={true}
+        onJudgeReadinessChanged={onJudgeReadinessChanged}
+      />,
+    );
+    await waitFor(() => {
+      expect(document.querySelector("#provider-selection-guard-select")).not.toBeNull();
+    });
+
+    fireEvent.change(document.querySelector("#provider-selection-guard-select") as Element, {
+      target: { value: "built_in.rule_pattern" },
+    });
+
+    await waitFor(() => {
+      expect(document.querySelector("#provider-selection-revision")?.textContent).toContain("2");
+    });
+    // Main/Guard selections never affect Main Governance's own ENFORCE
+    // readiness (`semantic_enforce_readiness()` depends on Judge Mode/
+    // Provider only) -- must never trigger a Main Governance status refresh.
+    expect(onJudgeReadinessChanged).not.toHaveBeenCalled();
+  });
+
+  test("P9-1 UF-UI-017: a failed JUDGE role change apply never notifies Judge readiness changed", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(statusV1) })
+      .mockResolvedValueOnce({
+        ok: false,
+        json: () =>
+          Promise.resolve({ code: "provider_selection_revision_conflict", message: "conflict" }),
+      })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(statusV1) });
+    vi.stubGlobal("fetch", fetchMock);
+    const onJudgeReadinessChanged = vi.fn();
+    render(
+      <ProviderSelectionPanel
+        language="en"
+        visible={true}
+        onJudgeReadinessChanged={onJudgeReadinessChanged}
+      />,
+    );
+    await waitFor(() => {
+      expect(document.querySelector("#provider-selection-judge-select")).not.toBeNull();
+    });
+
+    fireEvent.change(document.querySelector("#provider-selection-judge-select") as Element, {
+      target: { value: "none" },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/provider_selection_revision_conflict/)).toBeTruthy();
+    });
+    // A failed/rolled-back apply must never trigger a stale-refresh either
+    // -- only a genuine commit does.
+    expect(onJudgeReadinessChanged).not.toHaveBeenCalled();
+  });
 });

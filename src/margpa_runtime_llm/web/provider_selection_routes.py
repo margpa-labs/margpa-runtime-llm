@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from margpa_runtime_llm.modules.evaluation.domain.identifiers import EvaluationMode
 from margpa_runtime_llm.modules.evaluation.domain.stage_budget import (
+    LOCAL_MACOS_GEMMA_E2B_JUDGE_BUDGET,
     LOCAL_MACOS_MAIN_SELF_JUDGE_BUDGET,
     LOCAL_MACOS_QWEN3GUARD_BUDGET,
     LOCAL_MACOS_SELENE_JUDGE_BUDGET,
@@ -17,6 +18,7 @@ from margpa_runtime_llm.modules.evaluation.domain.stage_budget import (
 )
 from margpa_runtime_llm.modules.governance_definitions.domain import GovernanceMode
 from margpa_runtime_llm.modules.runtime_model_control.application import (
+    GEMMA_E2B_JUDGE,
     QWEN3_GUARD,
     SELENE_JUDGE,
     ProviderSelectionController,
@@ -112,6 +114,8 @@ def _runtime(request: Request) -> WebRuntime:
 def _budget_for(selection: RoleProviderSelection) -> StageBudgetProfile | None:
     if selection.configured_provider == SELENE_JUDGE:
         return LOCAL_MACOS_SELENE_JUDGE_BUDGET
+    if selection.configured_provider == GEMMA_E2B_JUDGE:
+        return LOCAL_MACOS_GEMMA_E2B_JUDGE_BUDGET
     if selection.configured_provider == QWEN3_GUARD:
         return LOCAL_MACOS_QWEN3GUARD_BUDGET
     if selection.role is ModelRole.JUDGE and selection.independence is ProviderIndependence.SELF:

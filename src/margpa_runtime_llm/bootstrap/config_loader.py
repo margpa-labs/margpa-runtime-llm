@@ -58,6 +58,7 @@ GENERATION_ENVIRONMENT_FIELDS = {
 
 LOAD_ENVIRONMENT_FIELDS = {
     "MARGPA_CONTEXT_SIZE": "context_size",
+    "MARGPA_MAX_OUTPUT_TOKENS_CEILING": "max_output_tokens_ceiling",
 }
 
 
@@ -91,6 +92,9 @@ class DeploymentLoadOverrides(ImmutableContract):
     gpu_layers: int | None = None
     use_mmap: bool | None = None
     use_mlock: bool | None = None
+    # P9-1 Package 3: mirrors `context_size`'s own override shape for the
+    # new explicit Output Ceiling (`ModelLoadConfig.max_output_tokens_ceiling`).
+    max_output_tokens_ceiling: int | None = Field(default=None, gt=0)
 
 
 class ApplicationLayers(BaseModel):
@@ -124,6 +128,19 @@ class DeploymentProfile(BaseModel):
     backend_runtime: BackendRuntimeDefinition
     runtime_requirements: DeploymentRequirements
     load_overrides: DeploymentLoadOverrides = DeploymentLoadOverrides()
+    # P9-1 Judge Dispatch Fix Round 5: dedicated-Role (Selene/Gemma/Qwen3Guard)
+    # Load overrides, applied on top of the already-resolved Main `load`
+    # (see `resolve_effective_config()`'s `dedicated_role_load`) — never
+    # applied to Main's own Load. Unset fields fall back to Main's own
+    # resolved value unchanged, so a Profile that never sets this section
+    # preserves the pre-Round-5 behavior exactly (dedicated Roles inherit
+    # Main's `load` verbatim). Exists because real-hardware evidence
+    # (2026-09-04 3-angle investigation) confirmed a genuine native
+    # `llama_decode` failure when a dedicated Role Loads at the same large
+    # `context_size` as an already-ACTIVE Main model — this lets a
+    # deployment give dedicated Roles their own, smaller `context_size`
+    # (and any other `ModelLoadConfig` field) independent of Main's.
+    dedicated_role_load_overrides: DeploymentLoadOverrides = DeploymentLoadOverrides()
 
 
 class EffectivePhase1Config(ImmutableContract):
@@ -138,6 +155,7 @@ class EffectivePhase1Config(ImmutableContract):
     runtime_requirements: DeploymentRequirements
     model_root: Path
     load: ModelLoadConfig
+    dedicated_role_load: ModelLoadConfig
     generation: GenerationParameters
     response: ResolvedResponseLanguagePolicy
     presentation: ResolvedThinkingPresentationPolicy
@@ -260,6 +278,9 @@ def resolve_effective_config(
             environment=current_environment,
             explicit_overrides=load_overrides,
         )
+        dedicated_role_load = load.model_copy(
+            update=profile.dedicated_role_load_overrides.model_dump(exclude_none=True)
+        )
         generation = resolve_generation_config(
             application_defaults=application.generation,
             environment=current_environment,
@@ -326,6 +347,7 @@ def resolve_effective_config(
             runtime_requirements=profile.runtime_requirements,
             model_root=resolved_root,
             load=load,
+            dedicated_role_load=dedicated_role_load,
             generation=generation,
             response=response,
             presentation=presentation,

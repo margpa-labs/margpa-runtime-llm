@@ -7,6 +7,9 @@ from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import cast
 
+from margpa_runtime_llm.adapters.experiment.local_filesystem_experiment_store import (
+    LocalFilesystemExperimentStore,
+)
 from margpa_runtime_llm.adapters.guardrail_governance.qwen3guard_detector_adapter import (
     Qwen3GuardRoleTurn,
 )
@@ -60,12 +63,22 @@ from margpa_runtime_llm.modules.documentation_rag.ports import (
 from margpa_runtime_llm.modules.evaluation.application.judge_mode_controller import (
     JudgeModeController,
 )
+from margpa_runtime_llm.modules.evaluation.application.judge_prompt_builder import (
+    JudgePromptCriterion,
+)
 from margpa_runtime_llm.modules.evaluation.domain.identifiers import EvaluationRecommendation
 from margpa_runtime_llm.modules.evaluation.domain.llm_judge import JudgeIndependenceClass
 from margpa_runtime_llm.modules.evaluation.domain.stage_budget import (
     LOCAL_MACOS_MAIN_SELF_JUDGE_BUDGET,
     StageBudgetProfile,
 )
+from margpa_runtime_llm.modules.experiment.application.configuration_lease import (
+    ExperimentConfigurationLease,
+)
+from margpa_runtime_llm.modules.experiment.application.experiment_service import (
+    ExperimentService,
+)
+from margpa_runtime_llm.modules.experiment.application.run_worker import ExperimentRunWorker
 from margpa_runtime_llm.modules.governance_definitions.runtime import (
     GovernanceDefinitionsRuntime,
 )
@@ -73,6 +86,7 @@ from margpa_runtime_llm.modules.inference.application.inference_service import I
 from margpa_runtime_llm.modules.inference.application.model_access_coordinator import (
     ModelAccessCoordinator,
 )
+from margpa_runtime_llm.modules.inference.contracts.generation import StructuredOutputConstraint
 from margpa_runtime_llm.modules.inference.contracts.runtime import ModelRuntimeInfo
 from margpa_runtime_llm.modules.inference.domain.cancellation import CancellationToken
 from margpa_runtime_llm.modules.inference.domain.capabilities import CapabilityFeature
@@ -89,6 +103,7 @@ from margpa_runtime_llm.modules.runtime_composition.contracts import (
     ComponentState,
     build_component_descriptor,
 )
+from margpa_runtime_llm.modules.runtime_governance.application import SemanticRuntimeCoordinator
 from margpa_runtime_llm.modules.runtime_governance.domain import (
     RuntimeCapabilitySnapshot,
     SemanticProviderState,
@@ -122,6 +137,8 @@ from margpa_runtime_llm.web.contracts import (
 
 from .audit_evidence import build_governance_observer
 from .configuration_control import build_configuration_control
+from .experiment_live_configuration import BootstrapLiveConfigurationReader
+from .experiment_production_turn_adapter import LiveProductionTurnAdapter
 from .guardrail_governance import GuardrailGovernanceComposition, build_guardrail_hooks
 from .judge_live_integration import build_judge_completion_hook
 from .phase1_application import Phase1Application, build_phase1_application
@@ -132,9 +149,11 @@ from .recording_live_integration import (
 from .repair_live_integration import RepairExecutionResult, attempt_live_repair
 from .request_correlation_registry import RequestCorrelationRegistry
 from .runtime_governance import (
+    JudgeSemanticTurnProvider,
     RuntimeGovernanceComposition,
     SemanticRuntimeBindingContext,
     build_main_model_governance_hooks,
+    build_neutral_semantic_runtime,
     default_authority,
     load_reference_descriptors,
 )
@@ -285,8 +304,27 @@ def build_phase1_web_runtime(
         governance_pre_hook = None
         governance_post_hook = None
         runtime_governance_composition: RuntimeGovernanceComposition | None = None
-        if runtime_governance_enabled:
-            runtime_governance_capability = RuntimeCapabilitySnapshot(
+        # P9-1 Component Independence Rework (WU-01): the neutral Criteria
+        # Provider Port + shared Turn-freezing boundary (`SemanticRuntime
+        # Coordinator`) is constructed here whenever *either* Main
+        # Governance or the Judge/Repair/Recording feature-mode surface is
+        # enabled -- independent of which one specifically. Main Governance
+        # OFF/absent must not gate Judge's own access to the same ARGD/
+        # DAGD Criteria set or Turn correlation; see `build_neutral_
+        # semantic_runtime()`'s own docstring. Gated on `runtime_governance_
+        # enabled or feature_modes_enabled` (rather than being fully
+        # unconditional) so a Runtime with neither surface enabled at all
+        # never touches `runtime_info.backend_key` for this -- a deployment
+        # shape genuinely exercised by minimal test doubles that do not
+        # populate every `RuntimeCapabilitySnapshot` field. `load_reference_
+        # descriptors` is already a Typed, never-raising, empty-safe Read
+        # (P4-GD-005) -- running it whenever either surface is enabled,
+        # regardless of Main's own enablement specifically, is exactly the
+        # "neutral Port" shape this Rework requires, not a new failure
+        # surface.
+        semantic_runtime_coordinator: SemanticRuntimeCoordinator | None = None
+        if runtime_governance_enabled or feature_modes_enabled:
+            neutral_governance_capability = RuntimeCapabilitySnapshot(
                 model_key=runtime_info.model_key,
                 backend_kind=runtime_info.backend_key,
                 supports_streaming=True,
@@ -295,15 +333,25 @@ def build_phase1_web_runtime(
             )
             loaded_reference_descriptors = load_reference_descriptors(
                 definitions_root=runtime_governance_definitions_root,
-                capability=runtime_governance_capability,
+                capability=neutral_governance_capability,
                 authority=default_authority(),
             )
+            semantic_runtime_coordinator = build_neutral_semantic_runtime(
+                descriptors=loaded_reference_descriptors.descriptors
+            )
+        if runtime_governance_enabled:
+            assert semantic_runtime_coordinator is not None
             runtime_governance_composition = RuntimeGovernanceComposition(
-                capability=runtime_governance_capability,
+                capability=neutral_governance_capability,
                 descriptors=loaded_reference_descriptors.descriptors,
                 descriptor_unavailable_reason_code=loaded_reference_descriptors.reason_code,
                 source_plan_id=loaded_reference_descriptors.source_plan_id,
                 source_plan_digest_sha512=loaded_reference_descriptors.source_plan_digest_sha512,
+                # P9-1 WU-01: the same neutral, always-constructed
+                # Coordinator above -- Main Governance is a peer consumer
+                # of it (via `begin_semantic_turn()`/`record_semantic_
+                # response()` below, unchanged), never its sole owner.
+                semantic_runtime=semantic_runtime_coordinator,
             )
             governance_observer = build_governance_observer(
                 project_root=project_root,
@@ -413,9 +461,37 @@ def build_phase1_web_runtime(
         # this point). The Factory only ever reads this box at real
         # Activation time, never during bootstrap itself.
         role_provider_runtime_model_control_ref: list[RuntimeModelController | None] = [None]
+        # P9-1 Package 2 OF-P2-003: one shared read-only Registry instance
+        # for both the dedicated-Role Factory and the new memory Resource
+        # Gate below, so both see the identical Artifact size_bytes for
+        # every model_key (a fresh second instance pointed at the same
+        # registry_dir would behave identically, but sharing one avoids
+        # any doubt about that and matches "one Registry, many readers"
+        # elsewhere in this same composition root).
+        dedicated_model_definitions = DirectoryModelDefinitionRegistry(
+            registry_dir=project_root / DEFAULT_MODEL_REGISTRY_DIR
+        )
         role_provider_lifecycle = (
             RoleProviderLifecycleManager(
                 selections=provider_selection_control,
+                # P9-1 SSS Recovery (Targeted Repair): `SystemMemoryRoleResourceGate`
+                # (added for P9-1 Package 2 OF-P2-003, targeting 2026-09-01's real
+                # Main+Selene concurrent-Load Incident) is intentionally NOT wired
+                # here. Its `required = candidate + active_main + 3 GiB` estimate
+                # denied ordinary Main+Gemma/Main+Qwen3Guard activation outright,
+                # breaking previously-Accepted Capability (see the P9-1 SSS
+                # Incident record under docs/project/shared/history/
+                # ai_system_anomalies/claude_code/, dated 20260903001814).
+                # `resource_gate` left unset falls back to this Manager's own
+                # constructor default (`AllowAllRoleResourceGate`), the
+                # Pre-Package-2 baseline. `memory_resource_gate.py` itself is kept
+                # as Incident Evidence, deliberately unused here — see that
+                # module's own docstring for the refusal contract this
+                # intentionally does not enforce. The Main+Selene concurrent-Load
+                # Incident this was meant to prevent remains unresolved; Selene
+                # concurrent-Load risk is an explicit unmitigated Operational
+                # Constraint, not something this repair claims to have fixed.
+                #
                 # Selene/Qwen3Guard are real, but Fail-closed without a
                 # separately human-granted Exact Model Authority Receipt
                 # (Base Exact Handoff §8.1). `dedicated_model_authority_
@@ -431,11 +507,17 @@ def build_phase1_web_runtime(
                 # routed to Main's own already-loaded runtime instead of a
                 # second concurrent Load, unaffected by this flag.
                 factory=ProductionRoleAdapterFactory(
-                    definitions=DirectoryModelDefinitionRegistry(
-                        registry_dir=project_root / DEFAULT_MODEL_REGISTRY_DIR
-                    ),
+                    definitions=dedicated_model_definitions,
                     model_root=application.config.model_root,
-                    load_config=application.config.load,
+                    # P9-1 Judge Dispatch Fix Round 5: dedicated Roles use
+                    # their own `dedicated_role_load` (defaults to Main's
+                    # own `load` verbatim unless a Profile overrides it —
+                    # see `config_loader.py`), never Main's `load` directly.
+                    # Real-hardware evidence confirmed a genuine native
+                    # `llama_decode` failure when a dedicated Role Loads at
+                    # the same large `context_size` as an already-ACTIVE
+                    # Main model.
+                    load_config=application.config.dedicated_role_load,
                     runtime_model_control_ref=role_provider_runtime_model_control_ref,
                     dedicated_model_authority_granted=dedicated_model_authority_granted,
                     selene_prompt_manifest_path=(
@@ -448,6 +530,15 @@ def build_phase1_web_runtime(
                     qwen3guard_contract_manifest_path=(
                         project_root / "config/guardrail/qwen3guard/manifest.json"
                     ),
+                    # P9-1 Package 2: the Package 1 lightweight independent
+                    # Judge candidate (Gemma 4 E2B) — checked-in Project-
+                    # derived Prompt Contract, same provenance shape as
+                    # Selene's own (no official Judge prompt template is
+                    # published for this model; see the manifest's own
+                    # `retrieval_status`).
+                    gemma_e2b_prompt_manifest_path=(
+                        project_root / "config/judge_templates/gemma_4_e2b/manifest.json"
+                    ),
                     tracked_stage_registry=tracked_stage_registry,
                 ),
             )
@@ -456,44 +547,94 @@ def build_phase1_web_runtime(
         )
         role_provider_lifecycle_ref[0] = role_provider_lifecycle
 
-        if runtime_governance_composition is not None:
-
-            def _semantic_runtime_context() -> SemanticRuntimeBindingContext:
-                judge_mode = (
-                    judge_mode_control.mode_snapshot().current_mode.value
-                    if judge_mode_control is not None
-                    else "off"
-                )
-                repair_mode = (
-                    repair_mode_control.mode_snapshot().current_mode.value
-                    if repair_mode_control is not None
-                    else "off"
-                )
-                if provider_selection_control is None:
-                    return SemanticRuntimeBindingContext(
-                        language=application.config.response.language.value,
-                        judge_mode=judge_mode,
-                        repair_mode=repair_mode,
-                    )
-                judge = provider_selection_control.selection_for(ModelRole.JUDGE)
-                provider_state = (
-                    SemanticProviderState.ACTIVE
-                    if judge.state is ProviderRuntimeState.ACTIVE
-                    else SemanticProviderState.NONE
-                    if judge.state is ProviderRuntimeState.NONE
-                    else SemanticProviderState.FAILED
-                    if judge.state is ProviderRuntimeState.FAILED
-                    else SemanticProviderState.UNAVAILABLE
-                )
+        # P9-1 Component Independence Rework (WU-01): `_semantic_runtime_
+        # context()` reads only Judge/Repair/Provider-Selection-owned live
+        # state (`judge_mode_control`/`repair_mode_control`/`provider_
+        # selection_control`/the Response Language) -- none of it is Main-
+        # owned, so this closure is built unconditionally now (previously
+        # gated on `runtime_governance_composition is not None`, which
+        # silently made Judge's own Criterion-Freeze Context available
+        # only when Main Governance happened to be enabled). Main
+        # Governance, when present, still registers as a *consumer* of
+        # this same closure below via `set_semantic_context_provider()`
+        # (unchanged) -- it does not own it.
+        def _semantic_runtime_context() -> SemanticRuntimeBindingContext:
+            judge_mode = (
+                judge_mode_control.mode_snapshot().current_mode.value
+                if judge_mode_control is not None
+                else "off"
+            )
+            repair_mode = (
+                repair_mode_control.mode_snapshot().current_mode.value
+                if repair_mode_control is not None
+                else "off"
+            )
+            if provider_selection_control is None:
                 return SemanticRuntimeBindingContext(
                     language=application.config.response.language.value,
                     judge_mode=judge_mode,
                     repair_mode=repair_mode,
-                    configured_provider=judge.configured_provider,
-                    active_provider=judge.active_provider,
-                    provider_state=provider_state,
                 )
+            judge = provider_selection_control.selection_for(ModelRole.JUDGE)
+            provider_state = (
+                SemanticProviderState.ACTIVE
+                if judge.state is ProviderRuntimeState.ACTIVE
+                else SemanticProviderState.NONE
+                if judge.state is ProviderRuntimeState.NONE
+                else SemanticProviderState.FAILED
+                if judge.state is ProviderRuntimeState.FAILED
+                else SemanticProviderState.UNAVAILABLE
+            )
+            return SemanticRuntimeBindingContext(
+                language=application.config.response.language.value,
+                judge_mode=judge_mode,
+                repair_mode=repair_mode,
+                configured_provider=judge.configured_provider,
+                active_provider=judge.active_provider,
+                provider_state=provider_state,
+            )
 
+        def _current_main_mode() -> str:
+            """P9-1 WU-01: the real, live Main Governance mode when a
+            Composition exists (`"off"` included -- a truthful live read,
+            never assumed); the distinct sentinel `"absent"` when Main
+            Governance is not even configured for this Runtime at all
+            (`runtime_governance_enabled=False`). Both are `!= "enforce"`,
+            so `resolve_semantic_action()` (`semantic_runtime.py`) treats
+            them identically for Main Evidence/Action purposes -- OFF and
+            absent both yield zero Main Action -- while keeping the
+            recorded `frozen_main_mode` on the Snapshot/Evidence honest
+            about *which* of the two was actually true for this Turn."""
+            if runtime_governance_composition is None:
+                return "absent"
+            try:
+                return runtime_governance_composition.mode_controller.current_mode_value()
+            except Exception:
+                return "absent"
+
+        # P9-1 Component Independence Rework (WU-01): `JudgeSemanticTurn
+        # Provider` is the neutral "begin-or-get" boundary the Judge
+        # Completion Hook dispatches through -- never a read-only reach
+        # into Main Governance's own state (`runtime_governance_
+        # composition.semantic_runtime.snapshot_for()`, the pre-Rework
+        # shape that made Judge's own Turn access silently depend on Main
+        # having already frozen one). `None` only when `semantic_runtime_
+        # coordinator` itself was never constructed (neither Main
+        # Governance nor the feature-mode surface enabled) -- `judge_
+        # completion_hook` is never built in that shape either (gated on
+        # `judge_mode_control is not None` below), so this is never
+        # actually invoked there.
+        semantic_snapshot_for_judge = (
+            JudgeSemanticTurnProvider(
+                coordinator=semantic_runtime_coordinator,
+                context_provider=_semantic_runtime_context,
+                main_mode_provider=_current_main_mode,
+            )
+            if semantic_runtime_coordinator is not None
+            else None
+        )
+
+        if runtime_governance_composition is not None:
             runtime_governance_composition.set_semantic_context_provider(_semantic_runtime_context)
             runtime_governance_composition.mode_controller.set_semantic_enforce_gate(
                 runtime_governance_composition.semantic_enforce_readiness
@@ -559,6 +700,44 @@ def build_phase1_web_runtime(
                     writer=evidence_writer,
                 )
             )
+
+        # Phase 9-2 WU-A/E: the Minimal Experiment screen's own Restart-
+        # readable Persistence -- gated only on the same Persistent
+        # Conversation root/scope every other `runtime_data/persistent/
+        # <scope>/...` sink already requires, independent of whether
+        # Recording Mode Control itself happens to be wired (Experiment
+        # Runs are their own, orthogonal Evidence kind, never gated by an
+        # unrelated Component's own enablement). Absent entirely (`None`)
+        # for Ephemeral-only chat, exactly like every other Optional
+        # `WebRuntime` field above.
+        experiment_service = None
+        experiment_run_worker = None
+        if (
+            conversation_persistence_settings is not None
+            and conversation_persistence_settings.scope_id is not None
+            and conversation_persistence_settings.runtime_data_root is not None
+        ):
+            experiment_scope_dir = (
+                conversation_persistence_settings.runtime_data_root
+                / "persistent"
+                / scope_directory_key(conversation_persistence_settings.scope_id)
+                / "experiments"
+            )
+            experiment_service = ExperimentService(
+                store=LocalFilesystemExperimentStore(base_dir=experiment_scope_dir)
+            )
+            # R2-WU-04 (IR-P9-2-R1-06 fix): reconciled BEFORE this fresh
+            # `ExperimentRunWorker` ever accepts a new Run -- any Run a
+            # PREVIOUS process left `planned`/`running` on disk has no
+            # Task backing it in this process and would otherwise show
+            # `running` forever. See `ExperimentService.
+            # reconcile_orphaned_running_runs()`'s own docstring.
+            experiment_service.reconcile_orphaned_running_runs()
+            # R1-WU-05: constructed together with `experiment_service` --
+            # a Worker with nothing to publish results through would be
+            # useless, and `experiment_service is None` already degrades
+            # every `/api/v7/experiment` route to disabled.
+            experiment_run_worker = ExperimentRunWorker()
 
         model_access_coordinator = ModelAccessCoordinator()
 
@@ -628,6 +807,12 @@ def build_phase1_web_runtime(
             rejudge_model_key: str | None = None,
             rejudge_role: JudgeIndependenceClass = JudgeIndependenceClass.MAIN_SELF,
             language: str = "en",
+            rejudge_criteria: tuple[JudgePromptCriterion, ...] = (),
+            tracked_stage_registry: TrackedStageWorkerRegistry | None = None,
+            rejudge_structured_output_schema_factory: (
+                Callable[[tuple[str, ...]], StructuredOutputConstraint] | None
+            ) = None,
+            rejudge_sampling_overrides: Mapping[str, object] | None = None,
         ) -> RepairExecutionResult | None:
             bound_persistent = persistent_ref[0]
             # P6-CODEX-025 (Fourth Rework): `model_key`/`model_runtime_info`
@@ -656,6 +841,20 @@ def build_phase1_web_runtime(
                 stage_hook=stage_hook,
                 persist_accepted_attempt=persist_accepted_attempt,
                 language=language,
+                # Controller Review IR-02 fix: the caller's own Frozen
+                # Criterion set for this Turn, carried through unchanged --
+                # see `attempt_live_repair()`'s own `rejudge_criteria`
+                # docstring.
+                rejudge_criteria=rejudge_criteria,
+                # Controller Review (2026-09-05 00:35, IR-R4-01) fix: the
+                # same Registry the Hook's own Prompt Build/Decode Stages
+                # already share -- see `build_judge_completion_hook()`'s
+                # own `tracked_stage_registry=` wiring above.
+                tracked_stage_registry=tracked_stage_registry,
+                rejudge_structured_output_schema_factory=(
+                    rejudge_structured_output_schema_factory
+                ),
+                rejudge_sampling_overrides=rejudge_sampling_overrides,
             )
 
         judge_completion_hook = None
@@ -671,15 +870,14 @@ def build_phase1_web_runtime(
                 guardrail_post_hook=guardrail_post_hook,
                 repair_executor=_repair_executor,
                 judge_evidence_recorder=judge_evidence_recorder,
-                semantic_snapshot_provider=(
-                    lambda request_id: (
-                        runtime_governance_composition.semantic_runtime.snapshot_for(
-                            request_id=request_id
-                        )
-                        if runtime_governance_composition is not None
-                        else None
-                    )
-                ),
+                # P9-1 Component Independence Rework (WU-01): the neutral
+                # "begin-or-get" boundary, never a read-only reach into
+                # Main Governance's own state -- see `JudgeSemanticTurn
+                # Provider`'s own docstring. Wired whenever the shared
+                # neutral Coordinator exists (Judge's Criterion-Freeze
+                # access no longer depends on `runtime_governance_
+                # composition is not None` at all).
+                semantic_snapshot_provider=semantic_snapshot_for_judge,
                 semantic_result_recorder=(
                     (
                         lambda response: runtime_governance_composition.record_semantic_response(
@@ -843,6 +1041,17 @@ def build_phase1_web_runtime(
                 if request_correlation_registry is not None
                 else None
             ),
+            # R2-WU-01 (Controller Review IR-CI-01): freezes the Evaluation
+            # Turn Context here, at Conversation `start()` -- the identical
+            # Attempt boundary `judge_mode_snapshot_provider`/`runtime_
+            # snapshot_provider` already use -- instead of leaving the
+            # first `JudgeSemanticTurnProvider` call (from inside the Judge
+            # Completion Hook, after generation) as the de-facto first
+            # Freeze point. Reusing the same `semantic_snapshot_for_judge`
+            # instance means the Judge Hook's own later call is now always
+            # a peer read of this identical Snapshot, never a second,
+            # later-timed `begin()`.
+            semantic_turn_begin_hook=semantic_snapshot_for_judge,
         )
         persistent = None
         conversation_storage_backend: str | None = None
@@ -987,6 +1196,45 @@ def build_phase1_web_runtime(
                 return
             application.close()
 
+        # Phase 9-2 R1-WU-03: wraps this SAME live `conversation`/
+        # `judge_governance_composition`/`guardrail_governance_composition`
+        # -- never a second, separately-loaded set of Model backends (see
+        # `experiment_production_turn_adapter.py`'s own module docstring
+        # for the Config-Isolation reasoning). Always constructed
+        # (independent of whether `experiment_service` itself is wired) —
+        # absence of the Experiment screen's Persistence does not need to
+        # imply absence of the Production Adapter Port.
+        production_turn_adapter = LiveProductionTurnAdapter(
+            conversation=conversation,
+            response_language=snapshot.defaults.response_language,
+            max_new_tokens=snapshot.defaults.max_new_tokens,
+            thinking_visibility=snapshot.defaults.thinking_visibility,
+            judge_governance_composition=judge_governance_composition,
+            guardrail_governance_composition=guardrail_governance_composition,
+        )
+        # Phase 9-2 R2-WU-01: reads the SAME six live Controllers this
+        # function already built for ordinary Chat -- never a second,
+        # separately-configured set. See `experiment_live_configuration.
+        # py`'s own module docstring for why 3 of the 9 ComponentKey
+        # slots (definition_set/rag/presentation) have no live Controller
+        # to read at all this Round.
+        live_configuration_reader = BootstrapLiveConfigurationReader(
+            runtime_model_control=runtime_model_control,
+            provider_selection_control=provider_selection_control,
+            judge_mode_control=judge_mode_control,
+            guardrail_governance_composition=guardrail_governance_composition,
+            runtime_governance_composition=runtime_governance_composition,
+            repair_mode_control=repair_mode_control,
+            recording_mode_control=recording_mode_control,
+        )
+        # Phase 9-2 R3-WU-01 (Handoff R3 SS4.2 Option A): always
+        # constructed, like `production_turn_adapter`/`live_configuration_
+        # reader` above -- a plain, inert, process-local mutex until an
+        # in-flight Production Run's own `ExperimentRunWorker._task()`
+        # ever calls `acquire()`. Never touches any of the Controllers
+        # already built above.
+        experiment_configuration_lease = ExperimentConfigurationLease()
+
         return WebRuntime(
             conversation=conversation,
             snapshot=snapshot,
@@ -1014,6 +1262,11 @@ def build_phase1_web_runtime(
             constitution_provider=constitution_provider,
             constitution_mode=constitution_mode,
             dev_agent_run_service=dev_agent_run_service,
+            experiment_service=experiment_service,
+            production_turn_adapter=production_turn_adapter,
+            experiment_run_worker=experiment_run_worker,
+            live_configuration_reader=live_configuration_reader,
+            experiment_configuration_lease=experiment_configuration_lease,
         )
     except BaseException:
         if application is not None:

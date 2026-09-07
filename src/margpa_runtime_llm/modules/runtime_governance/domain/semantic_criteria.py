@@ -47,6 +47,13 @@ class SemanticDeferredReason(StrEnum):
     BUDGET_EXHAUSTED = "budget_exhausted"
     UNSUPPORTED_MAPPING = "unsupported_mapping"
     MALFORMED_RESULT = "malformed_result"
+    # R3-WU-01 (Controller Review IR-R2-01 residual): the Dedicated Adapter
+    # resolved at Judge Completion time reported a different `provider_id`
+    # than this Turn's own Active Provider, already frozen at Turn start --
+    # a live Provider switch landing between the two moments, never a
+    # silent dispatch against a Provider this Turn's own Snapshot/Evidence
+    # does not actually name.
+    PROVIDER_IDENTITY_MISMATCH = "provider_identity_mismatch"
 
 
 class SemanticCriterion(ImmutableContract):

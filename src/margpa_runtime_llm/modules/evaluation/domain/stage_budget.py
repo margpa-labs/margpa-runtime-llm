@@ -92,6 +92,22 @@ LOCAL_MACOS_SELENE_JUDGE_BUDGET = LOCAL_MACOS_MAIN_SELF_JUDGE_BUDGET.model_copy(
     }
 )
 
+# P9-1 Package 2: dedicated profile for the Package 1 lightweight
+# independent Judge candidate (Gemma 4 E2B) — an explicit, intentional
+# choice rather than the `resolve_local_macos_judge_budget()` fallthrough
+# a still-unmatched `provider_id` would otherwise silently receive (Package
+# 1 Return §8's "Exact First Action" note). Copies Selene's own timing
+# shape for now (both are dedicated `llama_cpp` GGUF loads on the same
+# hardware profile); real-hardware Load/Inference timing is unverified for
+# Gemma specifically until a real Load is exercised (`verification_state`
+# unchanged from the inherited `configured_not_hardware_verified`).
+LOCAL_MACOS_GEMMA_E2B_JUDGE_BUDGET = LOCAL_MACOS_MAIN_SELF_JUDGE_BUDGET.model_copy(
+    update={
+        "profile_id": "local_macos_gemma_e2b_judge_v1",
+        "provider_id": "judge.gemma-4-e2b-it-q4-0",
+    }
+)
+
 LOCAL_MACOS_BUILT_IN_JUDGE_BUDGET = StageBudgetProfile(
     profile_id="local_macos_built_in_judge_v1",
     role="judge",
@@ -113,6 +129,8 @@ def resolve_local_macos_judge_budget(provider_id: str | None) -> StageBudgetProf
         return LOCAL_MACOS_BUILT_IN_JUDGE_BUDGET
     if provider_id == LOCAL_MACOS_SELENE_JUDGE_BUDGET.provider_id:
         return LOCAL_MACOS_SELENE_JUDGE_BUDGET
+    if provider_id == LOCAL_MACOS_GEMMA_E2B_JUDGE_BUDGET.provider_id:
+        return LOCAL_MACOS_GEMMA_E2B_JUDGE_BUDGET
     return LOCAL_MACOS_MAIN_SELF_JUDGE_BUDGET
 
 

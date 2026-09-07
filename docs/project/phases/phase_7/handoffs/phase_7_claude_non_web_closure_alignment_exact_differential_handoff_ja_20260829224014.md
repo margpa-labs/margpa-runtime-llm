@@ -91,7 +91,7 @@ SHA-512:
 
 7. Current Unresolved Registry
 
-`/Users/yukitakagi/Documents/pseudo_root/99_ps_Main_Creating_Objects専用_20260219/MARGPA-RUNTIME-LLM/margpa-runtime-llm/docs/project/shared/未解決/current_unresolved_findings_registry_ja.md`
+`/Users/yukitakagi/Documents/pseudo_root/99_ps_Main_Creating_Objects専用_20260219/MARGPA-RUNTIME-LLM/margpa-runtime-llm/docs/project/shared/unresolved_work/current_unresolved_findings_registry_ja.md`
 
 SHA-512:
 `923b84ec5519966953fcee80f56e1a8c5e84e5ee1cce603fa256370156e22a4b937146e9db137d1a0aaf4bf1953b4e6d525f914f786d3961d79480a6f6749fd0`

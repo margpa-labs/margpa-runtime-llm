@@ -395,8 +395,10 @@ def test_context_limit_is_rejected_before_native_adapter_construction(
     # context limit for this scenario to exercise the oversized-context path.
     profile_path = tmp_path / "oversized-context-profile.toml"
     profile_path.write_text(
+        # P9-1 Package 3: the real Profile's own context_size is now 16384
+        # (raised from 8192, real-machine-verified for Main and Main+Gemma).
         PROFILE_PATH.read_text(encoding="utf-8").replace(
-            "context_size = 8192",
+            "context_size = 16384",
             "context_size = 50000",
             1,
         ),

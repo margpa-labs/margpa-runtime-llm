@@ -3,7 +3,7 @@ and Readable-Text normalization for Manual URL Evidence.
 
 Deliberately NOT a general-purpose HTML parser/Readability engine (that
 full Extractor/Normalizer/Chunking pipeline is Phase 11+ scope — see
-`docs/project/shared/未解決/current_unresolved_findings_registry_ja.md`
+`docs/project/shared/unresolved/current_unresolved_findings_registry_ja.md`
 UF-P8-006). This module does exactly two small, honest things with pure
 stdlib `re`/`html`:
 

@@ -25,6 +25,7 @@ from __future__ import annotations
 import json
 import logging
 import threading
+from collections import OrderedDict
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -53,6 +54,9 @@ from margpa_runtime_llm.modules.audit_evidence.domain import (
 )
 from margpa_runtime_llm.modules.audit_evidence.governance_observation import (
     GovernanceObserverPort,
+)
+from margpa_runtime_llm.modules.conversation.application.conversation_generation import (
+    JudgeExecutionModeSnapshot,
 )
 from margpa_runtime_llm.modules.governance_definitions.domain import (
     CompilerInput,
@@ -109,6 +113,12 @@ from margpa_runtime_llm.modules.runtime_governance.ports import ActionAdapterPor
 logger = logging.getLogger(__name__)
 
 _ARGD_DAGD_SOURCE_ID = "argd_v0.3.1_en_dagd_v0.4.4_en"
+_MAX_TRACKED_FREEZE_FAILURES = 128
+"""Mirrors `SemanticRuntimeCoordinator._MAX_TRACKED_TURNS`'s own bound
+rationale (R4-WU-01): most Turns never fail this Freeze at all, so this is
+expected to stay far under this cap in practice -- FIFO eviction (oldest
+`request_id` first) applies only in a pathological run of many consecutive
+failures."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -266,6 +276,167 @@ def load_reference_descriptors(
     )
 
 
+def build_neutral_semantic_runtime(
+    *, descriptors: tuple[ExecutionDescriptor, ...]
+) -> SemanticRuntimeCoordinator:
+    """P9-1 Component Independence Rework (WU-01): the neutral, Main-
+    independent Criteria Provider Port + Turn-freezing boundary a
+    Composition Root constructs *before*, and independently of, whether
+    `RuntimeGovernanceComposition` itself is even built (Main Governance
+    OFF/absent must not gate Judge's own access to the same 109 ARGD/DAGD
+    Criteria set).
+
+    `descriptors` comes from the same `load_reference_descriptors()` read
+    the Composition Root already performs on its own -- this function only
+    extracts the resulting Criteria (via `compile_argd_dagd_semantic_
+    criteria()`) into a shared `SemanticRuntimeCoordinator`, the single
+    process-local Turn store both Main Governance (when active) and the
+    Judge Completion Hook (always) call into as peers. Neither owns the
+    other: whichever of the two first calls `begin()` for a given
+    `request_id` freezes that Turn's Context; the other only ever reads it
+    back via `snapshot_for()`. An empty `descriptors` tuple (no Reference
+    Bundle, or Main Governance never configured) yields a Coordinator with
+    zero Criteria -- Judge still gets a valid, correlated Turn Snapshot,
+    it just carries no Criteria to evaluate, converging to its own
+    general-quality path rather than silently requiring Main to be turned
+    on to get *any* Snapshot at all."""
+
+    return SemanticRuntimeCoordinator(
+        criteria=compile_argd_dagd_semantic_criteria(descriptors).criteria
+    )
+
+
+class JudgeSemanticTurnProvider:
+    """P9-1 Component Independence Rework (WU-01): the neutral "begin-or-
+    get" Turn Snapshot provider a Composition Root hands to
+    `build_judge_completion_hook()`'s `semantic_snapshot_provider`
+    parameter -- never a read-only reach into `RuntimeGovernanceComposition`
+    (Main Governance's own object, which may not even exist). Depends only
+    on a shared `SemanticRuntimeCoordinator` (see `build_neutral_semantic_
+    runtime()`) plus two small explicit accessors, so it is constructible
+    and directly Unit-testable with zero Main Governance object at all --
+    the exact shape this Rework's own "全81組合せへ重い実Modelを回さない"
+    requirement calls for (Fixture-level Parameterize, no real Model).
+
+    Whichever of Main Governance's own PRE hook (`RuntimeGovernanceComposition
+    .begin_semantic_turn()`, only ever called when Main's own mode is not
+    `off`) or this provider's own `__call__` runs first for a given
+    `request_id` performs the actual `SemanticRuntimeCoordinator.begin()`;
+    the other only ever reads the identical Snapshot back via
+    `snapshot_for()` -- both consume the same Turn Result by construction,
+    neither owns the other (this Rework's top-level invariant).
+
+    R3-WU-01 (Controller Review IR-R2-01): `judge_modes`, when supplied,
+    carries the exact SAME `JudgeExecutionModeSnapshot` `Conversation
+    GenerationService.start()` already resolved (once, via its own
+    `_resolve_judge_modes()`) for this identical Turn -- its `judge_mode`/
+    `repair_mode` are used here VERBATIM instead of a second, independent
+    live read of the same underlying Mode state from `context_provider()`.
+    Before this fix, `start()` resolved Judge/Repair/Recording Mode once
+    for its own `JudgeCompletionContext`, then this call performed an
+    entirely separate live read of Judge/Repair Mode (via `context_
+    provider()`) for the Semantic Turn Snapshot -- two reads of the same
+    live state at two slightly different instants that a live Mode change
+    landing between them could make disagree (a real Controller Probe
+    reproduced exactly this). `judge_modes=None` (every caller that
+    predates this Rework, and Main Governance's own `begin_semantic_turn()`
+    peer path, which never resolves a `JudgeExecutionModeSnapshot` at all)
+    falls back to `context_provider()`'s own judge_mode/repair_mode
+    unchanged.
+
+    Also fixes the "delayed lazy Freeze" this Rework's Controller Review
+    separately confirmed: a Turn-start Freeze attempt that raises (any
+    exception from `context_provider()`/`main_mode_provider()`/`coordinator
+    .begin()`) is recorded as failed for that exact `request_id` -- a LATER
+    call for the SAME `request_id` (from the Judge Completion Hook, running
+    after this Turn's own generation has already completed, with
+    potentially long-since-diverged Live values) never retries the read; it
+    returns `None` outright (Main Chat itself is never blocked by this --
+    the failing call is always wrapped in a swallow-and-continue by its own
+    caller, see `ConversationGenerationService.start()`'s own
+    `semantic_turn_begin_hook` invocation -- and Judge converges to a Typed
+    Unavailable/Deferred outcome for this Turn instead of dispatching a real
+    Model Call against stale-or-fresh-but-untrustworthy Live values).
+
+    R4-WU-01 (Controller Review IR-R3-01): the failed-Freeze memory above is
+    now request-local (a bounded `request_id` set, mirroring
+    `SemanticRuntimeCoordinator`'s own request-local Ledger), never a single
+    shared slot -- a single slot let a LATER, unrelated `request_id`'s own
+    `begin()` attempt (successful or not) silently erase an EARLIER
+    `request_id`'s already-recorded failure, making that earlier Turn
+    wrongly eligible for a fresh retry the next time it was read back (a
+    real Controller Probe reproduced exactly this: a failed Freeze for "A",
+    followed by "B" succeeding, then re-reading "A" performed a brand-new
+    Freeze attempt against current Live values instead of staying at Model
+    Call 0)."""
+
+    def __init__(
+        self,
+        *,
+        coordinator: SemanticRuntimeCoordinator,
+        context_provider: Callable[[], SemanticRuntimeBindingContext],
+        main_mode_provider: Callable[[], str],
+    ) -> None:
+        self._coordinator = coordinator
+        self._context_provider = context_provider
+        self._main_mode_provider = main_mode_provider
+        self._lock = threading.Lock()
+        # R4-WU-01: request-local Freeze-failure memory (bounded, FIFO
+        # eviction of the oldest entry past `_MAX_TRACKED_FREEZE_FAILURES`)
+        # -- replaces the single `_begin_attempted_request_id`/`_begin_
+        # failed` slot a different `request_id`'s own attempt used to
+        # silently overwrite.
+        self._failed_request_ids: OrderedDict[str, None] = OrderedDict()
+
+    def __call__(
+        self,
+        request_id: str,
+        judge_modes: JudgeExecutionModeSnapshot | None = None,
+    ) -> SemanticTurnSnapshot | None:
+        existing = self._coordinator.snapshot_for(request_id=request_id)
+        if existing is not None:
+            return existing
+        with self._lock:
+            already_failed = request_id in self._failed_request_ids
+        if already_failed:
+            # R4-WU-01 / R3-WU-01: a prior Turn-start Freeze attempt for
+            # this exact `request_id` already failed -- never retry with
+            # fresh Live values from a later (possibly post-generation)
+            # call. Model Call 0 for this Turn's Semantic path; Judge
+            # converges to Typed Unavailable/Deferred via its own existing
+            # `semantic_snapshot is None` handling.
+            return None
+        try:
+            context = self._context_provider()
+            main_mode = self._main_mode_provider()
+            snapshot = self._coordinator.begin(
+                request_id=request_id,
+                language=context.language,
+                main_mode=main_mode,
+                judge_mode=(
+                    judge_modes.judge_mode if judge_modes is not None else context.judge_mode
+                ),
+                repair_mode=(
+                    (judge_modes.repair_mode or "off")
+                    if judge_modes is not None
+                    else context.repair_mode
+                ),
+                configured_provider=context.configured_provider,
+                active_provider=context.active_provider,
+                provider_state=context.provider_state,
+                budget_profile=context.budget_profile,
+                max_criteria=context.max_criteria,
+            )
+        except Exception:
+            with self._lock:
+                self._failed_request_ids[request_id] = None
+                self._failed_request_ids.move_to_end(request_id)
+                while len(self._failed_request_ids) > _MAX_TRACKED_FREEZE_FAILURES:
+                    self._failed_request_ids.popitem(last=False)
+            raise
+        return snapshot
+
+
 def _default_registry_entries() -> dict[str, ActionRegistryEntry]:
     # Phase 4 MVP registers only the two Actions a real Caller inspects
     # and acts on (P4-CODEX-006 Rework) — `constrain_generation_config`
@@ -315,13 +486,30 @@ class RuntimeGovernanceComposition:
         descriptor_unavailable_reason_code: str | None = None,
         source_plan_id: str | None = None,
         source_plan_digest_sha512: str | None = None,
+        semantic_runtime: SemanticRuntimeCoordinator | None = None,
     ) -> None:
         self.capability = capability
         self._capability_lock = threading.Lock()
         self.descriptors = descriptors
         self.semantic_compile_result = compile_argd_dagd_semantic_criteria(descriptors)
-        self.semantic_runtime = SemanticRuntimeCoordinator(
-            criteria=self.semantic_compile_result.criteria
+        # P9-1 Component Independence Rework (WU-01): `semantic_runtime` is
+        # now an *injected* neutral collaborator (see `build_neutral_
+        # semantic_runtime()`), never a private instance only this
+        # Composition can reach. A Composition Root constructs the shared
+        # Coordinator first (independently of whether this Composition
+        # itself exists at all) and hands it to both this Composition and
+        # the Judge Completion Hook as peers. `None` here (every existing
+        # direct-construction caller/test that predates this Rework) falls
+        # back to the pre-Rework private-instance shape unchanged -- this
+        # class's own `begin_semantic_turn()`/`record_semantic_response()`/
+        # `record_semantic_deferred()` delegate to `self.semantic_runtime`
+        # exactly as before either way, so Main's own call surface and
+        # behavior are byte-for-byte unchanged by this parameter's
+        # addition.
+        self.semantic_runtime = (
+            semantic_runtime
+            if semantic_runtime is not None
+            else SemanticRuntimeCoordinator(criteria=self.semantic_compile_result.criteria)
         )
         self._semantic_context_provider: Callable[[], SemanticRuntimeBindingContext] = (
             SemanticRuntimeBindingContext
@@ -411,6 +599,16 @@ class RuntimeGovernanceComposition:
         return True, None
 
     def begin_semantic_turn(self, *, request_id: str, main_mode: str) -> SemanticTurnSnapshot:
+        """R2-WU-01: peer "read-or-begin", never an unconditional second
+        `begin()`. The Conversation-start boundary (`web_application.py`'s
+        own `semantic_turn_begin_hook`) now normally freezes this Turn
+        first -- this call then only reads that identical Snapshot back.
+        A caller with no such boundary wired (a direct-construction Test,
+        or a deployment shape lacking the neutral Coordinator handoff)
+        still gets a correctly-begun Snapshot here, unchanged."""
+        existing = self.semantic_runtime.snapshot_for(request_id=request_id)
+        if existing is not None:
+            return existing
         context = self._semantic_context_provider()
         return self.semantic_runtime.begin(
             request_id=request_id,
@@ -428,6 +626,16 @@ class RuntimeGovernanceComposition:
     def record_semantic_response(
         self, *, response: SemanticEvaluationResponse
     ) -> SemanticRuntimeEvidence | None:
+        """R2-WU-01 (Controller Review IR-CI-01): Main OFF/absent is Call 0
+        into this Turn's own Main Semantic Evidence/History, not merely
+        "the executed Action stays OBSERVED". Only OBSERVE/ENFORCE's own
+        Frozen `main_mode` for *this exact Turn* (read off the Snapshot,
+        never a live re-read) may record anything here -- an `off`/absent
+        Turn, or a Turn this Coordinator never froze at all, returns
+        `None` without ever touching `semantic_runtime.record_response()`."""
+        snapshot = self.semantic_runtime.snapshot_for(request_id=response.request_id)
+        if snapshot is None or snapshot.frozen_main_mode not in ("observe", "enforce"):
+            return None
         result = self.last_result_for(point_id=MAIN_MODEL_POST_POINT_ID)
         return self.semantic_runtime.record_response(
             response=response,
@@ -437,6 +645,11 @@ class RuntimeGovernanceComposition:
     def record_semantic_deferred(
         self, *, request_id: str, reason: SemanticDeferredReason
     ) -> SemanticRuntimeEvidence | None:
+        """Same Main OFF/absent Call-0 gate as `record_semantic_response()`
+        above -- see its own docstring."""
+        snapshot = self.semantic_runtime.snapshot_for(request_id=request_id)
+        if snapshot is None or snapshot.frozen_main_mode not in ("observe", "enforce"):
+            return None
         result = self.last_result_for(point_id=MAIN_MODEL_POST_POINT_ID)
         return self.semantic_runtime.record_deferred(
             request_id=request_id,

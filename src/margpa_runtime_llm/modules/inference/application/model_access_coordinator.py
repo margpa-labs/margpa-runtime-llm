@@ -72,6 +72,18 @@ class ModelAccessCoordinator:
         self._auxiliary_threads: dict[str, threading.Thread] = {}
         self._shutting_down = False
         self._main_wait_timeout = main_wait_for_background_timeout_seconds
+        # P9-1 Component Independence Rework (WU-04), Race-fixed by
+        # R2-WU-03: the `task_id` of every Background Task this
+        # Coordinator has itself preempted via `acquire_main()`'s own
+        # `self._current_cancel()` call below. Any number of callers may
+        # peek this via `was_preempted()` -- see that method's own
+        # docstring for why a caller must consult this before ever
+        # reporting a generic "cancelled_by_request" for a Task whose own
+        # Cancellation Token this Coordinator, not a genuine external
+        # Stop/disconnect, actually signalled. Cleaned up exactly once, at
+        # this Run's own genuine Terminal (`start_background()`'s own
+        # `_run()` `finally`), never on read.
+        self._preempted_task_ids: set[str] = set()
 
     def acquire_main(self, *, task_id: str) -> None:
         """Blocks briefly (bounded, and actively shortened by preempting any
@@ -112,6 +124,18 @@ class ModelAccessCoordinator:
                     # Main-priority Scheduling means Main is never made to
                     # queue behind a Background Task's own full budget.
                     if self._current_cancel is not None:
+                        # P9-1 WU-04: record which Background Task this
+                        # preemption actually targets *before* invoking its
+                        # Cancellation Token — `self._current_task_id` can
+                        # already be cleared by the time a caller later
+                        # calls `was_preempted()` (the preempted Task's own
+                        # `finally` in `start_background()`'s `_run()`
+                        # clears both once `target()` returns), but the
+                        # preempted Task's own in-flight failure-
+                        # classification code runs *before* that `finally`,
+                        # so this recorded id is still fresh when consulted.
+                        if self._current_task_id is not None:
+                            self._preempted_task_ids.add(self._current_task_id)
                         self._current_cancel()
                     preempted = True
                 remaining = deadline - time.monotonic()
@@ -216,6 +240,16 @@ class ModelAccessCoordinator:
                     self._current_task_id = None
                     self._current_cancel = None
                     self._background_thread = None
+                    # R2-WU-03: this is the one genuine Terminal boundary
+                    # for this exact `task_id`'s own Background Task,
+                    # reached on every exit path (success, exception,
+                    # cancelled, deadline) -- cleaning up here, exactly
+                    # once, regardless of how many times (if any)
+                    # `was_preempted()` was peeked during the Run, closes
+                    # the prior leak where a Terminal path that never
+                    # called the old one-shot `consume_preemption()` left
+                    # this `task_id` in `_preempted_task_ids` forever.
+                    self._preempted_task_ids.discard(task_id)
                     self._condition.notify_all()
 
         thread = threading.Thread(
@@ -246,6 +280,43 @@ class ModelAccessCoordinator:
     def current_background_task_id(self) -> str | None:
         with self._condition:
             return self._current_task_id if self._current_kind == "background" else None
+
+    def was_preempted(self, *, task_id: str) -> bool:
+        """R2-WU-03 (Controller Review IR-CI-03): a non-destructive peek,
+        replacing the prior `consume_preemption()`'s one-shot check-and-
+        clear. `True` for as long as `task_id`'s own in-flight Background
+        Task remains recorded as preempted by a Main-priority
+        `acquire_main()` call (P6-CODEX-019); `False` otherwise (never
+        preempted, or already cleaned up at this Run's own Terminal --
+        see `start_background()`'s own `_run()` `finally`).
+
+        The one-shot design this replaces let two genuine Consumers for
+        the *same* Run -- the Worker thread's own in-flight cancellation
+        classification (inside `_run_judge_and_repair`) and the ENFORCE
+        Wait Loop's own classification (on the caller's thread, polling
+        concurrently) -- race for a single read: whichever ran first
+        consumed the flag, and the other then saw `False` and misreported
+        an ordinary Main-priority preemption as `cancelled_by_request`.
+        Any number of Consumers may now call this and see the identical
+        answer; cleanup happens exactly once, at this Run's own genuine
+        Terminal boundary, regardless of how many times (if any) a
+        Consumer peeked first.
+
+        A Background Task's own Cancellation Token becoming signalled has
+        at least two structurally distinct real causes this Coordinator
+        can itself distinguish: a genuine external Stop/disconnect
+        (`ConversationGenerationSession.request_cancel()`/`force_cancel()`,
+        never routed through this Coordinator at all) and this
+        Coordinator's own Main-priority preemption (`acquire_main()`
+        calling the Task's registered `cancel` directly, with no User/
+        Client action involved). A caller classifying *why* its own Run
+        was cancelled must consult this method before reporting a generic
+        request-shaped reason (e.g. `cancelled_by_request`) — conflating
+        the two misattributes an ordinary Main-priority scheduling event
+        (Main legitimately reclaiming the shared Model) as if the User or
+        Client had asked to stop, which they did not."""
+        with self._condition:
+            return task_id in self._preempted_task_ids
 
     def start_auxiliary(self, *, task_id: str, target: Callable[[], None]) -> bool:
         """Start lifecycle-tracked work that does not access the Model.

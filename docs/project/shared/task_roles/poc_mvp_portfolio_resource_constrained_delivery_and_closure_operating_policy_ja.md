@@ -171,11 +171,11 @@ P1以下の修正が、Phase到達、Reserve FloorまたはUser生活を圧迫�
 
 今直さないFindingは、次の現行正本へ記録する。
 
-`docs/project/shared/未解決/current_unresolved_findings_registry_ja.md`
+`docs/project/shared/unresolved_work/current_unresolved_findings_registry_ja.md`
 
 History Snapshotは次へAppend-onlyで置く。
 
-`docs/project/shared/history/未解決/`
+`docs/project/shared/history/unresolved_work/`
 
 各Findingへ、Status、Severity、Priority、Impact、Deferral Target、Reopen Condition、Closure Blockerを記録する。
 

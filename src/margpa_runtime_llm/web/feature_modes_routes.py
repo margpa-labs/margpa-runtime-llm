@@ -89,6 +89,15 @@ class JudgeLastResultResponse(_FeatureModesContract):
     failure_language: str | None = None
     repair_rejudge_provider: str | None = None
     repair_rejudge_role: str | None = None
+    repair_requested_by: str | None = None
+    """P9-1 Judge/Governance Rework (WU-03): mirrors `LiveJudgeResult.
+    repair_requested_by` (`"judge"` / `"main_governance"` / `"judge_and_
+    main"`, only set when a Repair Attempt actually ran) -- see that
+    field's own docstring in `bootstrap/judge_live_integration.py`.
+    Surfaced here so a Status reader can tell Main Governance's own
+    ENFORCE-origin correction apart from the pre-existing Judge/
+    Repair-Mode-origin one without inferring it from `frozen_repair_mode`
+    alone, which no longer implies whether a Repair actually happened."""
 
 
 class JudgeModeSnapshotResponse(ModeSnapshotResponse):
@@ -214,6 +223,7 @@ def _last_result_response(last_result: LiveJudgeResult) -> JudgeLastResultRespon
         failure_language=last_result.failure_language,
         repair_rejudge_provider=last_result.repair_rejudge_provider,
         repair_rejudge_role=last_result.repair_rejudge_role,
+        repair_requested_by=last_result.repair_requested_by,
     )
 
 

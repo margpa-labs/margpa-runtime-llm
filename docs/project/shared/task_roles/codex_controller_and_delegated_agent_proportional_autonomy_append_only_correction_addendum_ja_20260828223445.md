@@ -392,7 +392,7 @@ Controller自身の運用FailureもProvider側と同じ粒度でEvidence化す�
 
 現行未解決正本：
 
-`docs/project/shared/未解決/current_unresolved_findings_registry_ja.md`
+`docs/project/shared/unresolved_work/current_unresolved_findings_registry_ja.md`
 
 本追補の原因Evidence：
 
