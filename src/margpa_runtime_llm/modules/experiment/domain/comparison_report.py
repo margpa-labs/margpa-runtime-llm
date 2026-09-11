@@ -25,10 +25,12 @@ from pydantic import model_validator
 
 from margpa_runtime_llm.modules.inference.contracts.base import ImmutableContract
 
+from .comparison_declaration import VariantComparisonDeclaration
 from .dataset import ObservationOutcome
 from .errors import ExperimentCoreError, ExperimentCoreErrorCode
 from .evaluation import EvaluationObservation, MetricObservation, RuntimeOutcomeState
 from .identity import require_safe_identifier
+from .semantic_evidence import CaseSemanticEvidence, semantic_metric_truth
 
 
 class ComparisonRow(ImmutableContract):
@@ -39,6 +41,7 @@ class ComparisonRow(ImmutableContract):
     observations: tuple[EvaluationObservation, ...] = ()
     failure_reason: str | None = None
     raw_evidence_pointer: str
+    semantic_evidence: CaseSemanticEvidence | None = None
 
     @model_validator(mode="after")
     def _validate(self) -> ComparisonRow:
@@ -52,6 +55,43 @@ class ComparisonRow(ImmutableContract):
                     f"{self.metric.run_id!r}"
                 ),
             )
+        if self.metric is not None and self.metric.runtime_state is not self.runtime_state:
+            raise ExperimentCoreError(
+                code=ExperimentCoreErrorCode.METRIC_RUNTIME_STATE_MISMATCH,
+                safe_message=(
+                    f"row run_id {self.run_id!r} has authoritative runtime_state "
+                    f"{self.runtime_state.value!r}, but its metric claims "
+                    f"{self.metric.runtime_state.value!r}"
+                ),
+            )
+        if self.metric is not None and self.semantic_evidence is not None:
+            if (
+                self.semantic_evidence.runtime_repair_accepted is not None
+                and self.metric.repair_adopted
+                != self.semantic_evidence.runtime_repair_accepted
+            ):
+                raise ExperimentCoreError(
+                    code=ExperimentCoreErrorCode.OBSERVATION_RUN_OR_CASE_MISMATCH,
+                    safe_message=(
+                        f"row {self.run_id!r} repair_adopted "
+                        f"{self.metric.repair_adopted!r} does not match persisted "
+                        "Fixture Repair Evidence"
+                    ),
+                )
+            expected = semantic_metric_truth(self.semantic_evidence)
+            observed = (
+                self.metric.false_positive,
+                self.metric.false_grounding,
+                self.metric.correction_acceptance,
+            )
+            if observed != expected:
+                raise ExperimentCoreError(
+                    code=ExperimentCoreErrorCode.OBSERVATION_RUN_OR_CASE_MISMATCH,
+                    safe_message=(
+                        f"row {self.run_id!r} semantic Metric truth {observed!r} does not "
+                        f"match its persisted semantic Evidence {expected!r}"
+                    ),
+                )
         for observation in self.observations:
             if observation.run_id != self.run_id:
                 raise ExperimentCoreError(
@@ -88,12 +128,15 @@ class ComparisonRow(ImmutableContract):
 
 class ComparisonReport(ImmutableContract):
     experiment_id: str
+    case_id: str
     case_revision: str
+    variant_relationships: tuple[VariantComparisonDeclaration, ...] = ()
     rows: tuple[ComparisonRow, ...] = ()
 
     @model_validator(mode="after")
     def _validate_id(self) -> ComparisonReport:
         require_safe_identifier(self.experiment_id, field_name="experiment_id")
+        require_safe_identifier(self.case_id, field_name="case_id")
         require_safe_identifier(self.case_revision, field_name="case_revision")
         # R2-WU-03 (Handoff R2 SS6 last line): an Observation's own
         # `rubric_revision` is checked here, at Report level, against
@@ -103,7 +146,38 @@ class ComparisonReport(ImmutableContract):
         # ID/Case ID/Rubric Revision不一致をTyped Rejectする" belongs
         # here rather than duplicating `case_revision` onto every Row.
         for row in self.rows:
+            if row.semantic_evidence is not None and (
+                row.semantic_evidence.case_id != self.case_id
+                or row.semantic_evidence.case_revision != self.case_revision
+            ):
+                raise ExperimentCoreError(
+                    code=ExperimentCoreErrorCode.OBSERVATION_RUN_OR_CASE_MISMATCH,
+                    safe_message=(
+                        f"run {row.run_id!r} carries semantic Evidence for "
+                        f"{row.semantic_evidence.case_id!r}/"
+                        f"{row.semantic_evidence.case_revision!r}, not Report "
+                        f"{self.case_id!r}/{self.case_revision!r}"
+                    ),
+                )
+            if row.metric is not None and row.metric.case_id != self.case_id:
+                raise ExperimentCoreError(
+                    code=ExperimentCoreErrorCode.OBSERVATION_RUN_OR_CASE_MISMATCH,
+                    safe_message=(
+                        f"run {row.run_id!r} carries a Metric for case_id "
+                        f"{row.metric.case_id!r} that does not match this Report's own "
+                        f"case_id {self.case_id!r}"
+                    ),
+                )
             for observation in row.observations:
+                if observation.case_id != self.case_id:
+                    raise ExperimentCoreError(
+                        code=ExperimentCoreErrorCode.OBSERVATION_RUN_OR_CASE_MISMATCH,
+                        safe_message=(
+                            f"run {row.run_id!r} carries an Observation for case_id "
+                            f"{observation.case_id!r} that does not match this Report's own "
+                            f"case_id {self.case_id!r}"
+                        ),
+                    )
                 if observation.rubric_revision != self.case_revision:
                     raise ExperimentCoreError(
                         code=ExperimentCoreErrorCode.RUBRIC_REVISION_MISMATCH,

@@ -60,7 +60,7 @@ from .conversation_generation import (
     ConversationGenerationService,
     ConversationGenerationSession,
 )
-from .generation_context_mapper import map_generation_context
+from .generation_context_mapper import ActiveContextProjectionPort, map_generation_context
 from .persistence_models import (
     PersistentConversationError,
     PersistentConversationErrorCode,
@@ -127,6 +127,7 @@ class PersistentConversationService:
         generation_service: ConversationGenerationService,
         clock: Clock = _utc_now,
         recovery_operation_factory: RecoveryOperationFactory = _recovery_operation_id,
+        context_projection_port: ActiveContextProjectionPort | None = None,
     ) -> None:
         self._repository = repository
         self._scope_id = bound_scope_id
@@ -136,6 +137,24 @@ class PersistentConversationService:
         self._readiness = PersistentServiceReadiness.NOT_READY
         self._request_locations_lock = threading.Lock()
         self._request_locations: dict[str, tuple[ConversationId, ConversationTurnId]] = {}
+        self._context_projection_port = context_projection_port
+        """Phase 9-3 CL-P9-3-E.5: `None` unless Context Compaction is wired
+        (Bootstrap only does so when Persistent Conversation is itself
+        enabled) -- absent, `map_generation_context()` below always uses the
+        original, uncompacted projection, exactly like every pre-Phase-9-3
+        caller/test."""
+
+    def bind_context_projection_port(self, port: ActiveContextProjectionPort) -> None:
+        """Late-binding setter for the same circular-construction-order
+        reason `persistent_ref`/`runtime_model_control_ref` exist elsewhere
+        in this Bootstrap: Context Compaction's own Coordinator needs this
+        Service's bound `repository`/`bound_scope_id` to build its
+        Conversation Source Adapter, but this Service must already exist
+        before that Adapter can be constructed. Bootstrap builds this
+        Service first, then the Coordinator, then calls this method once --
+        never reassigned afterward."""
+
+        self._context_projection_port = port
 
     @property
     def readiness(self) -> PersistentServiceReadiness:
@@ -938,6 +957,8 @@ class PersistentConversationService:
                 mapping_snapshot,
                 pending_turn_id=identities.turn_id,
                 settings=settings,
+                context_projection_port=self._context_projection_port,
+                source_conversation_revision=pending.storage_revision,
             )
         except BaseException:
             self._converge_failed_turn(

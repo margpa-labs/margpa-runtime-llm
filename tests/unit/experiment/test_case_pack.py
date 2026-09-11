@@ -25,6 +25,23 @@ def test_build_case_pack_returns_a_non_empty_pack_pinned_to_one_revision() -> No
     assert {case.revision for case in pack} == {CASE_PACK_REVISION}
 
 
+def test_every_required_semantic_scenario_is_a_routed_revisioned_manifest() -> None:
+    routes = {case.case_id: case.evaluator_route.value for case in build_case_pack()}
+    assert routes == {
+        "case-freshness-alpha-15": "freshness",
+        "case-freshness-alpha-15-updated": "freshness",
+        "case-freshness-alpha-15-deleted": "freshness",
+        "case-retrieval-rag-off": "retrieval",
+        "case-retrieval-relevant-hit": "retrieval",
+        "case-retrieval-irrelevant-hit": "retrieval",
+        "case-retrieval-no-hit-model-call": "retrieval",
+        "case-retrieval-strict-no-hit": "retrieval",
+        "case-belief-revision-alpha-15": "belief_revision",
+        "case-false-improvement-beta-01": "false_improvement",
+        "case-composition-matrix-alpha-01": "composition_matrix",
+    }
+
+
 def test_case_pack_case_ids_use_neutral_placeholder_names_only() -> None:
     pack = build_case_pack()
     for case in pack:

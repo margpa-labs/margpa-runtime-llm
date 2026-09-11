@@ -36,6 +36,7 @@ class ExperimentCoreErrorCode(StrEnum):
     DEADLINE_EXCEEDED = "deadline_exceeded"
     PRODUCTION_ADAPTER_UNAVAILABLE = "production_adapter_unavailable"
     OBSERVATION_RUN_OR_CASE_MISMATCH = "observation_run_or_case_mismatch"
+    METRIC_RUNTIME_STATE_MISMATCH = "metric_runtime_state_mismatch"
     LIVE_CONFIG_MISMATCH = "live_config_mismatch"
     LIVE_CONFIG_UNAVAILABLE = "live_config_unavailable"
     CONFIGURATION_LEASE_UNAVAILABLE = "configuration_lease_unavailable"

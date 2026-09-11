@@ -25,12 +25,19 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
-from margpa_runtime_llm.adapters.experiment.fixture_actor_adapters import FixtureActor
+from margpa_runtime_llm.adapters.experiment.semantic_fixture_adapter import (
+    FIXTURE_GUARD_SHORT_CIRCUIT_MODE,
+    FIXTURE_JUDGE_REPAIR_REQUEST_MODE,
+    FIXTURE_MAIN_GOVERNANCE_REPAIR_REQUEST_MODE,
+    FIXTURE_MAIN_MANUAL_URL_FAIL_CLOSED_MODE,
+    FIXTURE_MAIN_NEGATED_CURRENT_MODE,
+    execute_fixture_case,
+    fixture_comparison_declarations,
+)
 from margpa_runtime_llm.modules.experiment.application.case_evaluator import evaluate_case_outcome
 from margpa_runtime_llm.modules.experiment.application.comparison_service import (
     build_comparison_report,
 )
-from margpa_runtime_llm.modules.experiment.application.composition_runner import run_variant
 from margpa_runtime_llm.modules.experiment.application.experiment_service import (
     ExperimentService,
     VariantRunResult,
@@ -39,6 +46,9 @@ from margpa_runtime_llm.modules.experiment.application.production_turn_runner im
     run_production_turn_variant,
 )
 from margpa_runtime_llm.modules.experiment.domain.case_pack import build_case_pack
+from margpa_runtime_llm.modules.experiment.domain.comparison_declaration import (
+    VariantComparisonDeclaration,
+)
 from margpa_runtime_llm.modules.experiment.domain.composition import ActorInvocationRecord
 from margpa_runtime_llm.modules.experiment.domain.config_snapshot import (
     EffectiveConfigurationSnapshot,
@@ -64,6 +74,10 @@ from margpa_runtime_llm.modules.experiment.domain.identity import (
     build_experiment_plan,
 )
 from margpa_runtime_llm.modules.experiment.domain.run import RunState, VariantRun
+from margpa_runtime_llm.modules.experiment.domain.semantic_evidence import (
+    CaseSemanticEvidence,
+    semantic_metric_truth,
+)
 from margpa_runtime_llm.modules.runtime_model_control.application.provider_selection_controller import (  # noqa: E501
     GEMMA_E2B_JUDGE,
     QWEN3_GUARD,
@@ -73,6 +87,21 @@ from margpa_runtime_llm.modules.runtime_model_control.application.provider_selec
 from .contracts import WebRuntime
 
 EXPERIMENT_API_PREFIX = "/api/v7/experiment"
+
+
+def _fixture_variant(
+    variant_id: str, modes: dict[ComponentKey, str]
+) -> VariantDescriptor:
+    return VariantDescriptor(
+        variant_id=variant_id,
+        components=tuple(
+            ComponentSelection(
+                component_key=key,
+                mode=modes.get(key, "off"),
+            )
+            for key in ComponentKey
+        ),
+    )
 
 _PRESET_VARIANTS: tuple[VariantDescriptor, ...] = (
     VariantDescriptor(
@@ -88,8 +117,112 @@ _PRESET_VARIANTS: tuple[VariantDescriptor, ...] = (
     VariantDescriptor(
         variant_id="judge-enforce-repair",
         components=(
-            ComponentSelection(component_key=ComponentKey.JUDGE, mode="enforce"),
+            ComponentSelection(
+                component_key=ComponentKey.JUDGE,
+                mode=FIXTURE_JUDGE_REPAIR_REQUEST_MODE,
+            ),
             ComponentSelection(component_key=ComponentKey.REPAIR, mode="enforce"),
+        ),
+    ),
+    _fixture_variant("fixture-main-active", {ComponentKey.MAIN: "active"}),
+    _fixture_variant("fixture-main-active-replica", {ComponentKey.MAIN: "active"}),
+    _fixture_variant(
+        "fixture-main-negated-current",
+        {ComponentKey.MAIN: FIXTURE_MAIN_NEGATED_CURRENT_MODE},
+    ),
+    _fixture_variant("fixture-judge-observe", {ComponentKey.JUDGE: "observe"}),
+    _fixture_variant("fixture-guard-enforce", {ComponentKey.GUARD: "enforce"}),
+    _fixture_variant(
+        "fixture-main-governance-strict",
+        {ComponentKey.MAIN_GOVERNANCE: "strict"},
+    ),
+    _fixture_variant(
+        "fixture-definition-manual",
+        {ComponentKey.DEFINITION_SET: "manual"},
+    ),
+    _fixture_variant(
+        "fixture-definition-static",
+        {ComponentKey.DEFINITION_SET: "static"},
+    ),
+    _fixture_variant(
+        "fixture-definition-dynamic",
+        {ComponentKey.DEFINITION_SET: "dynamic"},
+    ),
+    _fixture_variant(
+        "fixture-definition-manual-judge-request",
+        {
+            ComponentKey.JUDGE: FIXTURE_JUDGE_REPAIR_REQUEST_MODE,
+            ComponentKey.DEFINITION_SET: "manual",
+        },
+    ),
+    _fixture_variant(
+        "fixture-definition-manual-with-repair",
+        {
+            ComponentKey.JUDGE: FIXTURE_JUDGE_REPAIR_REQUEST_MODE,
+            ComponentKey.DEFINITION_SET: "manual",
+            ComponentKey.REPAIR: "enforce",
+        },
+    ),
+    _fixture_variant(
+        "fixture-rag-relevant",
+        {ComponentKey.MAIN: "active", ComponentKey.RAG: "relevant_hit"},
+    ),
+    _fixture_variant(
+        "fixture-rag-no-hit",
+        {ComponentKey.MAIN: "active", ComponentKey.RAG: "no_hit"},
+    ),
+    _fixture_variant(
+        "fixture-rag-strict-no-hit",
+        {ComponentKey.MAIN: "active", ComponentKey.RAG: "strict_no_hit"},
+    ),
+    _fixture_variant("fixture-repair-enforce", {ComponentKey.REPAIR: "enforce"}),
+    _fixture_variant(
+        "fixture-main-governance-request-no-repair",
+        {ComponentKey.MAIN_GOVERNANCE: FIXTURE_MAIN_GOVERNANCE_REPAIR_REQUEST_MODE},
+    ),
+    _fixture_variant(
+        "fixture-main-governance-with-repair",
+        {
+            ComponentKey.MAIN_GOVERNANCE: FIXTURE_MAIN_GOVERNANCE_REPAIR_REQUEST_MODE,
+            ComponentKey.REPAIR: "enforce",
+        },
+    ),
+    _fixture_variant(
+        "fixture-judge-main-governance-with-repair",
+        {
+            ComponentKey.JUDGE: FIXTURE_JUDGE_REPAIR_REQUEST_MODE,
+            ComponentKey.MAIN_GOVERNANCE: FIXTURE_MAIN_GOVERNANCE_REPAIR_REQUEST_MODE,
+            ComponentKey.REPAIR: "enforce",
+        },
+    ),
+    _fixture_variant(
+        "fixture-presentation-strict",
+        {ComponentKey.PRESENTATION: "strict_buffer"},
+    ),
+    _fixture_variant(
+        "fixture-presentation-progressive",
+        {ComponentKey.PRESENTATION: "progressive"},
+    ),
+    _fixture_variant("fixture-recording-active", {ComponentKey.RECORDING: "active"}),
+    _fixture_variant(
+        "fixture-manual-url-fail-closed",
+        {ComponentKey.MAIN: FIXTURE_MAIN_MANUAL_URL_FAIL_CLOSED_MODE},
+    ),
+    _fixture_variant(
+        "fixture-guard-short-circuit",
+        {
+            ComponentKey.MAIN: "active",
+            ComponentKey.GUARD: FIXTURE_GUARD_SHORT_CIRCUIT_MODE,
+        },
+    ),
+    VariantDescriptor(
+        variant_id="fixture-judge-enforce-no-repair",
+        components=(
+            ComponentSelection(
+                component_key=ComponentKey.JUDGE,
+                mode=FIXTURE_JUDGE_REPAIR_REQUEST_MODE,
+            ),
+            ComponentSelection(component_key=ComponentKey.REPAIR, mode="off"),
         ),
     ),
     # R2-WU-01 (Handoff R2 SS4.1: "Fixture用PresetとProductionで実行不可能な
@@ -156,6 +289,32 @@ _PRESET_VARIANT_LABELS: dict[str, str] = {
     "baseline-all-off": "Baseline (all components off)",
     "judge-observe": "Judge OBSERVE only",
     "judge-enforce-repair": "Judge + Repair ENFORCE",
+    "fixture-main-active": "Fixture: Main active",
+    "fixture-main-active-replica": "Fixture: Main active replication control",
+    "fixture-main-negated-current": "Fixture: Main denies the Current Value",
+    "fixture-judge-observe": "Fixture: Judge OBSERVE",
+    "fixture-guard-enforce": "Fixture: Guard ENFORCE",
+    "fixture-main-governance-strict": "Fixture: Main Governance strict",
+    "fixture-definition-manual": "Fixture: Definition routing manual",
+    "fixture-definition-static": "Fixture: Definition routing static",
+    "fixture-definition-dynamic": "Fixture: Definition routing dynamic",
+    "fixture-definition-manual-judge-request": "Fixture: Definition manual, Judge requests repair",
+    "fixture-definition-manual-with-repair": "Fixture: Definition repair propagation",
+    "fixture-rag-relevant": "Fixture: RAG relevant hit",
+    "fixture-rag-no-hit": "Fixture: RAG NO_HIT with Main call",
+    "fixture-rag-strict-no-hit": "Fixture: Strict NO_HIT Call 0",
+    "fixture-repair-enforce": "Fixture: Repair ENFORCE without requester",
+    "fixture-main-governance-request-no-repair": (
+        "Fixture: Main Governance requests repair, Repair off"
+    ),
+    "fixture-main-governance-with-repair": "Fixture: Main Governance requests repair",
+    "fixture-judge-main-governance-with-repair": "Fixture: Judge + Main Governance request repair",
+    "fixture-presentation-strict": "Fixture: Strict Buffer",
+    "fixture-presentation-progressive": "Fixture: Progressive",
+    "fixture-recording-active": "Fixture: Recording active",
+    "fixture-manual-url-fail-closed": "Fixture: Manual URL fail-closed Call 0",
+    "fixture-guard-short-circuit": "Fixture: Guard short-circuit Call 0",
+    "fixture-judge-enforce-no-repair": "Fixture: Judge ENFORCE, Repair ablated",
     "production-main-only-baseline": "Production: Main only",
     "production-judge-repair-baseline": "Production: Main + Judge/Repair ENFORCE",
     "production-guard-baseline": "Production: Main + Guard ENFORCE",
@@ -178,7 +337,9 @@ def experiment_error_response(error: ExperimentWebError) -> JSONResponse:
 
 def _disabled_error() -> ExperimentWebError:
     return ExperimentWebError(
-        503, "experiment_disabled", "The Experiment screen is not available in this deployment."
+        503,
+        "experiment_disabled",
+        "The Experiment runtime is not enabled in this deployment.",
     )
 
 
@@ -373,12 +534,14 @@ class ExperimentComparisonRowResponse(_ExperimentContract):
     Production Variant Runs in the same Experiment really executed under
     two DIFFERENT Live Configurations, never the same one copied across
     rows."""
+    semantic_evidence: CaseSemanticEvidence | None = None
 
 
 class ExperimentComparisonResponse(_ExperimentContract):
     experiment_id: str
     case_id: str
     case_revision: str
+    variant_relationships: tuple[VariantComparisonDeclaration, ...] = ()
     rows: tuple[ExperimentComparisonRowResponse, ...] = ()
 
 
@@ -486,17 +649,6 @@ def _resolve_frozen_case(plan: ExperimentPlan) -> EvaluationCaseManifest:
     return case
 
 
-def _build_fixture_actor_registry() -> dict[ComponentKey, FixtureActor]:
-    """A fresh registry per Run call -- never a shared module-level
-    instance -- so two Runs (even for the same Variant) never observe or
-    accumulate each other's `FixtureActor.calls` (WU-C C5 Isolation)."""
-
-    return {
-        key: FixtureActor(mutation_count=1, evidence_count=1, authority_exercised=True)
-        for key in ComponentKey
-    }
-
-
 def _service(request: Request) -> ExperimentService | None:
     runtime: WebRuntime = request.app.state.runtime
     return runtime.experiment_service
@@ -520,6 +672,7 @@ def _metric_payload(
     runtime_state: str,
     invocations: list[dict[str, object]],
     repair_adopted: bool | None,
+    semantic_evidence: CaseSemanticEvidence | None = None,
 ) -> dict[str, object]:
     """R1-WU-04 / R2-WU-02 (IR-P9-2-R1-02 fix): a minimal, real Metric
     derived from the same Invocations already recorded, plus a
@@ -536,6 +689,13 @@ def _metric_payload(
 
     call_count = sum(1 for item in invocations if item.get("called") is True)
     unknown_component_count = sum(1 for item in invocations if item.get("called") is None)
+    false_positive: bool | None = None
+    false_grounding: bool | None = None
+    correction_acceptance: bool | None = None
+    if semantic_evidence is not None:
+        false_positive, false_grounding, correction_acceptance = semantic_metric_truth(
+            semantic_evidence
+        )
     return {
         "run_id": run_id,
         "case_id": case_id,
@@ -543,6 +703,9 @@ def _metric_payload(
         "call_count": call_count,
         "unknown_component_count": unknown_component_count,
         "repair_adopted": repair_adopted,
+        "false_positive": false_positive,
+        "false_grounding": false_grounding,
+        "correction_acceptance": correction_acceptance,
     }
 
 
@@ -651,13 +814,12 @@ def create_experiment_router() -> APIRouter:
                 variant_configuration_digests=variant_configuration_digests,
                 execution_mode=body.execution_mode,
             )
-            service.create_plan(plan)
+            service.create_plan_with_desired_configurations(
+                plan=plan,
+                desired_configurations=desired_snapshots,
+            )
         except ExperimentCoreError as exc:
             raise _core_error_to_web_error(exc) from exc
-        for variant_id, desired in desired_snapshots.items():
-            service.store.save_variant_desired_configuration(
-                plan.experiment_id, variant_id, desired.model_dump(mode="json")
-            )
         return ExperimentPlanResponse(
             experiment_id=plan.experiment_id,
             case_id=plan.case_id,
@@ -784,7 +946,6 @@ def create_experiment_router() -> APIRouter:
                 variant_id=body.variant_id,
                 run_id=body.run_id,
                 request_id=request_id,
-                execution_mode=plan.execution_mode,
             )
         except ExperimentCoreError as exc:
             raise _core_error_to_web_error(exc) from exc
@@ -1000,7 +1161,8 @@ def create_experiment_router() -> APIRouter:
         else:
 
             def _invoke_fixture() -> tuple[RunState, dict[str, object] | None, str | None]:
-                execution_result = run_variant(variant, _build_fixture_actor_registry())
+                fixture = execute_fixture_case(case=case, variant=variant)
+                execution_result = fixture.execution
                 invocations = [_invocation_payload(item) for item in execution_result.invocations]
                 # Fixture Actors are a deliberate, deterministic
                 # simulation (`FixtureActor.invoke()` always reports
@@ -1016,12 +1178,14 @@ def create_experiment_router() -> APIRouter:
                 raw_evidence: dict[str, object] = {
                     "execution_mode": "fixture",
                     "invocations": invocations,
+                    "semantic_evidence": fixture.semantic_evidence.model_dump(mode="json"),
                     "metric": _metric_payload(
                         run_id=run.run_id,
                         case_id=case.case_id,
                         runtime_state=RunState.COMPLETED.value,
                         invocations=invocations,
-                        repair_adopted=True if repair_called else None,
+                        repair_adopted=repair_called,
+                        semantic_evidence=fixture.semantic_evidence,
                     ),
                 }
                 return (RunState.COMPLETED, raw_evidence, None)
@@ -1142,9 +1306,13 @@ def create_experiment_router() -> APIRouter:
         try:
             report = build_comparison_report(
                 experiment_id=experiment_id,
-                case_revision=plan.case_revision,
                 store=service.store,
                 observations_by_run_id=observations_by_run_id,
+                variant_relationships=(
+                    fixture_comparison_declarations(plan)
+                    if plan.execution_mode == "fixture"
+                    else ()
+                ),
             )
         except ExperimentCoreError as exc:
             raise _core_error_to_web_error(exc) from exc
@@ -1199,12 +1367,14 @@ def create_experiment_router() -> APIRouter:
                     frozen_configuration_digest_sha512=_frozen_configuration_digest_for(
                         service, row.run_id
                     ),
+                    semantic_evidence=row.semantic_evidence,
                 )
             )
         return ExperimentComparisonResponse(
             experiment_id=experiment_id,
-            case_id=plan.case_id,
-            case_revision=plan.case_revision,
+            case_id=report.case_id,
+            case_revision=report.case_revision,
+            variant_relationships=report.variant_relationships,
             rows=tuple(rows),
         )
 

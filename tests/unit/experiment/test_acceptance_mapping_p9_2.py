@@ -109,7 +109,6 @@ def test_p9_req_201_p9_acc_039_experiment_run_request_and_digests_correlate(
         variant_id="variant-a",
         run_id="run-201",
         request_id="req-201",
-        execution_mode="fixture",
     )
     off = ComponentSelection(component_key=ComponentKey.JUDGE, mode="off")
     guard_off = ComponentSelection(component_key=ComponentKey.GUARD, mode="off")
@@ -194,6 +193,7 @@ def test_p9_req_205_to_207_p9_acc_042_to_043_freshness_grounding_and_belief_revi
         ),
         new_turn_answer="ALPHA-15 is now 765.",
         historical_turn_citation_digest_after_answer="a" * 128,
+        current_value_adopted=True,
     )
     assert freshness is FreshnessOutcome.CURRENT_FACT_USED
 
@@ -305,12 +305,10 @@ def test_p9_req_203_p9_acc_045_baseline_regression_and_reviewer_kinds_never_conf
         variant_id="judge-enforce",
         run_id="run-1",
         request_id="req-1",
-        execution_mode="fixture",
     )
     service.publish_result("run-1", generation=run.generation, target_state=RunState.COMPLETED)
     report = build_comparison_report(
         experiment_id="exp-req-203",
-        case_revision="case-rev-1",
         store=service.store,
         observations_by_run_id={"run-1": (human, independent_judge)},
     )

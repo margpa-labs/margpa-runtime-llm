@@ -7,6 +7,15 @@ from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import cast
 
+from margpa_runtime_llm.adapters.context_compaction.conversation_source_adapter import (
+    ConversationRepositoryContextSourceAdapter,
+)
+from margpa_runtime_llm.adapters.context_compaction.local_filesystem_compaction_store import (
+    LocalFilesystemCompactionStore,
+)
+from margpa_runtime_llm.adapters.context_compaction.model_context_adapter import (
+    LoadedServiceModelContextAdapter,
+)
 from margpa_runtime_llm.adapters.experiment.local_filesystem_experiment_store import (
     LocalFilesystemExperimentStore,
 )
@@ -24,6 +33,24 @@ from margpa_runtime_llm.adapters.runtime_observability.local_filesystem_recordin
     LocalFilesystemRecordingWriter,
 )
 from margpa_runtime_llm.modules.constitution import ConstitutionMode, ConstitutionProviderPort
+from margpa_runtime_llm.modules.context_compaction.application import (
+    generation_projection_adapter as compaction_generation_projection_adapter,
+)
+from margpa_runtime_llm.modules.context_compaction.application.auto_policy import (
+    AutoCompactionPolicyController,
+)
+from margpa_runtime_llm.modules.context_compaction.application.budget_service import (
+    ContextBudgetService,
+    ReserveConfig,
+)
+from margpa_runtime_llm.modules.context_compaction.application.coordinator import (
+    CompactionCoordinator,
+)
+from margpa_runtime_llm.modules.context_compaction.application.deterministic_builder import (
+    DeterministicExtractiveBuilder,
+)
+from margpa_runtime_llm.modules.context_compaction.application.worker import CompactionWorker
+from margpa_runtime_llm.modules.context_compaction.domain.budget import ThresholdConfig
 from margpa_runtime_llm.modules.conversation.adapters import (
     LocalConversationPersistenceSettings,
 )
@@ -277,9 +304,23 @@ def build_phase1_web_runtime(
     constitution_provider: ConstitutionProviderPort | None = None,
     constitution_mode: ConstitutionMode = ConstitutionMode.OFF,
     dev_agent_run_service: DevAgentRunService | None = None,
+    experiment_runtime_enabled: bool = False,
 ) -> WebRuntime:
     application: Phase1Application | None = None
     try:
+        experiment_persistence_ready = bool(
+            conversation_persistence_settings is not None
+            and conversation_persistence_settings.enabled
+            and conversation_persistence_settings.scope_id is not None
+            and conversation_persistence_settings.runtime_data_root is not None
+        )
+        if experiment_runtime_enabled and not experiment_persistence_ready:
+            raise InferenceError(
+                code=InferenceErrorCode.INVALID_CONFIGURATION,
+                safe_message=(
+                    "Phase 9 Experiment Runtime requires explicit Conversation Persistence."
+                ),
+            )
         application = build_phase1_application(
             project_root=project_root,
             profile_path=profile_path,
@@ -701,22 +742,17 @@ def build_phase1_web_runtime(
                 )
             )
 
-        # Phase 9-2 WU-A/E: the Minimal Experiment screen's own Restart-
-        # readable Persistence -- gated only on the same Persistent
-        # Conversation root/scope every other `runtime_data/persistent/
-        # <scope>/...` sink already requires, independent of whether
-        # Recording Mode Control itself happens to be wired (Experiment
-        # Runs are their own, orthogonal Evidence kind, never gated by an
-        # unrelated Component's own enablement). Absent entirely (`None`)
-        # for Ephemeral-only chat, exactly like every other Optional
-        # `WebRuntime` field above.
+        # Phase 9-2 bounded closure rework: Conversation Persistence only
+        # supplies the server-owned root/scope; it is never Experiment
+        # authority. The entire headless Experiment runtime is constructed
+        # only after the separate, default-OFF `experiment_runtime_enabled`
+        # startup opt-in has been resolved by the local-only Web CLI gate.
         experiment_service = None
         experiment_run_worker = None
-        if (
-            conversation_persistence_settings is not None
-            and conversation_persistence_settings.scope_id is not None
-            and conversation_persistence_settings.runtime_data_root is not None
-        ):
+        if experiment_runtime_enabled:
+            assert conversation_persistence_settings is not None
+            assert conversation_persistence_settings.scope_id is not None
+            assert conversation_persistence_settings.runtime_data_root is not None
             experiment_scope_dir = (
                 conversation_persistence_settings.runtime_data_root
                 / "persistent"
@@ -1076,6 +1112,54 @@ def build_phase1_web_runtime(
             persistent_ref[0] = persistent
             conversation_storage_backend = composition.storage_backend_kind
             conversation_storage_backend_version = composition.storage_backend_version
+
+        context_compaction_coordinator: CompactionCoordinator | None = None
+        context_compaction_worker: CompactionWorker | None = None
+        context_compaction_auto_policy: AutoCompactionPolicyController | None = None
+        # Phase 9-3 CL-P9-3-F: Compaction Core structurally requires a
+        # Canonical Conversation -- built only when Persistent Conversation
+        # is itself enabled, never behind its own separate opt-in flag
+        # (SS5.1 `core_state=unavailable`, not a disabled Mode, when absent).
+        if (
+            persistent is not None
+            and conversation_persistence_settings is not None
+            and conversation_persistence_settings.scope_id is not None
+            and conversation_persistence_settings.runtime_data_root is not None
+        ):
+            assert composition.store is not None
+            compaction_scope_dir = (
+                conversation_persistence_settings.runtime_data_root
+                / "persistent"
+                / scope_directory_key(conversation_persistence_settings.scope_id)
+                / "context_compaction"
+            )
+            context_source_adapter = ConversationRepositoryContextSourceAdapter(
+                repository=composition.store,
+                scope_id=conversation_persistence_settings.scope_id,
+            )
+            model_context_adapter = LoadedServiceModelContextAdapter(service=application.service)
+            context_compaction_auto_policy = AutoCompactionPolicyController(enabled=True)
+            context_compaction_worker = CompactionWorker()
+            context_compaction_coordinator = CompactionCoordinator(
+                store=LocalFilesystemCompactionStore(base_dir=compaction_scope_dir),
+                budget_service=ContextBudgetService(
+                    source=context_source_adapter,
+                    model_context=model_context_adapter,
+                    reserves=ReserveConfig(),
+                ),
+                builder=DeterministicExtractiveBuilder(model_context=model_context_adapter),
+                auto_policy=context_compaction_auto_policy,
+                worker=context_compaction_worker,
+                thresholds=ThresholdConfig(
+                    advisory_remaining_budget_floor=1500,
+                    auto_trigger_remaining_budget_floor=800,
+                ),
+            )
+            persistent.bind_context_projection_port(
+                compaction_generation_projection_adapter.CompactionActiveContextProjectionAdapter(
+                    coordinator=context_compaction_coordinator
+                )
+            )
         snapshot = SafeRuntimeSnapshot(
             model_key=runtime_info.model_key,
             profile_key=application.config.profile_key,
@@ -1196,44 +1280,32 @@ def build_phase1_web_runtime(
                 return
             application.close()
 
-        # Phase 9-2 R1-WU-03: wraps this SAME live `conversation`/
-        # `judge_governance_composition`/`guardrail_governance_composition`
-        # -- never a second, separately-loaded set of Model backends (see
-        # `experiment_production_turn_adapter.py`'s own module docstring
-        # for the Config-Isolation reasoning). Always constructed
-        # (independent of whether `experiment_service` itself is wired) —
-        # absence of the Experiment screen's Persistence does not need to
-        # imply absence of the Production Adapter Port.
-        production_turn_adapter = LiveProductionTurnAdapter(
-            conversation=conversation,
-            response_language=snapshot.defaults.response_language,
-            max_new_tokens=snapshot.defaults.max_new_tokens,
-            thinking_visibility=snapshot.defaults.thinking_visibility,
-            judge_governance_composition=judge_governance_composition,
-            guardrail_governance_composition=guardrail_governance_composition,
-        )
-        # Phase 9-2 R2-WU-01: reads the SAME six live Controllers this
-        # function already built for ordinary Chat -- never a second,
-        # separately-configured set. See `experiment_live_configuration.
-        # py`'s own module docstring for why 3 of the 9 ComponentKey
-        # slots (definition_set/rag/presentation) have no live Controller
-        # to read at all this Round.
-        live_configuration_reader = BootstrapLiveConfigurationReader(
-            runtime_model_control=runtime_model_control,
-            provider_selection_control=provider_selection_control,
-            judge_mode_control=judge_mode_control,
-            guardrail_governance_composition=guardrail_governance_composition,
-            runtime_governance_composition=runtime_governance_composition,
-            repair_mode_control=repair_mode_control,
-            recording_mode_control=recording_mode_control,
-        )
-        # Phase 9-2 R3-WU-01 (Handoff R3 SS4.2 Option A): always
-        # constructed, like `production_turn_adapter`/`live_configuration_
-        # reader` above -- a plain, inert, process-local mutex until an
-        # in-flight Production Run's own `ExperimentRunWorker._task()`
-        # ever calls `acquire()`. Never touches any of the Controllers
-        # already built above.
-        experiment_configuration_lease = ExperimentConfigurationLease()
+        production_turn_adapter = None
+        live_configuration_reader = None
+        experiment_configuration_lease = None
+        if experiment_runtime_enabled:
+            # The enabled path preserves the accepted Phase 9-2 wiring: one
+            # adapter over the ordinary live Conversation/Judge/Guard graph,
+            # one reader over those same live Controllers, and one Lease used
+            # only by the Experiment Worker and Settings middleware.
+            production_turn_adapter = LiveProductionTurnAdapter(
+                conversation=conversation,
+                response_language=snapshot.defaults.response_language,
+                max_new_tokens=snapshot.defaults.max_new_tokens,
+                thinking_visibility=snapshot.defaults.thinking_visibility,
+                judge_governance_composition=judge_governance_composition,
+                guardrail_governance_composition=guardrail_governance_composition,
+            )
+            live_configuration_reader = BootstrapLiveConfigurationReader(
+                runtime_model_control=runtime_model_control,
+                provider_selection_control=provider_selection_control,
+                judge_mode_control=judge_mode_control,
+                guardrail_governance_composition=guardrail_governance_composition,
+                runtime_governance_composition=runtime_governance_composition,
+                repair_mode_control=repair_mode_control,
+                recording_mode_control=recording_mode_control,
+            )
+            experiment_configuration_lease = ExperimentConfigurationLease()
 
         return WebRuntime(
             conversation=conversation,
@@ -1267,6 +1339,9 @@ def build_phase1_web_runtime(
             experiment_run_worker=experiment_run_worker,
             live_configuration_reader=live_configuration_reader,
             experiment_configuration_lease=experiment_configuration_lease,
+            context_compaction_coordinator=context_compaction_coordinator,
+            context_compaction_worker=context_compaction_worker,
+            context_compaction_auto_policy=context_compaction_auto_policy,
         )
     except BaseException:
         if application is not None:

@@ -301,6 +301,16 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--phase-9-experiment-runtime",
+        action="store_true",
+        help=(
+            "Explicit Startup Opt-in (default: off): enable the headless Phase 9 "
+            "Experiment API, Run Worker, Production Turn Adapter, Live Configuration "
+            "Reader, and Configuration Lease. Requires loopback-only local access and "
+            "explicit Conversation Persistence. The normal UI entry remains hidden."
+        ),
+    )
+    parser.add_argument(
         "--data-controls-runtime-data-root",
         type=Path,
         metavar="RUNTIME_DATA_ROOT",
@@ -402,6 +412,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             runtime_data_root=args.conversation_runtime_data_root,
             scope_id=args.conversation_scope_id,
             allow_migration=args.conversation_persistence_migrate,
+            host=args.host,
+            access_mode=web_access_profile.access.mode,
+            authentication_required=access_policy.authentication_required,
+        )
+        experiment_runtime_enabled = _experiment_runtime_enabled(
+            enabled=args.phase_9_experiment_runtime,
+            conversation_persistence_enabled=conversation_persistence_settings is not None,
             host=args.host,
             access_mode=web_access_profile.access.mode,
             authentication_required=access_policy.authentication_required,
@@ -566,6 +583,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             data_controls_store=data_controls_store,
             constitution_provider=constitution_provider,
             dev_agent_run_service=dev_agent_run_service,
+            experiment_runtime_enabled=experiment_runtime_enabled,
         )
         app = create_web_app(
             runtime_factory=runtime_factory,
@@ -965,6 +983,45 @@ def _dedicated_model_authority_enabled(
             code=InferenceErrorCode.INVALID_CONFIGURATION,
             safe_message=(
                 "Dedicated Model Authority requires local loopback access and explicit opt-in."
+            ),
+        )
+    return True
+
+
+def _experiment_runtime_enabled(
+    *,
+    enabled: bool,
+    conversation_persistence_enabled: bool,
+    host: str,
+    access_mode: WebExposureMode,
+    authentication_required: bool,
+) -> bool:
+    """Resolve the explicit, local-only Phase 9 Experiment authority gate.
+
+    Conversation Persistence supplies the existing server-owned storage root,
+    but never grants Experiment authority by itself. Conversely, the Experiment
+    opt-in fails closed when that required storage boundary is absent instead of
+    constructing a partially usable Adapter/Lease-only runtime.
+    """
+
+    if not enabled:
+        return False
+    if (
+        access_mode is not WebExposureMode.LOCAL
+        or authentication_required
+        or not _is_loopback_host(host)
+    ):
+        raise InferenceError(
+            code=InferenceErrorCode.INVALID_CONFIGURATION,
+            safe_message=(
+                "Phase 9 Experiment Runtime requires local loopback access and explicit opt-in."
+            ),
+        )
+    if not conversation_persistence_enabled:
+        raise InferenceError(
+            code=InferenceErrorCode.INVALID_CONFIGURATION,
+            safe_message=(
+                "Phase 9 Experiment Runtime requires explicit Conversation Persistence."
             ),
         )
     return True

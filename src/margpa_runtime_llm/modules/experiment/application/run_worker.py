@@ -66,7 +66,7 @@ from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
-from ..domain.errors import ExperimentCoreError
+from ..domain.errors import ExperimentCoreError, ExperimentCoreErrorCode
 from ..domain.run import RunState, VariantRun, is_terminal
 from .configuration_lease import ExperimentConfigurationLease
 from .experiment_service import ExperimentService
@@ -77,6 +77,27 @@ RunInvocation = Callable[[], tuple[RunState, dict[str, object] | None, str | Non
 """Returns `(target_state, raw_evidence, failure_reason)` -- the Worker
 never inspects the Actor's own internals, only this already-resolved
 outcome triple."""
+
+
+_TERMINAL_PUBLISH_CONFLICT_CODES = frozenset(
+    {
+        ExperimentCoreErrorCode.LATE_RESULT_REJECTED,
+        ExperimentCoreErrorCode.TERMINAL_ALREADY_PUBLISHED,
+    }
+)
+
+
+def _is_harmless_terminal_publish_conflict(
+    *, service: ExperimentService, run_id: str, error: ExperimentCoreError
+) -> bool:
+    """Only a known publish race whose winner is durably Terminal is harmless."""
+
+    if error.code not in _TERMINAL_PUBLISH_CONFLICT_CODES:
+        return False
+    try:
+        return is_terminal(service.get_run(run_id).state)
+    except ExperimentCoreError:
+        return False
 
 
 @dataclass(slots=True)
@@ -154,6 +175,20 @@ class ExperimentRunWorker:
 
         cancel_hook = cancel or (lambda: None)
 
+        def _publish_actor_failure(failure_reason: str) -> None:
+            try:
+                service.publish_result(
+                    run.run_id,
+                    generation=run.generation,
+                    target_state=RunState.FAILED,
+                    failure_reason=failure_reason,
+                )
+            except ExperimentCoreError as exc:
+                if not _is_harmless_terminal_publish_conflict(
+                    service=service, run_id=run.run_id, error=exc
+                ):
+                    raise
+
         def _on_deadline() -> None:
             cancel_hook()
             with self._lock:
@@ -172,12 +207,15 @@ class ExperimentRunWorker:
                     target_state=RunState.FAILED,
                     failure_reason="deadline_exceeded",
                 )
-            except ExperimentCoreError:
+            except ExperimentCoreError as exc:
                 # The real `invoke()` result (or a `cancel_run()`) already
                 # published a Terminal state first -- this Deadline fire
                 # lost the race, and that is fine: at most one Terminal
                 # publish for this Run ever wins.
-                pass
+                if not _is_harmless_terminal_publish_conflict(
+                    service=service, run_id=run.run_id, error=exc
+                ):
+                    raise
 
         def _task(timer: threading.Timer | None) -> None:
             try:
@@ -193,41 +231,60 @@ class ExperimentRunWorker:
                 # first -- nothing left for this Task to do.
                 if is_terminal(service.get_run(run.run_id).state):
                     return
+                with self._lock:
+                    shutdown_requested = self._shutdown
+                if shutdown_requested:
+                    _publish_actor_failure("worker_shutdown")
+                    return
                 if lease is not None:
                     lease.acquire()
                 try:
-                    target_state, raw_evidence, failure_reason = invoke()
+                    # `lease.acquire()` may have waited behind an earlier
+                    # Settings mutation. Cancel/Deadline can win during
+                    # that wait; re-read under the newly acquired lease so
+                    # a now-Terminal Run remains genuine Actor Call 0.
+                    if is_terminal(service.get_run(run.run_id).state):
+                        return
+                    with self._lock:
+                        shutdown_requested = self._shutdown
+                    if shutdown_requested:
+                        _publish_actor_failure("worker_shutdown")
+                        return
+                    try:
+                        target_state, raw_evidence, failure_reason = invoke()
+                    except ExperimentCoreError as exc:
+                        _logger.warning(
+                            "experiment run worker: Actor invocation raised a domain error "
+                            "for run_id=%r code=%s",
+                            run.run_id,
+                            exc.code.value,
+                        )
+                        _publish_actor_failure(f"actor_domain_error:{exc.code.value}")
+                        return
+                    except Exception as exc:
+                        _logger.warning(
+                            "experiment run worker: Actor invocation raised for run_id=%r",
+                            run.run_id,
+                            exc_info=True,
+                        )
+                        _publish_actor_failure(f"actor_exception:{exc.__class__.__name__}")
+                        return
                 finally:
                     if lease is not None:
                         lease.release()
-                service.publish_result(
-                    run.run_id,
-                    generation=run.generation,
-                    target_state=target_state,
-                    raw_evidence=raw_evidence,
-                    failure_reason=failure_reason,
-                )
-            except ExperimentCoreError:
-                # A Late-Result/Terminal-Already-Published rejection means
-                # another Publisher (the Deadline Timer above, or a Cancel
-                # that landed first) has already resolved this Run --
-                # nothing more to publish.
-                pass
-            except Exception as exc:
-                _logger.warning(
-                    "experiment run worker: Actor invocation raised for run_id=%r",
-                    run.run_id,
-                    exc_info=True,
-                )
                 try:
                     service.publish_result(
                         run.run_id,
                         generation=run.generation,
-                        target_state=RunState.FAILED,
-                        failure_reason=f"actor_exception:{exc.__class__.__name__}",
+                        target_state=target_state,
+                        raw_evidence=raw_evidence,
+                        failure_reason=failure_reason,
                     )
-                except ExperimentCoreError:
-                    pass
+                except ExperimentCoreError as exc:
+                    if not _is_harmless_terminal_publish_conflict(
+                        service=service, run_id=run.run_id, error=exc
+                    ):
+                        raise
             finally:
                 if timer is not None:
                     timer.cancel()

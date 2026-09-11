@@ -471,7 +471,6 @@ export const translations = {
     expressiveModeLabel: "表現重視モード",
     expressiveModeNote:
       "ONにすると、回答の推論・結論・事実内容は維持したまま、文体（Tone）のみをカジュアルな表現に調整します。Model本来の出力Styleを確認・比較する場合はOFFにしてください。",
-    experimentToggleLabel: "実験（Phase 9-2）",
     experimentPanelTitle: "実験 — Multi-Governance比較（Phase 9-2）",
     experimentPanelNote:
       "これはPhase 9-2の最小Experiment画面です。実行Modeを「Fixture」にすると実Main・実Judge・実Guard・実Repair・実Model Callは一切発生しません。「Production」を選ぶと、この画面から実Turnを1回実行します。",
@@ -487,6 +486,11 @@ export const translations = {
     experimentRun: "実行",
     experimentRunning: "実行中です。",
     experimentRunFailed: "実行に失敗しました。",
+    experimentRunStatusRetrying: "実行状態を再取得しています。Backendの実行は継続しています。",
+    experimentRunStatusUnavailable: "実行状態を制限時間内に確認できませんでした。Backendの結果を再確認してください。",
+    experimentRunStatusRechecking: "同じRunの実行状態を再確認しています。",
+    experimentRunStillRunning: "同じRunはまだ実行中です。しばらくしてから再確認してください。",
+    experimentRecheckRunStatus: "同じRunの状態を再確認",
     experimentCancel: "中止",
     experimentExecutionModeLabel: "実行Mode",
     experimentExecutionModeFixture: "Fixture（安全・実Modelなし）",
@@ -1000,7 +1004,6 @@ export const translations = {
     expressiveModeLabel: "Expressive mode",
     expressiveModeNote:
       "When ON, only the tone of the response is adjusted to a more casual style, while the underlying reasoning, conclusions, and factual content remain unchanged. Turn this OFF to review or compare the model's default output style.",
-    experimentToggleLabel: "Experiment (Phase 9-2)",
     experimentPanelTitle: "Experiment — Multi-Governance Comparison (Phase 9-2)",
     experimentPanelNote:
       "This is Phase 9-2's Minimal Experiment screen. With execution mode set to Fixture, no real Main, Judge, Guard, Repair, or Model call ever happens. Choosing Production runs one real Turn from this screen.",
@@ -1016,6 +1019,11 @@ export const translations = {
     experimentRun: "Run",
     experimentRunning: "Running.",
     experimentRunFailed: "The run failed.",
+    experimentRunStatusRetrying: "Retrying the run status. Backend execution is still continuing.",
+    experimentRunStatusUnavailable: "The run status could not be confirmed before the tracking deadline. Recheck the Backend result.",
+    experimentRunStatusRechecking: "Rechecking the same run status.",
+    experimentRunStillRunning: "The same run is still running. Recheck it again later.",
+    experimentRecheckRunStatus: "Recheck the same run",
     experimentCancel: "Cancel",
     experimentExecutionModeLabel: "Execution mode",
     experimentExecutionModeFixture: "Fixture (safe, no real Model)",

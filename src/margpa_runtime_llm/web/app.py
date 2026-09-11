@@ -18,6 +18,9 @@ from margpa_runtime_llm.modules.audit_evidence.generation_observation import (
     GenerationObserverPort,
 )
 from margpa_runtime_llm.modules.configuration_control import ConfigurationControlError
+from margpa_runtime_llm.modules.context_compaction.domain.errors import (
+    ContextCompactionDomainError,
+)
 from margpa_runtime_llm.modules.conversation.application import PersistentConversationError
 from margpa_runtime_llm.modules.conversation.domain import (
     ConversationOperationId,
@@ -59,6 +62,11 @@ from .constitution_routes import (
     ConstitutionWebError,
     constitution_error_response,
     create_constitution_router,
+)
+from .context_compaction_routes import (
+    ContextCompactionWebError,
+    context_compaction_error_response,
+    create_context_compaction_router,
 )
 from .contracts import StopGenerationRequest, WebRuntime
 from .data_controls_routes import (
@@ -311,6 +319,23 @@ def create_web_app(
                 await asyncio.to_thread(runtime.close)
             finally:
                 raise RuntimeError("Data Controls requires local loopback access.") from None
+        if (
+            runtime.experiment_service is not None
+            or runtime.experiment_run_worker is not None
+            or runtime.production_turn_adapter is not None
+            or runtime.live_configuration_reader is not None
+            or runtime.experiment_configuration_lease is not None
+        ) and (
+            access_policy.exposure_mode is not WebExposureMode.LOCAL
+            or access_policy.mode is not WebAuthMode.DISABLED
+            or access_policy.non_loopback_allowed
+        ):
+            try:
+                await asyncio.to_thread(runtime.close)
+            finally:
+                raise RuntimeError(
+                    "Phase 9 Experiment Runtime requires local loopback access."
+                ) from None
         app.state.runtime = runtime
         try:
             yield
@@ -346,9 +371,11 @@ def create_web_app(
                     headers={"WWW-Authenticate": 'Basic realm="MARGPA Preview", charset="UTF-8"'},
                 )
             )
+        lease = None
+        mutation_lease_acquired = False
         if _is_experiment_lease_gated_mutation(request.method, request.url.path):
             lease = _runtime(request).experiment_configuration_lease
-            if lease is not None and lease.is_held():
+            if lease is not None and not lease.try_acquire_mutation():
                 # Phase 9-2 R3-WU-01: a Production Experiment Run currently
                 # holds the Configuration Lease around its own real Actor
                 # Call -- this Settings-mutation request is rejected
@@ -370,32 +397,38 @@ def create_web_app(
                         },
                     )
                 )
-        request_limit = None
-        if request.url.path == "/api/v1/chat/stream":
-            request_limit = MAX_CHAT_REQUEST_BYTES
-        elif request.url.path.startswith("/api/v2/conversations"):
-            request_limit = MAX_PERSISTENT_REQUEST_BYTES
-        elif request.url.path.startswith("/api/v2/configuration"):
-            request_limit = MAX_CONFIGURATION_REQUEST_BYTES
-        if request_limit is not None:
-            content_length = request.headers.get("content-length")
-            if content_length is not None:
-                try:
-                    request_size = int(content_length)
-                except ValueError:
-                    request_size = request_limit + 1
-                if request_size > request_limit:
-                    return _apply_security_headers(
-                        JSONResponse(
-                            status_code=413,
-                            content={
-                                "code": "request_too_large",
-                                "message": "The chat request is too large.",
-                            },
+            if lease is not None:
+                mutation_lease_acquired = True
+        try:
+            request_limit = None
+            if request.url.path == "/api/v1/chat/stream":
+                request_limit = MAX_CHAT_REQUEST_BYTES
+            elif request.url.path.startswith("/api/v2/conversations"):
+                request_limit = MAX_PERSISTENT_REQUEST_BYTES
+            elif request.url.path.startswith("/api/v2/configuration"):
+                request_limit = MAX_CONFIGURATION_REQUEST_BYTES
+            if request_limit is not None:
+                content_length = request.headers.get("content-length")
+                if content_length is not None:
+                    try:
+                        request_size = int(content_length)
+                    except ValueError:
+                        request_size = request_limit + 1
+                    if request_size > request_limit:
+                        return _apply_security_headers(
+                            JSONResponse(
+                                status_code=413,
+                                content={
+                                    "code": "request_too_large",
+                                    "message": "The chat request is too large.",
+                                },
+                            )
                         )
-                    )
-        response = await call_next(request)
-        return _apply_security_headers(response)
+            response = await call_next(request)
+            return _apply_security_headers(response)
+        finally:
+            if mutation_lease_acquired and lease is not None:
+                lease.release_mutation()
 
     @app.exception_handler(RequestValidationError)
     async def request_validation_error(
@@ -451,6 +484,22 @@ def create_web_app(
     ) -> JSONResponse:
         del request
         return experiment_error_response(exc)
+
+    @app.exception_handler(ContextCompactionWebError)
+    async def context_compaction_web_error(
+        request: Request,
+        exc: ContextCompactionWebError,
+    ) -> JSONResponse:
+        del request
+        return context_compaction_error_response(exc)
+
+    @app.exception_handler(ContextCompactionDomainError)
+    async def context_compaction_domain_error(
+        request: Request,
+        exc: ContextCompactionDomainError,
+    ) -> JSONResponse:
+        del request
+        return context_compaction_error_response(exc)
 
     @app.exception_handler(WebSearchWebError)
     async def web_search_web_error(
@@ -745,6 +794,7 @@ def create_web_app(
     app.include_router(create_constitution_router())
     app.include_router(create_dev_agent_router())
     app.include_router(create_experiment_router())
+    app.include_router(create_context_compaction_router())
 
     app.mount("/assets", StaticFiles(directory=STATIC_ROOT), name="assets")
     return app

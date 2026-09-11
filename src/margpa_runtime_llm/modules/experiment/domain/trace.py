@@ -33,6 +33,7 @@ class CallZeroReason(StrEnum):
     MANUAL_URL_FAIL_CLOSED = "manual_url_fail_closed"
     STRICT_NO_HIT = "strict_no_hit"
     GUARD_INPUT_SHORT_CIRCUIT = "guard_input_short_circuit"
+    NO_ELIGIBLE_REPAIR_REQUESTER = "no_eligible_repair_requester"
     NOT_APPLICABLE = "not_applicable"
 
 

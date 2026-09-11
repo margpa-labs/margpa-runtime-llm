@@ -9,6 +9,13 @@ from pydantic import Field, field_validator
 
 from margpa_runtime_llm.modules.configuration_control import ConfigurationControlService
 from margpa_runtime_llm.modules.constitution import ConstitutionMode, ConstitutionProviderPort
+from margpa_runtime_llm.modules.context_compaction.application.auto_policy import (
+    AutoCompactionPolicyController,
+)
+from margpa_runtime_llm.modules.context_compaction.application.coordinator import (
+    CompactionCoordinator,
+)
+from margpa_runtime_llm.modules.context_compaction.application.worker import CompactionWorker
 from margpa_runtime_llm.modules.conversation.application import PersistentConversationService
 from margpa_runtime_llm.modules.conversation.public import ConversationGenerationService
 from margpa_runtime_llm.modules.data_controls.ports import DataControlConsentStorePort
@@ -147,13 +154,13 @@ class WebRuntime:
     constitution_mode: ConstitutionMode = ConstitutionMode.OFF
     dev_agent_run_service: DevAgentRunService | None = None
     experiment_service: ExperimentService | None = None
-    """Phase 9-2 WU-A/E: `None` unless Bootstrap wires a Filesystem-backed
-    `ExperimentService` for the Minimal Experiment screen -- absent, this
+    """Phase 9-2 WU-A/E: `None` unless the explicit, default-OFF Experiment
+    Runtime gate wires a Filesystem-backed `ExperimentService` -- absent, this
     routes to `experiment_routes.py`'s own disabled-response shape,
     exactly like every other Optional `WebRuntime` field, and never
     forces itself into the ordinary Chat/Judge/Guard request path."""
     production_turn_adapter: ProductionTurnPort | None = None
-    """Phase 9-2 R1-WU-03: `None` unless Bootstrap wires a
+    """Phase 9-2 R1-WU-03: `None` unless the Experiment Runtime gate wires a
     `LiveProductionTurnAdapter` over this same `WebRuntime`'s own
     `conversation`/`judge_governance_composition`/
     `guardrail_governance_composition` -- absent, `execution_mode=
@@ -169,26 +176,36 @@ class WebRuntime:
     ordinary Chat/Judge/Guard drain, so an in-flight Experiment Run never
     outlives the real Model backends its own Production Adapter reads."""
     live_configuration_reader: LiveConfigurationPort | None = None
-    """Phase 9-2 R2-WU-01: `None` unless Bootstrap wires a
+    """Phase 9-2 R2-WU-01: `None` unless the Experiment Runtime gate wires a
     `BootstrapLiveConfigurationReader` reading this SAME `WebRuntime`'s
     own Judge/Guard/Main-Governance/Repair/Recording/Main Controllers --
     absent, a Production Run's Frozen-vs-Live Config comparison can never
     be attempted, and `execution_mode="production"` Runs are rejected as
     `live_config_unavailable` rather than silently skipping the check."""
     experiment_configuration_lease: ExperimentConfigurationLease | None = None
-    """Phase 9-2 R3-WU-01 (Handoff R3 SS4.2 Option A): `None` unless
-    Bootstrap wires one alongside `live_configuration_reader` -- absent,
-    an in-flight Production Run's real Actor Call gets no protection at
-    all against a concurrent ordinary-Chat Settings change (the pre-R3
-    behavior). When present, `web/app.py`'s `secure_requests` middleware
-    checks `is_held()` before letting a fixed allowlist of Settings-
-    mutation routes (Judge/Repair/Recording Mode, Provider Selection,
-    Runtime Model context/max-new-tokens/switch, the Guard/Main-
-    Governance Configuration Preview->Apply CAS path) proceed, and
+    """Phase 9-2 R3-WU-01 (Handoff R3 SS4.2 Option A): `None` while the
+    Experiment Runtime gate is OFF. When the gate is ON, Bootstrap wires one
+    alongside `live_configuration_reader`; `web/app.py`'s `secure_requests` middleware
+    atomically acquires/releases a mutation side lease around the full
+    handling of a fixed allowlist of Settings-mutation routes
+    (Judge/Repair/Recording Mode, Provider Selection, Runtime Model
+    context/max-new-tokens/switch, the Guard/Main-Governance
+    Configuration Preview->Apply CAS path), and
     `application.run_worker.ExperimentRunWorker` is the only caller of
     `acquire()`/`release()`, held only for the duration of one real
     Production Turn's own `invoke()` call. Never touches any Controller's
     own contract."""
+    context_compaction_coordinator: CompactionCoordinator | None = None
+    """Phase 9-3 CL-P9-3-F: `None` unless Persistent Conversation is enabled
+    -- Compaction Core structurally requires a Canonical Conversation to
+    Snapshot/Compact against (SS5.1 `core_state=unavailable` otherwise, not
+    a disabled Mode). Never gated behind its own opt-in flag, unlike the
+    Phase 9-2 Experiment Runtime -- Compaction Core is meant to be always
+    available once Persistence itself is."""
+    context_compaction_worker: CompactionWorker | None = None
+    """Shut down in `close()` below, before the ordinary Chat/Judge/Guard
+    drain -- mirrors `experiment_run_worker`'s own placement."""
+    context_compaction_auto_policy: AutoCompactionPolicyController | None = None
     _close_lock: threading.Lock = field(default_factory=threading.Lock, init=False, repr=False)
     _closed: bool = field(default=False, init=False, repr=False)
 
@@ -196,6 +213,13 @@ class WebRuntime:
         with self._close_lock:
             if self._closed:
                 return
+            if (
+                self.context_compaction_worker is not None
+                and not self.context_compaction_worker.shutdown(timeout=timeout)
+            ):
+                raise RuntimeError(
+                    "An in-flight Context Compaction Attempt did not stop during shutdown."
+                )
             if self.experiment_run_worker is not None and not self.experiment_run_worker.shutdown(
                 timeout=timeout
             ):

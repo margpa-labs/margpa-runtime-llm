@@ -13,11 +13,11 @@ wall-clock timestamp."""
 from __future__ import annotations
 
 from .belief_revision import BeliefRevisionObservation
-from .dataset import EvaluationCaseManifest, ObservationOutcome
+from .dataset import EvaluationCaseManifest, ObservationOutcome, SemanticEvaluatorRoute
 from .freshness import FreshnessCase, SourceRevisionState
 from .retrieval_case import NoHitStrategy, RetrievalCase, RetrievalMode
 
-CASE_PACK_REVISION = "phase-9-2-semantic-research-case-pack-rev-1"
+CASE_PACK_REVISION = "phase-9-2-semantic-research-case-pack-rev-3"
 
 # D1 -- Historical Claim vs. Current Source Revision.
 FRESHNESS_HISTORICAL_VS_CURRENT = FreshnessCase(
@@ -87,30 +87,119 @@ FALSE_IMPROVEMENT_CASE = EvaluationCaseManifest(
     expected_observations=("runtime_repair_accepted", "human_semantic_pass"),
     acceptable_outcomes=(ObservationOutcome.PASS,),
     requires_human_review=True,
+    evaluator_route=SemanticEvaluatorRoute.FALSE_IMPROVEMENT,
 )
+
+COMPOSITION_MATRIX_CASE = EvaluationCaseManifest(
+    case_id="case-composition-matrix-alpha-01",
+    revision=CASE_PACK_REVISION,
+    input="Execute the declared deterministic governance composition for ALPHA-01.",
+    expected_observations=(
+        "component_invocation",
+        "definition_routing",
+        "presentation_state",
+        "call_zero_trace",
+    ),
+    acceptable_outcomes=(ObservationOutcome.INCONCLUSIVE,),
+    evaluator_route=SemanticEvaluatorRoute.COMPOSITION_MATRIX,
+)
+
+
+FRESHNESS_CASES_BY_ID: dict[str, FreshnessCase] = {
+    case.case_id: case
+    for case in (
+        FRESHNESS_HISTORICAL_VS_CURRENT,
+        FRESHNESS_SOURCE_UPDATED,
+        FRESHNESS_SOURCE_DELETED,
+    )
+}
+
+RETRIEVAL_CASES_BY_ID: dict[str, RetrievalCase] = {
+    case.case_id: case
+    for case in (
+        RETRIEVAL_RAG_OFF,
+        RETRIEVAL_RELEVANT_HIT,
+        RETRIEVAL_IRRELEVANT_HIT,
+        RETRIEVAL_NO_HIT_MODEL_CALL,
+        RETRIEVAL_STRICT_NO_HIT,
+    )
+}
 
 
 def build_case_pack() -> tuple[EvaluationCaseManifest, ...]:
     """WU-D: the Case Manifests suitable for direct use as
     `ExperimentPlan.case_revision`-scoped `EvaluationCaseManifest`
-    entries. The Freshness/Retrieval/Belief-Revision domain objects
-    above are the richer, category-specific Fixtures a Variant Actor
-    checks its own output against -- they are not `EvaluationCaseManifest`
-    instances themselves (their shape is different per category), so
-    this function only returns the generic-Manifest-shaped subset."""
+    entries. Every required semantic scenario has its own Manifest and
+    explicit evaluator route; the richer category-specific objects above
+    remain the Adapter inputs for that Manifest."""
 
     return (
         EvaluationCaseManifest(
-            case_id="case-freshness-alpha-15",
+            case_id=FRESHNESS_HISTORICAL_VS_CURRENT.case_id,
             revision=CASE_PACK_REVISION,
             input="What is the current confirmed value of ALPHA-15?",
             expected_observations=("current_fact_used",),
+            evaluator_route=SemanticEvaluatorRoute.FRESHNESS,
         ),
         EvaluationCaseManifest(
-            case_id="case-retrieval-strict-no-hit",
+            case_id=FRESHNESS_SOURCE_UPDATED.case_id,
+            revision=CASE_PACK_REVISION,
+            input="What is the updated confirmed value of ALPHA-15?",
+            expected_observations=("current_fact_used", "historical_citation_unchanged"),
+            evaluator_route=SemanticEvaluatorRoute.FRESHNESS,
+        ),
+        EvaluationCaseManifest(
+            case_id=FRESHNESS_SOURCE_DELETED.case_id,
+            revision=CASE_PACK_REVISION,
+            input="What current evidence remains for ALPHA-15?",
+            expected_observations=("insufficient_evidence", "historical_citation_unchanged"),
+            acceptable_outcomes=(ObservationOutcome.INCONCLUSIVE,),
+            evaluator_route=SemanticEvaluatorRoute.FRESHNESS,
+        ),
+        EvaluationCaseManifest(
+            case_id=RETRIEVAL_RAG_OFF.case_id,
+            revision=CASE_PACK_REVISION,
+            input="Answer ALPHA-22 without retrieval.",
+            expected_observations=("ungrounded_model_knowledge",),
+            acceptable_outcomes=(ObservationOutcome.INCONCLUSIVE,),
+            evaluator_route=SemanticEvaluatorRoute.RETRIEVAL,
+        ),
+        EvaluationCaseManifest(
+            case_id=RETRIEVAL_RELEVANT_HIT.case_id,
+            revision=CASE_PACK_REVISION,
+            input="Use the relevant source to report ALPHA-22 status.",
+            expected_observations=("honest_grounded",),
+            evaluator_route=SemanticEvaluatorRoute.RETRIEVAL,
+        ),
+        EvaluationCaseManifest(
+            case_id=RETRIEVAL_IRRELEVANT_HIT.case_id,
+            revision=CASE_PACK_REVISION,
+            input="Report ALPHA-22 status when only an irrelevant hit was returned.",
+            expected_observations=("false_grounding",),
+            acceptable_outcomes=(ObservationOutcome.FAIL,),
+            evaluator_route=SemanticEvaluatorRoute.RETRIEVAL,
+        ),
+        EvaluationCaseManifest(
+            case_id=RETRIEVAL_NO_HIT_MODEL_CALL.case_id,
+            revision=CASE_PACK_REVISION,
+            input="Report ALPHA-22 status after NO_HIT with governed Model fallback.",
+            expected_observations=("honest_insufficient_evidence", "model_call_observed"),
+            evaluator_route=SemanticEvaluatorRoute.RETRIEVAL,
+        ),
+        EvaluationCaseManifest(
+            case_id=RETRIEVAL_STRICT_NO_HIT.case_id,
             revision=CASE_PACK_REVISION,
             input="What is GAMMA-99's confirmed value?",
             expected_observations=("honest_insufficient_evidence", "model_call_zero"),
+            evaluator_route=SemanticEvaluatorRoute.RETRIEVAL,
+        ),
+        EvaluationCaseManifest(
+            case_id=BELIEF_REVISION_CORRECTION.case_id,
+            revision=CASE_PACK_REVISION,
+            input="Reconcile the corrected ALPHA-15 value with the historical claim.",
+            expected_observations=("correction_accepted",),
+            evaluator_route=SemanticEvaluatorRoute.BELIEF_REVISION,
         ),
         FALSE_IMPROVEMENT_CASE,
+        COMPOSITION_MATRIX_CASE,
     )

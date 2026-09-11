@@ -329,6 +329,20 @@ describe("App", () => {
     window.localStorage.clear();
   });
 
+  test("the normal UI has no Phase 9-2 Experiment entry and cannot open the Experiment Panel", () => {
+    // Phase 9-2 Experiment UI Deferment (Handoff
+    // phase_9_controller_experiment_ui_deferment_and_headless_core_minimum_rework_exact_handoff_ja_20260910093525):
+    // the Headless Experiment Core is preserved, but the normal UI's own
+    // entry point into it is removed -- neither the Button nor any State/
+    // Callback/Mount path to `ExperimentPanel` exists in normal App
+    // Composition any more.
+    installFetchMock({});
+    const { container } = render(<App />);
+
+    expect(screen.queryByRole("button", { name: "Experiment (Phase 9-2)" })).toBeNull();
+    expect(container.querySelector("#experiment-toggle")).toBeNull();
+  });
+
   test("never silently falls back to ephemeral or persistent when capability negotiation reports an invalid runtime", async () => {
     installFetchMock({ persistentRuntime: { enabled: true, source_of_truth: "client" } });
 

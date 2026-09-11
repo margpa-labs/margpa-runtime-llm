@@ -49,20 +49,27 @@ def classify_freshness_answer(
     case: FreshnessCase,
     new_turn_answer: str,
     historical_turn_citation_digest_after_answer: str,
+    current_value_adopted: bool | None = None,
 ) -> FreshnessOutcome:
     """`historical_turn_citation_digest_after_answer` is the PAST Turn's
     own citation digest, re-read AFTER the new Turn's answer was
     produced -- if it no longer matches `case.historical_citation_
     digest_sha512`, the past Turn's own record was mutated. That is
     classified as the single worst outcome regardless of what the new
-    answer itself said, independent of every other check below."""
+    answer itself said, independent of every other check below.
+
+    ``current_value_adopted`` is a separate Rule/Judge Evidence signal;
+    mere substring presence in the Answer can never establish adoption.
+    Missing or negative adoption Evidence therefore stays non-PASS."""
 
     if historical_turn_citation_digest_after_answer != case.historical_citation_digest_sha512:
         return FreshnessOutcome.HISTORICAL_CITATION_ALTERED
-    if case.source_revision_state in (SourceRevisionState.UPDATED, SourceRevisionState.DELETED):
-        if case.current_source_value is not None and case.current_source_value in new_turn_answer:
-            return FreshnessOutcome.CURRENT_FACT_USED
-        if case.historical_claim in new_turn_answer:
-            return FreshnessOutcome.STALE_FACT_REPEATED
-        return FreshnessOutcome.INSUFFICIENT_EVIDENCE
-    return FreshnessOutcome.CURRENT_FACT_USED
+    if (
+        current_value_adopted is True
+        and case.current_source_value is not None
+        and case.current_source_value in new_turn_answer
+    ):
+        return FreshnessOutcome.CURRENT_FACT_USED
+    if case.historical_claim in new_turn_answer:
+        return FreshnessOutcome.STALE_FACT_REPEATED
+    return FreshnessOutcome.INSUFFICIENT_EVIDENCE

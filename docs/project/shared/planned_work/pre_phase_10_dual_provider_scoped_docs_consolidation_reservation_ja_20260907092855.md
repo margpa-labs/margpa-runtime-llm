@@ -60,3 +60,20 @@ Claude側とCodex側の独立した指定範囲統合が完了した後、改め
 
 本書は将来作業の予約記録であり、具体的な設計、対象ファイルの最終選定、Stableの命名詳細、実施用Handoffは実行時に決定する。
 
+## 8. Append-only追記 — Blind隔離方式の採用（2026-09-11 17:46:29 JST）
+
+後続User Decisionにより、Claudeを先行させた場合にCodexがClaude側統合Stableを読まないための方式を、File名による注意喚起だけでなく、次の複合Contractとして設計した。
+
+- 工程開始時に`docs/`全体からSource候補を確定し、両Providerへ同一のFreeze Manifest／Digestを渡す。
+- Claude側成果物を`blind_preintegration/<run_id>/claude_side_sealed_until_codex_complete/`へ隔離する。
+- Claude側File名へ`codex_do_not_read_until_blind_complete`を含める。
+- CodexはDirectory全探索ではなくFreeze ManifestのSource PathをAllowlistとして読む。
+- Codex側Handoff、Recovery、検索、RAGおよびUser RelayからClaude側内容を除外する。
+- 両側成果物をDigest付きでFreezeした後だけUnseal／比較する。
+- 誤読が生じた場合はBlind成立を主張せず、`BLIND_CONTAMINATED`として保存する。
+
+現行の詳細運用設計は次を正本とする。
+
+- [Phase 10直前 Claude／Codex 独立Docs統合 Blind運用設計](../automation/pre_phase_10_dual_provider_blind_scoped_docs_consolidation_operating_design_ja.md)
+
+本追記はStable作成対象範囲を広げない。指定範囲外へのStable作成禁止、各Provider二回の全Source照合、Append-only補正、Claude側／Codex側の作成者識別および後続の全範囲Docs統合という元予約を全て維持する。

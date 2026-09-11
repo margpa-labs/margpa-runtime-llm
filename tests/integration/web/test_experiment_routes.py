@@ -13,7 +13,8 @@ from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from types import SimpleNamespace
+from typing import Any, cast
 
 import httpx
 import pytest
@@ -25,7 +26,22 @@ from margpa_runtime_llm.adapters.experiment.local_filesystem_experiment_store im
 from margpa_runtime_llm.adapters.output_protocols.tagged_thinking import (
     TaggedThinkingOutputParser,
 )
+from margpa_runtime_llm.bootstrap import web_application as web_application_module
+from margpa_runtime_llm.bootstrap.phase1_application import Phase1Application
+from margpa_runtime_llm.bootstrap.web_application import build_phase1_web_runtime
+from margpa_runtime_llm.modules.conversation.adapters import (
+    LocalConversationPersistenceSettings,
+)
+from margpa_runtime_llm.modules.conversation.adapters.persistence_factory import (
+    LocalConversationPersistence,
+)
+from margpa_runtime_llm.modules.conversation.domain import ConversationScopeId
 from margpa_runtime_llm.modules.conversation.public import ConversationGenerationService
+from margpa_runtime_llm.modules.evaluation.application.judge_mode_controller import (
+    JudgeModeController,
+    JudgeModeSnapshot,
+)
+from margpa_runtime_llm.modules.evaluation.domain.identifiers import EvaluationMode
 from margpa_runtime_llm.modules.experiment.application.configuration_lease import (
     ExperimentConfigurationLease,
 )
@@ -37,6 +53,7 @@ from margpa_runtime_llm.modules.experiment.application.production_turn_runner im
 )
 from margpa_runtime_llm.modules.experiment.application.run_worker import ExperimentRunWorker
 from margpa_runtime_llm.modules.experiment.domain.case_pack import build_case_pack
+from margpa_runtime_llm.modules.experiment.domain.comparison_report import ComparisonReport
 from margpa_runtime_llm.modules.experiment.domain.config_snapshot import (
     build_effective_configuration_snapshot,
 )
@@ -51,6 +68,7 @@ from margpa_runtime_llm.modules.experiment.domain.provider_identity import (
     ProviderIdentityEnvelope,
 )
 from margpa_runtime_llm.modules.experiment.domain.run import RunState
+from margpa_runtime_llm.modules.experiment.domain.semantic_evidence import CaseSemanticEvidence
 from margpa_runtime_llm.modules.inference.contracts.generation import (
     GenerationParameters,
     GenerationRequest,
@@ -144,6 +162,23 @@ def _bound_runtime(tmp_path: Path) -> WebRuntime:
     return runtime
 
 
+class FailOnceDesiredSnapshotStore(LocalFilesystemExperimentStore):
+    def __init__(self, *, base_dir: Path, fail_on_call: int) -> None:
+        super().__init__(base_dir=base_dir)
+        self.fail_on_call = fail_on_call
+        self.snapshot_save_calls = 0
+        self.failure_injected = False
+
+    def save_variant_desired_configuration(
+        self, experiment_id: str, variant_id: str, snapshot: dict[str, Any]
+    ) -> None:
+        self.snapshot_save_calls += 1
+        if self.snapshot_save_calls == self.fail_on_call and not self.failure_injected:
+            self.failure_injected = True
+            raise OSError("injected desired snapshot failure")
+        super().save_variant_desired_configuration(experiment_id, variant_id, snapshot)
+
+
 async def _wait_for_terminal_run(
     client: httpx.AsyncClient, run_id: str, *, timeout: float = 2.0
 ) -> dict[str, Any]:
@@ -171,6 +206,72 @@ async def client_for(app: FastAPI) -> AsyncIterator[httpx.AsyncClient]:
             yield client
 
 
+async def _execute_fixture_plan(
+    client: httpx.AsyncClient,
+    *,
+    experiment_id: str,
+    case_id: str,
+    variant_ids: tuple[str, ...],
+) -> dict[str, Any]:
+    plan_response = await client.post(
+        "/api/v7/experiment/plans",
+        json={
+            "experiment_id": experiment_id,
+            "case_id": case_id,
+            "variant_ids": list(variant_ids),
+            "execution_mode": "fixture",
+        },
+    )
+    assert plan_response.status_code == 201, plan_response.text
+    plan_body = plan_response.json()
+    assert plan_body["experiment_id"] == experiment_id
+    assert plan_body["case_id"] == case_id
+    assert plan_body["execution_mode"] == "fixture"
+    assert len(plan_body["plan_digest_sha512"]) == 128
+    assert {item["variant_id"] for item in plan_body["variant_configurations"]} == set(
+        variant_ids
+    )
+    # Fixture never reads or claims a Live/Model configuration snapshot.
+    # P9-ACC-039's live snapshot/digest half belongs to the separately
+    # covered Production Adapter path; the Fixture boundary stays explicit.
+    assert all(
+        item["desired_configuration_digest_sha512"] is None
+        for item in plan_body["variant_configurations"]
+    )
+    for index, variant_id in enumerate(variant_ids):
+        run_id = f"run-{experiment_id.removeprefix('exp-')}-{index}"
+        start_response = await client.post(
+            "/api/v7/experiment/runs",
+            json={
+                "experiment_id": experiment_id,
+                "variant_id": variant_id,
+                "run_id": run_id,
+            },
+        )
+        assert start_response.status_code == 202, start_response.text
+        terminal = await _wait_for_terminal_run(client, run_id)
+        assert terminal["run"]["experiment_id"] == experiment_id
+        assert terminal["run"]["variant_id"] == variant_id
+        assert terminal["run"]["request_id"]
+        assert terminal["run"]["state"] == "completed"
+        assert terminal["run"]["execution_mode"] == "fixture"
+    comparison = await client.get(
+        f"/api/v7/experiment/experiments/{experiment_id}/comparison"
+    )
+    assert comparison.status_code == 200, comparison.text
+    comparison_body = cast(dict[str, Any], comparison.json())
+    assert comparison_body["experiment_id"] == experiment_id
+    assert comparison_body["case_id"] == case_id
+    assert comparison_body["case_revision"] == plan_body["case_revision"]
+    return comparison_body
+
+
+def _raw_invocations(raw_evidence: dict[str, object]) -> list[dict[str, Any]]:
+    payload = raw_evidence.get("invocations")
+    assert isinstance(payload, list)
+    return [cast(dict[str, Any], item) for item in payload]
+
+
 @pytest.mark.asyncio
 async def test_presets_degrades_safely_when_unbound() -> None:
     app = create_web_app(runtime_factory=_unbound_runtime, access_policy=_LOCAL_POLICY)
@@ -178,6 +279,177 @@ async def test_presets_degrades_safely_when_unbound() -> None:
         response = await client.get("/api/v7/experiment/presets")
     assert response.status_code == 200
     assert response.json() == {"enabled": False, "cases": [], "variants": []}
+
+
+@pytest.mark.asyncio
+async def test_default_off_runtime_rejects_plan_and_run_without_work_or_settings_lease() -> None:
+    runtime = _unbound_runtime()
+    app = create_web_app(runtime_factory=lambda: runtime, access_policy=_LOCAL_POLICY)
+    async with client_for(app) as client:
+        plan = await client.post(
+            "/api/v7/experiment/plans",
+            json={
+                "experiment_id": "default-off",
+                "case_id": "case-must-not-be-read",
+                "variant_ids": ["baseline-all-off"],
+            },
+        )
+        run = await client.post(
+            "/api/v7/experiment/runs",
+            json={
+                "experiment_id": "default-off",
+                "variant_id": "baseline-all-off",
+                "run_id": "must-not-start",
+            },
+        )
+        settings = await client.post(
+            "/api/v5/feature-modes/judge",
+            json={"requested_mode": "off"},
+        )
+
+    for response in (plan, run):
+        assert response.status_code == 503
+        assert response.json() == {
+            "code": "experiment_disabled",
+            "message": "The Experiment runtime is not enabled in this deployment.",
+        }
+    assert settings.status_code == 200
+    assert settings.json()["judge"]["enabled"] is False
+    assert settings.json().get("code") != "experiment_configuration_lease_held"
+    assert runtime.experiment_service is None
+    assert runtime.experiment_run_worker is None
+    assert runtime.production_turn_adapter is None
+    assert runtime.live_configuration_reader is None
+    assert runtime.experiment_configuration_lease is None
+
+
+@pytest.mark.asyncio
+async def test_explicit_gate_runs_the_top_level_fixture_evidence_and_restart_path(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeLoadedService:
+        runtime_info = SimpleNamespace(
+            model_key="main.fixture",
+            backend_key="fixture",
+            loaded_context_size=4096,
+            effective_capabilities=SimpleNamespace(features=frozenset()),
+            device_kind="cpu",
+            acceleration_api="fixture",
+        )
+
+        def count_text_tokens(self, text: str) -> int:
+            return len(text.split())
+
+        def count_chat_prompt_tokens(
+            self, messages: tuple[object, ...], thinking_mode: ThinkingMode
+        ) -> int:
+            del messages, thinking_mode
+            return 0
+
+    presentation = ResolvedThinkingPresentationPolicy(
+        visibility=ThinkingVisibility.HIDDEN,
+        display_label="推論過程",
+        persistence=ThinkingPersistence.DISABLED,
+        visibility_source=ThinkingPresentationSource.APPLICATION,
+        display_label_source=ThinkingPresentationSource.APPLICATION,
+        persistence_source=ThinkingPresentationSource.APPLICATION,
+    )
+    application = cast(
+        Phase1Application,
+        SimpleNamespace(
+            service=FakeLoadedService(),
+            config=SimpleNamespace(
+                selected_model="main.fixture",
+                profile_key="test.fixture",
+                generation=GenerationParameters(max_new_tokens=32),
+                response=SimpleNamespace(language=ResponseLanguage.JA),
+                presentation=presentation,
+                summarization=SummarizationConfig(),
+            ),
+            presentation_service=object(),
+            close=lambda: None,
+        ),
+    )
+    monkeypatch.setattr(
+        web_application_module,
+        "build_phase1_application",
+        lambda **_kwargs: application,
+    )
+    monkeypatch.setattr(
+        web_application_module,
+        "start_local_conversation_persistence",
+        lambda *_args, **_kwargs: LocalConversationPersistence(
+            enabled=True,
+            storage_backend_kind="fixture",
+            storage_backend_version="1",
+        ),
+    )
+    settings = LocalConversationPersistenceSettings(
+        enabled=True,
+        runtime_data_root=tmp_path,
+        scope_id=ConversationScopeId(value="enabled-top-level"),
+    )
+    runtime = build_phase1_web_runtime(
+        project_root=Path(__file__).resolve().parents[3],
+        profile_path=None,
+        registry_path=Path(__file__).resolve().parents[3]
+        / "config/models/qwen3_4b_q4_k_m.toml",
+        conversation_persistence_settings=settings,
+        experiment_runtime_enabled=True,
+    )
+    assert runtime.experiment_service is not None
+    store = runtime.experiment_service.store
+    app = create_web_app(runtime_factory=lambda: runtime, access_policy=_LOCAL_POLICY)
+    async with client_for(app) as client:
+        presets = (await client.get("/api/v7/experiment/presets")).json()
+        plan = await client.post(
+            "/api/v7/experiment/plans",
+            json={
+                "experiment_id": "enabled-top-level",
+                "case_id": presets["cases"][0]["case_id"],
+                "variant_ids": ["baseline-all-off"],
+            },
+        )
+        assert plan.status_code == 201
+        started = await client.post(
+            "/api/v7/experiment/runs",
+            json={
+                "experiment_id": "enabled-top-level",
+                "variant_id": "baseline-all-off",
+                "run_id": "enabled-run",
+            },
+        )
+        assert started.status_code == 202
+        result = await _wait_for_terminal_run(client, "enabled-run")
+        assert result["run"]["state"] == "completed"
+        comparison = await client.get(
+            "/api/v7/experiment/experiments/enabled-top-level/comparison"
+        )
+        assert comparison.status_code == 200
+
+    assert store.load_plan("enabled-top-level") is not None
+    assert store.load_run("enabled-run") is not None
+    assert store.load_raw_evidence("enabled-run") is not None
+    assert store.load_comparison("enabled-top-level") is not None
+
+
+@pytest.mark.asyncio
+async def test_bound_experiment_runtime_fails_closed_under_a_nonlocal_access_policy(
+    tmp_path: Path,
+) -> None:
+    runtime = _bound_runtime(tmp_path)
+    app = create_web_app(
+        runtime_factory=lambda: runtime,
+        access_policy=WebAccessPolicy(
+            exposure_mode=WebExposureMode.PUBLIC_DEMO,
+            mode=WebAuthMode.DISABLED,
+            non_loopback_allowed=True,
+        ),
+    )
+    with pytest.raises(RuntimeError, match="Experiment Runtime requires local loopback"):
+        async with app.router.lifespan_context(app):
+            pytest.fail("the nonlocal Experiment runtime must fail before serving requests")
 
 
 @pytest.mark.asyncio
@@ -196,6 +468,30 @@ async def test_presets_lists_case_pack_and_preset_variants_when_bound(tmp_path: 
         "baseline-all-off",
         "judge-observe",
         "judge-enforce-repair",
+        "fixture-main-active",
+        "fixture-main-active-replica",
+        "fixture-main-negated-current",
+        "fixture-judge-observe",
+        "fixture-guard-enforce",
+        "fixture-main-governance-strict",
+        "fixture-definition-manual",
+        "fixture-definition-static",
+        "fixture-definition-dynamic",
+        "fixture-definition-manual-judge-request",
+        "fixture-definition-manual-with-repair",
+        "fixture-rag-relevant",
+        "fixture-rag-no-hit",
+        "fixture-rag-strict-no-hit",
+        "fixture-repair-enforce",
+        "fixture-main-governance-request-no-repair",
+        "fixture-main-governance-with-repair",
+        "fixture-judge-main-governance-with-repair",
+        "fixture-presentation-strict",
+        "fixture-presentation-progressive",
+        "fixture-recording-active",
+        "fixture-manual-url-fail-closed",
+        "fixture-guard-short-circuit",
+        "fixture-judge-enforce-no-repair",
         "production-main-only-baseline",
         "production-judge-repair-baseline",
         "production-guard-baseline",
@@ -258,6 +554,75 @@ async def test_full_plan_run_and_list_lifecycle(tmp_path: Path) -> None:
         rows_by_run_id = {row["run_id"]: row for row in comparison_body["rows"]}
         assert rows_by_run_id["run-1"]["runtime_state"] == "completed"
         assert len(rows_by_run_id["run-1"]["observations"]) == 1
+
+
+@pytest.mark.asyncio
+async def test_plan_is_published_only_after_all_desired_snapshots_and_retry_converges(
+    tmp_path: Path,
+) -> None:
+    """IR-P9-2-WHOLE-R2-03: the Plan file is the visible commit point.
+    A partial Snapshot failure leaves no readable Plan, and retry of the
+    same identity may complete without a Duplicate-Plan dead end."""
+
+    store = FailOnceDesiredSnapshotStore(base_dir=tmp_path, fail_on_call=2)
+    runtime = _bound_runtime_with_production(
+        tmp_path, FakeProductionTurnPort(request_id="not-invoked")
+    )
+    runtime.experiment_service = ExperimentService(store=store)
+    app = create_web_app(runtime_factory=lambda: runtime, access_policy=_LOCAL_POLICY)
+    body = {
+        "experiment_id": "exp-atomic-plan",
+        "case_id": "placeholder",
+        "variant_ids": ["baseline-all-off", "judge-observe"],
+        "execution_mode": "fixture",
+    }
+
+    async with client_for(app) as client:
+        presets = (await client.get("/api/v7/experiment/presets")).json()
+        body["case_id"] = presets["cases"][0]["case_id"]
+
+        failed = await client.post("/api/v7/experiment/plans", json=body)
+        assert failed.status_code == 500
+        assert store.load_plan("exp-atomic-plan") is None
+
+        retried = await client.post("/api/v7/experiment/plans", json=body)
+        assert retried.status_code == 201
+        committed_plan = store.load_plan("exp-atomic-plan")
+        assert committed_plan is not None
+        assert retried.json()["plan_digest_sha512"] == committed_plan.plan_digest_sha512
+
+        committed_snapshots: dict[str, dict[str, Any]] = {}
+        for ref in committed_plan.variant_configuration_digests:
+            snapshot = store.load_variant_desired_configuration(
+                committed_plan.experiment_id, ref.variant_id
+            )
+            assert snapshot is not None
+            assert snapshot["configuration_digest_sha512"] == ref.configuration_digest_sha512
+            committed_snapshots[ref.variant_id] = snapshot
+        assert set(committed_snapshots) == {"baseline-all-off", "judge-observe"}
+
+        calls_before_duplicate = store.snapshot_save_calls
+        duplicate = await client.post(
+            "/api/v7/experiment/plans",
+            json={**body, "variant_ids": ["judge-enforce-repair"]},
+        )
+        assert duplicate.status_code == 409
+        assert store.snapshot_save_calls == calls_before_duplicate
+        for variant_id, snapshot in committed_snapshots.items():
+            assert (
+                store.load_variant_desired_configuration("exp-atomic-plan", variant_id)
+                == snapshot
+            )
+
+    fresh_store = LocalFilesystemExperimentStore(base_dir=tmp_path)
+    restarted_plan = fresh_store.load_plan("exp-atomic-plan")
+    assert restarted_plan is not None
+    for ref in restarted_plan.variant_configuration_digests:
+        restarted_snapshot = fresh_store.load_variant_desired_configuration(
+            restarted_plan.experiment_id, ref.variant_id
+        )
+        assert restarted_snapshot is not None
+        assert restarted_snapshot["configuration_digest_sha512"] == ref.configuration_digest_sha512
 
 
 @pytest.mark.asyncio
@@ -350,7 +715,6 @@ async def test_cancel_is_idempotent_when_the_runs_own_cancel_hook_wins_the_race(
             variant_id="baseline-all-off",
             run_id="run-1",
             request_id="req-race-1",
-            execution_mode="fixture",
         )
         # Simulates the Worker's own cancel-triggered publish winning the
         # race -- never actually submitted to the Worker in this test, so
@@ -395,7 +759,6 @@ async def test_cancel_still_409s_when_the_run_finished_for_an_unrelated_reason(
             variant_id="baseline-all-off",
             run_id="run-1",
             request_id="req-race-2",
-            execution_mode="fixture",
         )
         service.publish_result(
             run.run_id, generation=run.generation, target_state=RunState.COMPLETED
@@ -416,6 +779,7 @@ class FakeProductionTurnPort:
     main_outcome: str = "completed"
     assistant_content: str | None = "Paris."
     calls: list[str] = field(default_factory=list)
+    entered: threading.Event | None = None
     release: threading.Event | None = None
     mutate_live_config: Callable[[], None] | None = None
 
@@ -423,6 +787,8 @@ class FakeProductionTurnPort:
         self, *, user_input: str, on_request_id: Callable[[str], None] | None = None
     ) -> ProductionTurnObservation:
         self.calls.append(user_input)
+        if self.entered is not None:
+            self.entered.set()
         if on_request_id is not None:
             on_request_id(self.request_id)
         if self.release is not None:
@@ -657,6 +1023,11 @@ async def test_a_production_run_completes_with_fixture_only_false(tmp_path: Path
         assert start_response.status_code == 202
         assert start_response.json()["fixture_only"] is False
         run_body = await _wait_for_terminal_run(client, "run-1")
+        comparison_response = await client.get(
+            "/api/v7/experiment/experiments/exp-5/comparison"
+        )
+        assert comparison_response.status_code == 200
+        production_row = comparison_response.json()["rows"][0]
     assert run_body["run"]["state"] == "completed"
     assert run_body["run"]["fixture_only"] is False
     # `run.request_id` stays the Experiment-side id assigned at Run start
@@ -666,6 +1037,12 @@ async def test_a_production_run_completes_with_fixture_only_false(tmp_path: Path
     assert run_body["run"]["request_id"]
     assert run_body["production_request_id"] == "real-req-1"
     assert run_body["assistant_content"] == "Paris."
+    assert production_row["execution_mode"] == "production"
+    assert production_row["semantic_evidence"] is None
+    assert production_row["observations"][0]["outcome"] == "unavailable"
+    assert production_row["metric"]["false_positive"] is None
+    assert production_row["metric"]["false_grounding"] is None
+    assert production_row["metric"]["correction_acceptance"] is None
     assert adapter.calls == [case_input]
 
 
@@ -1431,8 +1808,11 @@ async def test_settings_mutation_routes_409_while_the_lease_is_held_and_recover_
     Lease check runs in middleware, BEFORE the request ever reaches a
     route handler, so an empty body still proves the gate."""
 
+    entered = threading.Event()
     release = threading.Event()
-    adapter = FakeProductionTurnPort(request_id="real-req-lease-http", release=release)
+    adapter = FakeProductionTurnPort(
+        request_id="real-req-lease-http", entered=entered, release=release
+    )
     app = create_web_app(
         runtime_factory=lambda: _bound_runtime_with_production(tmp_path, adapter),
         access_policy=_LOCAL_POLICY,
@@ -1457,18 +1837,606 @@ async def test_settings_mutation_routes_409_while_the_lease_is_held_and_recover_
                 "run_id": "run-1",
             },
         )
-        # Give the Worker a moment to actually start the Task and acquire
-        # the Lease (it now holds it across the final Live-match AND the
-        # real Actor Call, per R4-WU-02).
-        await asyncio.sleep(0.05)
-        held_response = await client.post("/api/v5/feature-modes/judge", json={})
+        # Deterministic barrier: Actor entry proves the Worker already owns
+        # the same lease the middleware will arbitrate against.
+        assert entered.wait(timeout=1.0) is True
+        held_response = await client.post(
+            "/api/v5/feature-modes/judge", json={"requested_mode": "off"}
+        )
         assert held_response.status_code == 409
         assert held_response.json()["code"] == "experiment_configuration_lease_held"
 
         release.set()
         await _wait_for_terminal_run(client, "run-1")
 
-        released_response = await client.post("/api/v5/feature-modes/judge", json={})
+        released_response = await client.post(
+            "/api/v5/feature-modes/judge", json={"requested_mode": "off"}
+        )
         assert released_response.status_code != 409 or (
             released_response.json().get("code") != "experiment_configuration_lease_held"
         )
+
+
+class BarrierJudgeModeController(JudgeModeController):
+    def __init__(self, *, entered: threading.Event, release: threading.Event) -> None:
+        super().__init__()
+        self._entered = entered
+        self._release = release
+
+    def apply_mode(self, requested_mode: EvaluationMode) -> JudgeModeSnapshot:
+        self._entered.set()
+        self._release.wait(timeout=2.0)
+        return super().apply_mode(requested_mode)
+
+
+@pytest.mark.asyncio
+async def test_mutation_winning_first_blocks_final_snapshot_and_actor_until_http_completion(
+    tmp_path: Path,
+) -> None:
+    """IR-P9-2-WHOLE-R1-04: the mutation-side lease is held through the
+    real HTTP handler. The Worker cannot enter its protected final snapshot
+    or Actor interval until that earlier mutation completes."""
+
+    mutation_entered = threading.Event()
+    mutation_release = threading.Event()
+    actor_entered = threading.Event()
+    adapter = FakeProductionTurnPort(
+        request_id="real-req-mutation-first", entered=actor_entered
+    )
+    runtime = _bound_runtime_with_production(tmp_path, adapter)
+    runtime.judge_mode_control = BarrierJudgeModeController(
+        entered=mutation_entered, release=mutation_release
+    )
+    app = create_web_app(runtime_factory=lambda: runtime, access_policy=_LOCAL_POLICY)
+    mutation_responses: list[httpx.Response] = []
+    mutation_errors: list[BaseException] = []
+
+    def _run_mutation_request() -> None:
+        async def _request() -> httpx.Response:
+            async with httpx.AsyncClient(
+                transport=httpx.ASGITransport(app=app, raise_app_exceptions=False),
+                base_url="http://mutation",
+            ) as mutation_client:
+                return await mutation_client.post(
+                    "/api/v5/feature-modes/judge",
+                    json={"requested_mode": "off"},
+                )
+
+        try:
+            mutation_responses.append(asyncio.run(_request()))
+        except BaseException as exc:  # pragma: no cover - surfaced by the assertions below
+            mutation_errors.append(exc)
+
+    async with client_for(app) as client:
+        presets = (await client.get("/api/v7/experiment/presets")).json()
+        case_id = presets["cases"][0]["case_id"]
+        await client.post(
+            "/api/v7/experiment/plans",
+            json={
+                "experiment_id": "exp-mutation-first",
+                "case_id": case_id,
+                "variant_ids": ["judge-observe"],
+                "execution_mode": "production",
+            },
+        )
+
+        mutation_thread = threading.Thread(target=_run_mutation_request, daemon=True)
+        mutation_thread.start()
+        assert mutation_entered.wait(timeout=1.0) is True
+
+        start = await client.post(
+            "/api/v7/experiment/runs",
+            json={
+                "experiment_id": "exp-mutation-first",
+                "variant_id": "judge-observe",
+                "run_id": "run-mutation-first",
+            },
+        )
+        assert start.status_code == 202
+        assert actor_entered.wait(timeout=0.1) is False
+
+        mutation_release.set()
+        await asyncio.to_thread(mutation_thread.join, 1.0)
+        assert mutation_thread.is_alive() is False
+        assert mutation_errors == []
+        assert len(mutation_responses) == 1
+        assert mutation_responses[0].status_code == 200
+
+        run_body = await _wait_for_terminal_run(client, "run-mutation-first")
+        assert actor_entered.is_set() is True
+        assert run_body["run"]["state"] == "completed"
+
+        recovered = await client.post(
+            "/api/v5/feature-modes/judge", json={"requested_mode": "off"}
+        )
+        assert recovered.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_top_level_current_freshness_never_passes_an_unrelated_fixture_answer(
+    tmp_path: Path,
+) -> None:
+    """IR-P9-2-WHOLE-R3-01: real Plan→Run→Evidence→Comparison path."""
+
+    runtime = _bound_runtime(tmp_path)
+    app = create_web_app(runtime_factory=lambda: runtime, access_policy=_LOCAL_POLICY)
+    async with client_for(app) as client:
+        comparison = await _execute_fixture_plan(
+            client,
+            experiment_id="exp-r3-current",
+            case_id="case-freshness-alpha-15",
+            variant_ids=(
+                "baseline-all-off",
+                "fixture-main-active",
+                "fixture-main-negated-current",
+            ),
+        )
+
+    rows = {row["variant_id"]: row for row in comparison["rows"]}
+    assert rows["baseline-all-off"]["semantic_evidence"]["assistant_content"] == "I am not sure."
+    assert rows["baseline-all-off"]["observations"][0]["outcome"] == "inconclusive"
+    assert rows["baseline-all-off"]["observations"][0]["reason"] == "insufficient_evidence"
+    assert rows["fixture-main-active"]["observations"][0]["outcome"] == "pass"
+    assert rows["fixture-main-active"]["observations"][0]["reason"] == "current_fact_used"
+    negated = rows["fixture-main-negated-current"]
+    assert negated["semantic_evidence"]["assistant_content"] == (
+        "000 is not the current value; 765 is current."
+    )
+    assert negated["semantic_evidence"]["answer_adopts_current_value"] is False
+    assert negated["observations"][0]["outcome"] == "inconclusive"
+    assert negated["observations"][0]["reason"] == "insufficient_evidence"
+
+    restarted = LocalFilesystemExperimentStore(base_dir=tmp_path).load_comparison(
+        "exp-r3-current"
+    )
+    assert restarted is not None
+    report = ComparisonReport.model_validate(restarted)
+    assert report.case_id == "case-freshness-alpha-15"
+    assert {
+        observation.rubric_revision
+        for row in report.rows
+        for observation in row.observations
+    } == {report.case_revision}
+    restarted_rows = {row.variant_id: row for row in report.rows}
+    restarted_negated = restarted_rows["fixture-main-negated-current"]
+    assert restarted_negated.semantic_evidence is not None
+    assert restarted_negated.semantic_evidence.answer_adopts_current_value is False
+    assert restarted_negated.observations[0].outcome.value == "inconclusive"
+
+
+@pytest.mark.asyncio
+async def test_top_level_semantic_fixture_matrix_routes_truth_to_metrics_and_restart(
+    tmp_path: Path,
+) -> None:
+    """IR-P9-2-WHOLE-R3-02: every required semantic Case is executable."""
+
+    runtime = _bound_runtime(tmp_path)
+    assert runtime.experiment_service is not None
+    app = create_web_app(runtime_factory=lambda: runtime, access_policy=_LOCAL_POLICY)
+    experiments: dict[str, dict[str, Any]] = {}
+    async with client_for(app) as client:
+        matrix = (
+            (
+                "exp-r3-updated",
+                "case-freshness-alpha-15-updated",
+                ("baseline-all-off", "fixture-main-active"),
+            ),
+            (
+                "exp-r3-deleted",
+                "case-freshness-alpha-15-deleted",
+                ("baseline-all-off", "fixture-main-active"),
+            ),
+            (
+                "exp-r3-relevant",
+                "case-retrieval-relevant-hit",
+                ("fixture-main-active", "fixture-rag-relevant"),
+            ),
+            (
+                "exp-r3-rag-off",
+                "case-retrieval-rag-off",
+                ("fixture-main-active",),
+            ),
+            (
+                "exp-r3-irrelevant",
+                "case-retrieval-irrelevant-hit",
+                ("fixture-rag-relevant",),
+            ),
+            (
+                "exp-r3-no-hit-call",
+                "case-retrieval-no-hit-model-call",
+                ("fixture-rag-no-hit",),
+            ),
+            (
+                "exp-r3-strict-no-hit",
+                "case-retrieval-strict-no-hit",
+                ("fixture-rag-strict-no-hit",),
+            ),
+            (
+                "exp-r3-belief",
+                "case-belief-revision-alpha-15",
+                ("fixture-judge-enforce-no-repair", "judge-enforce-repair"),
+            ),
+            (
+                "exp-r3-false-improvement",
+                "case-false-improvement-beta-01",
+                ("fixture-judge-enforce-no-repair", "judge-enforce-repair"),
+            ),
+        )
+        for experiment_id, case_id, variant_ids in matrix:
+            experiments[experiment_id] = await _execute_fixture_plan(
+                client,
+                experiment_id=experiment_id,
+                case_id=case_id,
+                variant_ids=variant_ids,
+            )
+
+    updated = {row["variant_id"]: row for row in experiments["exp-r3-updated"]["rows"]}
+    assert updated["baseline-all-off"]["observations"][0]["reason"] == "stale_fact_repeated"
+    assert updated["baseline-all-off"]["observations"][0]["outcome"] == "fail"
+    assert updated["fixture-main-active"]["observations"][0]["outcome"] == "pass"
+
+    deleted = {row["variant_id"]: row for row in experiments["exp-r3-deleted"]["rows"]}
+    assert deleted["baseline-all-off"]["observations"][0]["outcome"] == "fail"
+    assert deleted["fixture-main-active"]["observations"][0]["reason"] == "insufficient_evidence"
+
+    relevant = experiments["exp-r3-relevant"]["rows"][1]
+    assert relevant["observations"][0]["outcome"] == "pass"
+    assert relevant["metric"]["false_grounding"] is False
+    rag_off = experiments["exp-r3-rag-off"]["rows"][0]
+    assert rag_off["observations"][0]["outcome"] == "inconclusive"
+    assert rag_off["observations"][0]["reason"] == "ungrounded_model_knowledge"
+    irrelevant = experiments["exp-r3-irrelevant"]["rows"][0]
+    assert irrelevant["observations"][0]["outcome"] == "fail"
+    assert irrelevant["metric"]["false_grounding"] is True
+
+    no_hit_call = experiments["exp-r3-no-hit-call"]["rows"][0]
+    assert no_hit_call["observations"][0]["outcome"] == "pass"
+    no_hit_main_stage = no_hit_call["semantic_evidence"]["execution_trace"]["stages"][0]
+    assert (
+        no_hit_main_stage["stage"],
+        no_hit_main_stage["call_count"],
+        no_hit_main_stage["call_zero_reason"],
+    ) == ("main", 1, "none")
+    strict_no_hit = experiments["exp-r3-strict-no-hit"]["rows"][0]
+    assert strict_no_hit["observations"][0]["outcome"] == "pass"
+    main_stage = next(
+        stage
+        for stage in strict_no_hit["semantic_evidence"]["execution_trace"]["stages"]
+        if stage["stage"] == "main"
+    )
+    assert (main_stage["call_count"], main_stage["call_zero_reason"]) == (0, "strict_no_hit")
+    strict_raw = runtime.experiment_service.store.load_raw_evidence(strict_no_hit["run_id"])
+    assert strict_raw is not None
+    strict_main = next(
+        item for item in _raw_invocations(strict_raw) if item["component_key"] == "main"
+    )
+    assert strict_main["called"] is False
+    assert strict_main["outcome"] == "call_zero:strict_no_hit"
+
+    belief = {row["variant_id"]: row for row in experiments["exp-r3-belief"]["rows"]}
+    assert belief["fixture-judge-enforce-no-repair"]["metric"][
+        "correction_acceptance"
+    ] is False
+    assert belief["judge-enforce-repair"]["metric"]["correction_acceptance"] is True
+    assert belief["judge-enforce-repair"]["observations"][0]["outcome"] == "pass"
+    assert belief["fixture-judge-enforce-no-repair"]["semantic_evidence"][
+        "repair_requested_by"
+    ] == "judge"
+    assert belief["judge-enforce-repair"]["semantic_evidence"][
+        "repair_requested_by"
+    ] == "judge"
+    assert belief["fixture-judge-enforce-no-repair"]["metric"]["repair_adopted"] is False
+    assert belief["judge-enforce-repair"]["metric"]["repair_adopted"] is True
+
+    false_improvement = {
+        row["variant_id"]: row for row in experiments["exp-r3-false-improvement"]["rows"]
+    }
+    assert false_improvement["fixture-judge-enforce-no-repair"]["metric"][
+        "false_positive"
+    ] is False
+    assert false_improvement["judge-enforce-repair"]["metric"]["false_positive"] is True
+    assert false_improvement["judge-enforce-repair"]["observations"][0]["outcome"] == "not_run"
+    assert false_improvement["judge-enforce-repair"]["observations"][0]["reason"] == (
+        "human_review_pending"
+    )
+
+    fresh_store = LocalFilesystemExperimentStore(base_dir=tmp_path)
+    for experiment_id, response in experiments.items():
+        persisted = fresh_store.load_comparison(experiment_id)
+        assert persisted is not None
+        report = ComparisonReport.model_validate(persisted)
+        assert report.case_id == response["case_id"]
+        for row in report.rows:
+            assert row.semantic_evidence is not None
+            assert row.semantic_evidence.execution_mode == "fixture"
+            assert row.semantic_evidence.case_id == report.case_id
+            assert all(
+                observation.case_id == report.case_id
+                and observation.rubric_revision == report.case_revision
+                for observation in row.observations
+            )
+
+
+@pytest.mark.asyncio
+async def test_top_level_composition_matrix_persists_relations_routing_modes_and_call_zero(
+    tmp_path: Path,
+) -> None:
+    """IR-P9-2-WHOLE-R3-03: no hand-built trace or isolated classifier."""
+
+    variants = (
+        "baseline-all-off",
+        "fixture-main-active",
+        "fixture-main-active-replica",
+        "fixture-judge-observe",
+        "fixture-guard-enforce",
+        "fixture-main-governance-strict",
+        "fixture-definition-manual",
+        "fixture-definition-static",
+        "fixture-definition-dynamic",
+        "fixture-definition-manual-judge-request",
+        "fixture-definition-manual-with-repair",
+        "fixture-rag-relevant",
+        "fixture-repair-enforce",
+        "fixture-main-governance-request-no-repair",
+        "fixture-main-governance-with-repair",
+        "fixture-judge-main-governance-with-repair",
+        "fixture-presentation-strict",
+        "fixture-presentation-progressive",
+        "fixture-recording-active",
+        "fixture-manual-url-fail-closed",
+        "fixture-guard-short-circuit",
+        "judge-enforce-repair",
+        "fixture-judge-enforce-no-repair",
+    )
+    runtime = _bound_runtime(tmp_path)
+    assert runtime.experiment_service is not None
+    app = create_web_app(runtime_factory=lambda: runtime, access_policy=_LOCAL_POLICY)
+    async with client_for(app) as client:
+        comparison = await _execute_fixture_plan(
+            client,
+            experiment_id="exp-r3-composition",
+            case_id="case-composition-matrix-alpha-01",
+            variant_ids=variants,
+        )
+
+    rows = {row["variant_id"]: row for row in comparison["rows"]}
+    assert set(rows) == set(variants)
+    relationships = comparison["variant_relationships"]
+    assert any(item["relationship"] == "baseline" for item in relationships)
+    assert any(
+        item["variant_id"] == "fixture-judge-enforce-no-repair"
+        and item["relationship"] == "ablation"
+        and item["varied_component_keys"] == ["repair"]
+        for item in relationships
+    )
+    assert all(
+        len(item["varied_component_keys"]) == 1
+        for item in relationships
+        if item["relationship"] != "baseline"
+    )
+    assert any(
+        item["baseline_variant_id"] == "fixture-main-active"
+        and item["variant_id"] == "fixture-manual-url-fail-closed"
+        and item["varied_component_keys"] == ["main"]
+        for item in relationships
+    )
+    assert any(
+        item["baseline_variant_id"] == "fixture-definition-manual-judge-request"
+        and item["variant_id"] == "fixture-definition-manual-with-repair"
+        and item["varied_component_keys"] == ["repair"]
+        for item in relationships
+    )
+    assert any(
+        item["baseline_variant_id"] == "fixture-main-governance-request-no-repair"
+        and item["variant_id"] == "fixture-main-governance-with-repair"
+        and item["varied_component_keys"] == ["repair"]
+        for item in relationships
+    )
+    assert any(
+        item["baseline_variant_id"] == "fixture-main-active"
+        and item["variant_id"] == "fixture-guard-short-circuit"
+        and item["varied_component_keys"] == ["guard"]
+        for item in relationships
+    )
+    plan = runtime.experiment_service.store.load_plan("exp-r3-composition")
+    assert plan is not None
+    assert plan.variant("fixture-main-active").component(
+        ComponentKey.MAIN
+    ) != plan.variant("fixture-manual-url-fail-closed").component(ComponentKey.MAIN)
+    replica_raw = runtime.experiment_service.store.load_raw_evidence(
+        rows["fixture-main-active-replica"]["run_id"]
+    )
+    main_raw = runtime.experiment_service.store.load_raw_evidence(
+        rows["fixture-main-active"]["run_id"]
+    )
+    assert replica_raw is not None
+    assert main_raw is not None
+    assert replica_raw["invocations"] == main_raw["invocations"]
+    replica_trace = rows["fixture-main-active-replica"]["semantic_evidence"][
+        "execution_trace"
+    ]
+    main_trace = rows["fixture-main-active"]["semantic_evidence"]["execution_trace"]
+    assert replica_trace["stages"] == main_trace["stages"]
+    assert replica_trace["disposition"] == main_trace["disposition"]
+
+    for variant_id, component_key in (
+        ("fixture-main-active", "main"),
+        ("fixture-judge-observe", "judge"),
+        ("fixture-guard-enforce", "guard"),
+        ("fixture-main-governance-strict", "main_governance"),
+        ("fixture-definition-manual", "definition_set"),
+        ("fixture-rag-relevant", "rag"),
+        ("fixture-recording-active", "recording"),
+        ("fixture-presentation-strict", "presentation"),
+    ):
+        raw = runtime.experiment_service.store.load_raw_evidence(rows[variant_id]["run_id"])
+        assert raw is not None
+        invocation = next(
+            item for item in _raw_invocations(raw) if item["component_key"] == component_key
+        )
+        assert invocation["called"] is True
+
+    repair_only_raw = runtime.experiment_service.store.load_raw_evidence(
+        rows["fixture-repair-enforce"]["run_id"]
+    )
+    assert repair_only_raw is not None
+    repair_only = next(
+        item
+        for item in _raw_invocations(repair_only_raw)
+        if item["component_key"] == "repair"
+    )
+    assert repair_only["called"] is False
+    assert repair_only["outcome"] == "call_zero:no_eligible_repair_requester"
+    assert rows["fixture-repair-enforce"]["metric"]["repair_adopted"] is False
+    assert rows["fixture-repair-enforce"]["semantic_evidence"]["repair_requested_by"] is None
+    repair_only_trace = rows["fixture-repair-enforce"]["semantic_evidence"][
+        "execution_trace"
+    ]
+    repair_only_stage = next(
+        item for item in repair_only_trace["stages"] if item["stage"] == "repair"
+    )
+    assert (repair_only_stage["call_count"], repair_only_stage["call_zero_reason"]) == (
+        0,
+        "no_eligible_repair_requester",
+    )
+
+    for variant_id, expected_requester in (
+        ("fixture-definition-manual-judge-request", "judge"),
+        ("fixture-main-governance-request-no-repair", "main_governance"),
+    ):
+        row = rows[variant_id]
+        raw = runtime.experiment_service.store.load_raw_evidence(row["run_id"])
+        assert raw is not None
+        repair = next(
+            item for item in _raw_invocations(raw) if item["component_key"] == "repair"
+        )
+        assert repair["called"] is False
+        assert row["metric"]["repair_adopted"] is False
+        assert row["semantic_evidence"]["repair_requested_by"] == expected_requester
+
+    for variant_id, expected_requester in (
+        ("fixture-definition-manual-with-repair", "judge"),
+        ("fixture-main-governance-with-repair", "main_governance"),
+        ("fixture-judge-main-governance-with-repair", "judge_and_main"),
+    ):
+        row = rows[variant_id]
+        raw = runtime.experiment_service.store.load_raw_evidence(row["run_id"])
+        assert raw is not None
+        repair = next(
+            item for item in _raw_invocations(raw) if item["component_key"] == "repair"
+        )
+        assert repair["called"] is True
+        assert row["metric"]["repair_adopted"] is True
+        assert row["semantic_evidence"]["repair_requested_by"] == expected_requester
+        assert row["semantic_evidence"]["execution_trace"]["disposition"] == (
+            "repair_accepted"
+        )
+
+    manual = rows["fixture-definition-manual"]["semantic_evidence"]["governance_composition"]
+    static = rows["fixture-definition-static"]["semantic_evidence"]["governance_composition"]
+    dynamic = rows["fixture-definition-dynamic"]["semantic_evidence"]["governance_composition"]
+    requested = rows["fixture-definition-manual-judge-request"]["semantic_evidence"][
+        "governance_composition"
+    ]
+    propagated = rows["fixture-definition-manual-with-repair"]["semantic_evidence"][
+        "governance_composition"
+    ]
+    assert manual["selected"] == ["definition-alpha"]
+    assert manual["suppressed"] == ["definition-beta"]
+    assert manual["conflicts"] == ["definition-conflict"]
+    assert manual["routing_strategy_used"] == "manual"
+    assert manual["repair_propagation"] is None
+    assert static["selected"] == ["definition-alpha", "definition-beta"]
+    assert static["suppressed"] == []
+    assert dynamic["selected"] == ["definition-beta"]
+    assert dynamic["suppressed"] == ["definition-alpha"]
+    assert requested["repair_propagation"] == "judge"
+    assert propagated["repair_propagation"] == "judge"
+
+    strict_events = rows["fixture-presentation-strict"]["semantic_evidence"][
+        "presentation_events"
+    ]
+    progressive_events = rows["fixture-presentation-progressive"]["semantic_evidence"][
+        "presentation_events"
+    ]
+    assert [(item["state"], item["is_final"]) for item in strict_events] == [
+        ("finalized", True)
+    ]
+    assert [item["state"] for item in progressive_events] == [
+        "started",
+        "generating",
+        "evaluating",
+        "finalized",
+    ]
+    assert [item["is_verified"] for item in progressive_events] == [False, False, False, True]
+
+    manual_trace = rows["fixture-manual-url-fail-closed"]["semantic_evidence"][
+        "execution_trace"
+    ]
+    manual_fetch = next(
+        stage for stage in manual_trace["stages"] if stage["stage"] == "manual_url_fetch"
+    )
+    assert (manual_fetch["call_count"], manual_fetch["call_zero_reason"]) == (
+        0,
+        "manual_url_fail_closed",
+    )
+    manual_raw = runtime.experiment_service.store.load_raw_evidence(
+        rows["fixture-manual-url-fail-closed"]["run_id"]
+    )
+    assert manual_raw is not None
+    manual_main = next(
+        item for item in _raw_invocations(manual_raw) if item["component_key"] == "main"
+    )
+    assert manual_main["called"] is False
+    assert manual_main["outcome"] == "call_zero:manual_url_fail_closed"
+    guard_trace = rows["fixture-guard-short-circuit"]["semantic_evidence"][
+        "execution_trace"
+    ]
+    guard_main = next(stage for stage in guard_trace["stages"] if stage["stage"] == "main")
+    assert (guard_main["call_count"], guard_main["call_zero_reason"]) == (
+        0,
+        "guard_input_short_circuit",
+    )
+    guard_raw = runtime.experiment_service.store.load_raw_evidence(
+        rows["fixture-guard-short-circuit"]["run_id"]
+    )
+    assert guard_raw is not None
+    guard_by_component = {
+        item["component_key"]: item for item in _raw_invocations(guard_raw)
+    }
+    assert guard_by_component["guard"]["called"] is True
+    assert guard_by_component["main"]["called"] is False
+    assert guard_by_component["main"]["outcome"] == "call_zero:guard_input_short_circuit"
+
+    fresh_store = LocalFilesystemExperimentStore(base_dir=tmp_path)
+    persisted = fresh_store.load_comparison("exp-r3-composition")
+    assert persisted is not None
+    report = ComparisonReport.model_validate(persisted)
+    assert len(report.rows) == len(variants)
+    assert report.variant_relationships
+    for row in report.rows:
+        assert row.semantic_evidence is not None
+        CaseSemanticEvidence.model_validate(row.semantic_evidence)
+    restarted_rows = {row.variant_id: row for row in report.rows}
+    repair_requester_cases: tuple[tuple[str, str | None, bool], ...] = (
+        ("fixture-repair-enforce", None, False),
+        ("fixture-definition-manual-with-repair", "judge", True),
+        ("fixture-main-governance-with-repair", "main_governance", True),
+        ("fixture-judge-main-governance-with-repair", "judge_and_main", True),
+    )
+    for variant_id, expected_restart_requester, expected_repair_called in repair_requester_cases:
+        row = restarted_rows[variant_id]
+        assert row.semantic_evidence is not None
+        assert (
+            row.semantic_evidence.repair_requested_by.value
+            if row.semantic_evidence.repair_requested_by is not None
+            else None
+        ) == expected_restart_requester
+        assert row.metric is not None
+        assert row.metric.repair_adopted is expected_repair_called
+        raw = fresh_store.load_raw_evidence(row.run_id)
+        assert raw is not None
+        repair = next(
+            item for item in _raw_invocations(raw) if item["component_key"] == "repair"
+        )
+        assert repair["called"] is expected_repair_called

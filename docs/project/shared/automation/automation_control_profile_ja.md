@@ -389,3 +389,21 @@ Project固有Path、Provider ToolおよびTask内部IDは本Profile Coreへ埋�
 - [Experimental Document-driven Task Orchestration](../operations/experimental_document_driven_codex_task_orchestration_ja.md)
 - [Constitution Plan](../operations/cross_project_development_governance_constitution_plan_ja.md)
 - [Constitution Research Index](../constitution/constitution_research_index_ja.md)
+
+## 13. Codex委任待機時の`wait_threads`全面禁止（2026-09-09 User Decision）
+
+Codex Controllerが別Taskへ実装、調査、ReviewまたはReworkを委任した後、委任先の完了を待つ目的で`wait_threads`を使用してはならない。短時間、長時間、単発、反復、Cursor付きLong Pollを含め、`wait_threads`による能動待機を全面禁止する。
+
+委任中のControllerは、自身のTaskで追加調査、File読取、Test、Review、別Task作成、Pollingまたは待機Tool実行を行わず、実行状態を終了して完全待機する。ユーザーからの割り込み入力には応答できるが、その応答を理由に委任外作業や能動待機を再開しない。
+
+委任先には、作業完了時または継続不能時にControllerへ最終報告を必ず返す契約を、開始指示へ明記する。Controllerはその自発的な最終報告を受領してから次のIndependent Review、Rework判断または報告へ進む。完了通知を得るためにController側が`wait_threads`で実行状態を維持してはならない。
+
+```text
+Delegate Work
+  → Controller Task ends active execution
+  → Delegated Task works independently
+  → Delegated Task sends mandatory final report
+  → Controller resumes only after that report or a new User instruction
+```
+
+本規則の目的は、待機だけでController Taskの実行中表示が継続すること、不要なQuota／Resource消費、ユーザーから見た作業状態の誤認、および不要な待機Loopを防ぐことである。「完全待機」は待機Toolを実行し続けることではなく、Controller自身の実行を終了することを意味する。

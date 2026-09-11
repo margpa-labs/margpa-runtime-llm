@@ -1031,11 +1031,20 @@ export interface ExperimentComparisonRow {
   // side by side, that two Production Variant Runs really executed under
   // two DIFFERENT Live Configurations.
   frozen_configuration_digest_sha512: string | null;
+  semantic_evidence?: Record<string, unknown> | null;
+}
+
+export interface ExperimentVariantRelationship {
+  baseline_variant_id: string;
+  variant_id: string;
+  relationship: "baseline" | "regression" | "ablation";
+  varied_component_keys: string[];
 }
 
 export interface ExperimentComparison {
   experiment_id: string;
   case_id: string;
   case_revision: string;
+  variant_relationships?: ExperimentVariantRelationship[];
   rows: ExperimentComparisonRow[];
 }

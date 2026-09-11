@@ -22,6 +22,13 @@ from margpa_runtime_llm.bootstrap.documentation_rag import (
 from margpa_runtime_llm.bootstrap.phase1_application import Phase1Application
 from margpa_runtime_llm.bootstrap.web_application import build_phase1_web_runtime
 from margpa_runtime_llm.entrypoints.web import main as web_cli
+from margpa_runtime_llm.modules.conversation.adapters import (
+    LocalConversationPersistenceSettings,
+)
+from margpa_runtime_llm.modules.conversation.adapters.persistence_factory import (
+    LocalConversationPersistence,
+)
+from margpa_runtime_llm.modules.conversation.domain import ConversationScopeId
 from margpa_runtime_llm.modules.documentation_rag.ports import RagOrchestratorPort
 from margpa_runtime_llm.modules.inference.contracts.generation import (
     GenerationParameters,
@@ -79,6 +86,7 @@ def test_web_help_documents_safe_defaults_and_placeholders() -> None:
     assert "--phase-4-runtime-governance" in help_text
     assert "--phase-4-runtime-governance-definitions-root" in help_text
     assert "--phase-6-dedicated-model-authority" in help_text
+    assert "--phase-9-experiment-runtime" in help_text
 
 
 def test_conversation_persistence_requires_explicit_local_loopback_inputs(
@@ -347,6 +355,209 @@ def test_dedicated_model_authority_opt_in_is_passed_only_for_local_runtime(
     assert web_cli.main([]) == 0
     assert web_cli.main(["--phase-6-dedicated-model-authority"]) == 0
     assert captured == [False, True]
+
+
+def test_experiment_runtime_gate_requires_explicit_local_loopback_and_persistence() -> None:
+    assert not web_cli._experiment_runtime_enabled(
+        enabled=False,
+        conversation_persistence_enabled=True,
+        host="0.0.0.0",
+        access_mode=WebExposureMode.PUBLIC_DEMO,
+        authentication_required=False,
+    )
+    assert web_cli._experiment_runtime_enabled(
+        enabled=True,
+        conversation_persistence_enabled=True,
+        host="127.0.0.1",
+        access_mode=WebExposureMode.LOCAL,
+        authentication_required=False,
+    )
+    with pytest.raises(InferenceError, match="Conversation Persistence"):
+        web_cli._experiment_runtime_enabled(
+            enabled=True,
+            conversation_persistence_enabled=False,
+            host="127.0.0.1",
+            access_mode=WebExposureMode.LOCAL,
+            authentication_required=False,
+        )
+    for mode, host, auth in (
+        (WebExposureMode.PUBLIC_DEMO, "0.0.0.0", False),
+        (WebExposureMode.BASIC_PREVIEW, "0.0.0.0", True),
+        (WebExposureMode.LOCAL, "0.0.0.0", False),
+        (WebExposureMode.LOCAL, "127.0.0.1", True),
+    ):
+        with pytest.raises(InferenceError, match="Experiment Runtime"):
+            web_cli._experiment_runtime_enabled(
+                enabled=True,
+                conversation_persistence_enabled=True,
+                host=host,
+                access_mode=mode,
+                authentication_required=auth,
+            )
+
+
+def test_experiment_runtime_cli_opt_in_is_default_off_and_separate_from_persistence(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: list[object] = []
+
+    def fake_create_web_app(**kwargs: object) -> FastAPI:
+        runtime_factory = kwargs["runtime_factory"]
+        assert isinstance(runtime_factory, partial)
+        captured.append(runtime_factory.keywords["experiment_runtime_enabled"])
+        return FastAPI()
+
+    monkeypatch.setattr(
+        "margpa_runtime_llm.entrypoints.web.main.create_web_app",
+        fake_create_web_app,
+    )
+    monkeypatch.setattr(
+        "margpa_runtime_llm.entrypoints.web.main.uvicorn.run",
+        lambda *_args, **_kwargs: None,
+    )
+    persistence_args = [
+        "--conversation-persistence",
+        "--conversation-runtime-data-root",
+        str((PROJECT_ROOT / ".test-runtime-data").resolve()),
+        "--conversation-scope-id",
+        "experiment-gate-test",
+    ]
+
+    assert web_cli.main(persistence_args) == 0
+    assert web_cli.main([*persistence_args, "--phase-9-experiment-runtime"]) == 0
+    assert captured == [False, True]
+
+
+def test_web_runtime_experiment_graph_is_built_only_after_the_explicit_gate(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    class FakeLoadedService:
+        runtime_info = SimpleNamespace(
+            model_key="main.model",
+            backend_key="fixture",
+            loaded_context_size=4096,
+            effective_capabilities=SimpleNamespace(features=frozenset()),
+            device_kind="cpu",
+            acceleration_api="fixture",
+        )
+
+        def count_text_tokens(self, text: str) -> int:
+            return len(text.split())
+
+        def count_chat_prompt_tokens(
+            self, messages: tuple[ChatMessage, ...], thinking_mode: ThinkingMode
+        ) -> int:
+            del messages, thinking_mode
+            return 0
+
+    presentation = ResolvedThinkingPresentationPolicy(
+        visibility=ThinkingVisibility.HIDDEN,
+        display_label="推論過程",
+        persistence=ThinkingPersistence.DISABLED,
+        visibility_source=ThinkingPresentationSource.APPLICATION,
+        display_label_source=ThinkingPresentationSource.APPLICATION,
+        persistence_source=ThinkingPresentationSource.APPLICATION,
+    )
+    application = cast(
+        Phase1Application,
+        SimpleNamespace(
+            service=FakeLoadedService(),
+            config=SimpleNamespace(
+                selected_model="main.model",
+                profile_key="test.fixture",
+                generation=GenerationParameters(max_new_tokens=32),
+                response=SimpleNamespace(language=ResponseLanguage.JA),
+                presentation=presentation,
+                summarization=SummarizationConfig(),
+            ),
+            presentation_service=object(),
+            close=lambda: None,
+        ),
+    )
+    monkeypatch.setattr(
+        web_application_module,
+        "build_phase1_application",
+        lambda **_kwargs: application,
+    )
+    monkeypatch.setattr(
+        web_application_module,
+        "start_local_conversation_persistence",
+        lambda *_args, **_kwargs: LocalConversationPersistence(
+            enabled=True,
+            storage_backend_kind="fixture",
+            storage_backend_version="1",
+        ),
+    )
+    constructor_calls: list[str] = []
+    for name in (
+        "LocalFilesystemExperimentStore",
+        "ExperimentService",
+        "ExperimentRunWorker",
+        "LiveProductionTurnAdapter",
+        "BootstrapLiveConfigurationReader",
+        "ExperimentConfigurationLease",
+    ):
+        original = getattr(web_application_module, name)
+
+        def tracking_constructor(
+            *args: object,
+            _name: str = name,
+            _original: object = original,
+            **kwargs: object,
+        ) -> object:
+            constructor_calls.append(_name)
+            return cast(Callable[..., object], _original)(*args, **kwargs)
+
+        monkeypatch.setattr(web_application_module, name, tracking_constructor)
+
+    settings = LocalConversationPersistenceSettings(
+        enabled=True,
+        runtime_data_root=tmp_path,
+        scope_id=ConversationScopeId(value="experiment-gate-test"),
+    )
+    with pytest.raises(InferenceError, match="Conversation Persistence"):
+        build_phase1_web_runtime(
+            project_root=PROJECT_ROOT,
+            profile_path=None,
+            registry_path=PROJECT_ROOT / "config/models/qwen3_4b_q4_k_m.toml",
+            experiment_runtime_enabled=True,
+        )
+    default_runtime = build_phase1_web_runtime(
+        project_root=PROJECT_ROOT,
+        profile_path=None,
+        registry_path=PROJECT_ROOT / "config/models/qwen3_4b_q4_k_m.toml",
+        conversation_persistence_settings=settings,
+    )
+    assert constructor_calls == []
+    assert default_runtime.experiment_service is None
+    assert default_runtime.experiment_run_worker is None
+    assert default_runtime.production_turn_adapter is None
+    assert default_runtime.live_configuration_reader is None
+    assert default_runtime.experiment_configuration_lease is None
+    default_runtime.close()
+
+    enabled_runtime = build_phase1_web_runtime(
+        project_root=PROJECT_ROOT,
+        profile_path=None,
+        registry_path=PROJECT_ROOT / "config/models/qwen3_4b_q4_k_m.toml",
+        conversation_persistence_settings=settings,
+        experiment_runtime_enabled=True,
+    )
+    assert constructor_calls == [
+        "LocalFilesystemExperimentStore",
+        "ExperimentService",
+        "ExperimentRunWorker",
+        "LiveProductionTurnAdapter",
+        "BootstrapLiveConfigurationReader",
+        "ExperimentConfigurationLease",
+    ]
+    assert enabled_runtime.experiment_service is not None
+    assert enabled_runtime.experiment_run_worker is not None
+    assert enabled_runtime.production_turn_adapter is not None
+    assert enabled_runtime.live_configuration_reader is not None
+    assert enabled_runtime.experiment_configuration_lease is not None
+    enabled_runtime.close()
 
 
 def test_governance_mode_value_reader_fails_closed_to_off_without_a_runtime() -> None:

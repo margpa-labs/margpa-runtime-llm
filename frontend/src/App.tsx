@@ -53,7 +53,6 @@ import type {
 } from "./components/DataControlsPanel";
 import MessageList from "./components/MessageList";
 import Composer from "./components/Composer";
-import ExperimentPanel from "./components/ExperimentPanel";
 import type { SettingsFormState } from "./components/SettingsPanel";
 
 const UI_LANGUAGE_KEY = "margpa.ui_language.v1";
@@ -83,7 +82,6 @@ export default function App() {
   );
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
-  const [experimentPanelOpen, setExperimentPanelOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.lang = uiLanguage;
@@ -1628,9 +1626,6 @@ export default function App() {
           theme={uiTheme}
           onLanguageChange={setUiLanguage}
           onThemeChange={setUiTheme}
-          onOpenExperiment={() => {
-            setExperimentPanelOpen(true);
-          }}
         />
 
         <MessageList
@@ -1723,14 +1718,6 @@ export default function App() {
         onArchivedChatsClose={closeArchivedChats}
         onArchivedChatsOpen={(id) => void openArchivedChat(id)}
         onArchivedChatsUnarchive={(id) => void unarchiveArchivedChat(id)}
-      />
-
-      <ExperimentPanel
-        language={uiLanguage}
-        open={experimentPanelOpen}
-        onClose={() => {
-          setExperimentPanelOpen(false);
-        }}
       />
     </div>
   );

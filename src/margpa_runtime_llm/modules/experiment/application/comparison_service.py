@@ -10,9 +10,15 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
+from ..domain.comparison_declaration import (
+    VariantComparisonDeclaration,
+    verify_single_factor_difference,
+)
 from ..domain.comparison_report import ComparisonReport, ComparisonRow
+from ..domain.errors import ExperimentCoreError, ExperimentCoreErrorCode
 from ..domain.evaluation import EvaluationObservation, MetricObservation, RuntimeOutcomeState
 from ..domain.run import RunState, VariantRun
+from ..domain.semantic_evidence import CaseSemanticEvidence
 from ..ports import ExperimentStorePort
 
 _RUN_STATE_TO_RUNTIME_STATE: dict[RunState, RuntimeOutcomeState] = {
@@ -38,36 +44,84 @@ def runtime_state_for_run(run: VariantRun) -> RuntimeOutcomeState:
     return _RUN_STATE_TO_RUNTIME_STATE[run.state]
 
 
-def _metric_for(raw_evidence: dict[str, object] | None) -> MetricObservation | None:
+def _metric_for(
+    raw_evidence: dict[str, object] | None,
+    *,
+    authoritative_state: RuntimeOutcomeState,
+) -> MetricObservation | None:
     if raw_evidence is None:
         return None
     metric_payload = raw_evidence.get("metric")
     if metric_payload is None:
         return None
-    return MetricObservation.model_validate(metric_payload)
+    metric = MetricObservation.model_validate(metric_payload)
+    # A terminal Run save can fail after Raw Evidence was saved. On the
+    # next read that stale metric must never contradict the authoritative
+    # persisted Run state; expose it honestly as unavailable instead.
+    if metric.runtime_state is not authoritative_state:
+        return None
+    return metric
+
+
+def _semantic_evidence_for(
+    raw_evidence: dict[str, object] | None,
+) -> CaseSemanticEvidence | None:
+    if raw_evidence is None:
+        return None
+    if raw_evidence.get("execution_mode") != "fixture":
+        return None
+    payload = raw_evidence.get("semantic_evidence")
+    if not isinstance(payload, dict):
+        return None
+    return CaseSemanticEvidence.model_validate(payload)
 
 
 def build_comparison_report(
     *,
     experiment_id: str,
-    case_revision: str,
     store: ExperimentStorePort,
     observations_by_run_id: Mapping[str, tuple[EvaluationObservation, ...]] | None = None,
+    variant_relationships: tuple[VariantComparisonDeclaration, ...] = (),
 ) -> ComparisonReport:
     observations_map = observations_by_run_id or {}
-    runs = store.list_runs(experiment_id)
-    rows = tuple(
-        ComparisonRow(
-            variant_id=run.variant_id,
-            run_id=run.run_id,
-            runtime_state=runtime_state_for_run(run),
-            metric=_metric_for(store.load_raw_evidence(run.run_id)),
-            observations=observations_map.get(run.run_id, ()),
-            failure_reason=run.failure_reason,
-            raw_evidence_pointer=run.run_id,
+    plan = store.load_plan(experiment_id)
+    if plan is None:
+        raise ExperimentCoreError(
+            code=ExperimentCoreErrorCode.NOT_FOUND,
+            safe_message=f"experiment_id {experiment_id!r} has no Plan",
         )
-        for run in runs
+    for declaration in variant_relationships:
+        verify_single_factor_difference(
+            baseline=plan.variant(declaration.baseline_variant_id),
+            variant=plan.variant(declaration.variant_id),
+            declared=declaration,
+        )
+    runs = store.list_runs(experiment_id)
+    rows_list: list[ComparisonRow] = []
+    for run in runs:
+        raw_evidence = store.load_raw_evidence(run.run_id)
+        rows_list.append(
+            ComparisonRow(
+                variant_id=run.variant_id,
+                run_id=run.run_id,
+                runtime_state=runtime_state_for_run(run),
+                metric=_metric_for(
+                    raw_evidence,
+                    authoritative_state=runtime_state_for_run(run),
+                ),
+                observations=observations_map.get(run.run_id, ()),
+                failure_reason=run.failure_reason,
+                raw_evidence_pointer=run.run_id,
+                semantic_evidence=_semantic_evidence_for(raw_evidence),
+            )
+        )
+    rows = tuple(rows_list)
+    report = ComparisonReport(
+        experiment_id=experiment_id,
+        case_id=plan.case_id,
+        case_revision=plan.case_revision,
+        variant_relationships=variant_relationships,
+        rows=rows,
     )
-    report = ComparisonReport(experiment_id=experiment_id, case_revision=case_revision, rows=rows)
     store.save_comparison(experiment_id, report.model_dump(mode="json"))
     return report

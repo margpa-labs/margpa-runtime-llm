@@ -38,6 +38,22 @@ class ObservationOutcome(StrEnum):
     UNAVAILABLE = "unavailable"
 
 
+class SemanticEvaluatorRoute(StrEnum):
+    """Explicit Case-to-Evaluator routing frozen into each Manifest.
+
+    This is a semantic category, never a Model or Provider identifier.
+    A Case absent from a route stays ``GENERIC`` and can only produce an
+    honest non-PASS result until an Adapter supplies a real evaluator.
+    """
+
+    GENERIC = "generic"
+    FRESHNESS = "freshness"
+    RETRIEVAL = "retrieval"
+    BELIEF_REVISION = "belief_revision"
+    FALSE_IMPROVEMENT = "false_improvement"
+    COMPOSITION_MATRIX = "composition_matrix"
+
+
 class EvaluationCaseManifest(ImmutableContract):
     """WU-B B1: `case_id`/`revision` are independently versioned (a Case
     can be revised without changing its `case_id`, and an `ExperimentPlan`
@@ -56,6 +72,7 @@ class EvaluationCaseManifest(ImmutableContract):
     expected_observations: tuple[str, ...] = ()
     acceptable_outcomes: tuple[ObservationOutcome, ...] = (ObservationOutcome.PASS,)
     requires_human_review: bool = False
+    evaluator_route: SemanticEvaluatorRoute = SemanticEvaluatorRoute.GENERIC
 
     @model_validator(mode="after")
     def _validate_ids(self) -> EvaluationCaseManifest:
@@ -83,5 +100,6 @@ def compute_case_digest_sha512(case: EvaluationCaseManifest) -> str:
         "expected_observations": list(case.expected_observations),
         "acceptable_outcomes": [item.value for item in case.acceptable_outcomes],
         "requires_human_review": case.requires_human_review,
+        "evaluator_route": case.evaluator_route.value,
     }
     return hashlib.sha512(canonical_json_bytes(payload)).hexdigest()

@@ -115,8 +115,9 @@ def _build_real_runtime(tmp_path: Path, *, scope_name: str) -> tuple[WebRuntime,
     Selection (needed for the Live Config Reader's own Main selector), and
     Guard are all genuinely wired -- and `conversation_persistence_
     settings` is what makes `build_phase1_web_runtime()` also construct
-    `experiment_service`/`experiment_run_worker` (gated only on that
-    Settings object, independent of any other flag here)."""
+    `experiment_service`/`experiment_run_worker`; the separate explicit
+    `experiment_runtime_enabled=True` gate below grants Experiment authority.
+    Conversation Persistence alone never does so."""
 
     runtime_data_root = tmp_path / "runtime-data"
     scope = ConversationScopeId(value=scope_name)
@@ -134,6 +135,7 @@ def _build_real_runtime(tmp_path: Path, *, scope_name: str) -> tuple[WebRuntime,
         guardrail_governance_enabled=True,
         dedicated_model_authority_granted=True,
         conversation_persistence_settings=persistence_settings,
+        experiment_runtime_enabled=True,
     )
     assert runtime.experiment_service is not None
     assert runtime.experiment_run_worker is not None

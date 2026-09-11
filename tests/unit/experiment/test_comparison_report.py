@@ -15,7 +15,10 @@ from margpa_runtime_llm.modules.experiment.application.comparison_service import
 from margpa_runtime_llm.modules.experiment.application.experiment_service import (
     ExperimentService,
 )
-from margpa_runtime_llm.modules.experiment.domain.comparison_report import ComparisonRow
+from margpa_runtime_llm.modules.experiment.domain.comparison_report import (
+    ComparisonReport,
+    ComparisonRow,
+)
 from margpa_runtime_llm.modules.experiment.domain.dataset import ObservationOutcome
 from margpa_runtime_llm.modules.experiment.domain.errors import (
     ExperimentCoreError,
@@ -27,13 +30,16 @@ from margpa_runtime_llm.modules.experiment.domain.evaluation import (
     RuntimeOutcomeState,
     build_automated_observation,
 )
+from margpa_runtime_llm.modules.experiment.domain.freshness import FreshnessOutcome
 from margpa_runtime_llm.modules.experiment.domain.identity import (
     ComponentKey,
     ComponentSelection,
     VariantDescriptor,
     build_experiment_plan,
 )
+from margpa_runtime_llm.modules.experiment.domain.retrieval_case import GroundingOutcome
 from margpa_runtime_llm.modules.experiment.domain.run import RunState
+from margpa_runtime_llm.modules.experiment.domain.semantic_evidence import CaseSemanticEvidence
 
 
 def _plan_and_two_runs(tmp_path: Path) -> tuple[ExperimentService, str]:
@@ -61,7 +67,6 @@ def _plan_and_two_runs(tmp_path: Path) -> tuple[ExperimentService, str]:
         variant_id="baseline",
         run_id="run-a",
         request_id="req-a",
-        execution_mode="fixture",
     )
     service.publish_result(
         "run-a",
@@ -76,7 +81,6 @@ def _plan_and_two_runs(tmp_path: Path) -> tuple[ExperimentService, str]:
         variant_id="judge-enforce",
         run_id="run-b",
         request_id="req-b",
-        execution_mode="fixture",
     )
     service.publish_result("run-b", generation=run_b.generation, target_state=RunState.FAILED)
     return service, "exp-cmp-1"
@@ -86,7 +90,6 @@ def test_comparison_report_aggregates_every_run_with_its_own_metric(tmp_path: Pa
     service, experiment_id = _plan_and_two_runs(tmp_path)
     report = build_comparison_report(
         experiment_id=experiment_id,
-        case_revision="case-rev-1",
         store=service.store,
     )
     assert len(report.rows) == 2
@@ -100,13 +103,14 @@ def test_comparison_report_aggregates_every_run_with_its_own_metric(tmp_path: Pa
 
 def test_comparison_report_is_persisted_and_restart_readable(tmp_path: Path) -> None:
     service, experiment_id = _plan_and_two_runs(tmp_path)
-    build_comparison_report(
-        experiment_id=experiment_id, case_revision="case-rev-1", store=service.store
-    )
+    build_comparison_report(experiment_id=experiment_id, store=service.store)
     fresh_store = LocalFilesystemExperimentStore(base_dir=tmp_path)
     persisted = fresh_store.load_comparison(experiment_id)
     assert persisted is not None
-    assert persisted["experiment_id"] == experiment_id
+    restarted_report = ComparisonReport.model_validate(persisted)
+    assert restarted_report.experiment_id == experiment_id
+    assert restarted_report.case_id == "case-1"
+    assert restarted_report.case_revision == "case-rev-1"
 
 
 def test_comparison_report_carries_distinct_observations_per_run(tmp_path: Path) -> None:
@@ -121,7 +125,6 @@ def test_comparison_report_carries_distinct_observations_per_run(tmp_path: Path)
     )
     report = build_comparison_report(
         experiment_id=experiment_id,
-        case_revision="case-rev-1",
         store=service.store,
         observations_by_run_id={"run-a": (observation,)},
     )
@@ -178,6 +181,203 @@ def test_comparison_row_rejects_an_observation_for_a_different_case_id_than_its_
             raw_evidence_pointer="run-x",
         )
     assert excinfo.value.code is ExperimentCoreErrorCode.OBSERVATION_RUN_OR_CASE_MISMATCH
+
+
+def test_comparison_row_rejects_a_metric_that_contradicts_authoritative_runtime_state() -> None:
+    metric = MetricObservation(
+        run_id="run-x",
+        case_id="case-1",
+        runtime_state=RuntimeOutcomeState.COMPLETED,
+    )
+    with pytest.raises(ExperimentCoreError) as excinfo:
+        ComparisonRow(
+            variant_id="variant-a",
+            run_id="run-x",
+            runtime_state=RuntimeOutcomeState.FAILED,
+            metric=metric,
+            raw_evidence_pointer="run-x",
+        )
+    assert excinfo.value.code is ExperimentCoreErrorCode.METRIC_RUNTIME_STATE_MISMATCH
+
+
+def test_comparison_report_rejects_wrong_case_observation_even_when_metric_is_absent() -> None:
+    observation = build_automated_observation(
+        run_id="run-x",
+        case_id="wrong-case",
+        evaluator_kind=EvaluatorKind.DETERMINISTIC,
+        provider_identity="metric.deterministic-v1",
+        rubric_revision="case-rev-1",
+        outcome=ObservationOutcome.NOT_RUN,
+    )
+    row = ComparisonRow(
+        variant_id="variant-a",
+        run_id="run-x",
+        runtime_state=RuntimeOutcomeState.NOT_RUN,
+        observations=(observation,),
+        raw_evidence_pointer="run-x",
+    )
+    with pytest.raises(ExperimentCoreError) as excinfo:
+        ComparisonReport(
+            experiment_id="exp-x",
+            case_id="case-1",
+            case_revision="case-rev-1",
+            rows=(row,),
+        )
+    assert excinfo.value.code is ExperimentCoreErrorCode.OBSERVATION_RUN_OR_CASE_MISMATCH
+
+
+def test_comparison_row_rejects_metric_truth_that_contradicts_semantic_evidence() -> None:
+    semantic = CaseSemanticEvidence(
+        case_id="case-1",
+        case_revision="case-rev-1",
+        grounding_outcome=GroundingOutcome.FALSE_GROUNDING,
+    )
+    metric = MetricObservation(
+        run_id="run-x",
+        case_id="case-1",
+        runtime_state=RuntimeOutcomeState.COMPLETED,
+        false_grounding=False,
+    )
+    with pytest.raises(ExperimentCoreError) as excinfo:
+        ComparisonRow(
+            variant_id="variant-a",
+            run_id="run-x",
+            runtime_state=RuntimeOutcomeState.COMPLETED,
+            metric=metric,
+            raw_evidence_pointer="run-x",
+            semantic_evidence=semantic,
+        )
+    assert excinfo.value.code is ExperimentCoreErrorCode.OBSERVATION_RUN_OR_CASE_MISMATCH
+
+
+def test_comparison_report_rejects_semantic_evidence_for_another_case_revision() -> None:
+    row = ComparisonRow(
+        variant_id="variant-a",
+        run_id="run-x",
+        runtime_state=RuntimeOutcomeState.COMPLETED,
+        raw_evidence_pointer="run-x",
+        semantic_evidence=CaseSemanticEvidence(
+            case_id="other-case",
+            case_revision="other-revision",
+        ),
+    )
+    with pytest.raises(ExperimentCoreError) as excinfo:
+        ComparisonReport(
+            experiment_id="exp-x",
+            case_id="case-1",
+            case_revision="case-rev-1",
+            rows=(row,),
+        )
+    assert excinfo.value.code is ExperimentCoreErrorCode.OBSERVATION_RUN_OR_CASE_MISMATCH
+
+
+def test_semantic_evidence_rejects_current_fact_without_adoption_evidence() -> None:
+    with pytest.raises(ValueError, match="explicit Current-Value adoption"):
+        CaseSemanticEvidence(
+            case_id="case-1",
+            case_revision="case-rev-1",
+            assistant_content="000 is not the current value.",
+            freshness_outcome=FreshnessOutcome.CURRENT_FACT_USED,
+        )
+
+
+def test_semantic_evidence_rejects_accepted_repair_without_a_requester() -> None:
+    with pytest.raises(ValueError, match="requires an observed requester"):
+        CaseSemanticEvidence(
+            case_id="case-1",
+            case_revision="case-rev-1",
+            runtime_repair_accepted=True,
+        )
+
+
+def test_comparison_row_rejects_metric_repair_adoption_that_contradicts_evidence() -> None:
+    semantic = CaseSemanticEvidence(
+        case_id="case-1",
+        case_revision="case-rev-1",
+        runtime_repair_accepted=False,
+    )
+    metric = MetricObservation(
+        run_id="run-x",
+        case_id="case-1",
+        runtime_state=RuntimeOutcomeState.COMPLETED,
+        repair_adopted=True,
+    )
+    with pytest.raises(ExperimentCoreError) as excinfo:
+        ComparisonRow(
+            variant_id="variant-a",
+            run_id="run-x",
+            runtime_state=RuntimeOutcomeState.COMPLETED,
+            metric=metric,
+            raw_evidence_pointer="run-x",
+            semantic_evidence=semantic,
+        )
+    assert excinfo.value.code is ExperimentCoreErrorCode.OBSERVATION_RUN_OR_CASE_MISMATCH
+
+
+def test_builder_hides_stale_completed_metric_when_authoritative_run_failed(
+    tmp_path: Path,
+) -> None:
+    service, experiment_id = _plan_and_two_runs(tmp_path)
+    service.store.save_raw_evidence(
+        "run-b",
+        {
+            "metric": {
+                "run_id": "run-b",
+                "case_id": "case-1",
+                "runtime_state": "completed",
+            }
+        },
+    )
+
+    report = build_comparison_report(experiment_id=experiment_id, store=service.store)
+
+    failed = report.row("run-b")
+    assert failed is not None
+    assert failed.runtime_state is RuntimeOutcomeState.FAILED
+    assert failed.metric is None
+
+
+@pytest.mark.parametrize(
+    "runtime_state",
+    [
+        RuntimeOutcomeState.FAILED,
+        RuntimeOutcomeState.CANCELLED,
+        RuntimeOutcomeState.NOT_RUN,
+    ],
+)
+def test_comparison_accepts_truthful_noncompleted_rows_for_the_report_case(
+    runtime_state: RuntimeOutcomeState,
+) -> None:
+    metric = MetricObservation(
+        run_id="run-x",
+        case_id="case-1",
+        runtime_state=runtime_state,
+    )
+    observation = build_automated_observation(
+        run_id="run-x",
+        case_id="case-1",
+        evaluator_kind=EvaluatorKind.DETERMINISTIC,
+        provider_identity="metric.deterministic-v1",
+        rubric_revision="case-rev-1",
+        outcome=ObservationOutcome.NOT_RUN,
+    )
+    report = ComparisonReport(
+        experiment_id="exp-x",
+        case_id="case-1",
+        case_revision="case-rev-1",
+        rows=(
+            ComparisonRow(
+                variant_id="variant-a",
+                run_id="run-x",
+                runtime_state=runtime_state,
+                metric=metric,
+                observations=(observation,),
+                raw_evidence_pointer="run-x",
+            ),
+        ),
+    )
+    assert report.rows[0].metric == metric
+    assert report.rows[0].observations[0].outcome is ObservationOutcome.NOT_RUN
 
 
 def test_comparison_row_rejects_a_pass_observation_on_a_non_completed_run() -> None:

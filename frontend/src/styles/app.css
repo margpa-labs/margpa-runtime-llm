@@ -1646,11 +1646,10 @@ button:disabled {
 
 /* Phase 9-2 WU-E E4: the Minimal Experiment screen. Reuses the generic
    .settings-modal-backdrop/.settings-modal shell (defined above) rather
-   than introducing a second modal chrome. */
-.experiment-toggle {
-  margin-left: 8px;
-}
-
+   than introducing a second modal chrome. The normal UI's own entry
+   Button (`.experiment-toggle`) was removed (Experiment UI Deferment
+   Handoff, 2026-09-10) -- these rules stay for `ExperimentPanel.tsx`
+   itself, kept as a future Workspace design source. */
 .experiment-panel {
   width: min(760px, 100%);
   max-height: min(720px, 100%);

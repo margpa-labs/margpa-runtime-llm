@@ -166,7 +166,6 @@ def test_item_05_max_variant_runs_and_execution_order_violations_are_call_zero(
         variant_id="variant-a",
         run_id="run-1",
         request_id="req-1",
-        execution_mode="fixture",
     )
     with pytest.raises(ExperimentCoreError) as excinfo:
         service.start_run(
@@ -174,7 +173,6 @@ def test_item_05_max_variant_runs_and_execution_order_violations_are_call_zero(
             variant_id="variant-a",
             run_id="run-2",
             request_id="req-2",
-            execution_mode="fixture",
         )
     assert excinfo.value.code is ExperimentCoreErrorCode.MAX_VARIANT_RUNS_EXCEEDED
 
@@ -208,7 +206,6 @@ def test_item_06_actor_exception_failed_cancel_cancelled_late_publish_rejected(
         variant_id="variant-a",
         run_id="run-1",
         request_id="req-1",
-        execution_mode="fixture",
     )
     cancelled = service.cancel_run("run-1")
     assert cancelled.state is RunState.CANCELLED
@@ -246,7 +243,6 @@ def test_item_07_comparison_rejects_run_case_observation_mismatches(tmp_path: Pa
         variant_id="variant-a",
         run_id="run-1",
         request_id="req-1",
-        execution_mode="fixture",
     )
     service.publish_result("run-1", generation=run.generation, target_state=RunState.COMPLETED)
     mismatched_observation = build_automated_observation(
@@ -260,7 +256,6 @@ def test_item_07_comparison_rejects_run_case_observation_mismatches(tmp_path: Pa
     with pytest.raises(ExperimentCoreError) as excinfo:
         build_comparison_report(
             experiment_id="exp-item07",
-            case_revision="case-rev-1",
             store=service.store,
             observations_by_run_id={"run-1": (mismatched_observation,)},
         )

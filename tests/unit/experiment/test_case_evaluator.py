@@ -18,6 +18,7 @@ from margpa_runtime_llm.modules.experiment.domain.dataset import (
 )
 from margpa_runtime_llm.modules.experiment.domain.identity import ComponentKey
 from margpa_runtime_llm.modules.experiment.domain.run import RunState, VariantRun
+from margpa_runtime_llm.modules.experiment.domain.semantic_evidence import CaseSemanticEvidence
 
 _FRESHNESS_CASE = next(
     item for item in build_case_pack() if item.case_id == FRESHNESS_HISTORICAL_VS_CURRENT.case_id
@@ -50,6 +51,24 @@ def _invocation(component_key: ComponentKey, *, called: bool) -> dict[str, objec
         "evidence_count": 1 if called else 0,
         "authority_exercised": called,
     }
+
+
+def _semantic_payload(
+    case: EvaluationCaseManifest,
+    *,
+    assistant_content: str | None = None,
+    answer_adopts_current_value: bool | None = None,
+    historical_digest: str | None = None,
+    answer_claims_citation: bool | None = None,
+) -> dict[str, object]:
+    return CaseSemanticEvidence(
+        case_id=case.case_id,
+        case_revision=case.revision,
+        assistant_content=assistant_content,
+        answer_adopts_current_value=answer_adopts_current_value,
+        historical_turn_citation_digest_after_answer=historical_digest,
+        answer_claims_citation=answer_claims_citation,
+    ).model_dump(mode="json")
 
 
 def test_a_non_completed_run_is_always_not_run_never_pass() -> None:
@@ -90,30 +109,33 @@ def test_freshness_case_passes_when_current_fact_is_genuinely_used() -> None:
     observation = evaluate_case_outcome(
         case=_FRESHNESS_CASE,
         run=run,
-        raw_evidence={"assistant_content": "The current confirmed value is 000."},
+        raw_evidence={
+            "semantic_evidence": _semantic_payload(
+                _FRESHNESS_CASE,
+                assistant_content="The current confirmed value is 000.",
+                answer_adopts_current_value=True,
+                historical_digest=FRESHNESS_HISTORICAL_VS_CURRENT.historical_citation_digest_sha512,
+            )
+        },
     )
     assert observation.outcome is ObservationOutcome.PASS
 
 
-def test_freshness_case_fails_when_the_answer_never_mentions_current_or_historical_value() -> None:
-    """Neither `current_source_value` ("000") nor `historical_claim`
-    appears in the Answer -- `classify_freshness_answer()` resolves
-    `INSUFFICIENT_EVIDENCE` for `SourceRevisionState.CURRENT` cases
-    (unlike `UPDATED`/`DELETED`, `CURRENT` always resolves
-    `CURRENT_FACT_USED` per that function's own branching) -- this
-    confirms the Evaluator faithfully passes through whatever the Domain
-    Classifier itself decides, rather than reimplementing its logic."""
+def test_freshness_case_does_not_pass_an_unrelated_answer() -> None:
 
     run = _run()
     observation = evaluate_case_outcome(
         case=_FRESHNESS_CASE,
         run=run,
-        raw_evidence={"assistant_content": "I am not sure."},
+        raw_evidence={
+            "semantic_evidence": _semantic_payload(
+                _FRESHNESS_CASE,
+                assistant_content="I am not sure.",
+                historical_digest=FRESHNESS_HISTORICAL_VS_CURRENT.historical_citation_digest_sha512,
+            )
+        },
     )
-    # FRESHNESS_HISTORICAL_VS_CURRENT.source_revision_state is CURRENT --
-    # classify_freshness_answer() always returns CURRENT_FACT_USED for
-    # that state, regardless of the Answer's own text.
-    assert observation.outcome is ObservationOutcome.PASS
+    assert observation.outcome is ObservationOutcome.INCONCLUSIVE
 
 
 def test_retrieval_strict_no_hit_case_is_unavailable_without_observed_invocations() -> None:
@@ -127,25 +149,35 @@ def test_retrieval_strict_no_hit_case_fails_when_main_was_actually_called() -> N
     observation = evaluate_case_outcome(
         case=_RETRIEVAL_CASE,
         run=run,
-        raw_evidence={"invocations": [_invocation(ComponentKey.MAIN, called=True)]},
+        raw_evidence={
+            "invocations": [_invocation(ComponentKey.MAIN, called=True)],
+            "semantic_evidence": _semantic_payload(
+                _RETRIEVAL_CASE,
+                assistant_content="There is insufficient evidence.",
+                answer_claims_citation=False,
+            ),
+        },
     )
     assert observation.outcome is ObservationOutcome.FAIL
     assert observation.reason == "strict_no_hit_violated_model_called"
 
 
-def test_retrieval_strict_no_hit_case_is_inconclusive_when_main_call_zero_is_confirmed() -> None:
-    """The mechanical expectation (Main Call Zero) is Evidence-confirmed,
-    but the semantic half of this Case's own `expected_observations`
-    ("honest_insufficient_evidence") has no Judge/Rule signal wired this
-    Round -- INCONCLUSIVE, never PASS (Handoff R2 SS6)."""
+def test_retrieval_strict_no_hit_case_passes_only_with_call_zero_and_honest_answer() -> None:
 
     run = _run(run_id="run-4")
     observation = evaluate_case_outcome(
         case=_RETRIEVAL_CASE,
         run=run,
-        raw_evidence={"invocations": [_invocation(ComponentKey.MAIN, called=False)]},
+        raw_evidence={
+            "invocations": [_invocation(ComponentKey.MAIN, called=False)],
+            "semantic_evidence": _semantic_payload(
+                _RETRIEVAL_CASE,
+                assistant_content="There is insufficient evidence.",
+                answer_claims_citation=False,
+            ),
+        },
     )
-    assert observation.outcome is ObservationOutcome.INCONCLUSIVE
+    assert observation.outcome is ObservationOutcome.PASS
 
 
 def test_retrieval_strict_no_hit_case_is_unavailable_when_main_call_status_is_unknown() -> None:
@@ -170,7 +202,12 @@ def test_retrieval_strict_no_hit_case_is_unavailable_when_main_call_status_is_un
                     "evidence_count": None,
                     "authority_exercised": None,
                 }
-            ]
+            ],
+            "semantic_evidence": _semantic_payload(
+                _RETRIEVAL_CASE,
+                assistant_content="There is insufficient evidence.",
+                answer_claims_citation=False,
+            ),
         },
     )
     assert observation.outcome is ObservationOutcome.UNAVAILABLE

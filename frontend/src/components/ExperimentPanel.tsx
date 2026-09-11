@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ApiMutationError,
   cancelExperimentRun,
@@ -34,7 +34,7 @@ type LoadState = "idle" | "ready" | "failed";
 // Comparison ON SCREEN (never blanks it) but visibly flags it as no longer
 // confirmed current; `"unavailable"` is the honest state when there has
 // never been a successful fetch at all.
-type ComparisonStatus = "ok" | "stale" | "unavailable";
+type ComparisonStatus = "idle" | "ok" | "stale" | "unavailable";
 
 const TERMINAL_RUN_STATES = new Set(["completed", "failed", "cancelled"]);
 const POLL_INTERVAL_MS = 250;
@@ -115,15 +115,62 @@ function wait(ms: number): Promise<void> {
   });
 }
 
-async function pollUntilTerminal(runId: string): Promise<void> {
+async function pollUntilTerminal(
+  runId: string,
+  onUpdate: (result: ExperimentVariantRun) => void,
+  onTransientFailure: () => void,
+): Promise<void> {
   const deadline = Date.now() + POLL_TIMEOUT_MS;
   while (Date.now() < deadline) {
-    const result = await fetchExperimentRun(runId);
-    if (TERMINAL_RUN_STATES.has(result.run.state)) {
-      return;
+    try {
+      const result = await fetchExperimentRun(runId);
+      onUpdate(result.run);
+      if (TERMINAL_RUN_STATES.has(result.run.state)) {
+        return;
+      }
+    } catch {
+      // A single transient status-read failure must not strand the UI at
+      // the first `running` row while the Backend Worker continues. Keep
+      // polling until the bounded deadline and disclose the retry state.
+      onTransientFailure();
     }
     await wait(POLL_INTERVAL_MS);
   }
+  throw new Error("experiment_run_poll_timeout");
+}
+
+function upsertRun(
+  current: ExperimentVariantRun[],
+  incoming: ExperimentVariantRun,
+): ExperimentVariantRun[] {
+  const index = current.findIndex((run) => run.run_id === incoming.run_id);
+  if (index < 0) {
+    return [...current, incoming];
+  }
+  return current.map((run, runIndex) => {
+    if (runIndex !== index) {
+      return run;
+    }
+    // VariantRun is a one-way state machine. A slower list/poll Response
+    // that still says `planned`/`running` must never overwrite a Terminal
+    // state already observed for this same generation.
+    if (
+      run.generation > incoming.generation ||
+      (run.generation === incoming.generation &&
+        TERMINAL_RUN_STATES.has(run.state) &&
+        !TERMINAL_RUN_STATES.has(incoming.state))
+    ) {
+      return run;
+    }
+    return incoming;
+  });
+}
+
+function mergeRuns(
+  current: ExperimentVariantRun[],
+  incoming: ExperimentVariantRun[],
+): ExperimentVariantRun[] {
+  return incoming.reduce(upsertRun, current);
 }
 
 // Phase 9-2 WU-E E4 (R1-WU-03/04/05): the Minimal Experiment screen.
@@ -144,15 +191,22 @@ export default function ExperimentPanel({ language, open, onClose }: ExperimentP
   const [planError, setPlanError] = useState<string | null>(null);
   const [runs, setRuns] = useState<ExperimentVariantRun[]>([]);
   const [comparison, setComparison] = useState<ExperimentComparison | null>(null);
-  const [comparisonStatus, setComparisonStatus] = useState<ComparisonStatus>("unavailable");
+  const [comparisonStatus, setComparisonStatus] = useState<ComparisonStatus>("idle");
   const [runningVariantId, setRunningVariantId] = useState<string | null>(null);
+  const [recheckRunId, setRecheckRunId] = useState<string | null>(null);
+  const [rechecking, setRechecking] = useState(false);
   const [runError, setRunError] = useState<string | null>(null);
+  const [runStatusNotice, setRunStatusNotice] = useState<string | null>(null);
   const [selectedRunInvocations, setSelectedRunInvocations] = useState<
     ExperimentActorInvocation[] | null
   >(null);
   const [selectedRunExecutionMode, setSelectedRunExecutionMode] =
     useState<ExperimentExecutionMode>("fixture");
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
+  const activeExperimentIdRef = useRef(experimentId);
+  const refreshGenerationRef = useRef(0);
+  const detailGenerationRef = useRef(0);
+  const planGenerationRef = useRef(0);
 
   useEffect(() => {
     if (!open || loadState !== "idle") {
@@ -161,7 +215,9 @@ export default function ExperimentPanel({ language, open, onClose }: ExperimentP
     void fetchExperimentPresets()
       .then((data) => {
         setPresets(data);
-        setExperimentId(`exp-${newActionId().slice(0, 8)}`);
+        const generatedExperimentId = `exp-${newActionId().slice(0, 8)}`;
+        activeExperimentIdRef.current = generatedExperimentId;
+        setExperimentId(generatedExperimentId);
         const firstCase = data.cases[0];
         if (firstCase !== undefined) {
           setSelectedCaseId(firstCase.case_id);
@@ -190,82 +246,189 @@ export default function ExperimentPanel({ language, open, onClose }: ExperimentP
   };
 
   const handleCreatePlan = () => {
+    const requestedExperimentId = experimentId;
+    const planGeneration = ++planGenerationRef.current;
     setPlanError(null);
     void createExperimentPlan(
-      experimentId,
+      requestedExperimentId,
       selectedCaseId,
       Array.from(selectedVariantIds),
       executionMode,
     )
       .then((data) => {
+        if (
+          planGenerationRef.current !== planGeneration ||
+          activeExperimentIdRef.current !== requestedExperimentId
+        ) {
+          return;
+        }
+        // A newly committed Plan is a new identity boundary even if no
+        // refresh/detail Response has arrived yet. Invalidate every older
+        // async reader before exposing its state.
+        refreshGenerationRef.current += 1;
+        detailGenerationRef.current += 1;
         setPlan(data);
         setPlanReady(true);
         setRuns([]);
         setComparison(null);
-        setComparisonStatus("unavailable");
+        setComparisonStatus("idle");
+        setSelectedRunId(null);
+        setSelectedRunInvocations(null);
       })
       .catch(() => {
-        setPlanError(translate(language, "experimentPlanFailed"));
+        if (
+          planGenerationRef.current === planGeneration &&
+          activeExperimentIdRef.current === requestedExperimentId
+        ) {
+          setPlanError(translate(language, "experimentPlanFailed"));
+        }
       });
   };
 
-  const refreshRunList = (id: string) => {
-    void fetchExperimentRunList(id).then((data) => {
-      setRuns(data.runs);
-    });
-    void fetchExperimentComparison(id)
-      .then((data) => {
-        setComparison(data);
-        setComparisonStatus("ok");
-      })
-      .catch(() => {
-        // R2-WU-05 (Handoff R2 SS8): a transient failure here must never
-        // silently keep showing the last Comparison as if it were still
-        // current -- `"stale"` once something was already on screen,
-        // `"unavailable"` while nothing has ever loaded successfully;
-        // never a silent no-op that leaves `comparisonStatus` at `"ok"`.
-        setComparisonStatus((previous) => (previous === "unavailable" ? "unavailable" : "stale"));
-      });
+  const refreshRunList = async (id: string): Promise<ExperimentVariantRun[] | null> => {
+    const refreshGeneration = ++refreshGenerationRef.current;
+    const [runListResult, comparisonResult] = await Promise.allSettled([
+      fetchExperimentRunList(id),
+      fetchExperimentComparison(id),
+    ]);
+    const isLatestCurrentExperiment =
+      refreshGenerationRef.current === refreshGeneration && activeExperimentIdRef.current === id;
+    if (!isLatestCurrentExperiment) {
+      return null;
+    }
+    if (runListResult.status === "fulfilled") {
+      setRuns((previous) => mergeRuns(previous, runListResult.value.runs));
+    }
+    if (comparisonResult.status === "fulfilled") {
+      const data = comparisonResult.value;
+      setComparison(data);
+      setComparisonStatus("ok");
+    } else {
+      // R2-WU-05 (Handoff R2 SS8): a transient failure here must never
+      // silently keep showing the last Comparison as if it were still
+      // current -- `"stale"` once something was already on screen,
+      // `"unavailable"` while nothing has ever loaded successfully;
+      // never a silent no-op that leaves `comparisonStatus` at `"ok"`.
+      setComparisonStatus((previous) =>
+        previous === "ok" || previous === "stale" ? "stale" : "unavailable",
+      );
+    }
+    return runListResult.status === "fulfilled" ? runListResult.value.runs : null;
   };
 
   const handleRun = (variantId: string) => {
     setRunError(null);
+    setRunStatusNotice(null);
+    setRecheckRunId(null);
     setRunningVariantId(variantId);
     const runId = `run-${newActionId().slice(0, 8)}`;
-    void startExperimentRun(experimentId, variantId, runId)
-      .then(() => {
-        refreshRunList(experimentId);
-        return pollUntilTerminal(runId);
-      })
-      .then(() => {
-        refreshRunList(experimentId);
-      })
-      .catch((error: unknown) => {
+    void (async () => {
+      try {
+        const startedRun = await startExperimentRun(experimentId, variantId, runId);
+        setRuns((previous) => upsertRun(previous, startedRun));
+        void refreshRunList(experimentId);
+        await pollUntilTerminal(
+          runId,
+          (updatedRun) => {
+            setRuns((previous) => upsertRun(previous, updatedRun));
+            setRunStatusNotice(null);
+          },
+          () => {
+            setRunStatusNotice(translate(language, "experimentRunStatusRetrying"));
+          },
+        );
+        await refreshRunList(experimentId);
+      } catch (error: unknown) {
         // R2-WU-05: a Production Run rejected at Call 0 (e.g. Live
         // Configuration drifted or cannot satisfy this Variant,
         // `live_config_mismatch`/`live_config_unavailable`) surfaces its
         // real Backend reason -- never only a generic "it failed".
         const message = error instanceof ApiMutationError ? error.message : null;
-        setRunError(message ?? translate(language, "experimentRunFailed"));
+        if (error instanceof Error && error.message === "experiment_run_poll_timeout") {
+          // A normal Production Run may legitimately outlive the bounded
+          // auto-tracking window. Make one final GET-only refresh first:
+          // if it already reached Terminal, clear the tracking error. If
+          // not, preserve this same run_id for an explicit GET-only Recheck.
+          const refreshedRuns = await refreshRunList(experimentId);
+          const refreshedRun = refreshedRuns?.find((run) => run.run_id === runId);
+          if (refreshedRun !== undefined && TERMINAL_RUN_STATES.has(refreshedRun.state)) {
+            setRuns((previous) => upsertRun(previous, refreshedRun));
+            setRunError(null);
+            setRecheckRunId(null);
+          } else {
+            setRunError(translate(language, "experimentRunStatusUnavailable"));
+            setRecheckRunId(runId);
+          }
+        } else {
+          setRunError(message ?? translate(language, "experimentRunFailed"));
+          await refreshRunList(experimentId);
+        }
+      } finally {
+        setRunStatusNotice(null);
+        setRunningVariantId(null);
+      }
+    })();
+  };
+
+  const handleRecheck = () => {
+    if (recheckRunId === null || rechecking) {
+      return;
+    }
+    const runId = recheckRunId;
+    setRechecking(true);
+    setRunStatusNotice(translate(language, "experimentRunStatusRechecking"));
+    void fetchExperimentRun(runId)
+      .then(async (result) => {
+        setRuns((previous) => upsertRun(previous, result.run));
+        if (TERMINAL_RUN_STATES.has(result.run.state)) {
+          setRunError(null);
+          setRecheckRunId(null);
+          await refreshRunList(experimentId);
+        } else {
+          setRunError(translate(language, "experimentRunStillRunning"));
+        }
+      })
+      .catch(() => {
+        setRunError(translate(language, "experimentRunStatusUnavailable"));
       })
       .finally(() => {
-        setRunningVariantId(null);
+        setRunStatusNotice(null);
+        setRechecking(false);
       });
   };
 
   const handleCancel = (runId: string) => {
     void cancelExperimentRun(runId).then(() => {
-      refreshRunList(experimentId);
+      void refreshRunList(experimentId);
     });
   };
 
   const handleShowDetails = (run: ExperimentVariantRun) => {
+    const detailGeneration = ++detailGenerationRef.current;
+    const requestedExperimentId = experimentId;
+    const requestedRunId = run.run_id;
     setSelectedRunId(run.run_id);
     setSelectedRunInvocations(null);
     setSelectedRunExecutionMode(run.execution_mode);
     void fetchExperimentRun(run.run_id).then((result) => {
+      if (
+        detailGenerationRef.current !== detailGeneration ||
+        activeExperimentIdRef.current !== requestedExperimentId ||
+        result.run.run_id !== requestedRunId
+      ) {
+        return;
+      }
       setSelectedRunInvocations(result.invocations);
       setSelectedRunExecutionMode(result.run.execution_mode);
+    }).catch(() => {
+      if (
+        detailGenerationRef.current === detailGeneration &&
+        activeExperimentIdRef.current === requestedExperimentId
+      ) {
+        // The selected row remains selected, but no older row's Evidence
+        // or disclaimer is allowed to survive a failed current read.
+        setSelectedRunInvocations(null);
+      }
     });
   };
 
@@ -281,7 +444,7 @@ export default function ExperimentPanel({ language, open, onClose }: ExperimentP
           <h2>{translate(language, "experimentPanelTitle")}</h2>
           <button
             type="button"
-            className="settings-modal-close"
+            className="settings-modal-close secondary"
             onClick={onClose}
             aria-label="close"
           >
@@ -302,7 +465,14 @@ export default function ExperimentPanel({ language, open, onClose }: ExperimentP
                 <input
                   type="text"
                   value={experimentId}
-                  onChange={(event) => { setExperimentId(event.target.value); }}
+                  onChange={(event) => {
+                    const nextExperimentId = event.target.value;
+                    activeExperimentIdRef.current = nextExperimentId;
+                    refreshGenerationRef.current += 1;
+                    detailGenerationRef.current += 1;
+                    planGenerationRef.current += 1;
+                    setExperimentId(nextExperimentId);
+                  }}
                   disabled={planReady}
                 />
               </label>
@@ -362,6 +532,7 @@ export default function ExperimentPanel({ language, open, onClose }: ExperimentP
               {!planReady && (
                 <button
                   type="button"
+                  className="primary"
                   onClick={handleCreatePlan}
                   disabled={selectedCaseId === "" || selectedVariantIds.size === 0}
                 >
@@ -390,8 +561,10 @@ export default function ExperimentPanel({ language, open, onClose }: ExperimentP
                         <div key={variantId} className="experiment-run-row">
                           <button
                             type="button"
+                            className="primary"
                             onClick={() => { handleRun(variantId); }}
-                            disabled={runningVariantId === variantId}
+                            disabled={runningVariantId !== null || recheckRunId !== null}
+                            aria-busy={runningVariantId === variantId}
                           >
                             {translate(language, "experimentRun")}: {variantId}
                           </button>
@@ -406,7 +579,22 @@ export default function ExperimentPanel({ language, open, onClose }: ExperimentP
                       );
                     })}
                   </div>
+                  {runningVariantId !== null && (
+                    <p role="status">{translate(language, "experimentRunning")}</p>
+                  )}
+                  {runStatusNotice !== null && <p role="status">{runStatusNotice}</p>}
                   {runError !== null && <p className="experiment-error">{runError}</p>}
+                  {recheckRunId !== null && (
+                    <button
+                      type="button"
+                      className="secondary"
+                      onClick={handleRecheck}
+                      disabled={rechecking}
+                      aria-busy={rechecking}
+                    >
+                      {translate(language, "experimentRecheckRunStatus")}
+                    </button>
+                  )}
                   <h3>{translate(language, "experimentComparisonTitle")}</h3>
                   {comparisonStatus === "stale" && (
                     <p className="experiment-error">
@@ -474,12 +662,17 @@ export default function ExperimentPanel({ language, open, onClose }: ExperimentP
                             <td>{run.failure_reason ?? "-"}</td>
                             <td>{row?.raw_evidence_pointer ?? "-"}</td>
                             <td>
-                              <button type="button" onClick={() => { handleShowDetails(run); }}>
+                              <button
+                                type="button"
+                                className="secondary"
+                                onClick={() => { handleShowDetails(run); }}
+                              >
                                 {translate(language, "experimentDetailsTitle")}
                               </button>
                               {!TERMINAL_RUN_STATES.has(run.state) && (
                                 <button
                                   type="button"
+                                  className="danger"
                                   onClick={() => { handleCancel(run.run_id); }}
                                 >
                                   {translate(language, "experimentCancel")}

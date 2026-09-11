@@ -16,6 +16,10 @@ from margpa_runtime_llm.modules.experiment.application.experiment_service import
     ExperimentService,
 )
 from margpa_runtime_llm.modules.experiment.application.run_worker import ExperimentRunWorker
+from margpa_runtime_llm.modules.experiment.domain.errors import (
+    ExperimentCoreError,
+    ExperimentCoreErrorCode,
+)
 from margpa_runtime_llm.modules.experiment.domain.identity import (
     ComponentKey,
     ComponentSelection,
@@ -26,6 +30,21 @@ from margpa_runtime_llm.modules.experiment.domain.identity import (
 from margpa_runtime_llm.modules.experiment.domain.run import RunState, VariantRun
 
 _CASE_DIGEST = "9" * 128
+
+
+class CountingLease(ExperimentConfigurationLease):
+    def __init__(self) -> None:
+        super().__init__()
+        self.acquire_count = 0
+        self.release_count = 0
+
+    def acquire(self) -> None:
+        super().acquire()
+        self.acquire_count += 1
+
+    def release(self) -> None:
+        self.release_count += 1
+        super().release()
 
 
 def _service(tmp_path: Path) -> ExperimentService:
@@ -54,7 +73,6 @@ def _plan_and_run(
         variant_id="variant-a",
         run_id="run-1",
         request_id="req-1",
-        execution_mode="fixture",
     )
 
 
@@ -68,7 +86,6 @@ def _start_run(service: ExperimentService, *, run_id: str) -> VariantRun:
         variant_id="variant-a",
         run_id=run_id,
         request_id=f"req-{run_id}",
-        execution_mode="fixture",
     )
 
 
@@ -113,6 +130,84 @@ def test_an_actor_exception_publishes_failed_never_left_running(tmp_path: Path) 
     assert result.run.failure_reason is not None
     assert "ValueError" in result.run.failure_reason
     worker.shutdown()
+
+
+def test_an_actor_domain_error_publishes_typed_failed_and_cleans_up_without_a_deadline(
+    tmp_path: Path,
+) -> None:
+    """IR-P9-2-WHOLE-R1-02: invoke-origin ExperimentCoreError is an
+    Actor failure, never a publish race that may be swallowed."""
+
+    service = _service(tmp_path)
+    run = _plan_and_run(service)
+    worker = ExperimentRunWorker()
+    lease = ExperimentConfigurationLease()
+
+    def _domain_failure() -> tuple[RunState, dict[str, object] | None, str | None]:
+        raise ExperimentCoreError(
+            code=ExperimentCoreErrorCode.INVALID_STATE_TRANSITION,
+            safe_message="sensitive diagnostic must not be persisted",
+        )
+
+    worker.submit(
+        service=service,
+        run=run,
+        deadline_ms=None,
+        invoke=_domain_failure,
+        lease=lease,
+    )
+    _wait_until_terminal(service, "run-1")
+    assert service.get_run("run-1").state is RunState.FAILED
+    assert (
+        service.get_run("run-1").failure_reason
+        == "actor_domain_error:invalid_state_transition"
+    )
+    assert "sensitive diagnostic" not in (service.get_run("run-1").failure_reason or "")
+    assert worker.shutdown(timeout=2.0) is True
+    assert lease.is_held() is False
+    assert worker.request_cancel("run-1") is False
+
+
+def test_actor_domain_error_losing_to_cancel_preserves_terminal_and_releases_once(
+    tmp_path: Path,
+) -> None:
+    """Only a durable Terminal publish winner makes the later Actor
+    failure publish conflict harmless."""
+
+    service = _service(tmp_path)
+    run = _plan_and_run(service)
+    worker = ExperimentRunWorker()
+    lease = CountingLease()
+    entered = threading.Event()
+    release_actor = threading.Event()
+
+    def _domain_failure() -> tuple[RunState, dict[str, object] | None, str | None]:
+        entered.set()
+        release_actor.wait(timeout=2.0)
+        raise ExperimentCoreError(
+            code=ExperimentCoreErrorCode.INVALID_STATE_TRANSITION,
+            safe_message="actor failed",
+        )
+
+    worker.submit(
+        service=service,
+        run=run,
+        deadline_ms=None,
+        invoke=_domain_failure,
+        lease=lease,
+    )
+    assert entered.wait(timeout=1.0) is True
+    service.cancel_run("run-1")
+    release_actor.set()
+    assert worker.shutdown(timeout=2.0) is True
+
+    terminal = service.get_run("run-1")
+    assert terminal.state is RunState.CANCELLED
+    assert terminal.failure_reason is None
+    assert lease.acquire_count == 1
+    assert lease.release_count == 1
+    assert lease.is_held() is False
+    assert worker.request_cancel("run-1") is False
 
 
 def test_an_exceeded_deadline_publishes_failed_without_ever_invoking_the_actor(
@@ -470,7 +565,7 @@ def test_lease_is_held_only_during_the_actual_invoke_call(tmp_path: Path) -> Non
     service = _service(tmp_path)
     run = _plan_and_run(service)
     worker = ExperimentRunWorker()
-    lease = ExperimentConfigurationLease()
+    lease = CountingLease()
     observed_held_during_invoke: list[bool] = []
 
     def _invoke() -> tuple[RunState, dict[str, object] | None, str | None]:
@@ -482,7 +577,9 @@ def test_lease_is_held_only_during_the_actual_invoke_call(tmp_path: Path) -> Non
     _wait_until_terminal(service, "run-1")
     assert observed_held_during_invoke == [True]
     assert lease.is_held() is False
-    worker.shutdown()
+    assert worker.shutdown(timeout=2.0) is True
+    assert lease.acquire_count == 1
+    assert lease.release_count == 1
 
 
 def test_lease_is_released_even_when_the_actor_raises(tmp_path: Path) -> None:
@@ -492,7 +589,7 @@ def test_lease_is_released_even_when_the_actor_raises(tmp_path: Path) -> None:
     service = _service(tmp_path)
     run = _plan_and_run(service)
     worker = ExperimentRunWorker()
-    lease = ExperimentConfigurationLease()
+    lease = CountingLease()
 
     def _boom() -> tuple[RunState, dict[str, object] | None, str | None]:
         raise ValueError("actor exploded")
@@ -500,4 +597,141 @@ def test_lease_is_released_even_when_the_actor_raises(tmp_path: Path) -> None:
     worker.submit(service=service, run=run, deadline_ms=None, invoke=_boom, lease=lease)
     _wait_until_terminal(service, "run-1")
     assert lease.is_held() is False
-    worker.shutdown()
+    assert worker.shutdown(timeout=2.0) is True
+    assert lease.acquire_count == 1
+    assert lease.release_count == 1
+
+
+def test_failed_outcome_releases_the_lease_exactly_once(tmp_path: Path) -> None:
+    service = _service(tmp_path)
+    run = _plan_and_run(service)
+    worker = ExperimentRunWorker()
+    lease = CountingLease()
+
+    worker.submit(
+        service=service,
+        run=run,
+        deadline_ms=None,
+        invoke=lambda: (RunState.FAILED, None, "typed_failure"),
+        lease=lease,
+    )
+    _wait_until_terminal(service, "run-1")
+    assert worker.shutdown(timeout=2.0) is True
+    assert service.get_run("run-1").state is RunState.FAILED
+    assert lease.acquire_count == lease.release_count == 1
+    assert lease.try_acquire_mutation() is True
+    lease.release_mutation()
+
+
+def test_deadline_and_shutdown_paths_release_the_lease_once_and_mutations_recover(
+    tmp_path: Path,
+) -> None:
+    service = _service(tmp_path)
+    run = _plan_and_run(service, budget=ExperimentPlanBudget(deadline_ms=50))
+    worker = ExperimentRunWorker()
+    lease = CountingLease()
+    actor_entered = threading.Event()
+    cancel_release = threading.Event()
+
+    def _slow() -> tuple[RunState, dict[str, object] | None, str | None]:
+        actor_entered.set()
+        cancel_release.wait(timeout=2.0)
+        # Let the Timer's terminal publish win before returning a late result.
+        time.sleep(0.05)
+        return (RunState.COMPLETED, None, None)
+
+    worker.submit(
+        service=service,
+        run=run,
+        deadline_ms=50,
+        invoke=_slow,
+        cancel=cancel_release.set,
+        lease=lease,
+    )
+    assert actor_entered.wait(timeout=1.0) is True
+    _wait_until_terminal(service, "run-1")
+    assert service.get_run("run-1").failure_reason == "deadline_exceeded"
+    assert worker.shutdown(timeout=2.0) is True
+    assert lease.acquire_count == lease.release_count == 1
+    assert lease.try_acquire_mutation() is True
+    lease.release_mutation()
+
+
+def test_shutdown_cancel_hook_releases_the_lease_once_and_mutations_recover(
+    tmp_path: Path,
+) -> None:
+    service = _service(tmp_path)
+    run = _plan_and_run(service)
+    worker = ExperimentRunWorker()
+    lease = CountingLease()
+    actor_entered = threading.Event()
+    shutdown_release = threading.Event()
+
+    def _until_shutdown() -> tuple[RunState, dict[str, object] | None, str | None]:
+        actor_entered.set()
+        shutdown_release.wait(timeout=2.0)
+        return (RunState.FAILED, None, "shutdown_cancelled_actor")
+
+    worker.submit(
+        service=service,
+        run=run,
+        deadline_ms=None,
+        invoke=_until_shutdown,
+        cancel=shutdown_release.set,
+        lease=lease,
+    )
+    assert actor_entered.wait(timeout=1.0) is True
+    assert worker.shutdown(timeout=2.0) is True
+    assert service.get_run("run-1").state is RunState.FAILED
+    assert lease.acquire_count == lease.release_count == 1
+    assert lease.try_acquire_mutation() is True
+    lease.release_mutation()
+
+
+def test_shutdown_while_waiting_behind_a_mutation_is_call_zero_and_releases_once(
+    tmp_path: Path,
+) -> None:
+    class WaitObservingLease(CountingLease):
+        def __init__(self) -> None:
+            super().__init__()
+            self.acquire_started = threading.Event()
+
+        def acquire(self) -> None:
+            self.acquire_started.set()
+            super().acquire()
+
+    service = _service(tmp_path)
+    run = _plan_and_run(service)
+    worker = ExperimentRunWorker()
+    lease = WaitObservingLease()
+    invoked = threading.Event()
+    assert lease.try_acquire_mutation() is True
+
+    def _invoke() -> tuple[RunState, dict[str, object] | None, str | None]:
+        invoked.set()
+        return (RunState.COMPLETED, None, None)
+
+    worker.submit(
+        service=service,
+        run=run,
+        deadline_ms=None,
+        invoke=_invoke,
+        lease=lease,
+    )
+    assert lease.acquire_started.wait(timeout=1.0) is True
+    # The Worker is blocked behind the earlier mutation; shutdown cannot
+    # finish until that mutation releases, but it must prevent Actor entry.
+    assert worker.shutdown(timeout=0.05) is False
+    lease.release_mutation()
+
+    _wait_until_terminal(service, "run-1")
+    deadline = time.monotonic() + 1.0
+    while worker.request_cancel("run-1") and time.monotonic() < deadline:
+        time.sleep(0.01)
+    assert worker.request_cancel("run-1") is False
+    assert invoked.is_set() is False
+    assert service.get_run("run-1").state is RunState.FAILED
+    assert service.get_run("run-1").failure_reason == "worker_shutdown"
+    assert lease.acquire_count == lease.release_count == 1
+    assert lease.try_acquire_mutation() is True
+    lease.release_mutation()

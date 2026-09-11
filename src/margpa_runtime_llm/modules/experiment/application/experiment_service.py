@@ -18,11 +18,12 @@ the durable state (`ExperimentStorePort` is)."""
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from threading import Lock
-from typing import Literal
 
+from ..domain.config_snapshot import EffectiveConfigurationSnapshot
 from ..domain.errors import ExperimentCoreError, ExperimentCoreErrorCode
 from ..domain.identity import ExperimentPlan, StopPolicy
 from ..domain.run import RunState, VariantRun, is_terminal, validate_transition
@@ -81,12 +82,62 @@ class ExperimentService:
         return self._store
 
     def create_plan(self, plan: ExperimentPlan) -> ExperimentPlan:
+        return self.create_plan_with_desired_configurations(
+            plan=plan, desired_configurations={}
+        )
+
+    def create_plan_with_desired_configurations(
+        self,
+        *,
+        plan: ExperimentPlan,
+        desired_configurations: Mapping[str, EffectiveConfigurationSnapshot],
+    ) -> ExperimentPlan:
+        """Persist every Desired Snapshot before publishing its Plan.
+
+        The Plan file is the visible commit point. A failed Snapshot write
+        can leave retryable, undiscoverable pre-commit Snapshot files, but
+        never a readable Plan with missing referenced configuration. An
+        already-published Plan is checked before any Snapshot write, so a
+        duplicate request cannot overwrite its committed configuration.
+        """
+
         with self._lock:
             if self._store.load_plan(plan.experiment_id) is not None:
                 raise ExperimentCoreError(
                     code=ExperimentCoreErrorCode.DUPLICATE_IDENTIFIER,
                     safe_message=f"experiment_id {plan.experiment_id!r} already has a Plan",
                 )
+            expected_by_variant = {
+                ref.variant_id: ref.configuration_digest_sha512
+                for ref in plan.variant_configuration_digests
+            }
+            if set(desired_configurations) != set(expected_by_variant):
+                raise ExperimentCoreError(
+                    code=ExperimentCoreErrorCode.CONFIGURATION_DIGEST_MISMATCH,
+                    safe_message=(
+                        f"experiment_id {plan.experiment_id!r} Desired Configuration set "
+                        "does not match its Plan references exactly"
+                    ),
+                )
+            for variant_id, expected_digest in expected_by_variant.items():
+                desired = desired_configurations[variant_id]
+                if desired.configuration_digest_sha512 != expected_digest:
+                    raise ExperimentCoreError(
+                        code=ExperimentCoreErrorCode.CONFIGURATION_DIGEST_MISMATCH,
+                        safe_message=(
+                            f"experiment_id {plan.experiment_id!r} variant_id "
+                            f"{variant_id!r} Desired Configuration digest does not match "
+                            "its Plan reference"
+                        ),
+                    )
+            for variant_id in sorted(expected_by_variant):
+                self._store.save_variant_desired_configuration(
+                    plan.experiment_id,
+                    variant_id,
+                    desired_configurations[variant_id].model_dump(mode="json"),
+                )
+            # Final, visible commit point: readers cannot observe this Plan
+            # until every referenced Snapshot write above has succeeded.
             self._store.save_plan(plan)
             return plan
 
@@ -97,7 +148,6 @@ class ExperimentService:
         variant_id: str,
         run_id: str,
         request_id: str,
-        execution_mode: Literal["fixture", "production"],
     ) -> VariantRun:
         with self._lock:
             plan = self._store.load_plan(experiment_id)
@@ -153,7 +203,10 @@ class ExperimentService:
                 experiment_id=experiment_id,
                 variant_id=variant_id,
                 request_id=request_id,
-                execution_mode=execution_mode,
+                # The persisted Plan is the sole execution-mode authority.
+                # A Run caller cannot downgrade a production Plan to a
+                # fixture Run (or upgrade a fixture Plan to production).
+                execution_mode=plan.execution_mode,
                 state=RunState.PLANNED,
                 generation=1,
             )

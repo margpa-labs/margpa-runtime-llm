@@ -2,20 +2,23 @@
 
 ```yaml
 document_id: phase_9_documentation_index
-document_state: P9_2_DESIGN_FROZEN_HANDOFF_READY_USER_BACKUP_PENDING
+document_state: P9_2_COMPLETE_USER_ACCEPTED_MINIMAL_CLOSURE_P9_3_REVISED_READY_BACKUP_COMPLETE
 phase: phase_9
 language: ja
 created_at: 2026-08-31 21:02:44 JST
-current_program: P9_2_EXPERIMENT_MULTI_GOVERNANCE_ENTRY
+current_program: P9_3_CONTEXT_COMPACTION_RECOVERY_READY
 implementation_started: true
 phase_8_formal_closure_required_first: false
 user_backup_complete: true
 phase_9_1_preflight: go
 phase_9_1_status: complete_user_accepted_without_full_closure
-phase_9_2_entry_backup_complete: false
-active_rework_handoff: handoffs/phase_9_controller_phase_9_2_experiment_multi_governance_long_run_exact_handoff_ja_20260906212349.md
-active_rework_status: ready_blocked_until_user_backup_complete
-active_rework_review: none_not_started
+phase_9_2_entry_backup_complete: true
+phase_9_2_status: complete_user_accepted_minimal_closure
+phase_9_3_design_status: revised_frozen_ready
+phase_9_3_entry_backup_complete: true
+active_rework_handoff: handoffs/phase_9_controller_to_claude_phase_9_3_context_compaction_recovery_revised_long_run_exact_handoff_ja_20260911175040.md
+active_rework_status: phase_9_3_claude_long_run_handoff_ready_user_relay_pending
+active_rework_review: phase_9_2_explicit_default_off_gate_controller_review_pass
 ```
 
 ## 1. Current State
@@ -27,6 +30,15 @@ Phase 9 Design／Work Breakdown: ACCEPTED／FROZEN
 Phase 9 READY: TRUE
 User Backup after Phase 8 Commit／Push: COMPLETE（User Report）
 Phase 9-1 Preflight: GO／COMPLETE
+Phase 9-2 Headless Core: COMPLETE／USER ACCEPTED／MINIMAL CLOSURE
+Phase 9-2 Experiment Workspace UI: DEFERRED TO PHASE 11+／NORMAL UI ENTRY HIDDEN
+Phase 9-2 Final User Visual Gate: PASS／ENTRY ABSENT（2026-09-10 User Report）
+Phase 9-2 Explicit Experimental Runtime Gate: PASS／DEFAULT OFF／EXPLICIT OPT-IN ONLY
+Phase 9-3 Design: REVISED／FROZEN／READY
+Phase 9-2 Additional User Manual: NOT REQUIRED
+Phase 9-3 Design／Work Breakdown: FROZEN／READY
+Phase 9-3 Entry Backup: COMPLETE（User Report）
+Phase 9-3 Source Implementation: NOT STARTED／EXACT HANDOFF READY
 Phase 9-1 SSS Incident: CONFIRMED／CURRENT WORKING TREE QUARANTINED
 Phase 9-1 Direct Breakage: NEW SYSTEM MEMORY RESOURCE GATE DENIES DEDICATED JUDGE／GUARD
 Phase 9-1 Stable Recovery Point: COMMIT 1f0e70e／2026-09-02 12:31 BACKUP SOURCE MATCH VERIFIED
@@ -679,8 +691,8 @@ Phase 9-1 Judge/Governance Rework Controller Review対応(CHANGES REQUIRED)
 | Program | Purpose | Current Detail | Start Condition |
 |---|---|---|---|
 | Phase 9-1 | Phase 6 Governance Semantic Debt Fast Closure | User Mac必須Acceptance完了。通常Full Closureは省略 | COMPLETE／USER ACCEPTED |
-| Phase 9-2 | Experiment／Evaluation／Multi-Governance／Semantic Research | 6 PackageをAs-built後に再設計・詳細Freeze | Current Working Tree Backup完了＋User明示再開 |
-| Phase 9-3 | Context Compaction／Recovery Technical Core | 6 Conditional Package／5 Acceptanceの境界予約 | P9-2成立＋Resource／Priority再評価 |
+| Phase 9-2 | Experiment／Evaluation／Multi-Governance／Semantic Research | Headless Core成立。通常UI入口は非表示。Runtime全体はDefault OFFで明示Opt-in時だけ構築 | COMPLETE／USER ACCEPTED／MINIMAL CLOSURE |
+| Phase 9-3 | Context Compaction／Recovery Technical Core＋最小Context Action UI | 改訂7 Package／詳細Work Unit／5 AcceptanceをFreeze。Core常時利用可能、Manual常時利用可能、Auto独立Default ON | READY／User Backup完了／Exact Handoff準備 |
 
 ## 3. Canonical Phase 9 Documents
 
@@ -688,6 +700,11 @@ Phase 9-1 Judge/Governance Rework Controller Review対応(CHANGES REQUIRED)
 - [Architecture](architecture/phase_9_architecture_ja.md)
 - [Execution Plan](operations/phase_9_execution_plan_ja.md)
 - [Acceptance Matrix](operations/phase_9_acceptance_matrix_ja.md)
+- [Phase 9-3 Context Compaction／Recovery 改訂実行設計・工程分解（Current Canonical）](operations/phase_9_3_context_compaction_recovery_revised_execution_design_and_work_breakdown_ja.md)
+- [Phase 9-3 Context Compaction／Recovery 旧実行設計・工程分解（Superseded Mode／UI境界の履歴）](operations/phase_9_3_context_compaction_recovery_execution_design_and_work_breakdown_ja.md)
+- [Phase 9-2 Explicit Default-OFF Gate Controller独立Review／最小Closure Receipt](history/operations/phase_9_2_explicit_default_off_experiment_runtime_gate_controller_independent_review_acceptance_and_minimal_closure_receipt_ja_20260911163201.md)
+- [Phase 9-2最小Closure／Phase 9-3 READYの早期Claim訂正Addendum](history/operations/phase_9_2_minimal_closure_and_phase_9_3_ready_premature_claim_correction_addendum_ja_20260910121521.md)
+- [訂正対象となったPhase 9-2最小Closure／Phase 9-3 READY Receipt](history/operations/phase_9_2_minimal_closure_and_phase_9_3_ready_receipt_ja_20260910120644.md)
 - [Pre-Phase-8-Closure Design Freeze](history/operations/phase_9_pre_phase_8_closure_three_program_design_and_execution_freeze_ja_20260831210244.md)
 - [Phase 9 READY Receipt](history/operations/phase_9_ready_receipt_ja_20260831213232.md)
 - [Phase 9-1 Preflight](history/operations/phase_9_1_governance_semantic_debt_preflight_ja_20260831221231.md)
@@ -782,21 +799,38 @@ Phase 8 Formal ClosureでCurrent RoadmapおよびCurrent未解決Registryへこ�
 ## 6. Next Authorized Sequence
 
 ```text
-0. SSS IncidentのCurrent Working Treeを隔離し、Commit 1f0e70eをHard Fallbackとして固定する
-0.1. 新規SystemMemoryRoleResourceGateのProduction配線を対象にP0局所修復を先行する
-0.2. Main+Gemma／Main+Qwen3Guardの実Load正経路が戻らない場合は1f0e70eへ全巻き戻しする
-0.3. Recovery Acceptance完了までPackage 3／Context拡張／Phase 9-2／Closure／Commit／Pushへ進まない
-1. Gate配線を外した最小Recovery CandidateでMain+Gemma／Main+Qwen3Guardを実Loadする
-2. Built-in／Main-shared Qwen／Selene／Gemmaの同一条件MatrixとProvider固有修復を再受理する
-3. Judge OBSERVE／ENFORCE、Judge→Repair→Rejudge、Semantic 109実評価を再成立させる
-4. ARGD／DAGDを含むMain Runtime Governance ENFORCE Golden Pathを再成立させる
-5. Full Verification、完全別観点二段階Internal Review、Controller Independent Reviewを行う
-6. User Mac Manual Acceptance後にのみPackage 2 Recovery Complete Candidateを判断する
-7. Recovery成立後、Context 16384／Output 4096・8192のPackage 3を再開する
-8. 上記成立までPhase 9-1 Complete Candidate／Closure／Phase 9-2を主張しない
+1. UserによるPhase 9-3 READY時点のCurrent Working Tree Backupは完了済み
+2. Codex Controllerが改訂Canonical設計に基づくClaude Exact Handoffを作成する
+3. User Relay後、P9-3-A〜Gを依存順に実装する
+4. Original Conversation不変、Pre-Snapshot、Atomic Swap、Rollback、Selective Rehydrationを機械検証する
+5. Manual常時利用可能、Auto独立Default ON、Hard ReserveおよびDeterministic Builderを検証する
+6. Recovery／Handoff LogとManual Compaction Warning Dialogの最小2 Icon UIを検証する
+7. Phase 9-2 Experiment CoreでCompaction前後を比較し、Restart Readまで確認する
+8. Controller Review後に必要なUser／Real-model Gateを行う
+9. Phase 10全体UI／Docs統合／Portable Packageを先取りしない
 ```
 
 本Indexは上記Actionの実行Authorityを生成しない。
+
+## Phase 9-2早期Closure Claim訂正／Phase 9-3 READY保留 — 2026-09-10 12:15 JST
+
+[早期Claim訂正Addendum](history/operations/phase_9_2_minimal_closure_and_phase_9_3_ready_premature_claim_correction_addendum_ja_20260910121521.md)：通常UIのExperiment入口非表示とUser実Browser確認は成立している。一方、Backend API／Run Worker／Production Adapter／Configuration Leaseは明示的なExperimental Gate配下へ移されておらず、通常のConversation Persistence起動構成で構築され得る。見えないAPI RunがLeaseを保持しSettings変更を一時拒否できる境界が残るため、直前の`COMPLETE／USER ACCEPTED／MINIMAL CLOSURE`とPhase 9-3 `READY`は早期Claimとして撤回する。
+
+[Phase 9-3 Context Compaction／Recovery 実行設計・工程分解](operations/phase_9_3_context_compaction_recovery_execution_design_and_work_breakdown_ja.md)：設計内容は保持するが、現在の状態は`DESIGN DRAFT COMPLETE／PHASE 9-3 NOT READY`である。Phase 9-2の明示的Experimental Gateを解決・受理するまで、Backup GateおよびSource実装へ進まない。
+
+## Phase 9-2 Explicit Default-OFF Gate受理／Phase 9-3 READY再昇格 — 2026-09-11 16:32 JST
+
+[Controller独立Review／最小Closure Receipt](history/operations/phase_9_2_explicit_default_off_experiment_runtime_gate_controller_independent_review_acceptance_and_minimal_closure_receipt_ja_20260911163201.md)：`--phase-9-experiment-runtime`省略時はExperiment Service／Worker／Production Adapter／Live Configuration Reader／Configuration Leaseを構築せず、Conversation Persistence単独ではAuthorityを生成しない。Disabled API、Settings非409、Explicit ON Top-level経路、Direct Factory Fail-closed、Shutdownを機械検証し、Controller再実行でもRelevant 72件、Top-level Non-model 6件、Ruff、Focused MypyがPASSした。Blocker／Major残件0として限定Reworkを受理し、Phase 9-2を`COMPLETE／USER ACCEPTED／MINIMAL CLOSURE`へ戻す。
+
+[Phase 9-3 Context Compaction／Recovery 実行設計・工程分解](operations/phase_9_3_context_compaction_recovery_execution_design_and_work_breakdown_ja.md)：Phase 9-2依存が解決したため、既存Draftを`DESIGN FROZEN／PHASE 9-3 READY／USER BACKUP PENDING`へ昇格した。Backup完了とUserの明示開始まではSource Mutationを行わない。
+
+## Phase 9-3 User Decision再設計／Backup完了／Handoff準備 — 2026-09-11 17:46 JST
+
+[Phase 9-3 Context Compaction／Recovery 改訂実行設計・工程分解](operations/phase_9_3_context_compaction_recovery_revised_execution_design_and_work_breakdown_ja.md)：後続User Decisionに基づき、Governance由来の`OFF／OBSERVE／ENFORCE／MANUAL`単一Mode体系を撤回した。Compaction Coreは通常UIで停止しない常時利用Capability、Manual CompactionはAuto設定非依存で常時利用可能、Auto Compactionは独立BooleanでDefault ON、PreviewはModeではなくMutation 0のActionとする。Hard Reserve、Deterministic Extractive Builder、Atomic Activation／Rollback／RecoveryをTechnical Coreへ含める。
+
+同時に、既存Context Usage Surface付近のRecovery／Handoff Log Iconと、Warning Dialog付きManual Compaction IconをPhase 9-3最小UIへ追加する。Mobile専用UI、Recovery履歴、複数Snapshot比較、Rollback管理画面、圧縮前後Diff、Full Governance Trace ObservatoryおよびPhase 10全体Responsive再編は後続へ残す。
+
+UserからCurrent Working Tree Backup完了の報告を受領済みであり、Phase 9-3 Entry Backupは`COMPLETE`。Source実装は未開始で、Codex／Claude間のExact Handoff作成後にUser Relayで開始する。
 
 ## Controller再Review追記 — 2026-09-04 22:41 JST
 

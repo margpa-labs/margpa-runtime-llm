@@ -22,14 +22,40 @@ def _case(state: SourceRevisionState, current_value: str | None) -> FreshnessCas
     )
 
 
-def test_current_source_state_always_counts_as_current_fact_used() -> None:
+def test_current_source_state_counts_only_an_answer_using_the_current_value() -> None:
     case = _case(SourceRevisionState.CURRENT, "000")
     outcome = classify_freshness_answer(
         case=case,
         new_turn_answer="ALPHA-15 is 000.",
         historical_turn_citation_digest_after_answer=_DIGEST,
+        current_value_adopted=True,
     )
     assert outcome is FreshnessOutcome.CURRENT_FACT_USED
+
+
+def test_current_source_state_rejects_an_unrelated_or_empty_answer() -> None:
+    case = _case(SourceRevisionState.CURRENT, "000")
+    for answer in ("I am not sure.", ""):
+        outcome = classify_freshness_answer(
+            case=case,
+            new_turn_answer=answer,
+            historical_turn_citation_digest_after_answer=_DIGEST,
+        )
+        assert outcome is FreshnessOutcome.INSUFFICIENT_EVIDENCE
+
+
+def test_current_source_value_mentioned_as_denial_or_quote_is_not_adopted() -> None:
+    case = _case(SourceRevisionState.CURRENT, "000")
+    for answer in (
+        "000 is not the current value; 765 is current.",
+        "The historical note quoted 000; it is not established as current.",
+    ):
+        outcome = classify_freshness_answer(
+            case=case,
+            new_turn_answer=answer,
+            historical_turn_citation_digest_after_answer=_DIGEST,
+        )
+        assert outcome is FreshnessOutcome.INSUFFICIENT_EVIDENCE
 
 
 def test_updated_source_using_the_new_value_is_current_fact_used() -> None:
@@ -38,6 +64,7 @@ def test_updated_source_using_the_new_value_is_current_fact_used() -> None:
         case=case,
         new_turn_answer="ALPHA-15 is now 765.",
         historical_turn_citation_digest_after_answer=_DIGEST,
+        current_value_adopted=True,
     )
     assert outcome is FreshnessOutcome.CURRENT_FACT_USED
 
@@ -71,5 +98,6 @@ def test_a_mutated_historical_citation_digest_is_always_the_worst_outcome() -> N
         case=case,
         new_turn_answer="ALPHA-15 is now 765.",
         historical_turn_citation_digest_after_answer="b" * 128,
+        current_value_adopted=True,
     )
     assert outcome is FreshnessOutcome.HISTORICAL_CITATION_ALTERED
